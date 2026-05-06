@@ -1,0 +1,1798 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>World Explorer</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;background:#060d1a;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+
+/* ── Two screens ── */
+#globe-screen{position:absolute;inset:0;z-index:1}
+#map-screen{position:absolute;inset:0;z-index:1;display:none}
+#map-screen.active{display:block}
+
+/* ── Globe SVG ── */
+svg#globe{display:block;width:100%;height:100%}
+#ov{position:absolute;border-radius:50%;pointer-events:none;z-index:3;display:none}
+.sphere{fill:url(#oceanGrad)}
+.land{stroke-width:.5;cursor:pointer}
+.land:hover{filter:brightness(1.18)}
+.land.sel{stroke:#60a5fa!important;stroke-width:2.5!important}
+.graticule{fill:none;stroke:rgba(255,255,255,.055);stroke-width:.3}
+.border{fill:none;stroke:rgba(0,0,0,.35);stroke-width:.45}
+
+/* ── Map screen header ── */
+#map-header{
+  position:absolute;top:0;left:0;right:0;z-index:500;
+  display:flex;align-items:center;gap:10px;padding:10px 14px;
+  background:linear-gradient(to bottom,rgba(0,0,0,.85) 0%,transparent 100%);
+  pointer-events:none;
+}
+#map-header>*{pointer-events:all}
+#back-btn{
+  display:flex;align-items:center;gap:6px;padding:7px 14px;
+  background:rgba(4,8,18,.88);backdrop-filter:blur(14px);
+  border:1px solid rgba(255,255,255,.15);border-radius:10px;
+  color:rgba(255,255,255,.85);font-size:12px;cursor:pointer;
+  transition:background .12s;white-space:nowrap;
+}
+#back-btn:hover{background:rgba(255,255,255,.1);color:#fff}
+#map-country-name{font-size:15px;font-weight:600;color:#fff}
+
+/* ── Map layer switcher ── */
+#map-layers{
+  position:absolute;top:14px;right:14px;z-index:500;
+  display:flex;flex-direction:column;gap:5px;
+}
+.ml-btn{
+  padding:7px 13px;border-radius:9px;
+  background:rgba(4,8,18,.88);backdrop-filter:blur(14px);
+  border:1px solid rgba(255,255,255,.14);
+  color:rgba(255,255,255,.65);font-size:12px;font-weight:500;
+  cursor:pointer;font-family:inherit;transition:all .12s;white-space:nowrap;
+  text-align:left;
+}
+.ml-btn:hover{background:rgba(255,255,255,.1);color:#fff}
+.ml-btn.on{background:rgba(96,165,250,.2);border-color:#60a5fa;color:#93c5fd}
+
+/* ── Globe UI ── */
+#sw{position:absolute;top:14px;left:50%;transform:translateX(-50%);z-index:20;width:min(420px,86vw)}
+#si{width:100%;padding:10px 16px;background:rgba(4,8,18,.92);backdrop-filter:blur(18px);
+  border:1px solid rgba(255,255,255,.14);border-radius:13px;color:#fff;font-size:14px;
+  outline:none;font-family:inherit;box-shadow:0 4px 24px rgba(0,0,0,.55)}
+#si::placeholder{color:rgba(255,255,255,.28)}
+#si:focus{border-color:rgba(96,165,250,.55)}
+#sr{position:absolute;top:calc(100%+5px);left:0;right:0;background:rgba(4,8,18,.97);
+  border:1px solid rgba(255,255,255,.11);border-radius:11px;overflow:hidden;
+  display:none;z-index:21;box-shadow:0 10px 36px rgba(0,0,0,.65)}
+.ri{padding:9px 13px;cursor:pointer;display:flex;align-items:center;gap:9px;
+  border-bottom:1px solid rgba(255,255,255,.05);font-size:13px;color:rgba(255,255,255,.85)}
+.ri:last-child{border-bottom:none}
+.ri:hover{background:rgba(255,255,255,.07)}
+.ri-sub{font-size:11px;color:rgba(255,255,255,.32);margin-top:1px}
+
+#globe-btn{position:absolute;top:14px;right:14px;z-index:20;width:42px;height:42px;
+  border-radius:11px;background:rgba(4,8,18,.92);backdrop-filter:blur(18px);
+  border:1px solid rgba(255,255,255,.14);color:rgba(255,255,255,.7);font-size:19px;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;}
+#globe-btn:hover{background:rgba(255,255,255,.1);color:#fff}
+#hint{position:absolute;bottom:14px;right:14px;z-index:5;background:rgba(4,8,18,.75);
+  border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:4px 10px;
+  font-size:11px;color:rgba(255,255,255,.35);pointer-events:none}
+
+/* ── Layers button (OSM style, on globe screen) ── */
+#layers-btn{position:absolute;bottom:52px;right:14px;z-index:20;
+  width:44px;height:44px;border-radius:8px;background:#fff;
+  border:2px solid rgba(0,0,0,.25);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 2px 8px rgba(0,0,0,.35)}
+#layers-btn:hover{background:#f0f0f0}
+#layers-btn svg{width:26px;height:26px}
+
+/* ── Layers popup ── */
+#layers-pop{position:absolute;bottom:102px;right:14px;z-index:21;
+  background:#fff;border:1px solid #ccc;border-radius:8px;
+  box-shadow:0 4px 20px rgba(0,0,0,.3);display:none;width:160px;overflow:hidden}
+#layers-pop.show{display:block}
+.lp-title{padding:8px 12px;font-size:10px;font-weight:700;color:#555;
+  background:#f5f5f5;border-bottom:1px solid #ddd;text-transform:uppercase;letter-spacing:.06em}
+.lp-item{display:flex;align-items:center;gap:9px;padding:9px 12px;cursor:pointer;
+  border-bottom:1px solid #f0f0f0;font-size:13px;color:#333;transition:background .1s}
+.lp-item:last-child{border-bottom:none}
+.lp-item:hover{background:#f0f7ff}
+.lp-item.on{background:#e8f4ff;color:#1a6bc4;font-weight:500}
+.lp-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0;border:1px solid rgba(0,0,0,.15)}
+
+/* ── Info card ── */
+#ic{position:absolute;bottom:14px;left:14px;z-index:30;
+  width:280px;background:rgba(3,6,18,.96);border:1px solid rgba(255,255,255,.12);
+  border-radius:14px;padding:12px 14px;display:none;box-shadow:0 10px 32px rgba(0,0,0,.85)}
+#ic-x{position:absolute;top:9px;right:10px;width:20px;height:20px;border-radius:50%;
+  background:rgba(255,255,255,.08);border:none;color:rgba(255,255,255,.45);font-size:13px;
+  cursor:pointer;display:flex;align-items:center;justify-content:center}
+#ic-x:hover{background:rgba(255,255,255,.15);color:#fff}
+#ic-top{display:flex;gap:8px;margin-bottom:8px;align-items:flex-start}
+#ic-flag{font-size:22px;line-height:1;flex-shrink:0}
+#ic-name{font-size:14px;font-weight:700;color:#fff}
+#ic-sub{font-size:10px;margin-top:2px;display:flex;gap:3px;flex-wrap:wrap}
+#ic-sub span{background:rgba(255,255,255,.07);color:rgba(255,255,255,.55);padding:1px 6px;border-radius:20px}
+#ic-stats{display:grid;grid-template-columns:repeat(2,1fr);gap:4px;margin-bottom:6px}
+.st{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.07);
+  border-radius:7px;padding:5px 4px;text-align:center}
+.sl{font-size:7px;text-transform:uppercase;letter-spacing:.07em;color:rgba(255,255,255,.28);margin-bottom:2px}
+.sv{font-size:11px;font-weight:600;color:#fff}
+#ic-ex{display:flex;flex-direction:column;gap:4px}
+.er{background:rgba(255,255,255,.04);border-radius:6px;padding:4px 8px;
+  display:flex;justify-content:space-between;align-items:center;gap:8px}
+.el{font-size:7px;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.28);flex-shrink:0}
+.ev{font-size:10px;font-weight:500;color:rgba(255,255,255,.78);text-align:right}
+.er.wide{}
+
+/* Infrastructure legend */
+#infra-legend{
+  position:absolute;bottom:14px;left:14px;z-index:500;
+  background:rgba(3,6,18,.94);border:1px solid rgba(255,255,255,.12);
+  border-radius:12px;padding:12px 14px;display:none;min-width:200px;
+  box-shadow:0 8px 28px rgba(0,0,0,.6);
+}
+#infra-legend.visible{display:block}
+#infra-legend-title{font-size:11px;font-weight:700;color:#fff;margin-bottom:8px;letter-spacing:.04em}
+.hl-row{display:flex;align-items:center;gap:8px;font-size:11px;color:rgba(255,255,255,.75);padding:2px 0}
+.hl-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+#infra-status{margin-top:8px;font-size:10px;color:rgba(255,255,255,.4);font-style:italic;min-height:14px}
+#leaflet-map{width:100%;height:100%}
+.leaflet-control-zoom a{
+  background:rgba(4,8,18,.88)!important;color:rgba(255,255,255,.7)!important;
+  border-color:rgba(255,255,255,.15)!important;backdrop-filter:blur(12px)}
+.leaflet-control-zoom a:hover{background:rgba(255,255,255,.1)!important;color:#fff!important}
+.leaflet-control-attribution{
+  background:rgba(0,0,0,.5)!important;color:rgba(255,255,255,.4)!important;font-size:9px!important}
+.leaflet-control-attribution a{color:rgba(255,255,255,.55)!important}
+
+/* Dark mode — grayscale invert of OSM = clean dark map */
+#leaflet-map.mode-dark .leaflet-tile-pane{
+  filter:grayscale(1) invert(1) brightness(1.05);
+}
+
+/* ── Loading ── */
+#loading{position:absolute;inset:0;background:#060d1a;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;z-index:100;color:rgba(255,255,255,.55);
+  font-size:16px;gap:10px}
+#loading p{font-size:13px;color:rgba(255,255,255,.28)}
+#err{display:none;text-align:center;margin-top:8px}
+#err span{color:#f87171;font-size:14px;display:block;margin-bottom:10px}
+#err button{padding:8px 20px;background:#3b82f6;border:none;border-radius:8px;
+  color:#fff;font-size:13px;cursor:pointer}
+</style>
+</head>
+<body>
+
+<div id="loading">
+  <div>&#127758; World Explorer</div>
+  <p>Loading map data...</p>
+  <div id="err">
+    <span>Could not load map data.</span>
+    <button onclick="location.reload()">Retry</button>
+  </div>
+</div>
+
+<!-- SCREEN 1: Globe -->
+<div id="globe-screen">
+  <svg id="globe"></svg>
+  <div id="ov"></div>
+  <div id="sw">
+    <input id="si" placeholder="Search countries..." autocomplete="off" spellcheck="false">
+    <div id="sr"></div>
+  </div>
+  <button id="globe-btn">&#8853;</button>
+  <div id="hint">drag to rotate</div>
+  <button id="layers-btn" title="Map layers">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="1.8"
+         stroke-linecap="round" stroke-linejoin="round">
+      <polygon points="12,2 22,8.5 12,15 2,8.5"/>
+      <polyline points="2,12 12,18.5 22,12"/>
+      <polyline points="2,15.5 12,22 22,15.5"/>
+    </svg>
+  </button>
+  <div id="layers-pop">
+    <div class="lp-title">Map View</div>
+    <div class="lp-item" data-mapview="streets">
+      <div class="lp-dot" style="background:#c8dca0;border-color:#a0b878"></div>Streets
+    </div>
+    <div class="lp-item" data-mapview="topo">
+      <div class="lp-dot" style="background:linear-gradient(135deg,#2a6b3a,#8ab06a,#c4a35a)"></div>Satellite Terrain
+    </div>
+    <div class="lp-item" data-mapview="dark">
+      <div class="lp-dot" style="background:#1a2030;border-color:#0a0e1a"></div>Dark / Lights
+    </div>
+    <div class="lp-item" data-mapview="health">
+      <div class="lp-dot" style="background:#ef4444;border-color:#b91c1c"></div>Health
+    </div>
+    <div class="lp-item" data-mapview="supply">
+      <div class="lp-dot" style="background:#06b6d4;border-color:#0284a5"></div>Supply Chain
+    </div>
+    <div class="lp-item" data-mapview="energy">
+      <div class="lp-dot" style="background:#fbbf24;border-color:#d97706"></div>Energy
+    </div>
+  </div>
+  <div id="ic">
+    <button id="ic-x">&#215;</button>
+    <div id="ic-top">
+      <div id="ic-flag"></div>
+      <div><div id="ic-name"></div><div id="ic-sub"></div></div>
+    </div>
+    <div id="ic-stats"></div>
+    <div id="ic-ex"></div>
+  </div>
+</div>
+
+<!-- SCREEN 2: Full Leaflet Map -->
+<div id="map-screen">
+  <div id="leaflet-map"></div>
+  <div id="map-header">
+    <button id="back-btn">&#8592; Globe</button>
+    <span id="map-country-name"></span>
+  </div>
+  <div id="map-layers">
+    <button class="ml-btn on" data-tile="streets">&#128506; Streets</button>
+    <button class="ml-btn" data-tile="topo">&#127759; Terrain</button>
+    <button class="ml-btn" data-tile="dark">&#127769; Lights</button>
+    <button class="ml-btn infra-btn" data-tile="health">&#127973; Health</button>
+    <button class="ml-btn infra-btn" data-tile="supply">&#128666; Supply Chain</button>
+    <button class="ml-btn infra-btn" data-tile="energy">&#9889; Energy</button>
+  </div>
+
+  <!-- Infrastructure legend (shared, populated dynamically) -->
+  <div id="infra-legend">
+    <div id="infra-legend-title"></div>
+    <div id="infra-legend-items"></div>
+    <div id="infra-status"></div>
+  </div>
+</div>
+
+<script>
+function loadJS(src, cb) {
+  var s = document.createElement('script'); s.src = src;
+  s.onload = cb;
+  s.onerror = function(){
+    document.getElementById('err').style.display = 'block';
+    document.querySelector('#loading > div').textContent = 'Could not load map library.';
+  };
+  document.head.appendChild(s);
+}
+
+// Wait for Leaflet (from <head>), then load D3/TopoJSON
+(function waitReady(){
+  if (window.L && !window.d3) {
+    loadJS('https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js', function(){
+      loadJS('https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js', startApp);
+    });
+  } else if (window.L && window.d3 && window.topojson) {
+    startApp();
+  } else {
+    setTimeout(waitReady, 40);
+  }
+})();
+
+function startApp() {
+
+// ══════════════════════════════════
+// DATA
+// ══════════════════════════════════
+var C = {
+  AFG:{n:"Afghanistan",f:"&#127462;&#127467;",c:"Kabul",p:40099462,a:652230,r:"Asia",g:352,lat:33.9,lng:67.7,b:[[29,60],[38,75]]},
+  DZA:{n:"Algeria",f:"&#127465;&#127487;",c:"Algiers",p:44177969,a:2381741,r:"Africa",g:3765,lat:28,lng:2.6,b:[[18,-8],[37,12]]},
+  ARG:{n:"Argentina",f:"&#127462;&#127479;",c:"Buenos Aires",p:45195777,a:2780400,r:"Americas",g:10636,lat:-38.4,lng:-63.6,b:[[-55,-74],[-21,-53]]},
+  AUS:{n:"Australia",f:"&#127462;&#127482;",c:"Canberra",p:25788215,a:7692024,r:"Oceania",g:54890,lat:-25.3,lng:133.8,b:[[-44,113],[-10,154]]},
+  AUT:{n:"Austria",f:"&#127462;&#127481;",c:"Vienna",p:9006400,a:83871,r:"Europe",g:51512,lat:47.5,lng:14.5,b:[[46,9],[49,18]]},
+  BGD:{n:"Bangladesh",f:"&#127463;&#127465;",c:"Dhaka",p:169356251,a:147570,r:"Asia",g:2689,lat:23.7,lng:90.4,b:[[20,88],[26,92]]},
+  BEL:{n:"Belgium",f:"&#127463;&#127466;",c:"Brussels",p:11589623,a:30528,r:"Europe",g:47519,lat:50.5,lng:4.5,b:[[49,2],[51,7]]},
+  BRA:{n:"Brazil",f:"&#127463;&#127479;",c:"Brasilia",p:214326223,a:8515767,r:"Americas",g:8857,lat:-14.2,lng:-51.9,b:[[-34,-74],[5,-35]]},
+  CAN:{n:"Canada",f:"&#127464;&#127462;",c:"Ottawa",p:38246108,a:9984670,r:"Americas",g:52051,lat:56.1,lng:-106.3,b:[[42,-141],[83,-52]]},
+  CHL:{n:"Chile",f:"&#127464;&#127473;",c:"Santiago",p:19116201,a:756102,r:"Americas",g:15256,lat:-35.7,lng:-71.5,b:[[-56,-76],[-17,-66]]},
+  CHN:{n:"China",f:"&#127464;&#127475;",c:"Beijing",p:1412600000,a:9596960,r:"Asia",g:12556,lat:35.9,lng:104.2,b:[[18,73],[53,135]]},
+  COL:{n:"Colombia",f:"&#127464;&#127476;",c:"Bogota",p:50882891,a:1141748,r:"Americas",g:6104,lat:4.6,lng:-74.3,b:[[-4,-79],[13,-66]]},
+  COD:{n:"DR Congo",f:"&#127464;&#127465;",c:"Kinshasa",p:99010212,a:2344858,r:"Africa",g:571,lat:-2.9,lng:23.7,b:[[-13,12],[5,31]]},
+  CZE:{n:"Czech Republic",f:"&#127464;&#127487;",c:"Prague",p:10736784,a:78866,r:"Europe",g:26385,lat:49.8,lng:15.5,b:[[48,12],[51,19]]},
+  DNK:{n:"Denmark",f:"&#127465;&#127472;",c:"Copenhagen",p:5831404,a:43094,r:"Europe",g:67218,lat:56.3,lng:9.5,b:[[54,8],[58,15]]},
+  EGY:{n:"Egypt",f:"&#127466;&#127468;",c:"Cairo",p:104124440,a:1001450,r:"Africa",g:3699,lat:26.8,lng:30.8,b:[[22,25],[32,37]]},
+  ETH:{n:"Ethiopia",f:"&#127466;&#127481;",c:"Addis Ababa",p:120283026,a:1104300,r:"Africa",g:935,lat:9.1,lng:40.5,b:[[3,33],[15,48]]},
+  FIN:{n:"Finland",f:"&#127467;&#127470;",c:"Helsinki",p:5540745,a:338145,r:"Europe",g:49334,lat:64,lng:26,b:[[59,19],[70,32]]},
+  FRA:{n:"France",f:"&#127467;&#127479;",c:"Paris",p:67391582,a:551695,r:"Europe",g:43659,lat:46.2,lng:2.2,b:[[42,-5],[51,8]]},
+  DEU:{n:"Germany",f:"&#127465;&#127466;",c:"Berlin",p:83240525,a:357114,r:"Europe",g:51204,lat:51.2,lng:10.5,b:[[47,6],[55,15]]},
+  GHA:{n:"Ghana",f:"&#127468;&#127469;",c:"Accra",p:32395450,a:238533,r:"Africa",g:2392,lat:7.9,lng:-1,b:[[4,-4],[11,1]]},
+  GRC:{n:"Greece",f:"&#127468;&#127479;",c:"Athens",p:10678632,a:131957,r:"Europe",g:19673,lat:39.1,lng:21.8,b:[[34,19],[42,29]]},
+  HUN:{n:"Hungary",f:"&#127469;&#127482;",c:"Budapest",p:9749763,a:93028,r:"Europe",g:18553,lat:47.2,lng:19.5,b:[[45,16],[48,23]]},
+  IND:{n:"India",f:"&#127470;&#127475;",c:"New Delhi",p:1393409038,a:3287263,r:"Asia",g:2257,lat:20.6,lng:78.9,b:[[8,68],[37,97]]},
+  IDN:{n:"Indonesia",f:"&#127470;&#127465;",c:"Jakarta",p:273523615,a:1904569,r:"Asia",g:4333,lat:-0.8,lng:113.9,b:[[-11,95],[6,141]]},
+  IRN:{n:"Iran",f:"&#127470;&#127479;",c:"Tehran",p:85028759,a:1648195,r:"Asia",g:6986,lat:32.4,lng:53.7,b:[[25,44],[40,64]]},
+  IRQ:{n:"Iraq",f:"&#127470;&#127478;",c:"Baghdad",p:41179350,a:438317,r:"Asia",g:5035,lat:33.2,lng:43.7,b:[[29,38],[37,49]]},
+  IRL:{n:"Ireland",f:"&#127470;&#127466;",c:"Dublin",p:5056935,a:70273,r:"Europe",g:99013,lat:53.4,lng:-8.2,b:[[51,-10],[55,-6]]},
+  ISR:{n:"Israel",f:"&#127470;&#127473;",c:"Jerusalem",p:9216900,a:20770,r:"Asia",g:44474,lat:31,lng:34.9,b:[[29,34],[33,36]]},
+  ITA:{n:"Italy",f:"&#127470;&#127481;",c:"Rome",p:60367477,a:301336,r:"Europe",g:34776,lat:41.9,lng:12.6,b:[[36,6],[47,19]]},
+  JPN:{n:"Japan",f:"&#127471;&#127477;",c:"Tokyo",p:125681593,a:377975,r:"Asia",g:42928,lat:36.2,lng:138.3,b:[[30,130],[45,145]]},
+  KAZ:{n:"Kazakhstan",f:"&#127472;&#127487;",c:"Nur-Sultan",p:19000000,a:2724900,r:"Asia",g:9756,lat:48,lng:66.9,b:[[40,50],[55,87]]},
+  KEN:{n:"Kenya",f:"&#127472;&#127466;",c:"Nairobi",p:54985698,a:580367,r:"Africa",g:1943,lat:0,lng:37.9,b:[[-5,34],[5,42]]},
+  KOR:{n:"South Korea",f:"&#127472;&#127479;",c:"Seoul",p:51744876,a:100210,r:"Asia",g:31497,lat:35.9,lng:127.8,b:[[34,125],[38,130]]},
+  MYS:{n:"Malaysia",f:"&#127474;&#127486;",c:"Kuala Lumpur",p:32776194,a:329847,r:"Asia",g:11414,lat:4.2,lng:108,b:[[1,99],[7,119]]},
+  MEX:{n:"Mexico",f:"&#127474;&#127485;",c:"Mexico City",p:130262216,a:1964375,r:"Americas",g:10045,lat:23.6,lng:-102.5,b:[[14,-118],[33,-86]]},
+  MAR:{n:"Morocco",f:"&#127474;&#127462;",c:"Rabat",p:37344795,a:710850,r:"Africa",g:3352,lat:31.8,lng:-7.1,b:[[27,-14],[36,-1]]},
+  NLD:{n:"Netherlands",f:"&#127475;&#127473;",c:"Amsterdam",p:17590672,a:41543,r:"Europe",g:57225,lat:52.1,lng:5.3,b:[[50,3],[54,7]]},
+  NZL:{n:"New Zealand",f:"&#127475;&#127487;",c:"Wellington",p:5122600,a:270467,r:"Oceania",g:42085,lat:-41,lng:174.9,b:[[-47,166],[-34,178]]},
+  NGA:{n:"Nigeria",f:"&#127475;&#127468;",c:"Abuja",p:218541212,a:923768,r:"Africa",g:2066,lat:9.1,lng:8.7,b:[[4,2],[14,15]]},
+  NOR:{n:"Norway",f:"&#127475;&#127476;",c:"Oslo",p:5408320,a:385207,r:"Europe",g:89090,lat:64.5,lng:17.9,b:[[57,4],[71,31]]},
+  PAK:{n:"Pakistan",f:"&#127477;&#127472;",c:"Islamabad",p:225199937,a:881912,r:"Asia",g:1541,lat:30.4,lng:69.3,b:[[23,60],[37,77]]},
+  PER:{n:"Peru",f:"&#127477;&#127466;",c:"Lima",p:33359418,a:1285216,r:"Americas",g:6622,lat:-9.2,lng:-75,b:[[-18,-81],[0,-68]]},
+  PHL:{n:"Philippines",f:"&#127477;&#127469;",c:"Manila",p:111046913,a:342353,r:"Asia",g:3512,lat:12.9,lng:121.8,b:[[4,117],[21,127]]},
+  POL:{n:"Poland",f:"&#127477;&#127473;",c:"Warsaw",p:37950802,a:312679,r:"Europe",g:18072,lat:52,lng:19.1,b:[[49,14],[54,24]]},
+  PRT:{n:"Portugal",f:"&#127477;&#127481;",c:"Lisbon",p:10305564,a:92212,r:"Europe",g:24074,lat:39.4,lng:-8.2,b:[[37,-9],[42,-6]]},
+  ROU:{n:"Romania",f:"&#127479;&#127476;",c:"Bucharest",p:19009020,a:238397,r:"Europe",g:13108,lat:45.9,lng:24.9,b:[[43,20],[48,30]]},
+  RUS:{n:"Russia",f:"&#127479;&#127482;",c:"Moscow",p:145912025,a:17098242,r:"Europe",g:11585,lat:61.5,lng:105.3,b:[[41,27],[82,170]]},
+  SAU:{n:"Saudi Arabia",f:"&#127480;&#127462;",c:"Riyadh",p:35950396,a:2149690,r:"Asia",g:23185,lat:23.9,lng:45.1,b:[[16,34],[32,56]]},
+  ZAF:{n:"South Africa",f:"&#127487;&#127462;",c:"Pretoria",p:60041994,a:1221037,r:"Africa",g:6994,lat:-30.6,lng:22.9,b:[[-35,16],[-22,33]]},
+  ESP:{n:"Spain",f:"&#127466;&#127480;",c:"Madrid",p:47415750,a:505990,r:"Europe",g:30103,lat:40.5,lng:-3.7,b:[[36,-9],[44,4]]},
+  SDN:{n:"Sudan",f:"&#127480;&#127465;",c:"Khartoum",p:44909353,a:1861484,r:"Africa",g:542,lat:15.6,lng:32.5,b:[[3,21],[23,39]]},
+  SWE:{n:"Sweden",f:"&#127480;&#127466;",c:"Stockholm",p:10379295,a:450295,r:"Europe",g:58977,lat:60.1,lng:18.6,b:[[55,11],[69,24]]},
+  CHE:{n:"Switzerland",f:"&#127464;&#127469;",c:"Bern",p:8654622,a:41285,r:"Europe",g:93520,lat:46.8,lng:8.2,b:[[45,5],[47,11]]},
+  TZA:{n:"Tanzania",f:"&#127481;&#127487;",c:"Dodoma",p:63298550,a:945087,r:"Africa",g:1089,lat:-6.4,lng:34.9,b:[[-12,29],[0,41]]},
+  THA:{n:"Thailand",f:"&#127481;&#127469;",c:"Bangkok",p:71601103,a:513120,r:"Asia",g:7233,lat:15.9,lng:100.9,b:[[5,97],[21,106]]},
+  TUR:{n:"Turkey",f:"&#127481;&#127479;",c:"Ankara",p:84339067,a:783562,r:"Asia",g:9661,lat:38.9,lng:35.2,b:[[36,26],[42,45]]},
+  UGA:{n:"Uganda",f:"&#127482;&#127468;",c:"Kampala",p:47123531,a:241037,r:"Africa",g:883,lat:1.4,lng:32.3,b:[[-1,29],[4,35]]},
+  UKR:{n:"Ukraine",f:"&#127482;&#127462;",c:"Kyiv",p:43531422,a:603548,r:"Europe",g:3727,lat:48.4,lng:31.2,b:[[44,22],[52,40]]},
+  ARE:{n:"UAE",f:"&#127462;&#127466;",c:"Abu Dhabi",p:9890402,a:83600,r:"Asia",g:43103,lat:23.4,lng:53.8,b:[[22,51],[26,56]]},
+  GBR:{n:"United Kingdom",f:"&#127468;&#127463;",c:"London",p:68207116,a:242900,r:"Europe",g:47334,lat:55.4,lng:-3.4,b:[[49,-8],[61,2]]},
+  USA:{n:"United States",f:"&#127482;&#127480;",c:"Washington DC",p:331449281,a:9833517,r:"Americas",g:70249,lat:37.1,lng:-95.7,b:[[24,-125],[50,-66]]},
+  VNM:{n:"Vietnam",f:"&#127483;&#127475;",c:"Hanoi",p:97338579,a:331212,r:"Asia",g:3757,lat:14.1,lng:108.3,b:[[8,102],[23,110]]},
+  ZMB:{n:"Zambia",f:"&#127487;&#127474;",c:"Lusaka",p:19470234,a:752618,r:"Africa",g:1097,lat:-13.1,lng:27.8,b:[[-18,22],[-8,34]]},
+  ZWE:{n:"Zimbabwe",f:"&#127487;&#127484;",c:"Harare",p:15091428,a:390757,r:"Africa",g:1200,lat:-19,lng:29.2,b:[[-22,25],[-15,33]]}
+};
+
+var EXTRA = {
+  USA:{lang:"English",cur:"USD",drive:"Right",un:1945,fact:"Largest economy by nominal GDP"},
+  GBR:{lang:"English",cur:"GBP",drive:"Left",un:1945,fact:"Birthplace of the World Wide Web"},
+  FRA:{lang:"French",cur:"EUR",drive:"Right",un:1945,fact:"Most visited country in the world"},
+  DEU:{lang:"German",cur:"EUR",drive:"Right",un:1973,fact:"Over 1,500 varieties of beer"},
+  JPN:{lang:"Japanese",cur:"JPY",drive:"Left",un:1956,fact:"Most vending machines per capita on earth"},
+  CHN:{lang:"Mandarin",cur:"CNY",drive:"Right",un:1945,fact:"4 of the world's 10 most populous cities"},
+  IND:{lang:"Hindi/English",cur:"INR",drive:"Left",un:1945,fact:"World's largest democracy"},
+  BRA:{lang:"Portuguese",cur:"BRL",drive:"Right",un:1945,fact:"Contains 60% of the Amazon rainforest"},
+  AUS:{lang:"English",cur:"AUD",drive:"Left",un:1945,fact:"Only country that is also a continent"},
+  CAN:{lang:"English/French",cur:"CAD",drive:"Right",un:1945,fact:"Has the world's longest coastline"},
+  RUS:{lang:"Russian",cur:"RUB",drive:"Right",un:1945,fact:"Spans 11 time zones"},
+  ITA:{lang:"Italian",cur:"EUR",drive:"Right",un:1955,fact:"Most UNESCO World Heritage Sites"},
+  ESP:{lang:"Spanish",cur:"EUR",drive:"Right",un:1955,fact:"Spanish spoken on every continent"},
+  NLD:{lang:"Dutch",cur:"EUR",drive:"Right",un:1945,fact:"25% of land lies below sea level"},
+  CHE:{lang:"4 official",cur:"CHF",drive:"Right",un:2002,fact:"Officially neutral since 1815"},
+  NOR:{lang:"Norwegian",cur:"NOK",drive:"Right",un:1945,fact:"World's largest sovereign wealth fund"},
+  KOR:{lang:"Korean",cur:"KRW",drive:"Right",un:1991,fact:"World's fastest internet speeds"},
+  ARE:{lang:"Arabic",cur:"AED",drive:"Right",un:1971,fact:"Home to the world's tallest building"},
+  NZL:{lang:"English/Maori",cur:"NZD",drive:"Left",un:1945,fact:"First to give women the right to vote"},
+  ZAF:{lang:"11 official",cur:"ZAR",drive:"Left",un:1945,fact:"Voluntarily dismantled its nuclear weapons"},
+  MEX:{lang:"Spanish",cur:"MXN",drive:"Right",un:1945,fact:"Birthplace of chocolate and chili"},
+  ARG:{lang:"Spanish",cur:"ARS",drive:"Right",un:1945,fact:"Highest peak in the Americas"},
+  EGY:{lang:"Arabic",cur:"EGP",drive:"Right",un:1945,fact:"Home to the only surviving ancient Wonder"},
+  SAU:{lang:"Arabic",cur:"SAR",drive:"Right",un:1945,fact:"Second largest proven oil reserves"},
+  TUR:{lang:"Turkish",cur:"TRY",drive:"Right",un:1945,fact:"Sits on two continents"},
+  IDN:{lang:"Indonesian",cur:"IDR",drive:"Left",un:1950,fact:"World's largest archipelago"}
+};
+
+var NUM = {
+  "004":"AFG","012":"DZA","032":"ARG","036":"AUS","040":"AUT","050":"BGD","056":"BEL",
+  "076":"BRA","124":"CAN","152":"CHL","156":"CHN","170":"COL","180":"COD","203":"CZE",
+  "208":"DNK","818":"EGY","231":"ETH","246":"FIN","250":"FRA","276":"DEU","288":"GHA",
+  "300":"GRC","348":"HUN","356":"IND","360":"IDN","364":"IRN","368":"IRQ","372":"IRL",
+  "376":"ISR","380":"ITA","392":"JPN","398":"KAZ","404":"KEN","410":"KOR","458":"MYS",
+  "484":"MEX","504":"MAR","524":"NPL","528":"NLD","554":"NZL","566":"NGA","578":"NOR",
+  "586":"PAK","604":"PER","608":"PHL","616":"POL","620":"PRT","642":"ROU","643":"RUS",
+  "682":"SAU","710":"ZAF","724":"ESP","729":"SDN","752":"SWE","756":"CHE","834":"TZA",
+  "764":"THA","792":"TUR","800":"UGA","804":"UKR","784":"ARE","826":"GBR","840":"USA",
+  "704":"VNM","894":"ZMB","716":"ZWE"
+};
+
+var BIOME = {
+  DZA:"desert",EGY:"desert",SDN:"desert",SAU:"desert",ARE:"desert",
+  IRN:"steppe",IRQ:"steppe",MAR:"steppe",UKR:"steppe",KAZ:"steppe",
+  COD:"tropical",BRA:"tropical",IDN:"tropical",MYS:"tropical",VNM:"tropical",
+  THA:"tropical",BGD:"tropical",IND:"tropical",GHA:"tropical",NGA:"tropical",UGA:"tropical",
+  USA:"temperate",GBR:"temperate",FRA:"temperate",DEU:"temperate",POL:"temperate",
+  CZE:"temperate",AUT:"temperate",CHE:"temperate",BEL:"temperate",NLD:"temperate",DNK:"temperate",
+  CAN:"boreal",SWE:"boreal",NOR:"boreal",FIN:"boreal",RUS:"boreal",
+  ESP:"mediterranean",PRT:"mediterranean",ITA:"mediterranean",GRC:"mediterranean",TUR:"mediterranean",
+  CHN:"mixed",JPN:"temperate",KOR:"temperate",ZAF:"mixed",AUS:"mixed",NZL:"temperate",
+  ARG:"steppe",CHL:"temperate",KEN:"savanna",ETH:"savanna",TZA:"savanna",ZMB:"savanna",ZWE:"savanna"
+};
+
+var GLOBE_STYLES = {
+  biome:{
+    ocean:"url(#oceanGrad)",grat:"rgba(255,255,255,.055)",ov:true,
+    colors:{desert:"#c8a96e",steppe:"#9aab6e",sahel:"#b8935a",savanna:"#7a9e52",
+      tropical:"#2d6b35",temperate:"#4a7c44",boreal:"#3a6b5a",mediterranean:"#7ea858",
+      mixed:"#5a8848",def:"#4a7040"}
+  },
+  topo:{
+    ocean:"#1a3a5c",grat:"rgba(255,255,255,.08)",ov:true,
+    colors:{desert:"#d4b483",steppe:"#a8b878",sahel:"#c4a068",savanna:"#8aaa5a",
+      tropical:"#3a7a30",temperate:"#5a8a48",boreal:"#3a6a5a",mediterranean:"#8ab860",
+      mixed:"#6a8a50",def:"#5a7a42"}
+  },
+  plain:{
+    ocean:"#a8c4d8",grat:"rgba(0,0,0,.06)",ov:false,
+    colors:{desert:"#f2e8c8",steppe:"#e0e8c0",sahel:"#e8d8a8",savanna:"#d0e0a0",
+      tropical:"#c8dca0",temperate:"#d8e8c0",boreal:"#c8e0d0",mediterranean:"#d8e8b0",
+      mixed:"#d0e0b8",def:"#d4e4b8"}
+  },
+  dark:{
+    ocean:"#060d1a",grat:"rgba(255,255,255,.03)",ov:false,
+    colors:{desert:"#1e1a10",steppe:"#141a0c",sahel:"#181408",savanna:"#101808",
+      tropical:"#081408",temperate:"#0c1608",boreal:"#081210",mediterranean:"#101608",
+      mixed:"#0c1408",def:"#0a1208"}
+  }
+};
+
+function fmt(n){
+  if(!n&&n!==0)return'--';
+  if(n>=1e9)return(n/1e9).toFixed(1)+'B';
+  if(n>=1e6)return(n/1e6).toFixed(1)+'M';
+  if(n>=1e3)return Math.round(n/1e3)+'K';
+  return n.toLocaleString();
+}
+
+// ══════════════════════════════════
+// LEAFLET MAP
+// ══════════════════════════════════
+var leafMap = null, leafTiles = [], selCode = null;
+
+var TILE_SOURCES = {
+  streets:{
+    layers:[{
+      url:'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+      opt:{attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',maxZoom:19,subdomains:'abc'}
+    }]
+  },
+  dark:{
+    layers:[{
+      url:'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+      opt:{attribution:'&copy; OpenStreetMap contributors',maxZoom:19,subdomains:'abc'}
+    }],
+    darkMode: true
+  },
+  topo:{
+    layers:[{
+      url:'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+      opt:{attribution:'&copy; OpenStreetMap contributors',maxZoom:19,subdomains:'abc'}
+    }],
+    filter:'saturate(6) brightness(0.52) contrast(2.2) hue-rotate(-15deg)'
+  },
+  health:{
+    layers:[{
+      url:'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+      opt:{attribution:'&copy; OpenStreetMap contributors',maxZoom:19,subdomains:'abc'}
+    }]
+  },
+  supply:{
+    layers:[{
+      url:'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+      opt:{attribution:'&copy; OpenStreetMap contributors',maxZoom:19,subdomains:'abc'}
+    }],
+    filter:'saturate(0.45) brightness(1.08) contrast(1.05)'
+  },
+  energy:{
+    layers:[{
+      url:'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+      opt:{attribution:'&copy; OpenStreetMap contributors',maxZoom:19,subdomains:'abc'}
+    }],
+    darkMode: true
+  }
+};
+
+// ══════════════════════════════════
+// INFRASTRUCTURE ENGINE
+// Health · Supply Chain · Energy
+// ══════════════════════════════════
+
+var INFRA = {
+  health:{
+    title:'&#127973; Health Infrastructure',
+    globeStyle:'biome',
+    types:{
+      hospital:   {color:'#ef4444',r:9, label:'Hospital'},
+      clinic:     {color:'#f97316',r:6, label:'Clinic / Doctor'},
+      pharmacy:   {color:'#a855f7',r:5, label:'Pharmacy'},
+      govt:       {color:'#3b82f6',r:8, label:'Govt / Research'},
+      other:      {color:'#10b981',r:5, label:'Other Health'}
+    },
+    classify:function(tags){
+      var am=(tags.amenity||'').toLowerCase();
+      var hc=(tags.healthcare||'').toLowerCase();
+      var nm=(tags.name||'').toLowerCase();
+      if(nm.match(/cdc|who|national institute|ministry of health|public health|research cent|pharma/)) return 'govt';
+      if(am==='hospital'||hc==='hospital') return 'hospital';
+      if(am==='pharmacy'||hc==='pharmacy') return 'pharmacy';
+      if(am==='clinic'||am==='doctors'||hc==='clinic'||hc==='doctor') return 'clinic';
+      return 'other';
+    },
+    query:function(bbox){
+      return '[out:json][timeout:25];('
+        +'node["amenity"="hospital"]["name"]('+bbox+');'
+        +'node["amenity"="clinic"]["name"]('+bbox+');'
+        +'node["amenity"="pharmacy"]["name"]('+bbox+');'
+        +'node["amenity"="doctors"]["name"]('+bbox+');'
+        +'node["healthcare"]["name"]('+bbox+');'
+        +');out 300;';
+    }
+  },
+
+  supply:{
+    title:'&#128666; Supply Chain Infrastructure',
+    globeStyle:'plain',
+    types:{
+      airport:    {color:'#06b6d4',r:10,label:'Airport'},
+      port:       {color:'#1d4ed8',r:9, label:'Port / Harbour'},
+      rail:       {color:'#92400e',r:7, label:'Rail Station'},
+      market:     {color:'#f59e0b',r:7, label:'Market / Trade'},
+      warehouse:  {color:'#6b7280',r:6, label:'Warehouse / Logistics'},
+      border:     {color:'#7c3aed',r:8, label:'Customs / Border'},
+      container:  {color:'#0891b2',r:8, label:'Container / Depot'},
+      other:      {color:'#84cc16',r:5, label:'Other Logistics'}
+    },
+    classify:function(tags){
+      var am=(tags.amenity||'').toLowerCase();
+      var ae=(tags.aeroway||'').toLowerCase();
+      var rw=(tags.railway||'').toLowerCase();
+      var bl=(tags.building||'').toLowerCase();
+      var sm=(tags['seamark:type']||'').toLowerCase();
+      var nm=(tags.name||'').toLowerCase();
+      if(ae==='aerodrome'||ae==='airport') return 'airport';
+      if(sm.match(/harbour|port/)||tags.harbour||tags.port) return 'port';
+      if(rw==='station') return 'rail';
+      if(am==='customs'||nm.match(/border|customs|immigration/)) return 'border';
+      if(nm.match(/container|depot|inland port|icd/)) return 'container';
+      if(am==='marketplace'||nm.match(/market|trade|wholesale|bazaar/)) return 'market';
+      if(bl==='warehouse'||nm.match(/warehouse|logistics|distribution|depot|storage/)) return 'warehouse';
+      return 'other';
+    },
+    query:function(bbox){
+      return '[out:json][timeout:25];('
+        +'node["aeroway"~"aerodrome|airport"]["name"]('+bbox+');'
+        +'way["aeroway"~"aerodrome|airport"]["name"]('+bbox+');'
+        +'node["amenity"="marketplace"]["name"]('+bbox+');'
+        +'node["amenity"="customs"]["name"]('+bbox+');'
+        +'node["railway"="station"]["name"]('+bbox+');'
+        +'node["building"="warehouse"]["name"]('+bbox+');'
+        +'node["harbour"]["name"]('+bbox+');'
+        +'node["seamark:type"~"harbour|port"]["name"]('+bbox+');'
+        +'node["man_made"="pier"]["name"]('+bbox+');'
+        +');out center 300;';
+    }
+  },
+
+  energy:{
+    title:'&#9889; Energy Infrastructure',
+    globeStyle:'dark',
+    types:{
+      plant:      {color:'#ef4444',r:11,label:'Power Plant'},
+      hydro:      {color:'#38bdf8',r:10,label:'Hydroelectric'},
+      geothermal: {color:'#ec4899',r:10,label:'Geothermal'},
+      solar:      {color:'#fbbf24',r:9, label:'Solar Farm'},
+      wind:       {color:'#34d399',r:8, label:'Wind Farm'},
+      substation: {color:'#f97316',r:7, label:'Substation'},
+      fuel:       {color:'#a78bfa',r:5, label:'Fuel Station'},
+      other:      {color:'#94a3b8',r:5, label:'Other Energy'}
+    },
+    classify:function(tags){
+      var pw=(tags.power||'').toLowerCase();
+      var gs=(tags['generator:source']||'').toLowerCase();
+      var ind=(tags.industrial||'').toLowerCase();
+      var am=(tags.amenity||'').toLowerCase();
+      var nm=(tags.name||'').toLowerCase();
+      if(pw==='plant'){
+        if(nm.match(/hydro|dam|falls/)||gs==='hydro') return 'hydro';
+        if(nm.match(/geotherm/)||gs==='geothermal') return 'geothermal';
+        return 'plant';
+      }
+      if(pw==='generator'){
+        if(gs.match(/solar/)) return 'solar';
+        if(gs.match(/wind/)) return 'wind';
+        if(gs.match(/hydro/)) return 'hydro';
+        if(gs.match(/geotherm/)) return 'geothermal';
+        return 'plant';
+      }
+      if(pw==='substation') return 'substation';
+      if(am==='fuel') return 'fuel';
+      if(ind==='refinery'||nm.match(/refin|pipeline/)) return 'plant';
+      return 'other';
+    },
+    query:function(bbox){
+      return '[out:json][timeout:25];('
+        +'node["power"="plant"]["name"]('+bbox+');'
+        +'way["power"="plant"]["name"]('+bbox+');'
+        +'node["power"="generator"]["name"]('+bbox+');'
+        +'way["power"="generator"]["name"]('+bbox+');'
+        +'node["power"="substation"]["name"]('+bbox+');'
+        +'way["power"="substation"]["name"]('+bbox+');'
+        +'node["amenity"="fuel"]["name"]('+bbox+');'
+        +'node["industrial"="refinery"]["name"]('+bbox+');'
+        +');out center 400;';
+    }
+  }
+};
+
+var infraMarkers = [];
+var currentInfraMode = null;
+
+function makeInfraIcon(type, mode) {
+  var cfg = INFRA[mode].types[type] || INFRA[mode].types.other;
+  var r = cfg.r;
+  var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="'+(r*2+4)+'" height="'+(r*2+4)+'">'
+    + '<circle cx="'+(r+2)+'" cy="'+(r+2)+'" r="'+r+'" fill="'+cfg.color+'" fill-opacity=".92" stroke="#fff" stroke-width="1.5"/>'
+    + '</svg>';
+  return L.divIcon({
+    html:svg, className:'',
+    iconSize:[r*2+4,r*2+4], iconAnchor:[r+2,r+2], popupAnchor:[0,-(r+4)]
+  });
+}
+
+function clearInfraMarkers() {
+  infraMarkers.forEach(function(m){ if(leafMap) leafMap.removeLayer(m); });
+  infraMarkers = [];
+}
+
+function showInfraLegend(mode) {
+  var cfg = INFRA[mode];
+  document.getElementById('infra-legend-title').innerHTML = cfg.title;
+  document.getElementById('infra-legend-items').innerHTML = Object.entries(cfg.types).map(function(e){
+    return '<div class="hl-row"><span class="hl-dot" style="background:'+e[1].color+'"></span>'+e[1].label+'</div>';
+  }).join('');
+  document.getElementById('infra-status').textContent = '';
+  document.getElementById('infra-legend').classList.add('visible');
+}
+
+// ══════════════════════════════════
+// STATIC INFRASTRUCTURE DATA
+// Kenya + Uganda — real verified locations
+// ══════════════════════════════════
+var STATIC_INFRA = {
+  KEN:{
+    health:[
+      {name:"Kenyatta National Hospital",type:"hospital",lat:-1.300,lon:36.807,operator:"Government of Kenya",note:"Largest referral hospital in East Africa"},
+      {name:"Aga Khan University Hospital",type:"hospital",lat:-1.271,lon:36.818,operator:"Aga Khan Health Services",note:"Level 6 private hospital"},
+      {name:"Nairobi Hospital",type:"hospital",lat:-1.290,lon:36.789,operator:"Nairobi Hospital",note:"Major private tertiary hospital"},
+      {name:"MP Shah Hospital",type:"hospital",lat:-1.272,lon:36.820,operator:"MP Shah",note:"300-bed private hospital"},
+      {name:"Mater Hospital",type:"hospital",lat:-1.303,lon:36.840,operator:"Mater Misericordiae",note:"Catholic mission hospital"},
+      {name:"Karen Hospital",type:"hospital",lat:-1.327,lon:36.756,operator:"Karen Hospital Ltd",note:"Karen suburban private hospital"},
+      {name:"Nairobi Women's Hospital",type:"hospital",lat:-1.290,lon:36.820,operator:"NWH Group"},
+      {name:"Gertrude's Children's Hospital",type:"hospital",lat:-1.251,lon:36.826,operator:"Gertrude's",note:"Pediatric specialist hospital"},
+      {name:"Pumwani Maternity Hospital",type:"hospital",lat:-1.277,lon:36.843,operator:"Nairobi City County",note:"Largest maternity hospital in East Africa"},
+      {name:"Coast General Hospital",type:"hospital",lat:-4.057,lon:39.680,operator:"Government of Kenya",note:"Main referral hospital Coast Province"},
+      {name:"Moi Teaching & Referral Hospital",type:"hospital",lat:0.522,lon:35.280,operator:"Government of Kenya",note:"2nd largest referral hospital"},
+      {name:"Kenyatta University Teaching Hospital",type:"hospital",lat:-1.180,lon:36.929,operator:"Kenyatta University"},
+      {name:"Nakuru Level 5 Hospital",type:"hospital",lat:-0.291,lon:36.067,operator:"Nakuru County"},
+      {name:"Kisumu County Referral Hospital",type:"hospital",lat:-0.090,lon:34.756,operator:"Kisumu County"},
+      {name:"Kenya Medical Research Institute",type:"govt",lat:-1.261,lon:36.720,operator:"KEMRI",note:"National health research institute"},
+      {name:"Ministry of Health Kenya",type:"govt",lat:-1.286,lon:36.820,operator:"GoK",note:"National health policy HQ"},
+      {name:"National Public Health Lab",type:"govt",lat:-1.300,lon:36.810,operator:"KEBS / MoH"},
+      {name:"Nairobi Pharmacy",type:"pharmacy",lat:-1.283,lon:36.822},
+      {name:"Goodlife Pharmacy Westgate",type:"pharmacy",lat:-1.256,lon:36.810},
+      {name:"Haltons Pharmacy",type:"pharmacy",lat:-1.291,lon:36.787},
+      {name:"City Clinic Nairobi CBD",type:"clinic",lat:-1.284,lon:36.821},
+      {name:"Aga Khan Health Centre Kisumu",type:"clinic",lat:-0.093,lon:34.760,operator:"Aga Khan"}
+    ],
+    supply:[
+      {name:"Jomo Kenyatta International Airport",type:"airport",lat:-1.319,lon:36.927,note:"Main international hub, 9M+ passengers/yr"},
+      {name:"Wilson Airport",type:"airport",lat:-1.322,lon:36.814,note:"Domestic & charter hub"},
+      {name:"Moi International Airport Mombasa",type:"airport",lat:-4.034,lon:39.594,note:"Second busiest airport"},
+      {name:"Kisumu International Airport",type:"airport",lat:-0.087,lon:34.729,note:"Western Kenya hub"},
+      {name:"Eldoret International Airport",type:"airport",lat:0.404,lon:35.238,note:"Key for fresh produce exports"},
+      {name:"Wajir Airport",type:"airport",lat:1.733,lon:40.909},
+      {name:"Nanyuki Airport",type:"airport",lat:0.062,lon:37.040},
+      {name:"Port of Mombasa",type:"port",lat:-4.066,lon:39.672,note:"Largest port in East Africa, handles 30M+ tonnes/yr"},
+      {name:"Kilindini Harbour",type:"port",lat:-4.074,lon:39.655,note:"Main deep water container terminal"},
+      {name:"Mombasa Container Terminal",type:"container",lat:-4.075,lon:39.652,operator:"Kenya Ports Authority"},
+      {name:"Kisumu Port",type:"port",lat:-0.102,lon:34.748,note:"Lake Victoria ferry terminal"},
+      {name:"Nairobi SGR Terminus",type:"container",lat:-1.365,lon:36.956,operator:"Kenya Railways",note:"Standard Gauge Railway inland terminal"},
+      {name:"Syokimau SGR Station",type:"rail",lat:-1.378,lon:36.943,operator:"Kenya Railways"},
+      {name:"Athi River SGR Station",type:"rail",lat:-1.452,lon:36.980,operator:"Kenya Railways"},
+      {name:"Voi SGR Station",type:"rail",lat:-3.396,lon:38.555,operator:"Kenya Railways"},
+      {name:"Mombasa SGR Station",type:"rail",lat:-3.960,lon:39.660,operator:"Kenya Railways"},
+      {name:"Nairobi Railway Station",type:"rail",lat:-1.295,lon:36.826,note:"Historic metre gauge terminus"},
+      {name:"Embakasi Inland Container Depot",type:"container",lat:-1.320,lon:36.931,operator:"Kenya Railways/KPA",note:"Largest ICD in East Africa"},
+      {name:"ICEA ICD",type:"container",lat:-1.376,lon:36.960,operator:"ICEA"},
+      {name:"Wakulima Market",type:"market",lat:-1.284,lon:36.838,note:"Main wholesale fresh produce market Nairobi"},
+      {name:"City Market Nairobi",type:"market",lat:-1.282,lon:36.821,note:"Central retail & tourism market"},
+      {name:"Gikomba Market",type:"market",lat:-1.281,lon:36.844,note:"Largest open air market in East Africa"},
+      {name:"Kongowea Market Mombasa",type:"market",lat:-4.012,lon:39.674,note:"Main Mombasa wholesale market"},
+      {name:"Kisumu Main Market",type:"market",lat:-0.104,lon:34.754},
+      {name:"Nakuru Town Market",type:"market",lat:-0.281,lon:36.065},
+      {name:"Kenya Customs HQ Mombasa",type:"border",lat:-4.066,lon:39.668,operator:"Kenya Revenue Authority"},
+      {name:"Namanga Border Post",type:"border",lat:-2.553,lon:36.796,note:"Kenya-Tanzania border"},
+      {name:"Busia Border Post",type:"border",lat:0.457,lon:34.090,note:"Kenya-Uganda main border crossing"},
+      {name:"Malaba Border Post",type:"border",lat:0.634,lon:34.259,note:"Kenya-Uganda SGR/road crossing"},
+      {name:"Moyale Border Post",type:"border",lat:3.523,lon:39.058,note:"Kenya-Ethiopia border"}
+    ],
+    energy:[
+      {name:"Olkaria I Geothermal",type:"geothermal",lat:-0.898,lon:36.292,operator:"KenGen",note:"185 MW, first geothermal in Africa (1981)"},
+      {name:"Olkaria II Geothermal",type:"geothermal",lat:-0.900,lon:36.295,operator:"KenGen",note:"105 MW"},
+      {name:"Olkaria III Geothermal",type:"geothermal",lat:-0.913,lon:36.265,operator:"Orpower 4",note:"139 MW, private IPP"},
+      {name:"Olkaria IV Geothermal",type:"geothermal",lat:-0.895,lon:36.297,operator:"KenGen",note:"150 MW"},
+      {name:"Olkaria V Geothermal",type:"geothermal",lat:-0.892,lon:36.298,operator:"KenGen",note:"165 MW, commissioned 2019"},
+      {name:"Menengai Geothermal",type:"geothermal",lat:-0.172,lon:36.097,operator:"GDC",note:"Under development, 400 MW potential"},
+      {name:"Lake Turkana Wind Power",type:"wind",lat:3.050,lon:36.770,operator:"LTWP",note:"310 MW — largest wind farm in Africa"},
+      {name:"Kipeto Wind Farm",type:"wind",lat:-2.085,lon:36.800,operator:"Kipeto Energy",note:"100 MW"},
+      {name:"Meru Wind Farm",type:"wind",lat:0.050,lon:37.640,operator:"KenGen",note:"Development stage"},
+      {name:"Garissa Solar Power Plant",type:"solar",lat:-0.456,lon:39.640,operator:"KENGEN/JICA",note:"55 MW, largest solar plant in East Africa"},
+      {name:"Eldosol Solar",type:"solar",lat:0.520,lon:35.270,operator:"Eldosol",note:"40 MW"},
+      {name:"Gitaru Hydroelectric",type:"hydro",lat:-0.638,lon:37.089,operator:"KenGen",note:"225 MW — largest hydro in Kenya"},
+      {name:"Kindaruma Hydroelectric",type:"hydro",lat:-0.768,lon:37.477,operator:"KenGen",note:"72 MW"},
+      {name:"Kamburu Hydroelectric",type:"hydro",lat:-0.720,lon:37.530,operator:"KenGen",note:"94.2 MW"},
+      {name:"Kiambere Hydroelectric",type:"hydro",lat:-0.570,lon:37.783,operator:"KenGen",note:"168 MW"},
+      {name:"Masinga Hydroelectric",type:"hydro",lat:-1.016,lon:37.600,operator:"KenGen",note:"40 MW — first in Tana River cascade"},
+      {name:"Sondu Miriu Hydroelectric",type:"hydro",lat:-0.554,lon:35.048,operator:"KenGen",note:"60 MW"},
+      {name:"Tana Hydroelectric",type:"hydro",lat:-0.553,lon:38.270,operator:"KenGen",note:"20 MW"},
+      {name:"Kipevu Oil Power Station",type:"plant",lat:-4.037,lon:39.620,operator:"KenGen",note:"120 MW thermal, fuel oil"},
+      {name:"Muhoroni Thermal",type:"plant",lat:-0.160,lon:35.190,operator:"Iberafrica",note:"108.5 MW gas turbine"},
+      {name:"Nairobi South Substation",type:"substation",lat:-1.315,lon:36.818,operator:"KPLC",note:"132kV main Nairobi feed"},
+      {name:"Industrial Area Substation",type:"substation",lat:-1.306,lon:36.843,operator:"KPLC"},
+      {name:"Embakasi Substation",type:"substation",lat:-1.320,lon:36.931,operator:"KPLC"},
+      {name:"Mombasa North Substation",type:"substation",lat:-4.020,lon:39.660,operator:"KPLC"},
+      {name:"Kisumu Substation",type:"substation",lat:-0.095,lon:34.750,operator:"KPLC"}
+    ]
+  },
+  UGA:{
+    health:[
+      {name:"Mulago National Referral Hospital",type:"hospital",lat:0.337,lon:32.577,operator:"Government of Uganda",note:"Uganda's largest hospital, 1500 beds"},
+      {name:"Case Medical Centre",type:"hospital",lat:0.314,lon:32.585,operator:"Case Hospital",note:"Major private hospital Kampala"},
+      {name:"International Hospital Kampala",type:"hospital",lat:0.346,lon:32.598,operator:"IHK",note:"Joint Commission International accredited"},
+      {name:"Aga Khan Uganda Hospital",type:"hospital",lat:0.338,lon:32.586,operator:"Aga Khan Health"},
+      {name:"Nsambya Hospital",type:"hospital",lat:0.302,lon:32.582,operator:"Catholic Diocese",note:"Major mission hospital"},
+      {name:"Mengo Hospital",type:"hospital",lat:0.314,lon:32.559,operator:"Protestant Diocese"},
+      {name:"Mbarara University Teaching Hospital",type:"hospital",lat:-0.607,lon:30.654,operator:"MUST",note:"Western Uganda referral"},
+      {name:"Jinja Regional Referral Hospital",type:"hospital",lat:0.435,lon:33.205,operator:"Government"},
+      {name:"Gulu Regional Referral Hospital",type:"hospital",lat:2.780,lon:32.300,operator:"Government",note:"Northern Uganda hub"},
+      {name:"Uganda Virus Research Institute",type:"govt",lat:0.335,lon:32.585,operator:"UVRI",note:"Key public health research"},
+      {name:"Ministry of Health Uganda",type:"govt",lat:0.314,lon:32.580,operator:"GoU"},
+      {name:"National Medical Stores",type:"govt",lat:0.316,lon:32.650,operator:"NMS",note:"National pharmaceutical supply chain HQ"},
+      {name:"Quality Chemicals Industries",type:"govt",lat:0.352,lon:32.575,operator:"QCIL",note:"East Africa's largest pharma manufacturer"}
+    ],
+    supply:[
+      {name:"Entebbe International Airport",type:"airport",lat:0.044,lon:32.443,note:"Main international gateway — 2.2M passengers/yr"},
+      {name:"Kampala Kololo Airstrip",type:"airport",lat:0.330,lon:32.602},
+      {name:"Gulu Airport",type:"airport",lat:2.805,lon:32.272},
+      {name:"Kasese Airport",type:"airport",lat:0.186,lon:30.100},
+      {name:"Port Bell",type:"port",lat:0.266,lon:32.660,operator:"Uganda Railways",note:"Main Lake Victoria ferry port"},
+      {name:"Jinja Port",type:"port",lat:0.435,lon:33.205,operator:"Uganda Railways",note:"Lake Victoria eastern terminal"},
+      {name:"Entebbe Port",type:"port",lat:0.058,lon:32.472},
+      {name:"Nakivubo Market Kampala",type:"market",lat:0.314,lon:32.582,note:"Largest street market"},
+      {name:"Owino Market",type:"market",lat:0.314,lon:32.574,note:"Largest indoor market in Uganda"},
+      {name:"Nakasero Market",type:"market",lat:0.323,lon:32.580,note:"Main fresh produce wholesale"},
+      {name:"Arua Park Bus Terminal",type:"warehouse",lat:0.318,lon:32.571,note:"Northern route logistics hub"},
+      {name:"Namboole Stadium Warehouse",type:"warehouse",lat:0.349,lon:32.646},
+      {name:"Malaba Border Post",type:"border",lat:0.634,lon:34.259,note:"Main Kenya-Uganda crossing, SGR gateway"},
+      {name:"Busia Border Post",type:"border",lat:0.457,lon:34.090,note:"Key road crossing to Kenya"},
+      {name:"Katuna Border Post",type:"border",lat:-1.222,lon:29.697,note:"Rwanda border"},
+      {name:"Mutukula Border Post",type:"border",lat:-0.800,lon:31.410,note:"Tanzania border"},
+      {name:"Elegu/Nimule Border Post",type:"border",lat:3.603,lon:32.085,note:"South Sudan border"},
+      {name:"Uganda Revenue Authority HQ",type:"border",lat:0.318,lon:32.583,operator:"URA"}
+    ],
+    energy:[
+      {name:"Nalubaale Power Station",type:"hydro",lat:0.431,lon:33.192,operator:"Eskom Uganda",note:"180 MW — first Owen Falls Dam"},
+      {name:"Kiira Power Station",type:"hydro",lat:0.438,lon:33.193,operator:"Eskom Uganda",note:"200 MW expansion"},
+      {name:"Bujagali Hydroelectric",type:"hydro",lat:0.470,lon:33.160,operator:"BEL",note:"250 MW — largest single plant"},
+      {name:"Karuma Hydroelectric",type:"hydro",lat:2.227,lon:32.295,operator:"UEGCL",note:"600 MW — transformational project"},
+      {name:"Isimba Hydroelectric",type:"hydro",lat:0.498,lon:33.024,operator:"UEGCL",note:"183 MW, commissioned 2019"},
+      {name:"Kakira Sugar Works Co-gen",type:"plant",lat:0.517,lon:33.172,operator:"Kakira Sugar",note:"Bagasse co-generation"},
+      {name:"Tororo Thermal Plant",type:"plant",lat:0.692,lon:34.181,operator:"UEGCL"},
+      {name:"Kiryandongo Solar",type:"solar",lat:1.830,lon:32.090,operator:"BioEnergy Resources",note:"10 MW"},
+      {name:"Soroti Solar Power Plant",type:"solar",lat:1.704,lon:33.619,operator:"Soroti Solar Ltd",note:"10 MW"},
+      {name:"Namanve Industrial Substation",type:"substation",lat:0.330,lon:32.660,operator:"UEDCL"},
+      {name:"Kawanda Substation",type:"substation",lat:0.437,lon:32.533,operator:"UETCL",note:"132kV main Kampala north"},
+      {name:"Entebbe Substation",type:"substation",lat:0.048,lon:32.455,operator:"UEDCL"},
+      {name:"Mutundwe Substation",type:"substation",lat:0.310,lon:32.526,operator:"UEDCL"},
+      {name:"Jinja Substation",type:"substation",lat:0.432,lon:33.196,operator:"UETCL"}
+    ]
+  },
+
+  // ── NIGERIA ──────────────────────────────────────────────
+  NGA:{
+    health:[
+      {name:"Lagos University Teaching Hospital",type:"hospital",lat:6.518,lon:3.358,operator:"Federal Govt Nigeria",note:"Largest teaching hospital in West Africa"},
+      {name:"National Hospital Abuja",type:"hospital",lat:9.064,lon:7.490,operator:"Federal Govt Nigeria"},
+      {name:"University College Hospital Ibadan",type:"hospital",lat:7.406,lon:3.890,operator:"UCH Management Board"},
+      {name:"Aminu Kano Teaching Hospital",type:"hospital",lat:12.001,lon:8.530,operator:"Federal Govt Nigeria"},
+      {name:"University of Nigeria Teaching Hospital Enugu",type:"hospital",lat:6.442,lon:7.504},
+      {name:"Lagos Island General Hospital",type:"hospital",lat:6.453,lon:3.398,operator:"Lagos State"},
+      {name:"Luth Cancer Centre",type:"hospital",lat:6.519,lon:3.357,operator:"LUTH"},
+      {name:"Nigeria Centre for Disease Control",type:"govt",lat:9.058,lon:7.481,note:"National public health institute"},
+      {name:"NAFDAC HQ",type:"govt",lat:6.557,lon:3.352,note:"National Agency for Food & Drug Admin"},
+      {name:"West African Health Organisation",type:"govt",lat:12.360,lon:-1.534,note:"ECOWAS health body"},
+      {name:"Emzor Pharmaceutical",type:"govt",lat:6.609,lon:3.354,note:"Major pharma manufacturer Lagos"}
+    ],
+    supply:[
+      {name:"Murtala Muhammed International Airport Lagos",type:"airport",lat:6.577,lon:3.321,note:"Busiest airport in West Africa"},
+      {name:"Nnamdi Azikiwe International Airport Abuja",type:"airport",lat:9.006,lon:7.263},
+      {name:"Port Harcourt International Airport",type:"airport",lat:5.006,lon:6.950},
+      {name:"Kano International Airport",type:"airport",lat:12.047,lon:8.524},
+      {name:"Apapa Port Lagos",type:"port",lat:6.454,lon:3.367,note:"Largest port in Nigeria"},
+      {name:"Tin Can Island Port Lagos",type:"port",lat:6.440,lon:3.352,operator:"NPA"},
+      {name:"Port Harcourt Port",type:"port",lat:4.767,lon:7.017},
+      {name:"Onne Port",type:"port",lat:4.695,lon:7.148,note:"Free zone and deep sea port"},
+      {name:"Calabar Port",type:"port",lat:4.958,lon:8.328},
+      {name:"Lagos-Kano Railway",type:"rail",lat:6.455,lon:3.395,operator:"NRC"},
+      {name:"Abuja Light Rail",type:"rail",lat:9.070,lon:7.395,operator:"FCT"},
+      {name:"Seme Border Post",type:"border",lat:6.369,lon:2.749,note:"Nigeria-Benin main crossing"},
+      {name:"Idiroko Border Post",type:"border",lat:6.869,lon:2.893},
+      {name:"Katsina Border Post",type:"border",lat:12.989,lon:7.601,note:"Nigeria-Niger"},
+      {name:"Dangote Cement Obajana",type:"warehouse",lat:7.566,lon:6.073,note:"Largest cement plant in Sub-Saharan Africa"}
+    ],
+    energy:[
+      {name:"Egbin Power Station",type:"plant",lat:6.564,lon:3.754,operator:"Sahara Power Group",note:"1320 MW — largest power plant in Nigeria"},
+      {name:"Kainji Dam",type:"hydro",lat:9.855,lon:4.570,operator:"TCN",note:"960 MW"},
+      {name:"Jebba Dam",type:"hydro",lat:9.135,lon:4.821,operator:"GE/TCN",note:"578 MW"},
+      {name:"Shiroro Dam",type:"hydro",lat:9.990,lon:6.841,operator:"TCN",note:"600 MW"},
+      {name:"Nigeria LNG Bonny Island",type:"plant",lat:4.432,lon:7.166,operator:"NLNG",note:"22 MTPA LNG export facility"},
+      {name:"Forcados Oil Terminal",type:"plant",lat:5.350,lon:5.390,operator:"Shell",note:"Major crude oil export terminal"},
+      {name:"Warri Refinery",type:"plant",lat:5.497,lon:5.770,operator:"NNPC"},
+      {name:"Port Harcourt Refinery",type:"plant",lat:4.850,lon:7.040,operator:"NNPC"},
+      {name:"Geregu Power Plant",type:"plant",lat:7.783,lon:6.683,operator:"Geregu Power Plc",note:"414 MW gas turbine"},
+      {name:"Transcorp Ughelli Power",type:"plant",lat:5.509,lon:5.989,operator:"Transcorp",note:"1000 MW gas"},
+      {name:"Alaoji Power Station",type:"plant",lat:5.123,lon:7.345,operator:"NDPHC",note:"1074 MW"},
+      {name:"Dangote Refinery",type:"plant",lat:6.369,lon:3.522,operator:"Dangote",note:"650,000 bpd — largest refinery in Africa"},
+      {name:"TCN National Control Centre",type:"substation",lat:9.064,lon:7.479,operator:"TCN"}
+    ]
+  },
+
+  // ── SOUTH AFRICA ─────────────────────────────────────────
+  ZAF:{
+    health:[
+      {name:"Chris Hani Baragwanath Hospital",type:"hospital",lat:-26.268,lon:27.867,operator:"Gauteng Dept Health",note:"Largest hospital in Africa — 3200 beds"},
+      {name:"Groote Schuur Hospital Cape Town",type:"hospital",lat:-33.942,lon:18.462,note:"Site of world's first heart transplant (1967)"},
+      {name:"Steve Biko Academic Hospital Pretoria",type:"hospital",lat:-25.735,lon:28.188,operator:"Government"},
+      {name:"Inkosi Albert Luthuli Central Hospital",type:"hospital",lat:-29.852,lon:31.009,operator:"KwaZulu-Natal"},
+      {name:"Charlotte Maxeke Johannesburg Hospital",type:"hospital",lat:-26.178,lon:28.027},
+      {name:"National Institute for Communicable Diseases",type:"govt",lat:-26.148,lon:28.032,operator:"NICD",note:"Africa CDC equivalent"},
+      {name:"South African Medical Research Council",type:"govt",lat:-25.755,lon:28.228,operator:"SAMRC"},
+      {name:"Aspen Pharmacare HQ",type:"govt",lat:-29.868,lon:31.022,note:"Largest pharma manufacturer in Africa"},
+      {name:"Netcare Milpark Hospital",type:"hospital",lat:-26.189,lon:28.012,operator:"Netcare"},
+      {name:"Red Cross War Memorial Children's Hospital",type:"hospital",lat:-33.940,lon:18.463,operator:"Western Cape Govt"}
+    ],
+    supply:[
+      {name:"OR Tambo International Airport",type:"airport",lat:-26.134,lon:28.242,note:"Busiest airport in Africa"},
+      {name:"Cape Town International Airport",type:"airport",lat:-33.969,lon:18.602},
+      {name:"King Shaka International Airport Durban",type:"airport",lat:-29.616,lon:31.120},
+      {name:"Port Elizabeth Airport",type:"airport",lat:-33.985,lon:25.617},
+      {name:"Port of Durban",type:"port",lat:-29.875,lon:31.025,note:"Busiest container port in Africa"},
+      {name:"Port of Cape Town",type:"port",lat:-33.901,lon:18.425},
+      {name:"Port of Richards Bay",type:"port",lat:-28.804,lon:32.078,note:"World's largest coal export terminal"},
+      {name:"Port of Port Elizabeth/Gqeberha",type:"port",lat:-33.975,lon:25.634},
+      {name:"Johannesburg Park Station",type:"rail",lat:-26.198,lon:28.044,note:"Busiest rail station in Africa"},
+      {name:"Transnet Freight Rail HQ",type:"rail",lat:-26.206,lon:28.060,operator:"Transnet"},
+      {name:"Beit Bridge Border (Zimbabwe)",type:"border",lat:-22.212,lon:29.984,note:"Busiest border in Sub-Saharan Africa"},
+      {name:"Lebombo Border Post",type:"border",lat:-25.261,lon:32.087,note:"SA-Mozambique main crossing"},
+      {name:"Kopfontein Border (Botswana)",type:"border",lat:-25.558,lon:25.944}
+    ],
+    energy:[
+      {name:"Kusile Power Station",type:"plant",lat:-26.100,lon:29.165,operator:"Eskom",note:"4800 MW coal — one of world's largest"},
+      {name:"Medupi Power Station",type:"plant",lat:-23.672,lon:27.648,operator:"Eskom",note:"4788 MW coal"},
+      {name:"Matimba Power Station",type:"plant",lat:-23.665,lon:27.647,operator:"Eskom",note:"4000 MW dry-cooled coal"},
+      {name:"Koeberg Nuclear Power Station",type:"plant",lat:-33.658,lon:18.432,operator:"Eskom",note:"1860 MW — only nuclear plant in Africa"},
+      {name:"Majuba Power Station",type:"plant",lat:-27.109,lon:29.747,operator:"Eskom",note:"4110 MW coal"},
+      {name:"Sasol Secunda",type:"plant",lat:-26.535,lon:29.172,operator:"Sasol",note:"World's largest coal-to-liquids facility"},
+      {name:"Drakensberg Pumped Storage",type:"hydro",lat:-28.987,lon:29.398,operator:"Eskom",note:"1000 MW"},
+      {name:"Sere Wind Farm",type:"wind",lat:-32.180,lon:18.795,operator:"Eskom",note:"100 MW"},
+      {name:"Bokpoort CSP Solar",type:"solar",lat:-28.726,lon:22.846,note:"50 MW concentrated solar"},
+      {name:"De Aar Solar PV",type:"solar",lat:-30.645,lon:24.018,note:"50 MW"},
+      {name:"Eskom National Control Centre",type:"substation",lat:-26.170,lon:27.927,operator:"Eskom"},
+      {name:"Cahora Bassa (import from Mozambique)",type:"hydro",lat:-15.618,lon:32.711,note:"2075 MW supply to SA grid"}
+    ]
+  },
+
+  // ── EGYPT ────────────────────────────────────────────────
+  EGY:{
+    health:[
+      {name:"Kasr Al Ainy Hospital Cairo",type:"hospital",lat:30.026,lon:31.210,operator:"Cairo University",note:"Largest teaching hospital in Middle East"},
+      {name:"Ain Shams University Hospital",type:"hospital",lat:30.076,lon:31.280,operator:"Ain Shams University"},
+      {name:"National Cancer Institute Cairo",type:"hospital",lat:30.026,lon:31.211,operator:"Cairo University"},
+      {name:"Agouza Hospital",type:"hospital",lat:30.065,lon:31.207,operator:"Ministry of Health"},
+      {name:"Alexandria Main University Hospital",type:"hospital",lat:31.200,lon:29.887},
+      {name:"Egyptian Ministry of Health HQ",type:"govt",lat:30.058,lon:31.238,operator:"GoE"},
+      {name:"Institut Pasteur d'Égypte",type:"govt",lat:30.040,lon:31.245,note:"Oldest public health institute in Egypt"},
+      {name:"VACSERA Pharma",type:"govt",lat:30.052,lon:31.215,note:"National vaccine manufacturer"},
+      {name:"Cleopatra Hospital",type:"hospital",lat:30.063,lon:31.327,operator:"Cleopatra Hospitals Group"}
+    ],
+    supply:[
+      {name:"Cairo International Airport",type:"airport",lat:30.121,lon:31.406,note:"Largest airport in Africa by traffic"},
+      {name:"Borg El Arab Airport Alexandria",type:"airport",lat:30.917,lon:29.696},
+      {name:"Hurghada International Airport",type:"airport",lat:27.180,lon:33.798},
+      {name:"Sharm el Sheikh Airport",type:"airport",lat:27.977,lon:34.395},
+      {name:"Port Said Port",type:"port",lat:31.274,lon:32.303,note:"North entrance of Suez Canal"},
+      {name:"Alexandria Port",type:"port",lat:31.205,lon:29.877,note:"Largest port in Africa"},
+      {name:"Suez Port",type:"port",lat:29.966,lon:32.549,note:"South entrance of Suez Canal"},
+      {name:"Damietta Port",type:"port",lat:31.467,lon:31.818},
+      {name:"Suez Canal — Ismailia",type:"container",lat:30.600,lon:32.276,operator:"Suez Canal Authority",note:"Handles 12% of global trade"},
+      {name:"Cairo Ramses Railway Station",type:"rail",lat:30.060,lon:31.249,operator:"ENR"},
+      {name:"Egypt-Libya Border Salloum",type:"border",lat:31.533,lon:25.169},
+      {name:"Rafah Border Crossing",type:"border",lat:31.277,lon:34.245}
+    ],
+    energy:[
+      {name:"Aswan High Dam",type:"hydro",lat:23.971,lon:32.879,operator:"EEHC",note:"2100 MW — transformed Egypt's power grid"},
+      {name:"Aswan Low Dam",type:"hydro",lat:24.035,lon:32.882,operator:"EEHC",note:"592 MW"},
+      {name:"Benban Solar Park",type:"solar",lat:24.455,lon:32.681,note:"1650 MW — one of world's largest solar parks"},
+      {name:"Noor Abu Dhabi (Egyptian project)",type:"solar",lat:24.200,lon:32.900},
+      {name:"Gulf of Suez Wind Farm",type:"wind",lat:29.500,lon:32.600,note:"600 MW zone"},
+      {name:"Zafarana Wind Farm",type:"wind",lat:29.095,lon:32.644,note:"545 MW"},
+      {name:"New Rosetta Barrage",type:"hydro",lat:31.395,lon:30.415,note:"Nile Delta power generation"},
+      {name:"Zohr Gas Field",type:"plant",lat:31.190,lon:28.200,operator:"ENI",note:"Largest gas field in Mediterranean"},
+      {name:"Damietta LNG Terminal",type:"plant",lat:31.500,lon:31.900,operator:"SEGAS"},
+      {name:"Cairo West Power Station",type:"plant",lat:30.120,lon:31.105,operator:"EEHC",note:"2250 MW gas"},
+      {name:"Sidi Krir Power Station",type:"plant",lat:30.986,lon:29.585,operator:"EEHC",note:"1700 MW"}
+    ]
+  },
+
+  // ── ETHIOPIA ─────────────────────────────────────────────
+  ETH:{
+    health:[
+      {name:"Tikur Anbessa (Black Lion) Hospital",type:"hospital",lat:9.035,lon:38.764,operator:"Addis Ababa University",note:"Largest hospital in Ethiopia"},
+      {name:"St Paul's Hospital Millennium Medical College",type:"hospital",lat:9.030,lon:38.745,operator:"Federal MoH"},
+      {name:"Yekatit 12 Hospital",type:"hospital",lat:9.032,lon:38.751,operator:"Addis Ababa City"},
+      {name:"Ethiopian Public Health Institute",type:"govt",lat:9.019,lon:38.764,operator:"Federal MoH",note:"National CDC equivalent"},
+      {name:"Jimma University Medical Center",type:"hospital",lat:7.679,lon:36.830,operator:"JU",note:"Largest in southwest Ethiopia"},
+      {name:"KCMC Mekelle University Hospital",type:"hospital",lat:13.492,lon:39.477,operator:"MU"},
+      {name:"Gonder University Hospital",type:"hospital",lat:12.608,lon:37.467,operator:"UoG"},
+      {name:"International Medical Center Addis",type:"hospital",lat:9.000,lon:38.780,operator:"Private"}
+    ],
+    supply:[
+      {name:"Addis Ababa Bole International Airport",type:"airport",lat:8.978,lon:38.799,note:"Ethiopian Airlines hub — largest in Africa"},
+      {name:"Dire Dawa International Airport",type:"airport",lat:9.624,lon:41.854},
+      {name:"Mekelle Airport",type:"airport",lat:13.474,lon:39.534},
+      {name:"Jimma Airport",type:"airport",lat:7.666,lon:36.817},
+      {name:"Addis Ababa LRT Station Meskel Square",type:"rail",lat:9.013,lon:38.762,note:"First electric rail in Sub-Saharan Africa"},
+      {name:"Ethiopia-Djibouti Railway Terminus",type:"rail",lat:9.010,lon:38.760,operator:"ERC",note:"Addis-Djibouti corridor"},
+      {name:"Hawassa Industrial Park",type:"warehouse",lat:7.065,lon:38.478,note:"Flagship industrial zone"},
+      {name:"Bole Lemi Industrial Park",type:"warehouse",lat:9.020,lon:38.830},
+      {name:"Moyale Border Post (Kenya)",type:"border",lat:3.536,lon:39.055},
+      {name:"Metema Border Post (Sudan)",type:"border",lat:12.963,lon:36.194},
+      {name:"Dewele Border Post (Djibouti)",type:"border",lat:11.780,lon:42.787},
+      {name:"Galafi Border Post (Djibouti)",type:"border",lat:11.640,lon:42.565}
+    ],
+    energy:[
+      {name:"Grand Ethiopian Renaissance Dam",type:"hydro",lat:11.214,lon:35.094,operator:"EEP",note:"6450 MW — largest dam in Africa"},
+      {name:"Gibe III Hydroelectric",type:"hydro",lat:6.580,lon:37.360,operator:"EEP",note:"1870 MW"},
+      {name:"Gibe II Hydroelectric",type:"hydro",lat:7.744,lon:37.666,operator:"EEP",note:"420 MW"},
+      {name:"Gilgel Gibe I",type:"hydro",lat:7.748,lon:37.394,operator:"EEP",note:"184 MW"},
+      {name:"Tekeze Hydroelectric",type:"hydro",lat:13.624,lon:38.636,operator:"EEP",note:"300 MW"},
+      {name:"Ashegoda Wind Farm",type:"wind",lat:13.450,lon:39.462,operator:"EEP",note:"120 MW — largest wind farm in Ethiopia"},
+      {name:"Adama I Wind Farm",type:"wind",lat:8.532,lon:39.459,operator:"EEP",note:"51 MW"},
+      {name:"Adama II Wind Farm",type:"wind",lat:8.560,lon:39.480,operator:"EEP",note:"153 MW"},
+      {name:"Aluto Langano Geothermal",type:"geothermal",lat:7.774,lon:38.784,operator:"EEP",note:"70 MW"},
+      {name:"Corbetti Geothermal (development)",type:"geothermal",lat:7.191,lon:38.430,note:"500 MW potential"},
+      {name:"Ethiopian Electric Power HQ",type:"substation",lat:9.025,lon:38.750,operator:"EEP"}
+    ]
+  },
+
+  // ── GHANA ────────────────────────────────────────────────
+  GHA:{
+    health:[
+      {name:"Korle Bu Teaching Hospital",type:"hospital",lat:5.548,lon:-0.227,operator:"Government",note:"Largest hospital in West Africa — 2000 beds"},
+      {name:"Komfo Anokye Teaching Hospital Kumasi",type:"hospital",lat:6.694,lon:-1.630,operator:"Government"},
+      {name:"37 Military Hospital Accra",type:"hospital",lat:5.603,lon:-0.172,operator:"Ghana Armed Forces"},
+      {name:"Ridge Hospital Accra",type:"hospital",lat:5.573,lon:-0.197,operator:"Greater Accra Region"},
+      {name:"Ghana Health Service HQ",type:"govt",lat:5.573,lon:-0.199,operator:"GHS"},
+      {name:"Food and Drugs Authority Ghana",type:"govt",lat:5.568,lon:-0.230,note:"National pharma regulator"},
+      {name:"Noguchi Memorial Institute",type:"govt",lat:5.652,lon:-0.190,operator:"University of Ghana",note:"Leading medical research institute"}
+    ],
+    supply:[
+      {name:"Kotoka International Airport Accra",type:"airport",lat:5.605,lon:-0.167,note:"Main West African hub"},
+      {name:"Kumasi Airport",type:"airport",lat:6.714,lon:-1.591},
+      {name:"Tema Port",type:"port",lat:5.630,lon:-0.005,note:"Main deep-water port, handles 80% of Ghana trade"},
+      {name:"Takoradi Port",type:"port",lat:4.881,lon:-1.756,note:"Western Ghana, oil & timber"},
+      {name:"Tema Free Zone",type:"container",lat:5.635,lon:-0.009,operator:"GFZA"},
+      {name:"Accra Central Railway Station",type:"rail",lat:5.556,lon:-0.209,operator:"GRC"},
+      {name:"Aflao Border Post (Togo)",type:"border",lat:6.112,lon:1.179,note:"Main Accra-Lomé crossing"},
+      {name:"Elubo Border Post (Côte d'Ivoire)",type:"border",lat:5.080,lon:-2.757},
+      {name:"Paga Border Post (Burkina Faso)",type:"border",lat:10.979,lon:-1.117}
+    ],
+    energy:[
+      {name:"Akosombo Dam",type:"hydro",lat:6.299,lon:0.059,operator:"VRA",note:"1020 MW — created Lake Volta, world's largest reservoir by area"},
+      {name:"Kpong Hydroelectric",type:"hydro",lat:6.152,lon:0.058,operator:"VRA",note:"160 MW"},
+      {name:"Bui Dam",type:"hydro",lat:8.281,lon:-2.267,operator:"BPA",note:"400 MW"},
+      {name:"Aboadze Thermal Power",type:"plant",lat:4.958,lon:-1.762,operator:"VRA",note:"550 MW gas/oil"},
+      {name:"Sunon Asogli Power Plant",type:"plant",lat:5.964,lon:0.138,operator:"Sunon Asogli",note:"560 MW gas IPP"},
+      {name:"Karpowership Tema",type:"plant",lat:5.632,lon:0.001,operator:"Karpowership",note:"225 MW floating power plant"},
+      {name:"Ghana Grid Company HQ",type:"substation",lat:5.608,lon:-0.195,operator:"GRIDCo"},
+      {name:"ECG HQ Accra",type:"substation",lat:5.560,lon:-0.205,operator:"ECG"}
+    ]
+  },
+
+  // ── MOROCCO ──────────────────────────────────────────────
+  MAR:{
+    health:[
+      {name:"CHU Ibn Rochd Casablanca",type:"hospital",lat:33.596,lon:-7.612,operator:"Ministry of Health",note:"Largest hospital in Morocco"},
+      {name:"CHU Mohammed VI Marrakech",type:"hospital",lat:31.618,lon:-7.985,operator:"Ministry of Health"},
+      {name:"CHU Hassan II Fez",type:"hospital",lat:34.028,lon:-5.036,operator:"Ministry of Health"},
+      {name:"Hôpital des Spécialités Rabat",type:"hospital",lat:33.986,lon:-6.858,operator:"Government"},
+      {name:"Institut National d'Oncologie Rabat",type:"hospital",lat:33.989,lon:-6.866,operator:"INO"},
+      {name:"Ministry of Health Morocco",type:"govt",lat:34.018,lon:-6.832,operator:"GoM"},
+      {name:"Institut Pasteur du Maroc",type:"govt",lat:33.594,lon:-7.617,note:"Vaccine production & research"}
+    ],
+    supply:[
+      {name:"Mohammed V International Airport Casablanca",type:"airport",lat:33.368,lon:-7.590,note:"Busiest airport in Maghreb"},
+      {name:"Marrakech Menara Airport",type:"airport",lat:31.607,lon:-8.036},
+      {name:"Tanger Ibn Battouta Airport",type:"airport",lat:35.726,lon:-5.916},
+      {name:"Agadir Al Massira Airport",type:"airport",lat:30.325,lon:-9.413},
+      {name:"Tanger Med Port",type:"port",lat:35.884,lon:-5.508,note:"Largest port in Africa by container volume"},
+      {name:"Casablanca Port",type:"port",lat:33.601,lon:-7.618,note:"Main general cargo port"},
+      {name:"Agadir Port",type:"port",lat:30.416,lon:-9.637,note:"World's largest sardine export port"},
+      {name:"Nador West Med Port",type:"port",lat:35.230,lon:-2.950,note:"New deep sea hub under construction"},
+      {name:"Casablanca Railway Station",type:"rail",lat:33.594,lon:-7.620,operator:"ONCF"},
+      {name:"Tanger Med Rail Terminal",type:"rail",lat:35.884,lon:-5.508,operator:"ONCF"},
+      {name:"Bab Sebta/Ceuta Border",type:"border",lat:35.877,lon:-5.347,note:"Morocco-Spain EU border"},
+      {name:"Guerguerat Border (Mauritania)",type:"border",lat:21.342,lon:-17.072}
+    ],
+    energy:[
+      {name:"Noor Ouarzazate Solar Complex",type:"solar",lat:30.970,lon:-6.869,operator:"MASEN",note:"580 MW CSP — largest in the world"},
+      {name:"Noor Midelt Solar",type:"solar",lat:32.700,lon:-4.700,operator:"MASEN",note:"800 MW under development"},
+      {name:"Tarfaya Wind Farm",type:"wind",lat:27.934,lon:-12.922,operator:"Nareva",note:"300 MW — largest wind farm in Africa"},
+      {name:"Taza Wind Farm",type:"wind",lat:34.222,lon:-3.920,operator:"ONEE"},
+      {name:"Jorf Lasfar Power Station",type:"plant",lat:33.112,lon:-8.637,operator:"JLEC",note:"2056 MW coal — largest thermal in North Africa"},
+      {name:"Safi Coal Power Plant",type:"plant",lat:32.298,lon:-9.244,operator:"IEC",note:"1386 MW"},
+      {name:"Ain Beni Mathar ISCC",type:"solar",lat:34.030,lon:-2.019,note:"472 MW solar-gas hybrid"},
+      {name:"Mohammed V Dam",type:"hydro",lat:33.680,lon:-5.059,operator:"ONEE"},
+      {name:"ONEE National Grid HQ",type:"substation",lat:33.987,lon:-6.856,operator:"ONEE"}
+    ]
+  },
+
+  // ── TANZANIA ─────────────────────────────────────────────
+  TZA:{
+    health:[
+      {name:"Muhimbili National Hospital",type:"hospital",lat:-6.800,lon:39.278,operator:"Federal Govt",note:"Largest national hospital in Tanzania"},
+      {name:"KCMC Kilimanjaro Christian Medical Centre",type:"hospital",lat:-3.358,lon:37.341,operator:"ELCT",note:"Largest in Northern Tanzania"},
+      {name:"Bugando Medical Centre Mwanza",type:"hospital",lat:-2.514,lon:32.895,operator:"CUHAS"},
+      {name:"Mnazi Mmoja Hospital Zanzibar",type:"hospital",lat:-6.165,lon:39.190,operator:"Zanzibar Govt"},
+      {name:"Jakaya Kikwete Cardiac Institute",type:"hospital",lat:-6.799,lon:39.277,operator:"Federal Govt"},
+      {name:"National Institute for Medical Research",type:"govt",lat:-6.803,lon:39.271,operator:"NIMR"},
+      {name:"Tanzania Medicines & Medical Devices Authority",type:"govt",lat:-6.810,lon:39.280,operator:"TMDA"}
+    ],
+    supply:[
+      {name:"Julius Nyerere International Airport",type:"airport",lat:-6.878,lon:39.202,note:"Main international gateway"},
+      {name:"Kilimanjaro International Airport",type:"airport",lat:-3.429,lon:37.074},
+      {name:"Zanzibar International Airport",type:"airport",lat:-6.222,lon:39.225},
+      {name:"Mwanza Airport",type:"airport",lat:-2.444,lon:32.831},
+      {name:"Port of Dar es Salaam",type:"port",lat:-6.820,lon:39.296,note:"Main port for Tanzania, Zambia, DRC, Rwanda"},
+      {name:"Port of Zanzibar",type:"port",lat:-6.166,lon:39.191},
+      {name:"Port of Mwanza",type:"port",lat:-2.516,lon:32.910,note:"Lake Victoria hub"},
+      {name:"TAZARA Railway Dar es Salaam",type:"rail",lat:-6.861,lon:39.287,note:"Tanzania-Zambia Railway"},
+      {name:"Tanzania-Zambia border Tunduma",type:"border",lat:-9.295,lon:32.784},
+      {name:"Tanzania-Kenya border Holili/Taveta",type:"border",lat:-3.388,lon:37.684},
+      {name:"Tanzania-Rwanda border Rusumo",type:"border",lat:-2.381,lon:30.784}
+    ],
+    energy:[
+      {name:"Julius Nyerere Hydroelectric (JNHPP)",type:"hydro",lat:-6.850,lon:37.420,operator:"TANESCO",note:"2115 MW — largest infrastructure project in Africa"},
+      {name:"Mtera Dam",type:"hydro",lat:-7.143,lon:36.005,operator:"TANESCO",note:"80 MW"},
+      {name:"Kidatu Hydroelectric",type:"hydro",lat:-7.687,lon:36.585,operator:"TANESCO",note:"204 MW"},
+      {name:"Kihansi Hydroelectric",type:"hydro",lat:-9.028,lon:35.874,operator:"TANESCO",note:"180 MW"},
+      {name:"Songo Songo Gas",type:"plant",lat:-8.665,lon:39.536,operator:"Orca Exploration",note:"Offshore gas field"},
+      {name:"Symbion Power Ubungo",type:"plant",lat:-6.772,lon:39.233,operator:"Symbion",note:"112 MW gas"},
+      {name:"Kinyerezi Power Plant",type:"plant",lat:-6.857,lon:39.127,operator:"TANESCO",note:"240 MW gas"},
+      {name:"Lake Turkana Wind (Tanzania feed)",type:"wind",lat:-3.200,lon:36.800},
+      {name:"TANESCO HQ",type:"substation",lat:-6.779,lon:39.238,operator:"TANESCO"}
+    ]
+  },
+
+  // ── ALGERIA ──────────────────────────────────────────────
+  DZA:{
+    health:[
+      {name:"CHU Mustapha Bacha Algiers",type:"hospital",lat:36.742,lon:3.063,operator:"Ministry of Health",note:"Largest hospital in Algeria"},
+      {name:"CHU Beni Messous Algiers",type:"hospital",lat:36.766,lon:3.003,operator:"Ministry of Health"},
+      {name:"Hôpital Militaire Central Algiers",type:"hospital",lat:36.741,lon:3.072,operator:"Ministry of Defence"},
+      {name:"CHU Constantine",type:"hospital",lat:36.369,lon:6.610},
+      {name:"CHU Oran",type:"hospital",lat:35.698,lon:-0.631},
+      {name:"Institut Pasteur d'Algérie",type:"govt",lat:36.750,lon:3.059,note:"Vaccine production & epidemiology"},
+      {name:"INSP Algeria",type:"govt",lat:36.755,lon:3.056,note:"National Institute of Public Health"}
+    ],
+    supply:[
+      {name:"Houari Boumediene Airport Algiers",type:"airport",lat:36.691,lon:3.215,note:"Largest airport in North Africa"},
+      {name:"Oran Es Senia Airport",type:"airport",lat:35.624,lon:-0.621},
+      {name:"Constantine Mohamed Boudiaf Airport",type:"airport",lat:36.277,lon:6.621},
+      {name:"Port of Algiers",type:"port",lat:36.775,lon:3.058,note:"Main container port"},
+      {name:"Port of Oran",type:"port",lat:35.725,lon:-0.635},
+      {name:"Port of Annaba",type:"port",lat:36.895,lon:7.771},
+      {name:"Algiers Railway Station",type:"rail",lat:36.740,lon:3.059,operator:"SNTF"},
+      {name:"Trans-Sahara Highway Tamanrasset",type:"border",lat:22.785,lon:5.523,note:"Gateway to Sub-Saharan Africa"}
+    ],
+    energy:[
+      {name:"Hassi R'Mel Gas Field",type:"plant",lat:32.926,lon:3.277,operator:"Sonatrach",note:"Largest gas field in Africa"},
+      {name:"Hassi Messaoud Oil Field",type:"plant",lat:31.700,lon:6.063,operator:"Sonatrach",note:"Main Algerian oil production hub"},
+      {name:"Arzew LNG Plant",type:"plant",lat:35.839,lon:-0.305,operator:"Sonatrach",note:"Major LNG export terminal"},
+      {name:"Skikda LNG Plant",type:"plant",lat:36.878,lon:6.943,operator:"Sonatrach"},
+      {name:"Ain Salah Gas Plant",type:"plant",lat:27.197,lon:2.480,operator:"Sonatrach",note:"Central Sahara gas processing"},
+      {name:"Shams Tafouk Solar Farm",type:"solar",lat:27.270,lon:2.460,operator:"Sonelgaz",note:"Saharan solar development"},
+      {name:"Adrar Wind Farm",type:"wind",lat:27.870,lon:-0.285,operator:"Sonelgaz",note:"10 MW pilot"},
+      {name:"Sonelgaz HQ",type:"substation",lat:36.752,lon:3.057,operator:"Sonelgaz"},
+      {name:"Sonatrach HQ",type:"substation",lat:36.750,lon:3.043,operator:"Sonatrach"}
+    ]
+  },
+
+  // ── DR CONGO ─────────────────────────────────────────────
+  COD:{
+    health:[
+      {name:"Kinshasa General Referral Hospital",type:"hospital",lat:-4.322,lon:15.321,operator:"Government",note:"Largest hospital in DRC"},
+      {name:"Clinique Ngaliema",type:"hospital",lat:-4.304,lon:15.268,operator:"Ministry of Health"},
+      {name:"Monkole Hospital",type:"hospital",lat:-4.338,lon:15.218,operator:"CEPAS"},
+      {name:"INRB Institut National de Recherche Biomédicale",type:"govt",lat:-4.311,lon:15.330,note:"Ebola & disease research"},
+      {name:"Panzi Hospital Bukavu",type:"hospital",lat:-2.486,lon:28.849,operator:"Dr Denis Mukwege",note:"Nobel Peace Prize 2018"},
+      {name:"Heal Africa Goma",type:"hospital",lat:-1.675,lon:29.223,note:"Trauma & surgical care North Kivu"},
+      {name:"Mweso Hospital",type:"clinic",lat:-0.891,lon:28.049}
+    ],
+    supply:[
+      {name:"N'djili International Airport Kinshasa",type:"airport",lat:-4.385,lon:15.444},
+      {name:"Ndjili Airport Domestic",type:"airport",lat:-4.385,lon:15.444},
+      {name:"Goma International Airport",type:"airport",lat:-1.672,lon:29.239},
+      {name:"Lubumbashi International Airport",type:"airport",lat:-11.591,lon:27.531},
+      {name:"Port of Matadi",type:"port",lat:-5.820,lon:13.461,note:"DRC's only ocean port"},
+      {name:"Port of Boma",type:"port",lat:-5.849,lon:13.047},
+      {name:"Beach Ngobila Port Kinshasa",type:"port",lat:-4.300,lon:15.287,note:"Congo River ferry to Brazzaville"},
+      {name:"DRC-Rwanda Border Goma/Gisenyi",type:"border",lat:-1.672,lon:29.238,note:"Key Eastern DRC crossing"},
+      {name:"DRC-Zambia Border Kasumbalesa",type:"border",lat:-11.215,lon:27.805,note:"Main Copperbelt corridor"}
+    ],
+    energy:[
+      {name:"Inga I Dam",type:"hydro",lat:-5.519,lon:13.617,operator:"SNEL",note:"351 MW on Congo River"},
+      {name:"Inga II Dam",type:"hydro",lat:-5.522,lon:13.623,operator:"SNEL",note:"1424 MW"},
+      {name:"Grand Inga (proposed)",type:"hydro",lat:-5.520,lon:13.620,note:"40000 MW potential — would be world's largest"},
+      {name:"Kibali Hydroelectric",type:"hydro",lat:3.550,lon:29.050,operator:"Barrick/AngloGold",note:"600 MW, powers gold mine"},
+      {name:"Ruzizi II Hydroelectric",type:"hydro",lat:-2.472,lon:28.879,operator:"SINELAC",note:"44 MW shared with Rwanda & Burundi"},
+      {name:"Zongo Falls",type:"hydro",lat:-4.325,lon:18.608,operator:"SNEL",note:"75 MW"},
+      {name:"SNEL State Power Utility",type:"substation",lat:-4.320,lon:15.312,operator:"SNEL"}
+    ]
+  },
+
+  // ── SUDAN ────────────────────────────────────────────────
+  SDN:{
+    health:[
+      {name:"Khartoum Teaching Hospital",type:"hospital",lat:15.598,lon:32.539,operator:"Federal MoH"},
+      {name:"Soba University Hospital",type:"hospital",lat:15.555,lon:32.609,operator:"University of Khartoum"},
+      {name:"Ribat University Hospital",type:"hospital",lat:15.624,lon:32.563,operator:"Ribat University"},
+      {name:"Ahmed Gasim Hospital Port Sudan",type:"hospital",lat:19.620,lon:37.215,operator:"Red Sea State"},
+      {name:"Federal Ministry of Health Sudan",type:"govt",lat:15.601,lon:32.535,operator:"GoS"}
+    ],
+    supply:[
+      {name:"Khartoum International Airport",type:"airport",lat:15.598,lon:32.557,note:"Main gateway"},
+      {name:"Port Sudan International Airport",type:"airport",lat:19.432,lon:37.235},
+      {name:"Port Sudan",type:"port",lat:19.608,lon:37.217,note:"Sudan's only port on Red Sea"},
+      {name:"Khartoum North Railway",type:"rail",lat:15.639,lon:32.560,operator:"SDR"},
+      {name:"Sudan-Egypt Border Wadi Halfa",type:"border",lat:21.800,lon:31.340},
+      {name:"Sudan-Ethiopia Border Gallabat",type:"border",lat:12.963,lon:36.187},
+      {name:"Sudan-Chad Border Adre",type:"border",lat:13.460,lon:22.205}
+    ],
+    energy:[
+      {name:"Merowe Dam",type:"hydro",lat:18.756,lon:31.885,operator:"NEC",note:"1250 MW — largest hydropower project in Africa (2009)"},
+      {name:"Roseires Dam",type:"hydro",lat:11.850,lon:34.381,operator:"NEC",note:"280 MW on Blue Nile"},
+      {name:"Sennar Dam",type:"hydro",lat:13.547,lon:33.570,operator:"NEC",note:"25 MW"},
+      {name:"Khartoum North Power Station",type:"plant",lat:15.638,lon:32.567,operator:"SEC",note:"800 MW gas"},
+      {name:"Upper Atbara Dam",type:"hydro",lat:17.680,lon:35.900,operator:"NEC",note:"320 MW"},
+      {name:"Bashayer Oil Terminal",type:"plant",lat:19.495,lon:37.268,note:"Oil export terminal Red Sea"}
+    ]
+  },
+
+  // ── ZAMBIA ───────────────────────────────────────────────
+  ZMB:{
+    health:[
+      {name:"University Teaching Hospital Lusaka",type:"hospital",lat:-15.416,lon:28.311,operator:"Government",note:"Largest hospital in Zambia"},
+      {name:"Levy Mwanawasa University Teaching Hospital",type:"hospital",lat:-15.380,lon:28.332,operator:"Government"},
+      {name:"Ndola Central Hospital",type:"hospital",lat:-12.995,lon:28.636,operator:"Copperbelt Province"},
+      {name:"Livingstone General Hospital",type:"hospital",lat:-17.855,lon:25.873},
+      {name:"Cancer Diseases Hospital Lusaka",type:"hospital",lat:-15.415,lon:28.310,operator:"Government"},
+      {name:"Zambia National Public Health Institute",type:"govt",lat:-15.416,lon:28.308,operator:"ZNPHI"}
+    ],
+    supply:[
+      {name:"Kenneth Kaunda International Airport",type:"airport",lat:-15.330,lon:28.452,note:"Main international gateway"},
+      {name:"Simon Mwansa Kapwepwe Airport Ndola",type:"airport",lat:-12.998,lon:28.665},
+      {name:"Harry Mwanga Nkumbula Airport Livingstone",type:"airport",lat:-17.822,lon:25.823},
+      {name:"TAZARA Railway Terminus Lusaka",type:"rail",lat:-15.415,lon:28.282,operator:"TAZARA"},
+      {name:"Nakonde Border Post (Tanzania)",type:"border",lat:-9.347,lon:32.763},
+      {name:"Chirundu Border Post (Zimbabwe)",type:"border",lat:-16.034,lon:28.859,note:"Busiest road crossing in Southern Africa"},
+      {name:"Kasumbalesa Border (DRC)",type:"border",lat:-11.215,lon:27.805,note:"Key Copperbelt mining corridor"},
+      {name:"Livingstone/Victoria Falls Border",type:"border",lat:-17.920,lon:25.849}
+    ],
+    energy:[
+      {name:"Kariba North Bank Power Station",type:"hydro",lat:-16.520,lon:28.770,operator:"ZESCO",note:"1080 MW shared with Zimbabwe"},
+      {name:"Kafue Gorge Upper",type:"hydro",lat:-15.818,lon:28.432,operator:"ZESCO",note:"990 MW"},
+      {name:"Kafue Gorge Lower",type:"hydro",lat:-15.800,lon:28.260,operator:"ZESCO",note:"750 MW, commissioned 2022"},
+      {name:"Itezhi-Tezhi Power Station",type:"hydro",lat:-15.740,lon:26.014,operator:"ITPC",note:"120 MW"},
+      {name:"Victoria Falls Power Station",type:"hydro",lat:-17.924,lon:25.852,operator:"ZESCO",note:"108 MW"},
+      {name:"Maamba Collieries Coal Power",type:"plant",lat:-17.369,lon:26.965,operator:"Maamba",note:"300 MW"},
+      {name:"ZESCO HQ Lusaka",type:"substation",lat:-15.415,lon:28.283,operator:"ZESCO"}
+    ]
+  },
+
+  // ── ZIMBABWE ─────────────────────────────────────────────
+  ZWE:{
+    health:[
+      {name:"Parirenyatwa Group of Hospitals",type:"hospital",lat:-17.828,lon:31.043,operator:"Government",note:"Largest hospital in Zimbabwe"},
+      {name:"Mpilo Central Hospital Bulawayo",type:"hospital",lat:-20.168,lon:28.580,operator:"Government"},
+      {name:"United Bulawayo Hospitals",type:"hospital",lat:-20.150,lon:28.581,operator:"Government"},
+      {name:"Mutare Provincial Hospital",type:"hospital",lat:-18.973,lon:32.657},
+      {name:"Medicines Control Authority of Zimbabwe",type:"govt",lat:-17.830,lon:31.050,operator:"MCAZ"},
+      {name:"National Pharmaceutical Company NatPharm",type:"govt",lat:-17.870,lon:31.047,note:"State drug procurement & distribution"}
+    ],
+    supply:[
+      {name:"Robert Gabriel Mugabe International Airport",type:"airport",lat:-17.932,lon:31.093,note:"Main international gateway"},
+      {name:"Joshua Mqabuko Nkomo Airport Bulawayo",type:"airport",lat:-20.017,lon:28.618},
+      {name:"Victoria Falls International Airport",type:"airport",lat:-18.095,lon:25.839},
+      {name:"Beitbridge Border Post (South Africa)",type:"border",lat:-22.212,lon:29.990,note:"Busiest border in Sub-Saharan Africa"},
+      {name:"Chirundu Border (Zambia)",type:"border",lat:-16.034,lon:28.860},
+      {name:"Forbes Border Post (Mozambique)",type:"border",lat:-18.999,lon:32.752},
+      {name:"Zimbabwe National Railways Bulawayo",type:"rail",lat:-20.157,lon:28.593,operator:"NRZ"}
+    ],
+    energy:[
+      {name:"Hwange Power Station",type:"plant",lat:-18.368,lon:26.498,operator:"ZESA",note:"920 MW coal — largest in Zimbabwe"},
+      {name:"Kariba South Bank Power Station",type:"hydro",lat:-16.519,lon:28.775,operator:"ZESA",note:"750 MW shared with Zambia"},
+      {name:"Harare Power Station",type:"plant",lat:-17.870,lon:31.089,operator:"ZESA",note:"80 MW"},
+      {name:"Munyati Power Station",type:"plant",lat:-19.084,lon:29.899,operator:"ZESA",note:"120 MW coal"},
+      {name:"Bulawayo Power Station",type:"plant",lat:-20.187,lon:28.640,operator:"ZESA",note:"90 MW coal"},
+      {name:"ZESA Holdings HQ",type:"substation",lat:-17.835,lon:31.047,operator:"ZESA"}
+    ]
+  },
+
+  // ── UNITED STATES ────────────────────────────────────────
+  USA:{
+    health:[
+      {name:"CDC Centers for Disease Control",type:"govt",lat:33.799,lon:-84.328,operator:"US HHS",note:"US national public health agency — Atlanta, GA"},
+      {name:"National Institutes of Health",type:"govt",lat:39.000,lon:-77.102,operator:"US HHS",note:"World's largest biomedical research agency — Bethesda, MD"},
+      {name:"Walter Reed National Military Medical Center",type:"hospital",lat:38.980,lon:-77.096,operator:"DoD"},
+      {name:"Mayo Clinic Rochester",type:"hospital",lat:44.022,lon:-92.466,note:"Ranked #1 hospital in US"},
+      {name:"Johns Hopkins Hospital",type:"hospital",lat:39.297,lon:-76.593,operator:"Johns Hopkins Medicine"},
+      {name:"Massachusetts General Hospital",type:"hospital",lat:42.363,lon:-71.069,operator:"Mass General Brigham"},
+      {name:"Cleveland Clinic",type:"hospital",lat:41.503,lon:-81.621},
+      {name:"UCSF Medical Center",type:"hospital",lat:37.763,lon:-122.457},
+      {name:"MD Anderson Cancer Center",type:"hospital",lat:29.706,lon:-95.397,operator:"UT System",note:"Top-ranked cancer center globally"},
+      {name:"NYU Langone Health",type:"hospital",lat:40.742,lon:-73.974},
+      {name:"Pfizer HQ",type:"govt",lat:40.757,lon:-73.990,note:"Largest pharma company by revenue — NYC"},
+      {name:"Moderna HQ",type:"govt",lat:42.395,lon:-71.073,note:"mRNA vaccine pioneer — Cambridge, MA"},
+      {name:"Johnson & Johnson HQ",type:"govt",lat:40.567,lon:-74.488,note:"New Brunswick, NJ"},
+      {name:"Merck HQ",type:"govt",lat:40.559,lon:-74.418,note:"Rahway, NJ"},
+      {name:"Eli Lilly HQ",type:"govt",lat:39.768,lon:-86.157,note:"Indianapolis, IN"},
+      {name:"Abbott Laboratories",type:"govt",lat:42.297,lon:-87.988,note:"North Chicago, IL"},
+      {name:"Children's Hospital of Philadelphia",type:"hospital",lat:39.945,lon:-75.196},
+      {name:"Stanford Hospital",type:"hospital",lat:37.434,lon:-122.175}
+    ],
+    supply:[
+      {name:"Port of Los Angeles",type:"port",lat:33.735,lon:-118.267,note:"Busiest container port in Western Hemisphere"},
+      {name:"Port of Long Beach",type:"port",lat:33.754,lon:-118.216,note:"2nd busiest US port"},
+      {name:"Port of New York / New Jersey",type:"port",lat:40.660,lon:-74.070,note:"Busiest port on US East Coast"},
+      {name:"Port of Houston",type:"port",lat:29.740,lon:-95.080,note:"Largest port by tonnage in US"},
+      {name:"Port of Savannah",type:"port",lat:32.076,lon:-81.102,note:"Fastest growing port in US"},
+      {name:"Port of New Orleans",type:"port",lat:29.945,lon:-90.061,note:"Gateway to Mississippi basin"},
+      {name:"Port of Seattle / Tacoma",type:"port",lat:47.560,lon:-122.340},
+      {name:"Port of Baltimore",type:"port",lat:39.268,lon:-76.564},
+      {name:"O'Hare International Airport",type:"airport",lat:41.974,lon:-87.907,note:"Key global freight hub"},
+      {name:"JFK International Airport",type:"airport",lat:40.641,lon:-73.778},
+      {name:"Los Angeles International Airport",type:"airport",lat:33.943,lon:-118.408},
+      {name:"Dallas/Fort Worth International Airport",type:"airport",lat:32.896,lon:-97.037,note:"World's 2nd busiest by operations"},
+      {name:"Hartsfield-Jackson Atlanta Airport",type:"airport",lat:33.641,lon:-84.428,note:"World's busiest airport"},
+      {name:"Denver International Airport",type:"airport",lat:39.856,lon:-104.673},
+      {name:"Memphis FedEx Hub",type:"warehouse",lat:35.048,lon:-89.983,operator:"FedEx",note:"World's busiest cargo airport & main FedEx hub"},
+      {name:"UPS Worldport Louisville",type:"warehouse",lat:38.175,lon:-85.740,operator:"UPS",note:"Largest fully automated package sorting facility"},
+      {name:"Chicago Union Station",type:"rail",lat:41.879,lon:-87.640,note:"Major Amtrak/freight rail hub"},
+      {name:"Kansas City rail hub",type:"rail",lat:39.097,lon:-94.581,note:"Crossroads of US freight rail network"},
+      {name:"Laredo Port of Entry (Mexico)",type:"border",lat:27.495,lon:-99.507,note:"Largest land port in Western Hemisphere"},
+      {name:"El Paso Port of Entry",type:"border",lat:31.762,lon:-106.484},
+      {name:"Detroit Ambassador Bridge",type:"border",lat:42.328,lon:-83.071,note:"Busiest US-Canada crossing — 25% of US-Canada trade"}
+    ],
+    energy:[
+      {name:"Hoover Dam",type:"hydro",lat:36.016,lon:-114.738,operator:"Bureau of Reclamation",note:"2080 MW — iconic Colorado River dam"},
+      {name:"Grand Coulee Dam",type:"hydro",lat:47.957,lon:-118.981,operator:"Bureau of Reclamation",note:"6809 MW — largest power plant in US"},
+      {name:"Robert Moses Niagara Power Plant",type:"hydro",lat:43.080,lon:-79.054,operator:"NYPA",note:"2675 MW"},
+      {name:"Palo Verde Nuclear Station",type:"plant",lat:33.388,lon:-112.862,operator:"Arizona Public Service",note:"3942 MW — largest power plant in US"},
+      {name:"Vogtle Nuclear Plant",type:"plant",lat:33.140,lon:-81.763,operator:"Georgia Power",note:"Newest US nuclear plant (2023)"},
+      {name:"Diablo Canyon Nuclear",type:"plant",lat:35.211,lon:-120.854,operator:"PG&E",note:"2256 MW California nuclear"},
+      {name:"Solar Star Solar Farm",type:"solar",lat:35.074,lon:-118.424,operator:"BrightSource",note:"579 MW — among world's largest solar"},
+      {name:"Alta Wind Energy Center",type:"wind",lat:34.927,lon:-118.540,operator:"Terra-Gen",note:"1548 MW California wind"},
+      {name:"Roscoe Wind Farm Texas",type:"wind",lat:32.441,lon:-100.535,operator:"RWE",note:"781 MW"},
+      {name:"Sabine Pass LNG Terminal",type:"plant",lat:29.727,lon:-93.876,operator:"Cheniere Energy",note:"Largest LNG export terminal in US"},
+      {name:"Permian Basin Oil Fields",type:"plant",lat:31.900,lon:-102.800,operator:"Various",note:"World's most productive oil field — 5M bpd"},
+      {name:"Tennessee Valley Authority",type:"plant",lat:35.874,lon:-84.524,operator:"TVA",note:"Largest US public power utility"},
+      {name:"PJM Interconnection Grid Control",type:"substation",lat:39.873,lon:-75.417,operator:"PJM",note:"Largest grid operator — 65M customers"},
+      {name:"ERCOT Texas Grid Control",type:"substation",lat:30.336,lon:-97.760,operator:"ERCOT",note:"Texas independent grid — 26M customers"},
+      {name:"Bonneville Power Administration",type:"substation",lat:45.528,lon:-122.686,operator:"BPA",note:"Pacific Northwest grid — 31 federal dams"}
+    ]
+  }
+};
+
+function renderInfraPoints(points, mode) {
+  var cfg = INFRA[mode];
+  var count = 0;
+  points.forEach(function(pt) {
+    var type = pt.type || 'other';
+    var typeCfg = cfg.types[type] || cfg.types.other;
+    var marker = L.marker([pt.lat, pt.lon], {icon: makeInfraIcon(type, mode)});
+    var pop = '<div style="font:13px/1.5 system-ui,sans-serif;max-width:240px;padding:2px">'
+      + '<b style="font-size:13px">'+pt.name+'</b>'
+      + '<div style="display:inline-block;margin-left:6px;padding:1px 6px;border-radius:10px;'
+      + 'background:'+typeCfg.color+'22;color:'+typeCfg.color+';font-size:10px;font-weight:600">'+typeCfg.label+'</div>'
+      + (pt.operator ? '<div style="color:#888;font-size:11px;margin-top:2px">'+pt.operator+'</div>' : '')
+      + (pt.note ? '<div style="color:#999;font-size:11px;margin-top:1px;font-style:italic">'+pt.note+'</div>' : '')
+      + '</div>';
+    marker.bindPopup(pop, {maxWidth:260});
+    marker.addTo(leafMap);
+    infraMarkers.push(marker);
+    count++;
+  });
+  var status = document.getElementById('infra-status');
+  if (status) status.textContent = count + ' assets';
+}
+
+function loadInfraData(code, mode) {
+  var c = C[code]; if (!c) return;
+  currentInfraMode = mode;
+  clearInfraMarkers();
+  var status = document.getElementById('infra-status');
+
+  // Use embedded static data if available — always works from file://
+  if (STATIC_INFRA[code] && STATIC_INFRA[code][mode]) {
+    renderInfraPoints(STATIC_INFRA[code][mode], mode);
+    return;
+  }
+
+  // Fall back to live Overpass API (works when served over HTTP)
+  if (!c.b) { status.textContent = 'No bounds for this country'; return; }
+  status.textContent = 'Loading\u2026';
+  var b = c.b;
+  var s=b[0][0], w=b[0][1], n=b[1][0], e=b[1][1];
+  var maxSpan = 20;
+  if ((n-s)>maxSpan||(e-w)>maxSpan) {
+    var mLat=(n+s)/2,mLng=(e+w)/2,half=maxSpan/2;
+    s=mLat-half;n=mLat+half;w=mLng-half;e=mLng+half;
+  }
+  var bbox=s+','+w+','+n+','+e;
+  var query=INFRA[mode].query(bbox);
+  var xhr=new XMLHttpRequest();
+  xhr.open('GET','https://overpass-api.de/api/interpreter?data='+encodeURIComponent(query),true);
+  xhr.timeout=28000;
+  xhr.onload=function(){
+    if(xhr.status!==200){status.textContent='Server error';return;}
+    if(currentInfraMode!==mode)return;
+    try {
+      var els=(JSON.parse(xhr.responseText).elements)||[];
+      var seen={},pts=[];
+      els.forEach(function(el){
+        if(seen[el.id])return;seen[el.id]=true;
+        var lat=el.lat||(el.center&&el.center.lat);
+        var lon=el.lon||(el.center&&el.center.lon);
+        if(!lat||!lon||!((el.tags||{}).name))return;
+        pts.push({name:el.tags.name,type:INFRA[mode].classify(el.tags),lat:lat,lon:lon,
+          operator:el.tags.operator,note:el.tags.description});
+      });
+      renderInfraPoints(pts.slice(0,400),mode);
+    } catch(ex){status.textContent='Error loading data';}
+  };
+  xhr.ontimeout=function(){status.textContent='Timed out';};
+  xhr.onerror=function(){status.textContent='Run from a local server for live data';};
+  xhr.send();
+}
+
+// City light markers shown on dark mode
+var CITY_LIGHTS = [
+  {n:"New York",lat:40.71,lng:-74.01,s:18},{n:"Los Angeles",lat:34.05,lng:-118.24,s:15},
+  {n:"Chicago",lat:41.88,lng:-87.63,s:13},{n:"London",lat:51.51,lng:-0.13,s:16},
+  {n:"Paris",lat:48.86,lng:2.35,s:15},{n:"Tokyo",lat:35.69,lng:139.69,s:18},
+  {n:"Shanghai",lat:31.23,lng:121.47,s:17},{n:"Beijing",lat:39.91,lng:116.39,s:16},
+  {n:"Mumbai",lat:19.08,lng:72.88,s:16},{n:"Delhi",lat:28.61,lng:77.21,s:15},
+  {n:"São Paulo",lat:-23.55,lng:-46.63,s:15},{n:"Mexico City",lat:19.43,lng:-99.13,s:14},
+  {n:"Cairo",lat:30.05,lng:31.25,s:14},{n:"Lagos",lat:6.52,lng:3.38,s:13},
+  {n:"Istanbul",lat:41.01,lng:28.95,s:13},{n:"Moscow",lat:55.75,lng:37.62,s:14},
+  {n:"Seoul",lat:37.57,lng:126.98,s:14},{n:"Jakarta",lat:-6.21,lng:106.85,s:13},
+  {n:"Bangkok",lat:13.75,lng:100.50,s:13},{n:"Karachi",lat:24.86,lng:67.01,s:13},
+  {n:"Osaka",lat:34.69,lng:135.50,s:13},{n:"Sydney",lat:-33.87,lng:151.21,s:12},
+  {n:"Singapore",lat:1.35,lng:103.82,s:12},{n:"Dubai",lat:25.20,lng:55.27,s:13},
+  {n:"Berlin",lat:52.52,lng:13.41,s:12},{n:"Madrid",lat:40.42,lng:-3.70,s:12},
+  {n:"Toronto",lat:43.65,lng:-79.38,s:12},{n:"Houston",lat:29.76,lng:-95.37,s:12},
+  {n:"Riyadh",lat:24.69,lng:46.72,s:12},{n:"Kinshasa",lat:-4.32,lng:15.32,s:11},
+  {n:"Lima",lat:-12.04,lng:-77.03,s:12},{n:"Tehran",lat:35.69,lng:51.42,s:12},
+  {n:"Chicago",lat:41.88,lng:-87.63,s:12},{n:"Bogotá",lat:4.71,lng:-74.07,s:11},
+  {n:"Hong Kong",lat:22.32,lng:114.17,s:13},{n:"Taipei",lat:25.04,lng:121.56,s:12},
+  {n:"Rome",lat:41.90,lng:12.50,s:11},{n:"Milan",lat:45.47,lng:9.19,s:12},
+  {n:"Dallas",lat:32.78,lng:-96.80,s:11},{n:"Philadelphia",lat:39.95,lng:-75.17,s:12},
+  {n:"Washington DC",lat:38.90,lng:-77.04,s:12},{n:"Atlanta",lat:33.75,lng:-84.39,s:11},
+  {n:"San Francisco",lat:37.77,lng:-122.42,s:12},{n:"Miami",lat:25.77,lng:-80.19,s:11},
+];
+
+var lightMarkers = [];
+
+function addCityLights(bounds) {
+  lightMarkers.forEach(function(m){ leafMap.removeLayer(m); });
+  lightMarkers = [];
+  CITY_LIGHTS.forEach(function(city){
+    if (bounds && !bounds.contains([city.lat, city.lng])) return;
+    var r = city.s;
+    var icon = L.divIcon({
+      html: '<div style="width:'+(r*2)+'px;height:'+(r*2)+'px;border-radius:50%;'
+          + 'background:radial-gradient(circle,rgba(255,240,180,0.9) 0%,rgba(255,200,80,0.4) 40%,transparent 70%);'
+          + 'filter:blur(2px)"></div>',
+      className: '',
+      iconSize: [r*2, r*2],
+      iconAnchor: [r, r]
+    });
+    var m = L.marker([city.lat, city.lng], {icon: icon, interactive: false});
+    m.addTo(leafMap);
+    lightMarkers.push(m);
+  });
+}
+
+function clearCityLights() {
+  lightMarkers.forEach(function(m){ leafMap.removeLayer(m); });
+  lightMarkers = [];
+}
+
+
+
+
+function initLeafMap(){
+  if(leafMap) return;
+  leafMap = L.map('leaflet-map',{
+    zoomControl:true,
+    attributionControl:true,
+    minZoom:2,maxZoom:19
+  });
+}
+
+function setTiles(key){
+  if(!leafMap) return;
+  clearInfraMarkers();
+  clearCityLights();
+  document.getElementById('infra-legend').classList.remove('visible');
+  leafTiles.forEach(function(l){leafMap.removeLayer(l);});
+  leafTiles=[];
+
+  var src = TILE_SOURCES[key] || TILE_SOURCES.streets;
+  var tilePane = leafMap.getPanes().tilePane;
+  var mapEl = document.getElementById('leaflet-map');
+
+  if (src.darkMode) {
+    mapEl.classList.add('mode-dark');
+    if (tilePane) tilePane.style.filter = '';
+  } else {
+    mapEl.classList.remove('mode-dark');
+    if (tilePane) tilePane.style.filter = src.filter || '';
+  }
+
+  src.layers.forEach(function(t){
+    var l = L.tileLayer(t.url, t.opt);
+    l.addTo(leafMap);
+    leafTiles.push(l);
+  });
+
+  document.querySelectorAll('.ml-btn').forEach(function(b){
+    b.classList.toggle('on', b.dataset.tile===key);
+  });
+
+  // Handle infrastructure overlay modes
+  var infraMode = (key==='health'||key==='supply'||key==='energy') ? key : null;
+  if (infraMode && selCode) {
+    showInfraLegend(infraMode);
+    loadInfraData(selCode, infraMode);
+  }
+
+  if (key === 'dark') addCityLights(null);
+
+  if (typeof MAPVIEW_GLOBE !== 'undefined') {
+    applyGlobeStyle(MAPVIEW_GLOBE[key] || 'biome');
+  }
+}
+
+function openMapView(code, tileKey){
+  var c=C[code]; if(!c) return;
+  initLeafMap();
+  document.getElementById('map-screen').classList.add('active');
+  document.getElementById('map-country-name').innerHTML=c.f+' '+c.n;
+  if(tileKey === 'dark'){
+    // World view so all city lights are visible
+    leafMap.setView([20, 0], 2, {animate:false});
+  } else if(c.b){
+    leafMap.fitBounds(c.b,{padding:[60,80],maxZoom:9,animate:false});
+  } else {
+    leafMap.setView([c.lat,c.lng],5,{animate:false});
+  }
+  leafMap.invalidateSize();
+  setTiles(tileKey||'streets');
+}
+
+function closeMapView(){
+  document.getElementById('map-screen').classList.remove('active');
+  document.getElementById('leaflet-map').classList.remove('mode-dark');
+  document.getElementById('leaflet-map').style.filter = '';
+  if (leafMap) {
+    var tp = leafMap.getPanes().tilePane;
+    if (tp) tp.style.filter = '';
+  }
+  clearInfraMarkers();
+  clearCityLights();
+  currentInfraMode = null;
+  document.getElementById('infra-legend').classList.remove('visible');
+  applyGlobeStyle('biome');
+}
+
+document.getElementById('back-btn').addEventListener('click',closeMapView);
+
+document.querySelectorAll('.ml-btn').forEach(function(btn){
+  btn.addEventListener('click',function(){
+    setTiles(this.dataset.tile);
+  });
+});
+
+// ══════════════════════════════════
+// GLOBE
+// ══════════════════════════════════
+var W=window.innerWidth, H=window.innerHeight;
+var svg=d3.select('#globe').attr('width',W).attr('height',H);
+var defs=svg.append('defs');
+
+var og=defs.append('radialGradient').attr('id','oceanGrad').attr('cx','40%').attr('cy','38%').attr('r','65%');
+og.append('stop').attr('offset','0%').attr('stop-color','#1a5276');
+og.append('stop').attr('offset','55%').attr('stop-color','#0e3460');
+og.append('stop').attr('offset','100%').attr('stop-color','#060e20');
+defs.append('clipPath').attr('id','sc').append('path');
+
+var g=svg.append('g');
+var gS=g.append('g'), gG=g.append('g');
+var gL=g.append('g').attr('clip-path','url(#sc)');
+var gB=g.append('g').attr('clip-path','url(#sc)');
+var gT=g.append('g').attr('clip-path','url(#sc)');
+
+var isGlobe=true, rot=[0,0], geoC, geoBrd;
+var baseScale=Math.min(W,H)*0.42, currentScale=baseScale;
+var globeStyle='biome';
+
+function makeProj(){
+  return isGlobe
+    ?d3.geoOrthographic().scale(currentScale).translate([W/2,H/2]).clipAngle(90).rotate(rot)
+    :d3.geoNaturalEarth1().scale(W/6.2).translate([W/2,H/2]);
+}
+var proj=makeProj(), pg=d3.geoPath().projection(proj);
+
+function posOv(){
+  var s=GLOBE_STYLES[globeStyle];
+  if(!s||!s.ov||!isGlobe){document.getElementById('ov').style.display='none';return;}
+  var r=currentScale,ov=document.getElementById('ov');
+  Object.assign(ov.style,{
+    width:r*2+'px',height:r*2+'px',left:(W/2-r)+'px',top:(H/2-r)+'px',
+    background:['radial-gradient(ellipse 48% 42% at 30% 26%,rgba(255,255,255,.1) 0%,transparent 65%)',
+      'radial-gradient(ellipse 65% 62% at 72% 68%,rgba(0,0,0,.72) 0%,rgba(0,0,0,.26) 48%,transparent 70%)'].join(','),
+    boxShadow:'0 0 0 3px rgba(8,24,70,.7),0 0 60px 12px rgba(8,16,52,.8)'
+  });
+  ov.style.display='block';
+}
+
+function applyGlobeStyle(style){
+  globeStyle=style;
+  var s=GLOBE_STYLES[style]||GLOBE_STYLES.biome;
+  gS.select('path').attr('fill',s.ocean);
+  gG.select('path').attr('stroke',s.grat);
+  gL.selectAll('path').each(function(d){
+    var code=NUM[String(d.id).padStart(3,'0')];
+    var fill=s.colors[BIOME[code]||'def']||s.colors.def;
+    d3.select(this)
+      .attr('fill',fill)
+      .attr('stroke',code===selCode?'#60a5fa':d3.color(fill).darker(.7).formatHex())
+      .attr('stroke-width',code===selCode?2.5:0.5);
+  });
+  document.querySelectorAll('.lp-item').forEach(function(i){
+    i.classList.toggle('on',i.dataset.style===style);
+  });
+  posOv();
+}
+
+function redraw(){
+  proj=makeProj(); pg=d3.geoPath().projection(proj);
+  defs.select('#sc path').attr('d',pg({type:'Sphere'}));
+  gS.select('path').attr('d',pg({type:'Sphere'}));
+  gG.select('path').attr('d',pg(d3.geoGraticule()()));
+  gL.selectAll('path').attr('d',pg);
+  gB.select('path').attr('d',pg(geoBrd));
+  gT.selectAll('text').each(function(d){
+    var c=pg.centroid(d);
+    d3.select(this).attr('x',isNaN(c[0])?-9999:c[0]).attr('y',isNaN(c[1])?-9999:c[1]);
+  });
+}
+
+function buildGlobe(topo){
+  geoC=topojson.feature(topo,topo.objects.countries);
+  geoBrd=topojson.mesh(topo,topo.objects.countries,function(a,b){return a!==b;});
+  defs.select('#sc path').attr('d',pg({type:'Sphere'}));
+  gS.append('path').datum({type:'Sphere'}).attr('class','sphere').attr('d',pg);
+  gG.append('path').datum(d3.geoGraticule()()).attr('class','graticule').attr('d',pg);
+  gL.selectAll('path').data(geoC.features).join('path')
+    .attr('class','land').attr('d',pg)
+    .each(function(d){
+      var code=NUM[String(d.id).padStart(3,'0')];
+      var s=GLOBE_STYLES.biome;
+      var fill=s.colors[BIOME[code]||'def']||s.colors.def;
+      d3.select(this).attr('fill',fill).attr('stroke',d3.color(fill).darker(.7).formatHex()).attr('stroke-width',.5);
+    })
+    .on('click',function(_,d){
+      var code=NUM[String(d.id).padStart(3,'0')];
+      if(!code||!C[code]) return;
+      selCode=code;
+      applyGlobeStyle(globeStyle);
+      zoomTo(C[code]);
+      showCard(code);
+    });
+  gB.append('path').datum(geoBrd).attr('class','border').attr('d',pg);
+  gT.selectAll('text').data(geoC.features.filter(function(d){
+    var code=NUM[String(d.id).padStart(3,'0')];
+    return code&&C[code]&&C[code].a>300000;
+  })).join('text')
+    .attr('text-anchor','middle').attr('dominant-baseline','middle')
+    .attr('font-size','5.5px').attr('fill','rgba(255,255,255,.68)')
+    .attr('stroke','rgba(0,0,0,.5)').attr('stroke-width','.8').attr('paint-order','stroke')
+    .attr('pointer-events','none')
+    .each(function(d){
+      var c=pg.centroid(d),code=NUM[String(d.id).padStart(3,'0')];
+      d3.select(this).attr('x',isNaN(c[0])?-9999:c[0]).attr('y',isNaN(c[1])?-9999:c[1])
+        .text(C[code]?C[code].n:'');
+    });
+  posOv();
+  document.getElementById('ov').style.display='block';
+  document.getElementById('loading').style.display='none';
+  setupControls();
+}
+
+function zoomTo(c){
+  var tRot=[-c.lng,-c.lat],sRot=[rot[0],rot[1]],sSc=currentScale;
+  var area=c.a||500000;
+  var tSc=baseScale*Math.max(0.9,Math.min(2.8,160/Math.sqrt(area/40000)));
+  var steps=45,step=0;
+  function ease(t){return t<.5?2*t*t:-1+(4-2*t)*t;}
+  (function tick(){
+    step++;var t=ease(Math.min(step/steps,1));
+    rot[0]=sRot[0]+(tRot[0]-sRot[0])*t;
+    rot[1]=sRot[1]+(tRot[1]-sRot[1])*t;
+    currentScale=sSc+(tSc-sSc)*t;
+    redraw();posOv();
+    if(step<steps)requestAnimationFrame(tick);
+  })();
+}
+
+var zoomB;
+function setupControls(){
+  zoomB=d3.zoom().scaleExtent([.8,50]).filter(function(){return !isGlobe;})
+    .on('zoom',function(e){
+      g.attr('transform',e.transform);
+      gT.selectAll('text').attr('font-size',Math.max(1.5,Math.min(11,5.5/e.transform.k))+'px');
+    });
+  svg.call(zoomB);
+  var drag=false,lx=0,ly=0;
+  svg.on('mousedown.gd touchstart.gd',function(e){
+    if(!isGlobe)return;drag=true;
+    var p=e.touches?e.touches[0]:e;lx=p.clientX;ly=p.clientY;e.preventDefault();
+  });
+  window.addEventListener('mousemove',function(e){
+    if(!drag||!isGlobe)return;
+    rot[0]+=(e.clientX-lx)*.35;rot[1]-=(e.clientY-ly)*.35;
+    rot[1]=Math.max(-85,Math.min(85,rot[1]));lx=e.clientX;ly=e.clientY;redraw();
+  });
+  window.addEventListener('touchmove',function(e){
+    if(!drag||!isGlobe)return;
+    rot[0]+=(e.touches[0].clientX-lx)*.35;rot[1]-=(e.touches[0].clientY-ly)*.35;
+    rot[1]=Math.max(-85,Math.min(85,rot[1]));
+    lx=e.touches[0].clientX;ly=e.touches[0].clientY;redraw();
+  });
+  window.addEventListener('mouseup',function(){drag=false;});
+  window.addEventListener('touchend',function(){drag=false;});
+  document.getElementById('globe-btn').addEventListener('click',function(){
+    isGlobe=!isGlobe;
+    this.innerHTML=isGlobe?'&#8853;':'&#8862;';
+    document.getElementById('hint').textContent=isGlobe?'drag to rotate':'scroll to zoom';
+    g.attr('transform',null);currentScale=baseScale;redraw();posOv();
+  });
+}
+
+// ══════════════════════════════════
+// INFO CARD
+// ══════════════════════════════════
+function showCard(code){
+  var c=C[code];if(!c)return;
+  var ex=EXTRA[code]||{};
+  document.getElementById('ic-flag').innerHTML=c.f;
+  document.getElementById('ic-name').textContent=c.n;
+  var pills=[c.r,'Capital: '+c.c];
+  if(ex.lang)pills.push(ex.lang);
+  if(ex.cur)pills.push(ex.cur);
+  document.getElementById('ic-sub').innerHTML=pills.map(function(p){return'<span>'+p+'</span>';}).join('');
+  var d=c.a>0?Math.round(c.p/c.a):0;
+  document.getElementById('ic-stats').innerHTML=
+    [['Population',fmt(c.p)],['Area',fmt(c.a)+' km²'],['Density',fmt(d)+'/km²'],['GDP/cap','$'+fmt(c.g)]]
+    .map(function(s){return'<div class="st"><div class="sl">'+s[0]+'</div><div class="sv">'+s[1]+'</div></div>';}).join('');
+  var rows=[];
+  if(ex.drive)rows.push(['Drives on',ex.drive]);
+  if(ex.un)rows.push(['UN since',ex.un]);
+  var h=rows.map(function(r){return'<div class="er"><span class="el">'+r[0]+'</span><span class="ev">'+r[1]+'</span></div>';}).join('');
+  if(ex.fact)h+='<div class="er wide"><span class="el">Did you know</span><span class="ev">'+ex.fact+'</span></div>';
+  document.getElementById('ic-ex').innerHTML=h;
+  document.getElementById('ic').style.display='block';
+}
+
+document.getElementById('ic-x').addEventListener('click',function(){
+  document.getElementById('ic').style.display='none';
+  selCode=null;applyGlobeStyle(globeStyle);
+});
+
+
+// ══════════════════════════════════
+// GLOBE STYLE SWITCHER
+// ══════════════════════════════════
+document.getElementById('layers-btn').addEventListener('click',function(e){
+  e.stopPropagation();
+  document.getElementById('layers-pop').classList.toggle('show');
+});
+document.addEventListener('click',function(e){
+  if(!document.getElementById('layers-pop').contains(e.target)&&
+     e.target!==document.getElementById('layers-btn'))
+    document.getElementById('layers-pop').classList.remove('show');
+});
+// Map view → globe style mapping
+var MAPVIEW_GLOBE = {
+  streets: 'biome',
+  topo:    'topo',
+  dark:    'dark',
+  health:  'biome',
+  supply:  'plain',
+  energy:  'dark'
+};
+
+document.querySelectorAll('.lp-item[data-mapview]').forEach(function(item){
+  item.addEventListener('click',function(){
+    document.getElementById('layers-pop').classList.remove('show');
+    var mv = this.dataset.mapview;
+    // Change globe to match the selected view
+    applyGlobeStyle(MAPVIEW_GLOBE[mv] || 'biome');
+    if(selCode) openMapView(selCode, mv);
+  });
+});
+
+// ══════════════════════════════════
+// SEARCH
+// ══════════════════════════════════
+var allC=Object.entries(C).map(function(e){return Object.assign({code:e[0]},e[1]);});
+var inp=document.getElementById('si'),res=document.getElementById('sr');
+inp.addEventListener('input',function(){
+  var q=inp.value.toLowerCase().trim();
+  if(!q){res.style.display='none';return;}
+  var hits=allC.filter(function(c){return c.n.toLowerCase().includes(q)||c.c.toLowerCase().includes(q);}).slice(0,8);
+  if(!hits.length){res.style.display='none';return;}
+  res.innerHTML=hits.map(function(c){
+    return'<div class="ri" data-code="'+c.code+'"><span style="font-size:16px">'+c.f+'</span>'
+          +'<div><div>'+c.n+'</div><div class="ri-sub">'+c.c+' &mdash; '+c.r+'</div></div></div>';
+  }).join('');
+  res.style.display='block';
+});
+res.addEventListener('click',function(e){
+  var item=e.target.closest('.ri');if(!item)return;
+  res.style.display='none';inp.value='';
+  var code=item.dataset.code,c=C[code];if(!c)return;
+  selCode=code;applyGlobeStyle(globeStyle);
+  zoomTo(c);showCard(code);
+});
+document.addEventListener('click',function(e){
+  if(!res.contains(e.target)&&e.target!==inp)res.style.display='none';
+});
+
+// ══════════════════════════════════
+// FETCH & START
+// ══════════════════════════════════
+fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json')
+  .then(function(r){if(!r.ok)throw r;return r.json();})
+  .then(buildGlobe)
+  .catch(function(){
+    document.getElementById('err').style.display='block';
+    document.querySelector('#loading > div').textContent='Could not load map data.';
+    document.querySelector('#loading p').style.display='none';
+  });
+
+} // end startApp
+</script>
+</body>
+</html>
