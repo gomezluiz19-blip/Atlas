@@ -14,7 +14,7 @@ import type { App, GeoPoint, Tool } from "../app";
 import { CATEGORIES, categoryOf, isLinear, lengthMeters, plantMegawatts, plantSource, type InfraCategory } from "../analysis/infrastructure";
 import { elementPoint, overpass, type OsmElement } from "../data/overpass";
 import { layer, marker } from "../globe/draw";
-import { formatDistance, formatLonLat, h, stat } from "../ui/dom";
+import { formatDistance, h, stat } from "../ui/dom";
 import { icons } from "../ui/icons";
 import { drawArea, radiusChips, radiusForCamera } from "./area";
 
@@ -26,7 +26,7 @@ interface Feature {
 }
 
 export class InfrastructureTool implements Tool {
-  id = "infra";
+  id: string;
   label = "Infra\u00adstructure";
   icon = icons.pylon;
   shortcut = "i";
@@ -41,9 +41,16 @@ export class InfrastructureTool implements Tool {
   private hidden = new Set<InfraCategory>();
   private job = 0;
 
+  /** @param only limit this instance to some categories (for themed subtabs) */
+  constructor(private only?: InfraCategory[], id = "infra") {
+    this.id = id;
+  }
+
   activate(app: App) {
     this.app = app;
-    this.ds ??= layer(app.globe.viewer, "infrastructure");
+    this.ds ??= layer(app.globe.viewer, `infrastructure-${this.id}`);
+    this.ds.show = true;
+    for (const p of this.lines.values()) p.show = true;
     if (this.centre && this.features.length) this.render();
     else
       app.panel.show(
@@ -53,7 +60,10 @@ export class InfrastructureTool implements Tool {
       );
   }
 
-  deactivate() {}
+  deactivate() {
+    this.ds.show = false;
+    for (const p of this.lines.values()) p.show = false;
+  }
 
   onClick(p: GeoPoint) {
     this.centre = p;
@@ -96,7 +106,7 @@ out tags geom 6000;`;
       if (job !== this.job) return;
       this.features = els.flatMap((el) => {
         const cat = categoryOf(el.tags ?? {});
-        if (!cat) return [];
+        if (!cat || (this.only && !this.only.includes(cat))) return [];
         const linear = isLinear(el);
         const within = { lon: c.lon, lat: c.lat, radius: this.radius * 1000 };
         return [{ el, cat, linear, length: linear ? lengthMeters(el, within) : 0 }];
@@ -108,9 +118,7 @@ out tags geom 6000;`;
   }
 
   private header(): HTMLElement {
-    const c = this.centre!;
     return h("div", { class: "survey-head" },
-      h("p", { class: "coords" }, formatLonLat(c.lon, c.lat)),
       radiusChips(this.radius, (r) => { this.radius = r; void this.load(); }, 20));
   }
 
@@ -163,7 +171,7 @@ out tags geom 6000;`;
     const dams = this.features.filter((f) => f.el.tags?.waterway === "dam");
     const airports = this.features.filter((f) => f.el.tags?.aeroway === "aerodrome");
 
-    const rows = CATEGORIES.filter((cat) => length.get(cat.id) || count.get(cat.id)).map((cat) => {
+    const rows = CATEGORIES.filter((cat) => !this.only || this.only.includes(cat.id)).filter((cat) => length.get(cat.id) || count.get(cat.id)).map((cat) => {
       const parts = [length.get(cat.id) ? formatDistance(length.get(cat.id)!) : "", count.get(cat.id) ? `${count.get(cat.id)} site${count.get(cat.id) === 1 ? "" : "s"}` : ""].filter(Boolean);
       return h("button", {
         class: `bar-row${this.hidden.has(cat.id) ? " off" : ""}`, title: `${cat.about}. Click to show or hide.`,

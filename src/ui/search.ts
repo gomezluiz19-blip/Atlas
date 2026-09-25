@@ -39,12 +39,12 @@ export async function flyToPlace(globe: Globe, place: Place) {
   });
 }
 
-export function fieldSiteButtons(globe: Globe): HTMLElement {
+export function fieldSiteButtons(globe: Globe, onPick?: (p: Place) => void): HTMLElement {
   return h(
     "div",
     { class: "sites" },
     ...FIELD_SITES.map((s) =>
-      h("button", { class: "site", onclick: () => void flyToPlace(globe, s) }, h("span", { class: "site-name" }, s.name), h("span", { class: "site-detail" }, s.detail ?? "")),
+      h("button", { class: "site", onclick: () => { void flyToPlace(globe, s); onPick?.(s); } }, h("span", { class: "site-name" }, s.name), h("span", { class: "site-detail" }, s.detail ?? "")),
     ),
   );
 }
@@ -71,10 +71,10 @@ async function geocode(q: string, signal: AbortSignal): Promise<Place[]> {
   });
 }
 
-export function createSearch(globe: Globe): HTMLElement {
+export function createSearch(globe: Globe, onPick?: (p: Place) => void): HTMLElement {
   const input = h("input", {
     type: "search",
-    placeholder: "Search places or enter lat, lon",
+    placeholder: "Search for a place",
     "aria-label": "Search places",
     autocomplete: "off",
     spellcheck: "false",
@@ -99,6 +99,7 @@ export function createSearch(globe: Globe): HTMLElement {
               input.value = p.name;
               input.blur();
               void flyToPlace(globe, p);
+              onPick?.(p);
             },
           },
           h("span", { class: "site-name" }, p.name),

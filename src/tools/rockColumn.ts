@@ -3,8 +3,8 @@
 import type { CustomDataSource } from "cesium";
 import type { App, GeoPoint, Tool } from "../app";
 import { fetchColumn, fetchMapUnit, formatAge, lithologySummary, unitThickness, type MapUnit, type StratUnit } from "../data/macrostrat";
-import { layer, marker } from "../globe/draw";
-import { formatLonLat, h } from "../ui/dom";
+import { layer } from "../globe/draw";
+import { h } from "../ui/dom";
 import { icons } from "../ui/icons";
 import { PATTERN_LABEL, patternCss, patternFor } from "../ui/lithology";
 
@@ -40,7 +40,6 @@ export class RockColumnTool implements Tool {
   private async run(p: GeoPoint) {
     const job = ++this.job;
     this.ds.entities.removeAll();
-    marker(this.ds, p.lon, p.lat, { color: "#f4a261" });
     this.app.panel.show("Rock column", h("p", { class: "muted" }, "Drilling down…"), h("div", { class: "spinner" }));
     try {
       const [units, map] = await Promise.all([fetchColumn(p.lon, p.lat), fetchMapUnit(p.lon, p.lat)]);
@@ -51,7 +50,7 @@ export class RockColumnTool implements Tool {
     }
   }
 
-  private show(p: GeoPoint, units: StratUnit[], surface: MapUnit | null) {
+  private show(_p: GeoPoint, units: StratUnit[], surface: MapUnit | null) {
     const surfaceBox = surface
       ? h("div", { class: "bedrock" },
           h("span", { class: "bedrock-swatch", style: `background:${surface.color}` }),
@@ -62,7 +61,7 @@ export class RockColumnTool implements Tool {
       : h("p", { class: "muted" }, "No bedrock map here.");
 
     if (!units.length) {
-      this.app.panel.show("Rock column", h("p", { class: "coords" }, formatLonLat(p.lon, p.lat)), surfaceBox, h("p", { class: "muted" }, "No stratigraphic column covers this spot."));
+      this.app.panel.show("Rock column", surfaceBox, h("p", { class: "muted" }, "No stratigraphic column covers this spot."));
       return;
     }
     const surfaceIds = new Set(surface?.macro_units ?? []);
@@ -92,7 +91,6 @@ export class RockColumnTool implements Tool {
 
     this.app.panel.show(
       "Rock column",
-      h("p", { class: "coords" }, formatLonLat(p.lon, p.lat)),
       surfaceBox,
       h("div", { class: "callout" },
         h("div", { class: "callout-label" }, "Beneath your feet"),

@@ -19,12 +19,12 @@ export class WaterFlowTool implements Tool {
   private ds!: CustomDataSource;
   private job = 0;
   private trace: FlowTrace | null = null;
-  private origin: GeoPoint | null = null;
   private hover: Entity | null = null;
 
   activate(app: App) {
     this.app = app;
     this.ds ??= layer(app.globe.viewer, "water-flow");
+    this.ds.show = true;
     if (this.trace) this.showResults(this.trace);
     else
       app.panel.show(
@@ -38,7 +38,10 @@ export class WaterFlowTool implements Tool {
       );
   }
 
-  deactivate() {}
+  deactivate() {
+    this.ds.show = false;
+    this.app.drawer.hide();
+  }
 
   onCancel() {
     this.job++;
@@ -50,7 +53,7 @@ export class WaterFlowTool implements Tool {
 
   async run(p: GeoPoint) {
     const job = ++this.job;
-    this.origin = p;
+
     this.trace = null;
     this.ds.entities.removeAll();
     this.hover = null;
@@ -112,11 +115,7 @@ export class WaterFlowTool implements Tool {
       "button",
       {
         class: "btn",
-        onclick: () => {
-          if (!this.origin) return;
-          this.app.use("watershed");
-          void this.app.tool<import("./watershed").WatershedTool>("watershed").run(this.origin);
-        },
+        onclick: () => this.app.use("watershed"),
       },
       h("span", { html: icons.watershed }),
       "Watershed here",

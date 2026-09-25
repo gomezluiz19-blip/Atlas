@@ -39,6 +39,14 @@ export class RockSectionTool implements Tool {
   private result: Result | null = null;
   private job = 0;
 
+  wantsClicks() {
+    return this.picker?.active ?? false;
+  }
+
+  get hasResult() {
+    return this.result !== null;
+  }
+
   activate(app: App) {
     this.app = app;
     if (!this.ds) {
@@ -46,6 +54,7 @@ export class RockSectionTool implements Tool {
       this.picker = new LinePicker(this.ds, LINE);
       this.curtain = new Curtain(app.globe.viewer);
     }
+    this.ds.show = true;
     if (this.result) this.showResults(this.result);
     else this.intro();
   }
@@ -53,6 +62,8 @@ export class RockSectionTool implements Tool {
   deactivate() {
     this.picker.cancel();
     this.curtain.clear();
+    this.ds.show = false;
+    this.app.drawer.hide();
   }
 
   onCancel() {
@@ -69,7 +80,7 @@ export class RockSectionTool implements Tool {
       this.curtain.clear();
       this.result = null;
       this.app.drawer.hide();
-      this.app.panel.show("Rock section", h("p", {}, "Now click the end point (B)."));
+      this.app.panel.show("Rock section", h("div", { class: "prompt" }, h("strong", {}, "Tap where the slice should end."), h("span", {}, "Go straight across a canyon or valley to cut through its rock layers.")));
     });
     if (line) void this.compute(...line);
   }
@@ -189,7 +200,7 @@ export class RockSectionTool implements Tool {
         stat("Youngest layer", youngest.unit_name)),
       h("p", { class: "fineprint" }, fitText),
       h("p", { class: "fineprint" }, "The model assumes layers are flat sheets of constant thickness (a “layer cake”). That suits plateaus like the Grand Canyon; it misses folds, faults and layers that thin out."),
-      h("div", { class: "row" }, threeD, png, csv),
+      h("div", { class: "row" }, threeD, h("button", { class: "btn", onclick: () => this.app.restartLine(this) }, "New slice"), png, csv),
     );
 
     this.studio = new SectionStudio(r);

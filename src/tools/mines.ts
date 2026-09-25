@@ -7,7 +7,7 @@ import { fetchColumn, fetchMapUnit } from "../data/macrostrat";
 import { elementPoint, osmUrl, overpass, type OsmElement } from "../data/overpass";
 import { layer, marker } from "../globe/draw";
 import { flyToPlace } from "../ui/search";
-import { formatLonLat, h, stat } from "../ui/dom";
+import { h, stat } from "../ui/dom";
 import { icons } from "../ui/icons";
 import { drawArea, radiusChips, radiusForCamera } from "./area";
 
@@ -51,7 +51,10 @@ export class MinesTool implements Tool {
       );
   }
 
-  deactivate() {}
+  deactivate() {
+    this.ds.show = false;
+    this.app.drawer.hide();
+  }
 
   onClick(p: GeoPoint) {
     this.centre = p;
@@ -96,9 +99,7 @@ out tags center 1500;`;
   }
 
   private header(): HTMLElement {
-    const c = this.centre!;
     return h("div", { class: "survey-head" },
-      h("p", { class: "coords" }, formatLonLat(c.lon, c.lat)),
       radiusChips(this.radius, (r) => { this.radius = r; void this.load(); }));
   }
 

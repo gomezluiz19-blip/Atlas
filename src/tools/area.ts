@@ -28,10 +28,10 @@ export function drawArea(ds: CustomDataSource, lon: number, lat: number, radiusK
 export function radiusChips(current: number, onPick: (r: number) => void, max = 50): HTMLElement {
   return h(
     "div",
-    { class: "chips wrap", role: "radiogroup", "aria-label": "Survey radius" },
-    h("span", { class: "chips-label" }, "Radius"),
+    { class: "chips", role: "radiogroup", "aria-label": "Survey radius in kilometres" },
+    h("span", { class: "chips-label" }, "Within"),
     ...RADII_KM.filter((r) => r <= max).map((r) =>
-      h("button", { class: "chip", role: "radio", "aria-checked": String(r === current), onclick: () => onPick(r) }, `${r} km`),
+      h("button", { class: "chip", role: "radio", "aria-checked": String(r === current), onclick: () => onPick(r) }, r === RADII_KM.filter((x) => x <= max).at(-1) ? `${r} km` : String(r)),
     ),
   );
 }

@@ -4,17 +4,32 @@ import { getJson } from "./http";
 
 const API = "https://api.inaturalist.org/v1";
 
-export const TAXON_GROUPS = [
-  { id: "", label: "All life" },
-  { id: "Plantae", label: "Plants" },
-  { id: "Aves", label: "Birds" },
-  { id: "Mammalia", label: "Mammals" },
-  { id: "Reptilia", label: "Reptiles" },
-  { id: "Amphibia", label: "Amphibians" },
-  { id: "Insecta", label: "Insects" },
-  { id: "Arachnida", label: "Spiders & kin" },
-  { id: "Fungi", label: "Fungi" },
-] as const;
+export interface TaxonGroup {
+  id: string;
+  label: string;
+  /** iNaturalist query parameters selecting the group. */
+  query: string;
+}
+
+export const PLANT_GROUPS: TaxonGroup[] = [
+  { id: "plants", label: "All plants", query: "iconic_taxa=Plantae" },
+  { id: "trees", label: "Conifers", query: "taxon_id=136329" },
+  { id: "flowers", label: "Flowering plants", query: "taxon_id=47125" },
+  { id: "ferns", label: "Ferns", query: "taxon_id=121943" },
+  { id: "fungi", label: "Fungi", query: "iconic_taxa=Fungi" },
+];
+
+export const ANIMAL_GROUPS: TaxonGroup[] = [
+  { id: "animals", label: "All animals", query: "taxon_id=1" },
+  { id: "birds", label: "Birds", query: "iconic_taxa=Aves" },
+  { id: "mammals", label: "Mammals", query: "iconic_taxa=Mammalia" },
+  { id: "reptiles", label: "Reptiles", query: "iconic_taxa=Reptilia" },
+  { id: "amphibians", label: "Amphibians", query: "iconic_taxa=Amphibia" },
+  { id: "fish", label: "Fish", query: "iconic_taxa=Actinopterygii" },
+  { id: "insects", label: "Insects", query: "iconic_taxa=Insecta" },
+  { id: "spiders", label: "Spiders & kin", query: "iconic_taxa=Arachnida" },
+  { id: "molluscs", label: "Molluscs", query: "iconic_taxa=Mollusca" },
+];
 
 export interface Taxon {
   id: number;
@@ -52,9 +67,9 @@ interface Area {
 
 const area = (a: Area) => `lat=${a.lat.toFixed(5)}&lng=${a.lon.toFixed(5)}&radius=${a.radiusKm.toFixed(2)}`;
 
-export async function speciesCounts(a: Area, group: string, opts: { threatened?: boolean; perPage?: number } = {}) {
+export async function speciesCounts(a: Area, query: string, opts: { threatened?: boolean; perPage?: number } = {}) {
   let url = `${API}/observations/species_counts?${area(a)}&quality_grade=research&per_page=${opts.perPage ?? 60}`;
-  if (group) url += `&iconic_taxa=${group}`;
+  if (query) url += `&${query}`;
   if (opts.threatened) url += "&threatened=true";
   const body = await getJson<{ total_results: number; results: SpeciesCount[] }>("iNaturalist", url);
   return { total: body.total_results ?? 0, results: body.results ?? [] };
@@ -81,3 +96,8 @@ export function taxonPageUrl(t: Taxon): string {
 /** GBIF occurrence-density map tiles (all recorded species, or one taxon). */
 export const GBIF_DENSITY_TILES =
   "https://api.gbif.org/v2/map/occurrence/density/{z}/{x}/{y}@1x.png?style=purpleYellow.point&srs=EPSG:3857";
+
+/** GBIF density tiles for one kingdom: 6 = plants, 1 = animals. */
+export function gbifTiles(taxonKey: number, style = "purpleYellow.point"): string {
+  return `https://api.gbif.org/v2/map/occurrence/density/{z}/{x}/{y}@1x.png?style=${style}&srs=EPSG:3857&taxonKey=${taxonKey}`;
+}

@@ -1,30 +1,27 @@
 # Atlas
 
-**An intuitive, in-depth 3D Earth for people who study it.**
+**Tap anywhere on Earth and learn about it.**
 
-Atlas aims to do for GIS what Canva did for graphic design: make the common
-terrain questions answerable in one click, without a semester of training, while
-staying scientifically honest. The first audience is university students in the
-earth sciences (geology, geomorphology, hydrology, environmental science).
+Atlas aims to do for GIS what Canva did for graphic design: make questions about any place on Earth
+answerable in a tap, for anyone, while staying honest about the data. It starts simple (one card, seven
+themes) and goes deep when you want it to: rock sections, watersheds, life zones, climate trends.
 
-## What it does today
+## How it works for you
 
-| Tool | Ask it… | You get |
+Tap anywhere on Earth (or search for a place) and a card opens. The tab bar along the bottom switches
+between seven themes, and each theme's subtabs describe the place you chose:
+
+| Theme | Subtabs | What you learn |
 | --- | --- | --- |
-| **Explore** | "What's here?" | Coordinates, elevation, slope and aspect of any point |
-| **Cross-section** | "How deep is this gorge?" | Elevation profile, depth below the rims, rim-to-rim width, slopes, CSV export |
-| **Water flow** | "Where does rain falling here go?" | The downhill flow path (even hundreds of km to the sea), a river long profile, CSV export |
-| **Watershed** | "What land drains through this point?" | Basin outline and stream network, area, relief, mean slope, hypsometric integral and curve |
-| **Rock section** | "What rock is this canyon cut into?" | A geologic cross-section built from the rock column and bedrock map. Replay deposition and erosion with a time slider, tilt and shift the layers, highlight one, and see it as a 3D curtain under see-through ground |
-| **Rock column** | "What's beneath my feet?" | The stratigraphic column at any point, with standard lithology patterns, ages, thicknesses, ancient environments and resources |
-| **Mines** | "What's dug here, and why?" | Mines and quarries by commodity and status, the host bedrock, and resources recorded in the rock layers |
-| **Life here** | "What lives here?" | Species recorded nearby with photos, threatened species, observations on the globe, and a **life zones** chart of where each species lives by elevation |
-| **Infrastructure** | "What's built here?" | Major roads, rail, power lines and plants, pipelines, dams and water works, airports and stations, with lengths, counts and generating capacity |
-| **Layers** | "Show me the landforms" | Relief shading, elevation colours, slope, contours, **geologic map**, **species records**, vertical exaggeration, seafloor |
+| **Land** | Overview · Profile · Rocks · Minerals | Elevation, slope, landform and bedrock; a slice through the land; the rock layers below (and a sliced, time-lapse rock section); mines and quarries |
+| **Water** | Overview · Nearby · Rain path · Watershed | The nearest rivers and lakes, springs and wells; where rain falling here flows; the land that drains to here |
+| **Climate** | Now · Climate · Change | Current weather and 7-day forecast with live rain radar; the climate type and a monthly climograph; warming since 1950 |
+| **Plants** | Species · Life zones · At risk | What grows here, with photos; where each species lives by elevation; threatened plants |
+| **Animals** | Species · Life zones · At risk | The same for birds, mammals, reptiles, insects and more |
+| **Built** | Overview · Transport · Energy · Water | Roads, rail, power, pipelines, dams and airports, with totals; Earth at night |
+| **Countries** | Overview · People · Economy · Environment | Flag, capital, languages and neighbours; population, income, forests and emissions over time |
 
-Plus place search, curated field sites (Grand Canyon, Yarlung Tsangpo, Mount St. Helens, Þingvellir…),
-and keyboard shortcuts: `E` explore · `S` cross-section · `F` water flow · `W` watershed · `R` rock section ·
-`C` rock column · `M` mines · `B` life · `I` infrastructure · `L` layers · `Esc` cancel.
+Keyboard: `1`–`7` switch themes, `Esc` cancels a line or closes a chart.
 
 ## Run it
 
@@ -55,25 +52,30 @@ These keys end up in the public page, so restrict them to your site's domain in 
 - **Geology:** [Macrostrat](https://macrostrat.org) stratigraphic columns, bedrock maps and map tiles (CC-BY 4.0).
 - **Life:** [iNaturalist](https://www.inaturalist.org) research-grade observations; [GBIF](https://www.gbif.org) occurrence-density tiles.
 - **Mines and infrastructure:** OpenStreetMap via the [Overpass API](https://overpass-api.de) (ODbL).
-- **Search:** OpenStreetMap Nominatim (light, interactive use only, per its usage policy).
+- **Weather and climate:** [Open-Meteo](https://open-meteo.com) forecasts and ERA5 history (CC-BY 4.0); [RainViewer](https://www.rainviewer.com) radar.
+- **Countries:** Natural Earth borders via [world-atlas](https://github.com/topojson/world-atlas), [REST Countries](https://restcountries.com), [World Bank](https://data.worldbank.org) indicators.
+- **Earth at night:** NASA Black Marble via GIBS.
+- **Search and place names:** OpenStreetMap Nominatim (light, interactive use only, per its usage policy).
 
 ## How it works
 
 ```
 src/
-  main.ts              wiring: globe, tools, search, layers, status bar
-  app.ts               tool routing, results panel, chart drawer
+  main.ts              wiring: globe, themes, search, map-style and about popovers
+  app.ts               place selection, place card, theme tab bar and subtabs, hosting tools inside subtabs
+  themes/              one file per theme (land, water, climate, life, built, countries)
   data/                Web Mercator math; elevation tiles; Macrostrat, iNaturalist and Overpass clients
   analysis/            pure, tested algorithms
     profile.ts         profile statistics, incision depth
     geosection.ts      layer-cake subsurface model fitted to mapped outcrops (elevation + apparent dip)
     commodities.ts     mine commodity groups and status
     infrastructure.ts  infrastructure categories, lengths, plant capacity
+    climate.ts         monthly normals, Köppen–Geiger climate type, warming trend
     hydrology.ts       Priority-Flood+ε depression filling, D8 routing, flow accumulation, watersheds
     water.ts           multi-window flow tracing and adaptive watershed delineation
     hydrology.worker   runs the flow model off the main thread
   globe/               Cesium viewer, keyless terrain provider, analytical imagery layers, drawing helpers
-  tools/               one file per tool
+  tools/               the analyses the themes host (profile, rock section, rain path, species, …)
   ui/                  chart, search, layers panel, DOM helpers
 legacy/                the original single-file prototype
 ```

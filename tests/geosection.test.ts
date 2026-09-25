@@ -55,3 +55,12 @@ describe("geosection", () => {
     expect(depositedFraction(u, 100)).toBe(1);
   });
 });
+
+import { cleanRing } from "../src/data/countries";
+
+describe("cleanRing", () => {
+  it("drops polar points, duplicates and the closing point", () => {
+    const ring: [number, number][] = [[0, 0], [0, 0], [10, 0], [10, 10], [-180, -90], [0, 0]];
+    expect(cleanRing(ring)).toEqual([[0, 0], [10, 0], [10, 10]]);
+  });
+});

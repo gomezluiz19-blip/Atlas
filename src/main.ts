@@ -2,101 +2,81 @@ import "./styles.css";
 // Cesium loads its web workers and assets relative to this URL.
 (window as unknown as { CESIUM_BASE_URL: string }).CESIUM_BASE_URL = new URL("./cesium/", document.baseURI).href;
 
-import { App } from "./app";
+import { Cartesian3 } from "cesium";
+import { App, type Theme } from "./app";
 import { Globe } from "./globe/viewer";
-import { CrossSectionTool } from "./tools/crossSection";
-import { ExploreTool } from "./tools/explore";
-import { RockSectionTool } from "./tools/geology";
-import { InfrastructureTool } from "./tools/infrastructure";
-import { LifeTool } from "./tools/life";
-import { MinesTool } from "./tools/mines";
-import { RockColumnTool } from "./tools/rockColumn";
-import { WaterFlowTool } from "./tools/waterFlow";
-import { WatershedTool } from "./tools/watershed";
-import { formatDistance, formatElevation, formatLonLat, h } from "./ui/dom";
+import { builtTheme } from "./themes/built";
+import { climateTheme } from "./themes/climate";
+import { countriesTheme } from "./themes/countries";
+import { landTheme } from "./themes/land";
+import { animalsTheme, plantsTheme } from "./themes/life";
+import { waterTheme } from "./themes/water";
+import { formatElevation, formatLonLat, h } from "./ui/dom";
 import { icons } from "./ui/icons";
 import { createLayersPanel } from "./ui/layers";
-import { createSearch } from "./ui/search";
-import { Cartesian3 } from "cesium";
+import { createSearch, fieldSiteButtons, type Place as SearchPlace } from "./ui/search";
 
 const $ = (id: string) => document.getElementById(id)!;
 
 const globe = new Globe($("globe"), $("credits"));
-const app = new App(globe, $("rail"), $("ui"));
+const app = new App(globe, $("ui"));
 
-const explore = new ExploreTool();
-app.register(explore, "Land");
-app.register(new CrossSectionTool(), "Land");
-app.register(new WaterFlowTool(), "Land");
-app.register(new WatershedTool(), "Land");
-app.register(new RockSectionTool(), "Rock");
-app.register(new RockColumnTool(), "Rock");
-app.register(new MinesTool(), "Rock");
-app.register(new LifeTool(), "Life");
-app.register(new InfrastructureTool(), "Built");
-app.use("explore");
-explore.showWelcome();
+const pick = (p: SearchPlace) => app.select({ lon: p.lon, lat: p.lat, height: 0 }, { title: p.name, context: p.detail ?? "" });
 
-$("search-slot").replaceWith(createSearch(globe));
+app.emptyState = (theme: Theme) =>
+  h("div", { class: "empty" },
+    h("div", { class: "empty-hint" }, h("span", { class: "empty-icon", html: icons.target }), h("span", {}, h("strong", {}, "Tap anywhere on Earth"), h("span", {}, "or search for a place to see its ", theme.label.toLowerCase(), "."))),
+    h("h2", { class: "group-title" }, "Places to start"),
+    fieldSiteButtons(globe, pick));
 
-// Layers popover.
+app.addTheme(landTheme(app));
+app.addTheme(waterTheme(app));
+app.addTheme(climateTheme());
+app.addTheme(plantsTheme());
+app.addTheme(animalsTheme());
+app.addTheme(builtTheme(app));
+app.addTheme(countriesTheme());
+
+$("search-slot").replaceWith(createSearch(globe, pick));
+
+// Map style popover.
 const layersBtn = $("layers-btn");
 const layers = createLayersPanel(globe);
 $("ui").append(layers);
-layersBtn.prepend(h("span", { html: icons.layers }));
+layersBtn.innerHTML = icons.layers;
 const toggleLayers = (open = layers.hidden) => {
   layers.hidden = !open;
   layersBtn.setAttribute("aria-expanded", String(open));
 };
 layersBtn.addEventListener("click", () => toggleLayers());
-window.addEventListener("keydown", (e) => {
-  if (e.key.toLowerCase() === "l" && !(e.target instanceof HTMLInputElement) && !e.metaKey && !e.ctrlKey) toggleLayers();
-});
+globe.viewer.scene.canvas.addEventListener("pointerdown", () => toggleLayers(false));
 
 // About / data sources.
 const about = $("about-btn");
 about.innerHTML = icons.info;
-about.addEventListener("click", () =>
-  app.panel.show(
-    "About Atlas",
-    h("p", {}, "Atlas makes terrain analysis quick and visual for anyone studying the Earth."),
-    h("h3", { class: "panel-sub" }, "Data"),
-    h(
-      "ul",
-      { class: "tool-list" },
-      h("li", {}, h("strong", {}, "Elevation: "), "Terrain Tiles on AWS (Mapzen/Tilezen), which blends SRTM, USGS 3DEP (finer detail in the US), ETOPO1 bathymetry and more. Resolution is roughly 30 m in most places."),
-      h("li", {}, h("strong", {}, "Imagery: "), "Esri World Imagery, with Natural Earth II as an offline fallback."),
-      h("li", {}, h("strong", {}, "Geology: "), "Macrostrat stratigraphic columns and bedrock maps (CC-BY 4.0)."),
-      h("li", {}, h("strong", {}, "Life: "), "iNaturalist research-grade observations; GBIF occurrence maps."),
-      h("li", {}, h("strong", {}, "Mines and infrastructure: "), "OpenStreetMap (© OpenStreetMap contributors, ODbL) via the Overpass API."),
-      h("li", {}, h("strong", {}, "Search: "), "OpenStreetMap Nominatim."),
-    ),
-    h("h3", { class: "panel-sub" }, "Limits to keep in mind"),
-    h(
-      "ul",
-      { class: "tool-list" },
-      h("li", {}, "Water routing uses the surface only. It does not model infiltration, groundwater, or human structures such as culverts and dams."),
-      h("li", {}, "Elevation models smooth out narrow features. Slot canyons and cliffs narrower than a few cells look shallower than they really are."),
-      h("li", {}, "Rock sections assume flat, even layers. They suit plateaus like the Grand Canyon and miss folds and faults."),
-      h("li", {}, "Species, mines and infrastructure show what people have recorded, which is never complete."),
-    ),
-    h("p", { class: "fineprint" }, "Keyboard: E explore · S cross-section · F water flow · W watershed · R rock section · C rock column · M mines · B life · I infrastructure · L layers · Esc cancel"),
-  ),
-);
+const aboutPanel = h("div", { class: "popover about", hidden: true },
+  h("h2", { class: "group-title" }, "About Atlas"),
+  h("p", {}, "Tap anywhere on Earth, then flip through the themes to learn about that place: its land, water, climate, life, what people have built, and the country it's in."),
+  h("h2", { class: "group-title" }, "Where the data comes from"),
+  h("ul", { class: "plain-list" },
+    h("li", {}, "Terrain: open elevation tiles (SRTM, USGS 3DEP and others). Imagery: Esri."),
+    h("li", {}, "Rocks: Macrostrat. Weather and climate: Open-Meteo (ERA5). Rain radar: RainViewer."),
+    h("li", {}, "Plants and animals: iNaturalist and GBIF. Built features, water and mines: OpenStreetMap."),
+    h("li", {}, "Countries: Natural Earth borders, REST Countries, World Bank. Night lights: NASA."),
+    h("li", {}, "Place names: OpenStreetMap Nominatim.")),
+  h("p", { class: "fineprint" }, "Every dataset is a record of what's been measured or mapped. None of them is complete, so treat gaps as unknowns, not absences."),
+  h("p", { class: "fineprint" }, "Keyboard: 1–7 switch themes · Esc cancels a line or closes a chart."));
+$("ui").append(aboutPanel);
+about.addEventListener("click", () => (aboutPanel.hidden = !aboutPanel.hidden));
 
-// Status bar: cursor position and camera altitude.
-const readout = $("readout"), altitude = $("altitude");
+// Status bar: cursor position.
+const readout = $("readout");
 app.onPointer = (p) => {
-  readout.textContent = p ? `${formatLonLat(p.lon, p.lat)}  ·  ${formatElevation(p.height)}` : "Move the cursor over the globe";
+  readout.textContent = p ? `${formatLonLat(p.lon, p.lat)} · ${formatElevation(p.height)}` : "";
 };
-globe.viewer.camera.changed.addEventListener(() => {
-  altitude.textContent = `Eye ${formatDistance(globe.cameraHeight())}`;
-});
-globe.viewer.camera.percentageChanged = 0.05;
 
 // Opening view: the whole planet.
 globe.viewer.camera.setView({ destination: Cartesian3.fromDegrees(-40, 25, 17_000_000) });
-altitude.textContent = `Eye ${formatDistance(globe.cameraHeight())}`;
 
 // Handy for debugging from the browser console during development.
 if (import.meta.env.DEV) Object.assign(window, { atlas: { app, globe } });
