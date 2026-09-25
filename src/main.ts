@@ -6,6 +6,11 @@ import { App } from "./app";
 import { Globe } from "./globe/viewer";
 import { CrossSectionTool } from "./tools/crossSection";
 import { ExploreTool } from "./tools/explore";
+import { RockSectionTool } from "./tools/geology";
+import { InfrastructureTool } from "./tools/infrastructure";
+import { LifeTool } from "./tools/life";
+import { MinesTool } from "./tools/mines";
+import { RockColumnTool } from "./tools/rockColumn";
 import { WaterFlowTool } from "./tools/waterFlow";
 import { WatershedTool } from "./tools/watershed";
 import { formatDistance, formatElevation, formatLonLat, h } from "./ui/dom";
@@ -20,10 +25,15 @@ const globe = new Globe($("globe"), $("credits"));
 const app = new App(globe, $("rail"), $("ui"));
 
 const explore = new ExploreTool();
-app.register(explore);
-app.register(new CrossSectionTool());
-app.register(new WaterFlowTool());
-app.register(new WatershedTool());
+app.register(explore, "Land");
+app.register(new CrossSectionTool(), "Land");
+app.register(new WaterFlowTool(), "Land");
+app.register(new WatershedTool(), "Land");
+app.register(new RockSectionTool(), "Rock");
+app.register(new RockColumnTool(), "Rock");
+app.register(new MinesTool(), "Rock");
+app.register(new LifeTool(), "Life");
+app.register(new InfrastructureTool(), "Built");
 app.use("explore");
 explore.showWelcome();
 
@@ -56,6 +66,9 @@ about.addEventListener("click", () =>
       { class: "tool-list" },
       h("li", {}, h("strong", {}, "Elevation: "), "Terrain Tiles on AWS (Mapzen/Tilezen), which blends SRTM, USGS 3DEP (finer detail in the US), ETOPO1 bathymetry and more. Resolution is roughly 30 m in most places."),
       h("li", {}, h("strong", {}, "Imagery: "), "Esri World Imagery, with Natural Earth II as an offline fallback."),
+      h("li", {}, h("strong", {}, "Geology: "), "Macrostrat stratigraphic columns and bedrock maps (CC-BY 4.0)."),
+      h("li", {}, h("strong", {}, "Life: "), "iNaturalist research-grade observations; GBIF occurrence maps."),
+      h("li", {}, h("strong", {}, "Mines and infrastructure: "), "OpenStreetMap (© OpenStreetMap contributors, ODbL) via the Overpass API."),
       h("li", {}, h("strong", {}, "Search: "), "OpenStreetMap Nominatim."),
     ),
     h("h3", { class: "panel-sub" }, "Limits to keep in mind"),
@@ -64,8 +77,10 @@ about.addEventListener("click", () =>
       { class: "tool-list" },
       h("li", {}, "Water routing uses the surface only. It does not model infiltration, groundwater, or human structures such as culverts and dams."),
       h("li", {}, "Elevation models smooth out narrow features. Slot canyons and cliffs narrower than a few cells look shallower than they really are."),
+      h("li", {}, "Rock sections assume flat, even layers. They suit plateaus like the Grand Canyon and miss folds and faults."),
+      h("li", {}, "Species, mines and infrastructure show what people have recorded, which is never complete."),
     ),
-    h("p", { class: "fineprint" }, "Keyboard: E explore · S cross-section · F water flow · W watershed · L layers · Esc cancel"),
+    h("p", { class: "fineprint" }, "Keyboard: E explore · S cross-section · F water flow · W watershed · R rock section · C rock column · M mines · B life · I infrastructure · L layers · Esc cancel"),
   ),
 );
 

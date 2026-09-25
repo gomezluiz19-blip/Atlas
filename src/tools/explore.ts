@@ -2,6 +2,7 @@
 import type { CustomDataSource } from "cesium";
 import type { App, GeoPoint, Tool } from "../app";
 import { elevation } from "../data/elevation";
+import { fetchMapUnit } from "../data/macrostrat";
 import { lonLatToPixel, metersPerPixel } from "../data/mercator";
 import { layer, marker } from "../globe/draw";
 import { formatElevation, formatLonLat, h, stat } from "../ui/dom";
@@ -45,7 +46,12 @@ export class ExploreTool implements Tool {
         h("li", {}, h("strong", {}, "Cross-section"), " — slice through a gorge or volcano and measure its depth."),
         h("li", {}, h("strong", {}, "Water flow"), " — follow a raindrop downhill to the sea."),
         h("li", {}, h("strong", {}, "Watershed"), " — outline all the land that drains to a point."),
-        h("li", {}, h("strong", {}, "Layers"), " — relief shading, elevation colours, slope and contour lines."),
+        h("li", {}, h("strong", {}, "Rock section"), " — cut the ground open to see its rock layers, then replay how they formed."),
+        h("li", {}, h("strong", {}, "Rock column"), " — drill down through the layers under any point."),
+        h("li", {}, h("strong", {}, "Mines"), " — what's dug here, and the rock it comes from."),
+        h("li", {}, h("strong", {}, "Life here"), " — plants and animals recorded nearby, and their life zones."),
+        h("li", {}, h("strong", {}, "Infrastructure"), " — roads, rail, power, pipelines and water systems."),
+        h("li", {}, h("strong", {}, "Layers"), " — relief, elevation, slope, contours, geologic map and species records."),
       ),
       h("h3", { class: "panel-sub" }, "Start at a field site"),
       fieldSiteButtons(this.app.globe),
@@ -87,6 +93,14 @@ export class ExploreTool implements Tool {
         void this.app.tool<import("./waterFlow").WaterFlowTool>("flow").run(p);
       },
     }, h("span", { html: icons.flow }), "Trace water");
+    const bedrock = h("div", { class: "stat bedrock-stat" }, h("div", { class: "stat-label" }, "Bedrock"), h("div", { class: "stat-value small" }, "Looking up…"));
+    fetchMapUnit(p.lon, p.lat)
+      .then(({ unit }) => {
+        const v = bedrock.lastElementChild!;
+        v.textContent = unit ? unit.name : "Not mapped here";
+        if (unit) bedrock.title = [unit.best_int_name, unit.lith].filter(Boolean).join(" · ");
+      })
+      .catch(() => (bedrock.lastElementChild!.textContent = "Unavailable"));
     this.app.panel.show(
       "Point",
       h("p", { class: "coords" }, formatLonLat(p.lon, p.lat)),
@@ -96,6 +110,7 @@ export class ExploreTool implements Tool {
         stat("Elevation", formatElevation(centre)),
         stat("Slope", `${slope.toFixed(1)}°`, "Steepness of the ground over ~" + Math.round(cell * 3) + " m"),
         stat("Faces", slope < 0.5 ? "Flat" : `${COMPASS[Math.round(aspect / 45) % 8]} (${Math.round(aspect)}°)`, "Aspect: the direction the slope faces"),
+        bedrock,
       ),
       h("div", { class: "row" }, flow, copy),
     );

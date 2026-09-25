@@ -15,10 +15,16 @@ earth sciences (geology, geomorphology, hydrology, environmental science).
 | **Cross-section** | "How deep is this gorge?" | Elevation profile, depth below the rims, rim-to-rim width, slopes, CSV export |
 | **Water flow** | "Where does rain falling here go?" | The downhill flow path (even hundreds of km to the sea), a river long profile, CSV export |
 | **Watershed** | "What land drains through this point?" | Basin outline and stream network, area, relief, mean slope, hypsometric integral and curve |
-| **Layers** | "Show me the landforms" | Relief shading, elevation colours, slope map, contour lines, vertical exaggeration, seafloor |
+| **Rock section** | "What rock is this canyon cut into?" | A geologic cross-section built from the rock column and bedrock map. Replay deposition and erosion with a time slider, tilt and shift the layers, highlight one, and see it as a 3D curtain under see-through ground |
+| **Rock column** | "What's beneath my feet?" | The stratigraphic column at any point, with standard lithology patterns, ages, thicknesses, ancient environments and resources |
+| **Mines** | "What's dug here, and why?" | Mines and quarries by commodity and status, the host bedrock, and resources recorded in the rock layers |
+| **Life here** | "What lives here?" | Species recorded nearby with photos, threatened species, observations on the globe, and a **life zones** chart of where each species lives by elevation |
+| **Infrastructure** | "What's built here?" | Major roads, rail, power lines and plants, pipelines, dams and water works, airports and stations, with lengths, counts and generating capacity |
+| **Layers** | "Show me the landforms" | Relief shading, elevation colours, slope, contours, **geologic map**, **species records**, vertical exaggeration, seafloor |
 
 Plus place search, curated field sites (Grand Canyon, Yarlung Tsangpo, Mount St. Helens, Þingvellir…),
-and keyboard shortcuts: `E` explore · `S` cross-section · `F` water flow · `W` watershed · `L` layers · `Esc` cancel.
+and keyboard shortcuts: `E` explore · `S` cross-section · `F` water flow · `W` watershed · `R` rock section ·
+`C` rock column · `M` mines · `B` life · `I` infrastructure · `L` layers · `Esc` cancel.
 
 ## Run it
 
@@ -46,6 +52,9 @@ These keys end up in the public page, so restrict them to your site's domain in 
 - **Elevation:** [Terrain Tiles on AWS](https://registry.opendata.aws/terrain-tiles/) (Mapzen/Tilezen),
   which blends SRTM, USGS 3DEP, ETOPO1 bathymetry, GMTED and others. About 30 m resolution in most places.
 - **Imagery:** Esri World Imagery (check Esri's terms before commercial use), with Natural Earth II as an offline fallback.
+- **Geology:** [Macrostrat](https://macrostrat.org) stratigraphic columns, bedrock maps and map tiles (CC-BY 4.0).
+- **Life:** [iNaturalist](https://www.inaturalist.org) research-grade observations; [GBIF](https://www.gbif.org) occurrence-density tiles.
+- **Mines and infrastructure:** OpenStreetMap via the [Overpass API](https://overpass-api.de) (ODbL).
 - **Search:** OpenStreetMap Nominatim (light, interactive use only, per its usage policy).
 
 ## How it works
@@ -54,9 +63,12 @@ These keys end up in the public page, so restrict them to your site's domain in 
 src/
   main.ts              wiring: globe, tools, search, layers, status bar
   app.ts               tool routing, results panel, chart drawer
-  data/                Web Mercator math; Terrarium elevation tiles (fetch, decode, cache, sample)
+  data/                Web Mercator math; elevation tiles; Macrostrat, iNaturalist and Overpass clients
   analysis/            pure, tested algorithms
     profile.ts         profile statistics, incision depth
+    geosection.ts      layer-cake subsurface model fitted to mapped outcrops (elevation + apparent dip)
+    commodities.ts     mine commodity groups and status
+    infrastructure.ts  infrastructure categories, lengths, plant capacity
     hydrology.ts       Priority-Flood+ε depression filling, D8 routing, flow accumulation, watersheds
     water.ts           multi-window flow tracing and adaptive watershed delineation
     hydrology.worker   runs the flow model off the main thread
@@ -74,13 +86,17 @@ Every analysis reads the same elevation tiles that draw the 3D terrain, so what 
   Reaches that cross closed hollows (lakes, closed basins, DEM artefacts) are drawn dashed.
 - Elevation models smooth out narrow features. Slot canyons and cliffs narrower than a few cells look shallower than they are.
 - Watersheds larger than the biggest analysis window (~470 km across) are flagged as truncated.
+- Rock sections assume planar layers of constant thickness, fitted to the bedrock map. That suits flat-lying
+  sequences like the Grand Canyon and misses folds, faults and layers that pinch out. Macrostrat columns are
+  densest in North America.
+- Species, mines and infrastructure show what people have recorded or mapped, which is never complete.
 
 ## Roadmap
 
 1. **Groundwater:** aquifer maps (WHYMAP, USGS principal aquifers), live well levels (USGS NWIS), GRACE water-storage anomalies,
    each labelled with how certain it is.
 2. **Live Earth:** earthquakes (USGS), active fires (NASA FIRMS), weather and precipitation radar, river gauges.
-3. **Geology:** bedrock and fault maps (Macrostrat), with a click-to-see stratigraphic column.
+3. **Geology:** faults and folds in sections; multiple columns along a section; borehole data.
 4. **Time:** swipe and compare satellite imagery across years (Landsat/Sentinel-2).
 5. **3D cut-away:** slice the terrain open along a cross-section and view it from the side.
 6. **Projects:** save and share views, annotations and results; templates such as "Field site report".

@@ -45,27 +45,42 @@ export class Panel {
   }
 }
 
-/** The bottom drawer that holds a chart. */
+/** The bottom drawer: holds a chart, or any custom view (e.g. a geologic section). */
 export class Drawer {
   readonly el = h("section", { class: "drawer", hidden: true });
   readonly chart = new Chart();
   private title = h("h3", { class: "drawer-title" });
   private actions = h("div", { class: "drawer-actions" });
+  private body = h("div", { class: "drawer-body" });
+  onHide?: () => void;
 
   constructor() {
-    const close = h("button", { class: "icon-btn", "aria-label": "Close chart", html: icons.close, onclick: () => this.hide() });
-    this.el.append(h("header", { class: "drawer-head" }, this.title, this.actions, close), this.chart.el);
+    const close = h("button", { class: "icon-btn", "aria-label": "Close", html: icons.close, onclick: () => this.hide() });
+    this.el.append(h("header", { class: "drawer-head" }, this.title, this.actions, close), this.body);
   }
   show(title: string, data: ChartData, opts: ChartOptions, actions: HTMLElement[] = []) {
+    this.open(title, this.chart.el, actions, false);
+    this.chart.render(data, opts);
+  }
+  showCustom(title: string, content: HTMLElement, actions: HTMLElement[] = [], tall = true) {
+    this.open(title, content, actions, tall);
+  }
+  private open(title: string, content: HTMLElement, actions: HTMLElement[], tall: boolean) {
+    this.onHide?.();
+    this.onHide = undefined;
     this.title.textContent = title;
     this.actions.replaceChildren(...actions);
+    this.body.replaceChildren(content);
+    this.el.classList.toggle("tall", tall);
     this.el.hidden = false;
     document.body.classList.add("has-drawer");
-    this.chart.render(data, opts);
+    document.body.classList.toggle("has-tall-drawer", tall);
   }
   hide() {
     this.el.hidden = true;
-    document.body.classList.remove("has-drawer");
+    document.body.classList.remove("has-drawer", "has-tall-drawer");
+    this.onHide?.();
+    this.onHide = undefined;
   }
 }
 
@@ -110,8 +125,14 @@ export class App {
   /** Called on every pointer move with the point under the cursor. */
   onPointer?: (p: GeoPoint | null) => void;
 
-  register(tool: Tool) {
+  private lastGroup = "";
+
+  register(tool: Tool, group?: string) {
     this.tools.set(tool.id, tool);
+    if (group && group !== this.lastGroup) {
+      this.rail.append(h("div", { class: "rail-group" }, group));
+      this.lastGroup = group;
+    }
     const btn = h(
       "button",
       {

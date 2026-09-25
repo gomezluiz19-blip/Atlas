@@ -15,14 +15,17 @@ import {
   Viewer,
 } from "cesium";
 import { config } from "../config";
+import { GEOLOGIC_MAP_TILES } from "../data/macrostrat";
+import { GBIF_DENSITY_TILES } from "../data/inaturalist";
 import { createAnalyticLayer, type AnalyticKind } from "./analyticLayers";
 import { createTerrariumTerrain, terrainOptions } from "./terrain";
 
 export type BaseMap = "satellite" | "plain";
+export type OverlayKind = AnalyticKind | "geology" | "species";
 
 export interface LayerState {
   base: BaseMap;
-  overlays: Record<AnalyticKind, { on: boolean; opacity: number }>;
+  overlays: Record<OverlayKind, { on: boolean; opacity: number }>;
   exaggeration: number;
   bathymetry: boolean;
   photorealistic: boolean;
@@ -31,7 +34,7 @@ export interface LayerState {
 export class Globe {
   readonly viewer: Viewer;
   private satellite: ImageryLayer;
-  private overlays = new Map<AnalyticKind, ImageryLayer>();
+  private overlays = new Map<OverlayKind, ImageryLayer>();
   private photoreal: Cesium3DTileset | null = null;
   readonly state: LayerState = {
     base: "satellite",
@@ -40,6 +43,8 @@ export class Globe {
       elevation: { on: false, opacity: 0.6 },
       slope: { on: false, opacity: 0.7 },
       contours: { on: false, opacity: 0.9 },
+      geology: { on: false, opacity: 0.6 },
+      species: { on: false, opacity: 0.85 },
     },
     exaggeration: 1,
     bathymetry: false,
@@ -85,11 +90,21 @@ export class Globe {
       }),
     );
     this.viewer.imageryLayers.add(this.satellite);
+    const geology = new ImageryLayer(
+      new UrlTemplateImageryProvider({ url: GEOLOGIC_MAP_TILES, maximumLevel: 16, credit: "Geology: Macrostrat (CC-BY 4.0)" }),
+    );
+    this.overlays.set("geology", geology);
+    this.viewer.imageryLayers.add(geology);
     for (const kind of ["hillshade", "elevation", "slope", "contours"] as AnalyticKind[]) {
       const layer = createAnalyticLayer(kind);
       this.overlays.set(kind, layer);
       this.viewer.imageryLayers.add(layer);
     }
+    const species = new ImageryLayer(
+      new UrlTemplateImageryProvider({ url: GBIF_DENSITY_TILES, maximumLevel: 14, credit: "Species records: GBIF.org" }),
+    );
+    this.overlays.set("species", species);
+    this.viewer.imageryLayers.add(species);
     // Relief shading reads best over satellite; the order above keeps contours on top.
     this.viewer.imageryLayers.raiseToTop(this.overlays.get("contours")!);
 
