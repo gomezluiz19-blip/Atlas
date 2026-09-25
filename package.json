@@ -1,0 +1,23 @@
+{
+  "name": "atlas",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "An intuitive, deep 3D Earth workspace for earth-science students.",
+  "scripts": {
+    "postinstall": "node scripts/copy-cesium.mjs",
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "cesium": "^1.145.0"
+  },
+  "devDependencies": {
+    "typescript": "~5.9",
+    "vite": "^8.3.1",
+    "vitest": "^5.0.1"
+  }
+}

@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Atlas: an intuitive 3D Earth for studying landscapes: cross-sections, water flow and watersheds." />
+    <title>Atlas</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='16' r='14' fill='%230b1d33' stroke='%234cc9f0' stroke-width='2'/><path d='M5 19c4-6 7-9 11-6s7 1 11-4' fill='none' stroke='%23ffd166' stroke-width='2.4' stroke-linecap='round'/></svg>" />
+    <link rel="stylesheet" href="./cesium/Widgets/widgets.css" />
+  </head>
+  <body>
+    <div id="globe"></div>
+    <div id="ui">
+      <header class="topbar">
+        <div class="brand"><span class="brand-mark"></span>Atlas</div>
+        <div id="search-slot"></div>
+        <div class="topbar-actions">
+          <button id="layers-btn" class="btn btn-ghost" aria-expanded="false">Layers</button>
+          <button id="about-btn" class="icon-btn" aria-label="About Atlas and its data"></button>
+        </div>
+      </header>
+      <nav id="rail" class="rail" aria-label="Tools"></nav>
+      <footer class="statusbar">
+        <span id="readout">Move the cursor over the globe</span>
+        <span id="altitude"></span>
+      </footer>
+      <div id="credits" class="credits"></div>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
