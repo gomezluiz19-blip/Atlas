@@ -29,11 +29,17 @@ npm test        # unit tests for the analysis code
 npm run build   # static site in dist/
 ```
 
+**Live site:** pushes to `main` deploy automatically to GitHub Pages
+(`.github/workflows/deploy.yml`). One-time setup: repo *Settings → Pages → Source: GitHub Actions*.
+
 It works with **no accounts or API keys**. Optional keys (copy `.env.example` to `.env`):
 
 - `VITE_GOOGLE_MAPS_API_KEY`: Google Maps Platform key with the *Map Tiles API* enabled.
   Adds a "Photorealistic 3D (Google)" toggle: Google Earth-style 3D cities and terrain.
 - `VITE_CESIUM_ION_TOKEN`: switches the terrain to Cesium World Terrain (lit, high-resolution mesh).
+
+For the live site, add the same names as repository secrets (*Settings → Secrets and variables → Actions*).
+These keys end up in the public page, so restrict them to your site's domain in the Google/Cesium consoles.
 
 ## Data
 
