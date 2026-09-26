@@ -73,7 +73,7 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid 
 
 /* ---------- Top bar ---------- */
 .topbar {
-  position: absolute; top: calc(var(--gutter) + env(safe-area-inset-top, 0px)); left: var(--gutter); right: var(--gutter);
+  z-index: 20; position: absolute; top: calc(var(--gutter) + env(safe-area-inset-top, 0px)); left: var(--gutter); right: var(--gutter);
   display: flex; align-items: center; gap: 10px; pointer-events: none;
 }
 .topbar > * { pointer-events: auto; }
@@ -618,3 +618,20 @@ input[type="range"] { accent-color: var(--accent); }
   .map-label { font-size: 12px; }
   .toggle { min-height: 60px; padding: 8px 9px; }
 }
+
+/* ---------- Search results and sharing ---------- */
+.search-item { flex-direction: row; align-items: center; gap: 12px; }
+.search-item[aria-selected="true"] { background: var(--fill); }
+.search-item-icon { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0; background: var(--fill); color: var(--secondary); }
+.search-item-icon svg { width: 17px; height: 17px; }
+.search-item-text { display: flex; flex-direction: column; min-width: 0; }
+.search-item-text .site-name, .search-item-text .site-detail { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+.search-note { padding: 8px 10px; color: var(--secondary); font-size: 13px; }
+.share-menu {
+  position: absolute; right: 14px; top: 58px; z-index: 5; min-width: 250px; padding: 6px; border-radius: 14px;
+  background: var(--material-strong); box-shadow: var(--shadow); display: flex; flex-direction: column;
+}
+.share-item { display: block; text-align: left; padding: 10px 12px; border: 0; border-radius: 9px; background: transparent; cursor: pointer; font-size: 14.5px; color: var(--label); text-decoration: none; }
+.share-item:hover, .share-item:focus-visible { background: var(--fill); outline: none; }
+.sheet { position: absolute; }
+.sheet-head .icon-btn + .icon-btn { margin-left: -2px; }

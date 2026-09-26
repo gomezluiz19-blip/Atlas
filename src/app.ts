@@ -5,6 +5,7 @@ import { reverseGeocode, type PlaceName } from "./data/geocode";
 import { pickFeature } from "./globe/pickables";
 import type { Globe } from "./globe/viewer";
 import { Chart, type ChartData, type ChartOptions } from "./ui/chart";
+import { formatDms } from "./data/locationParse";
 import { formatLonLat, h } from "./ui/dom";
 import { icons } from "./ui/icons";
 
@@ -122,11 +123,14 @@ class Sheet {
   readonly body = h("div", { class: "sheet-body", role: "tabpanel" });
   readonly grip = h("button", { class: "sheet-grip", "aria-label": "Expand or collapse" });
   readonly close = h("button", { class: "icon-btn close-btn", "aria-label": "Clear place", html: icons.close });
+  readonly share = h("button", { class: "icon-btn close-btn", "aria-label": "Copy or share this place", "aria-expanded": "false", html: icons.share });
+  readonly shareMenu = h("div", { class: "share-menu", role: "menu", hidden: true });
 
   constructor() {
     this.el.append(
       this.grip,
-      h("header", { class: "sheet-head" }, h("div", { class: "sheet-heading" }, this.title, this.subtitle), this.close),
+      h("header", { class: "sheet-head" }, h("div", { class: "sheet-heading" }, this.title, this.subtitle), this.share, this.close),
+      this.shareMenu,
       this.tabs,
       this.body,
     );
@@ -156,6 +160,10 @@ export class App {
   onPointer?: (p: GeoPoint | null) => void;
   /** Called when a place is chosen (for example to update the status bar). */
   onPlace?: (p: Place | null) => void;
+  /** Called when the theme changes. */
+  onTheme?: (id: string) => void;
+  /** A link that reopens the current view (set by main). */
+  shareLink?: () => string;
   /** Content shown before a place is chosen (field sites etc.). */
   emptyState?: (theme: Theme) => HTMLElement;
   /** The map's label layer, when present. */
@@ -165,6 +173,7 @@ export class App {
     this.tabbar = h("nav", { class: "tabbar", role: "tablist", "aria-label": "Themes" });
     root.append(this.sheet.el, this.drawer.el, this.tabbar, this.toastEl);
     this.sheet.close.addEventListener("click", () => this.clearPlace());
+    this.sheet.share.addEventListener("click", () => this.toggleShare());
 
     const handler = new ScreenSpaceEventHandler(globe.viewer.scene.canvas);
     handler.setInputAction((e: { position: Cartesian2 }) => {
@@ -244,6 +253,7 @@ export class App {
       for (const [tid, b] of this.tabButtons) b.setAttribute("aria-selected", String(tid === id));
       document.documentElement.style.setProperty("--theme", theme.color);
       theme.enter?.(this);
+      this.onTheme?.(id);
     }
     this.setSubtab(subtabId ?? this.subtab.id, true);
   }
@@ -316,6 +326,29 @@ export class App {
     });
   }
 
+  private toggleShare(open = this.sheet.shareMenu.hidden) {
+    const menu = this.sheet.shareMenu;
+    menu.hidden = !open;
+    this.sheet.share.setAttribute("aria-expanded", String(open));
+    if (!open || !this.place) return;
+    const p = this.place;
+    const name = p.name?.title;
+    const address = [name, p.name?.context].filter(Boolean).join(", ");
+    const item = (label: string, text: () => string, done: string) =>
+      h("button", { role: "menuitem", class: "share-item", onclick: async () => {
+        this.toggleShare(false);
+        this.toast((await copyText(text())) ? done : "Couldn't copy. Select and copy the text instead.");
+      } }, label);
+    menu.replaceChildren(
+      item("Copy coordinates", () => `${p.lat.toFixed(6)}, ${p.lon.toFixed(6)}`, "Coordinates copied"),
+      item("Copy as degrees, minutes, seconds", () => formatDms(p.lat, p.lon), "Coordinates copied"),
+      address ? item("Copy name and area", () => address, "Copied") : "",
+      item("Copy link to this place", () => this.shareLink?.() ?? location.href, "Link copied"),
+      h("a", { role: "menuitem", class: "share-item", href: `https://www.google.com/maps/search/?api=1&query=${p.lat.toFixed(6)},${p.lon.toFixed(6)}`, target: "_blank", rel: "noopener" }, "Open in Google Maps"),
+      h("a", { role: "menuitem", class: "share-item", href: `https://maps.apple.com/?ll=${p.lat.toFixed(6)},${p.lon.toFixed(6)}&q=${encodeURIComponent(name ?? "Dropped pin")}`, target: "_blank", rel: "noopener" }, "Open in Apple Maps"),
+    );
+  }
+
   private emptyHeader: [string, string] | null = null;
 
   /** Header text while no place is chosen (e.g. the area in view). */
@@ -331,9 +364,12 @@ export class App {
       this.sheet.title.textContent = t;
       this.sheet.subtitle.textContent = sub;
       this.sheet.close.hidden = true;
+      this.sheet.share.hidden = true;
+      this.sheet.shareMenu.hidden = true;
       return;
     }
     this.sheet.close.hidden = false;
+    this.sheet.share.hidden = false;
     this.sheet.title.textContent = p.name === undefined ? "Finding this place…" : p.name?.title ?? "Unnamed place";
     this.sheet.subtitle.textContent = p.name?.context || formatLonLat(p.lon, p.lat);
   }
@@ -441,4 +477,27 @@ export function toolSubtab(id: string, label: string, tool: Tool, mode: "point" 
       app.releaseTool(tool);
     },
   };
+}
+
+/** Copies text, falling back to a hidden text area where the Clipboard API is refused. */
+export async function copyText(text: string): Promise<boolean> {
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch {
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.setAttribute("readonly", "");
+    ta.style.cssText = "position:fixed;opacity:0;top:0;left:0";
+    document.body.append(ta);
+    ta.select();
+    let ok = false;
+    try {
+      ok = document.execCommand("copy");
+    } catch {
+      ok = false;
+    }
+    ta.remove();
+    return ok;
+  }
 }

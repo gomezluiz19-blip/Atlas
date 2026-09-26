@@ -1,9 +1,11 @@
-// Place search (OpenStreetMap Nominatim), coordinate entry, and curated field sites.
+// The search box: addresses (Photon/Nominatim), anything pasted (coordinates,
+// map links, plus codes), instant matches from what's on the map, and recents.
 import { BoundingSphere, Cartesian3, HeadingPitchRange, Math as CesiumMath } from "cesium";
 import { elevation } from "../data/elevation";
 import type { Globe } from "../globe/viewer";
 import { h } from "./dom";
 import { icons } from "./icons";
+import { decodePlusCode, formatCoordinates, parseLocation, recoverPlusCode } from "../data/locationParse";
 
 export interface Place {
   name: string;
@@ -51,89 +53,240 @@ export function fieldSiteButtons(globe: Globe, onPick?: (p: Place) => void): HTM
 
 /** "36.1, -112.1" or "36.1 -112.1" → lat/lon, else null. */
 export function parseCoordinates(q: string): { lat: number; lon: number } | null {
-  const m = q.trim().match(/^(-?\d+(?:\.\d+)?)\s*[,\s]\s*(-?\d+(?:\.\d+)?)$/);
-  if (!m) return null;
-  const lat = Number(m[1]), lon = Number(m[2]);
-  if (Math.abs(lat) > 90 || Math.abs(lon) > 180) return null;
-  return { lat, lon };
+  const p = parseLocation(q);
+  return p.kind === "point" ? { lat: p.lat, lon: p.lon } : null;
 }
 
-async function geocode(q: string, signal: AbortSignal): Promise<Place[]> {
+export interface SearchResult extends Place {
+  icon?: keyof typeof icons;
+  source: "coords" | "local" | "address" | "recent" | "site";
+  /** False when the name is only coordinates, so the app should look up a real place name. */
+  named?: boolean;
+}
+
+/** Radius (m) to frame a result of a given OSM type. */
+function radiusForType(key: string, value: string, type?: string): number {
+  if (type === "house" || key === "building" || value === "house") return 250;
+  if (type === "street" || key === "highway") return 700;
+  if (key === "amenity" || key === "shop" || key === "tourism" || key === "leisure") return 600;
+  if (type === "district" || type === "locality" || value === "suburb" || value === "neighbourhood") return 3000;
+  if (value === "city" || type === "city") return 15000;
+  if (value === "town" || value === "village") return 5000;
+  if (type === "county") return 40000;
+  if (type === "state") return 300000;
+  if (type === "country") return 900000;
+  return 2000;
+}
+
+function iconForType(key: string, value: string, type?: string): keyof typeof icons {
+  if (type === "house" || type === "street" || key === "highway" || key === "building") return "home";
+  if (key === "natural" || key === "waterway" || key === "water") return value === "peak" || value === "volcano" ? "mountain" : "drop";
+  if (value === "city" || value === "town" || value === "village" || type === "city") return "building";
+  if (type === "country" || type === "state") return "flag";
+  return "target";
+}
+
+interface PhotonFeature {
+  geometry: { coordinates: [number, number] };
+  properties: {
+    name?: string; housenumber?: string; street?: string; postcode?: string; city?: string; district?: string;
+    county?: string; state?: string; country?: string; osm_key?: string; osm_value?: string; type?: string;
+    extent?: [number, number, number, number];
+  };
+}
+
+/** As-you-type address and place search (Photon, built on OpenStreetMap). */
+async function photon(q: string, bias: { lat: number; lon: number } | null, signal: AbortSignal): Promise<SearchResult[]> {
+  let url = `https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&limit=8`;
+  if (bias) url += `&lat=${bias.lat.toFixed(3)}&lon=${bias.lon.toFixed(3)}&location_bias_scale=0.3`;
+  const res = await fetch(url, { signal });
+  if (!res.ok) throw new Error(`Search failed (HTTP ${res.status})`);
+  const body = (await res.json()) as { features: PhotonFeature[] };
+  return body.features.map((f) => {
+    const p = f.properties;
+    const [lon, lat] = f.geometry.coordinates;
+    const street = [p.housenumber, p.street].filter(Boolean).join(" ");
+    const name = p.name ?? (street || p.city || p.country || "Unnamed place");
+    const detail = [p.name && street ? street : "", p.district, p.city !== name ? p.city : "", p.state, p.country].filter(Boolean).join(", ");
+    let radius = radiusForType(p.osm_key ?? "", p.osm_value ?? "", p.type);
+    if (p.extent) {
+      const [w, n, e, s] = p.extent;
+      radius = Math.max(radius / 2, Math.min(2_000_000, (Math.hypot(n - s, (e - w) * Math.cos((lat * Math.PI) / 180)) * 111_000) / 2));
+    }
+    return { name, detail, lon, lat, radius, icon: iconForType(p.osm_key ?? "", p.osm_value ?? "", p.type), source: "address" as const };
+  });
+}
+
+/** One-off search (Nominatim), used as a fallback when Photon is unavailable. */
+async function nominatim(q: string, signal: AbortSignal): Promise<SearchResult[]> {
   const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=6&q=${encodeURIComponent(q)}`;
   const res = await fetch(url, { signal, headers: { "Accept-Language": navigator.language } });
   if (!res.ok) throw new Error(`Search failed (HTTP ${res.status})`);
   const rows = (await res.json()) as { display_name: string; lat: string; lon: string; boundingbox: string[]; type: string }[];
   return rows.map((r) => {
     const [s, n, w, e] = r.boundingbox.map(Number);
-    const radius = Math.max(1500, Math.min(2_000_000, (Math.hypot(n - s, (e - w) * Math.cos((Number(r.lat) * Math.PI) / 180)) * 111_000) / 2));
+    const radius = Math.max(250, Math.min(2_000_000, (Math.hypot(n - s, (e - w) * Math.cos((Number(r.lat) * Math.PI) / 180)) * 111_000) / 2));
     const [name, ...rest] = r.display_name.split(", ");
-    return { name, detail: rest.slice(-3).join(", "), lon: Number(r.lon), lat: Number(r.lat), radius };
+    return { name, detail: rest.slice(-3).join(", "), lon: Number(r.lon), lat: Number(r.lat), radius, icon: "target" as const, source: "address" as const };
   });
 }
 
-export function createSearch(globe: Globe, onPick?: (p: Place) => void): HTMLElement {
+const RECENT_KEY = "atlas.recent-searches";
+function loadRecent(): SearchResult[] {
+  try {
+    return (JSON.parse(localStorage.getItem(RECENT_KEY) ?? "[]") as SearchResult[]).slice(0, 6).map((r) => ({ ...r, source: "recent" as const }));
+  } catch {
+    return [];
+  }
+}
+function saveRecent(p: SearchResult) {
+  try {
+    const list = loadRecent().filter((r) => !(r.name === p.name && Math.abs(r.lat - p.lat) < 1e-4));
+    list.unshift({ ...p, source: "recent" });
+    localStorage.setItem(RECENT_KEY, JSON.stringify(list.slice(0, 6)));
+  } catch {
+    /* storage unavailable (private mode etc.) */
+  }
+}
+
+export interface SearchOptions {
+  /** Instant matches from data already on the device (labels, curated places). */
+  local?: (q: string) => SearchResult[];
+  /** Bias address results toward what's on screen. */
+  bias?: () => { lat: number; lon: number } | null;
+  onPick?: (p: SearchResult) => void;
+}
+
+export function createSearch(globe: Globe, opts: SearchOptions = {}): HTMLElement {
   const input = h("input", {
+    id: "search-input",
     type: "search",
-    placeholder: "Search for a place",
-    "aria-label": "Search places",
+    placeholder: "Search places, addresses or coordinates",
+    "aria-label": "Search places, addresses, coordinates or map links",
     autocomplete: "off",
+    autocapitalize: "off",
     spellcheck: "false",
+    enterkeyhint: "search",
   });
   const list = h("div", { class: "search-results", role: "listbox", hidden: true });
   const root = h("div", { class: "search" }, h("span", { class: "search-icon", html: icons.search }), input, list);
   let controller: AbortController | null = null;
   let timer = 0;
+  let items: SearchResult[] = [];
+  let active = -1;
 
-  const showPlaces = (places: Place[], heading?: string) => {
+  const pick = (p: SearchResult) => {
+    list.hidden = true;
+    input.value = p.name;
+    input.blur();
+    if (p.source !== "coords") saveRecent(p);
+    void flyToPlace(globe, p);
+    opts.onPick?.(p);
+  };
+
+  const render = (groups: { heading?: string; items: SearchResult[] }[], note?: string) => {
+    items = groups.flatMap((g) => g.items);
+    active = items.length ? 0 : -1;
+    let k = 0;
     list.replaceChildren(
-      ...(heading ? [h("div", { class: "search-heading" }, heading)] : []),
-      ...places.map((p) =>
-        h(
-          "button",
-          {
-            class: "search-item",
-            role: "option",
-            onmousedown: (e: Event) => e.preventDefault(),
-            onclick: () => {
-              list.hidden = true;
-              input.value = p.name;
-              input.blur();
-              void flyToPlace(globe, p);
-              onPick?.(p);
+      ...groups.flatMap((g) => [
+        ...(g.heading && g.items.length ? [h("div", { class: "search-heading" }, g.heading)] : []),
+        ...g.items.map((p) => {
+          const i = k++;
+          return h(
+            "button",
+            {
+              class: "search-item",
+              role: "option",
+              id: `sr-${i}`,
+              "aria-selected": String(i === active),
+              onmousedown: (e: Event) => e.preventDefault(),
+              onclick: () => pick(p),
             },
-          },
-          h("span", { class: "site-name" }, p.name),
-          h("span", { class: "site-detail" }, p.detail ?? ""),
-        ),
-      ),
+            h("span", { class: "search-item-icon", html: icons[p.icon ?? (p.source === "recent" ? "search" : "target")] }),
+            h("span", { class: "search-item-text" }, h("span", { class: "site-name" }, p.name), p.detail ? h("span", { class: "site-detail" }, p.detail) : ""),
+          );
+        }),
+      ]),
+      ...(note ? [h("div", { class: "search-note" }, note)] : []),
     );
-    list.hidden = places.length === 0 && !heading;
+    list.hidden = items.length === 0 && !note;
+  };
+
+  const highlight = (i: number) => {
+    active = (i + items.length) % items.length;
+    list.querySelectorAll(".search-item").forEach((el, k) => el.setAttribute("aria-selected", String(k === active)));
+    list.querySelector(`#sr-${active}`)?.scrollIntoView({ block: "nearest" });
   };
 
   const update = () => {
-    const q = input.value.trim();
+    const raw = input.value;
+    const q = raw.trim();
     controller?.abort();
     clearTimeout(timer);
-    if (!q) return showPlaces(FIELD_SITES, "Field sites");
-    const coords = parseCoordinates(q);
-    if (coords) return showPlaces([{ name: `${coords.lat}, ${coords.lon}`, detail: "Go to coordinates", ...coords, radius: 4000 }]);
+    if (!q) {
+      render([{ heading: "Recent", items: loadRecent() }, { heading: "Places to start", items: FIELD_SITES.map((s) => ({ ...s, source: "site" as const, icon: "mountain" as const })) }]);
+      return;
+    }
+    const parsed = parseLocation(raw);
+    if (parsed.kind === "point") {
+      const label = parsed.label ?? formatCoordinates(parsed.lat, parsed.lon);
+      const radius = parsed.zoom ? Math.max(150, 40_000_000 / 2 ** parsed.zoom / 2) : 1500;
+      render([{ items: [{ name: label, detail: parsed.label ? formatCoordinates(parsed.lat, parsed.lon) : `Go to these coordinates (${parsed.source === "coordinates" ? "pasted" : parsed.source === "pluscode" ? "plus code" : `${parsed.source} link`})`, lat: parsed.lat, lon: parsed.lon, radius, icon: "target", source: "coords", named: Boolean(parsed.label) }] }]);
+      return;
+    }
+    if (!parsed.text && !parsed.shortCode) {
+      render([], "Short links like maps.app.goo.gl can't be opened here. Open the link, then copy the full address from your browser's address bar.");
+      return;
+    }
+    const local = parsed.shortCode ? [] : opts.local?.(parsed.text) ?? [];
+    render([{ heading: local.length ? "On the map" : undefined, items: local.slice(0, 4) }], "Searching…");
     timer = window.setTimeout(async () => {
       controller = new AbortController();
+      const signal = controller.signal;
       try {
-        const places = await geocode(q, controller.signal);
-        showPlaces(places, places.length ? undefined : "No matches");
+        let results: SearchResult[];
+        try {
+          results = await photon(parsed.text, opts.bias?.() ?? null, signal);
+        } catch (err) {
+          if ((err as Error).name === "AbortError") throw err;
+          results = await nominatim(parsed.text, signal);
+        }
+        if (parsed.shortCode && results[0]) {
+          const full = recoverPlusCode(parsed.shortCode, results[0].lat, results[0].lon);
+          const c = decodePlusCode(full);
+          results = [{ name: `${parsed.shortCode} ${parsed.text}`.trim(), detail: `Plus code ${full}`, lat: c.lat, lon: c.lon, radius: 300, icon: "target", source: "coords" }];
+        }
+        const seen = new Set(local.map((l) => l.name.toLowerCase()));
+        const addresses = results.filter((r) => !seen.has(r.name.toLowerCase()));
+        render(
+          [{ heading: local.length ? "On the map" : undefined, items: local.slice(0, 4) }, { heading: local.length ? "Places and addresses" : undefined, items: addresses }],
+          local.length + addresses.length ? undefined : "No matches. Try adding a town or country.",
+        );
       } catch (err) {
-        if ((err as Error).name !== "AbortError") showPlaces([], "Search is unavailable right now");
+        if ((err as Error).name !== "AbortError") render([{ items: local }], "Address search is unavailable right now.");
       }
-    }, 300);
+    }, 220);
   };
 
   input.addEventListener("input", update);
-  input.addEventListener("focus", update);
+  input.addEventListener("focus", () => { input.select(); update(); });
   input.addEventListener("blur", () => setTimeout(() => (list.hidden = true), 150));
   input.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") (list.querySelector(".search-item") as HTMLButtonElement | null)?.click();
-    if (e.key === "Escape") input.blur();
+    if (e.key === "ArrowDown" && items.length) { e.preventDefault(); highlight(active + 1); }
+    else if (e.key === "ArrowUp" && items.length) { e.preventDefault(); highlight(active - 1); }
+    else if (e.key === "Enter") {
+      e.preventDefault();
+      if (items[active]) pick(items[active]);
+      else if (input.value.trim()) update();
+    } else if (e.key === "Escape") input.blur();
+  });
+  // "/" focuses search from anywhere, like many map apps.
+  window.addEventListener("keydown", (e) => {
+    if (e.key === "/" && !(e.target instanceof HTMLInputElement) && !(e.target instanceof HTMLTextAreaElement)) {
+      e.preventDefault();
+      input.focus();
+    }
   });
   return root;
 }

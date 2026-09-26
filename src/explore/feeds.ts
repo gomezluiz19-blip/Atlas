@@ -21,6 +21,9 @@ export class Feeds {
   view: ViewInfo;
   notable: Notable[] = [];
   private world: WorldLabel[] = [];
+  get worldList(): WorldLabel[] {
+    return this.world;
+  }
   private rivers: RiverLine[] = [];
   private timer = 0;
   private job = 0;
@@ -150,6 +153,44 @@ export class Feeds {
     await Promise.all(tasks);
     if (job === this.job) this.emit();
   }
+}
+
+const fold = (t: string) => t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+
+export interface LocalMatch {
+  name: string;
+  detail: string;
+  lon: number;
+  lat: number;
+  kind: WorldLabel["kind"];
+  rank: number;
+}
+
+/** Instant, offline matches for the search box: bundled world names plus notable places in view. */
+export function searchLocal(feeds: Feeds, q: string, limit = 5): LocalMatch[] {
+  const needle = fold(q.trim());
+  if (needle.length < 2) return [];
+  const score = (name: string) => {
+    const n = fold(name);
+    if (n === needle) return 3;
+    if (n.startsWith(needle)) return 2;
+    if (n.includes(` ${needle}`)) return 1;
+    return 0;
+  };
+  const out: (LocalMatch & { s: number })[] = [];
+  for (const n of feeds.notable) {
+    const s = score(n.name);
+    if (s) out.push({ name: n.name, detail: n.description ?? KIND_INFO[n.kind].label, lon: n.lon, lat: n.lat, kind: n.kind, rank: n.sitelinks * 2, s: s + 1 });
+  }
+  for (const w of feeds.worldList) {
+    const s = score(w.name);
+    if (s) out.push({ name: w.name, detail: w.kind === "city" || w.kind === "capital" ? w.detail : w.kind === "peak" ? `Mountain · ${w.detail}` : KIND_INFO[w.kind].label, lon: w.lon, lat: w.lat, kind: w.kind, rank: w.rank, s });
+  }
+  const seen = new Set<string>();
+  return out
+    .sort((a, b) => b.s - a.s || b.rank - a.rank)
+    .filter((m) => (seen.has(m.name) ? false : (seen.add(m.name), true)))
+    .slice(0, limit);
 }
 
 export function kindLabel(kind: keyof typeof KIND_INFO): string {
