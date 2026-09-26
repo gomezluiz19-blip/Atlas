@@ -672,3 +672,8 @@ input[type="range"] { accent-color: var(--accent); }
 .k-water .ml-glyph { --c: #0a84ff; }
 .glyph-thumb { display: grid; place-items: center; background: var(--c); color: #fff; }
 .glyph-thumb svg { width: 22px; height: 22px; }
+
+/* Curated places to start */
+.curated-row .site-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--c, var(--theme)); flex: none; box-shadow: 0 0 0 3px color-mix(in srgb, var(--c, var(--theme)) 22%, transparent); }
+.site-where { color: var(--secondary); font-weight: 400; font-size: 13px; margin-left: 6px; }
+.group .chips + .list { margin-top: 8px; }

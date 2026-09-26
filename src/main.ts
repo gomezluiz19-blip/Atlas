@@ -20,7 +20,9 @@ import { waterTheme } from "./themes/water";
 import { formatElevation, formatLonLat, h } from "./ui/dom";
 import { icons } from "./ui/icons";
 import { createLayersPanel } from "./ui/layers";
-import { createSearch, fieldSiteButtons, type Place as SearchPlace, type SearchResult } from "./ui/search";
+import { createSearch, flyToPlace, type Place as SearchPlace, type SearchResult } from "./ui/search";
+import { siteBrowser } from "./ui/sites";
+import { SITES, sitesFor, type Site } from "./content/sites";
 
 const $ = (id: string) => document.getElementById(id)!;
 
@@ -45,10 +47,14 @@ const pick = (p: SearchPlace | SearchResult) =>
 app.emptyState = (theme: Theme) =>
   h("div", { class: "empty" },
     h("div", { class: "empty-hint" }, h("span", { class: "empty-icon", html: icons.target }), h("span", {}, h("strong", {}, "Tap anywhere on Earth"), h("span", {}, "or search for a place to see its ", theme.label.toLowerCase(), "."))),
-    h("h2", { class: "group-title" }, "Places to start"),
-    fieldSiteButtons(globe, pick));
+    siteBrowser(sitesFor(theme.id), openSite, { color: theme.color }));
 
-app.addTheme(exploreTheme(app, feeds, overlays));
+const openSite = (s: Site) => {
+  void flyToPlace(globe, s);
+  app.select({ lon: s.lon, lat: s.lat, height: 0 }, { title: s.name, context: s.where });
+};
+
+app.addTheme(exploreTheme(app, feeds, overlays, openSite));
 app.addTheme(landTheme(app));
 app.addTheme(waterTheme(app));
 app.addTheme(climateTheme(overlays));
@@ -57,13 +63,23 @@ app.addTheme(animalsTheme());
 app.addTheme(builtTheme(app, overlays));
 app.addTheme(countriesTheme());
 
+/** Curated sites whose name starts a word with the query. */
+const siteMatches = (q: string): SearchResult[] => {
+  const needle = q.trim().toLowerCase();
+  if (needle.length < 2) return [];
+  return Object.values(SITES).flat().flatMap((c) => c.sites)
+    .filter((s) => s.name.toLowerCase().startsWith(needle) || s.name.toLowerCase().split(/[\s/–-]+/).some((w) => w.startsWith(needle)))
+    .slice(0, 3)
+    .map((s) => ({ name: s.name, detail: `${s.where} · ${s.why}`, lon: s.lon, lat: s.lat, radius: s.radius, source: "local" as const, icon: "target" as const }));
+};
+
 $("search-slot").replaceWith(createSearch(globe, {
   onPick: pick,
-  local: (q) => searchLocal(feeds, q).map((m) => ({
+  local: (q) => [...siteMatches(q), ...searchLocal(feeds, q).map((m) => ({
     name: m.name, detail: m.detail, lon: m.lon, lat: m.lat, source: "local" as const,
     radius: m.kind === "sea" || m.kind === "continent" ? 1_500_000 : m.kind === "range" || m.kind === "desert" || m.kind === "region" ? 400_000 : m.kind === "city" || m.kind === "capital" ? 15_000 : m.kind === "district" ? 3000 : 1200,
     icon: m.kind === "peak" || m.kind === "range" ? "mountain" as const : m.kind === "water" || m.kind === "sea" ? "drop" as const : m.kind === "city" || m.kind === "capital" ? "building" as const : "target" as const,
-  })),
+  }))].filter((r, i, all) => all.findIndex((o) => o.name === r.name) === i).slice(0, 8),
   bias: () => (feeds.view.zoom > 4 ? { lat: feeds.view.lat, lon: feeds.view.lon } : null),
 }));
 

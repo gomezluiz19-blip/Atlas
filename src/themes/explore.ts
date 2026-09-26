@@ -20,6 +20,8 @@ import { OVERLAYS, type OverlayId, type Overlays } from "../globe/overlays";
 import { formatElevation, h } from "../ui/dom";
 import { icons } from "../ui/icons";
 import { flyToPlace } from "../ui/search";
+import { siteBrowser } from "../ui/sites";
+import { SITES, type Site } from "../content/sites";
 import { action, asyncBlock, hero, note, section, stats } from "./common";
 
 const INSIGHT_ICON: Record<Insight["icon"], string> = {
@@ -31,7 +33,7 @@ const OVERLAY_ICON: Record<OverlayId, string> = {
 
 type FeatureData = LabelData | { type: "quake"; quake: Quake };
 
-export function exploreTheme(app: App, feeds: Feeds, overlays: Overlays): Theme {
+export function exploreTheme(app: App, feeds: Feeds, overlays: Overlays, openSite: (s: Site) => void): Theme {
   let areaJob = 0;
   let category: string | null = null;
   let showAll = false;
@@ -81,9 +83,11 @@ export function exploreTheme(app: App, feeds: Feeds, overlays: Overlays): Theme 
   const renderEmpty = (app: App, body: HTMLElement) => {
     const insightsBox = h("div", { class: "insights" });
     const inView = h("div", { class: "in-view" });
+    const start = siteBrowser(SITES.explore, openSite, { color: "#0a84ff" });
     body.append(
       h("div", { class: "empty-hint compact" }, h("span", { class: "empty-icon", html: icons.compass }), h("span", {}, h("strong", {}, "Move the map to explore"), h("span", {}, "Labels appear as you zoom in. Tap one, or anywhere, to learn more."))),
       insightsBox,
+      start,
       inView,
       section("Map layers", toggles()),
     );
@@ -91,6 +95,7 @@ export function exploreTheme(app: App, feeds: Feeds, overlays: Overlays): Theme 
     const update = () => {
       if (!body.isConnected) { off(); return; }
       const v = feeds.view;
+      start.hidden = v.zoom >= 5;
       // Area name for the header.
       const job = ++areaJob;
       if (v.zoom < 3) app.setHeader("Earth", "Zoom in anywhere to explore");
