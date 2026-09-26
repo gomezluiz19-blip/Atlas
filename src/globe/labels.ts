@@ -3,6 +3,7 @@
 // labels win where they would overlap.
 import { Cartesian2, Cartesian3, Cartographic, type Scene } from "cesium";
 import type { PlaceKind } from "../analysis/placeKinds";
+import { glyphFor } from "../ui/placeGlyphs";
 
 export interface MapLabel {
   id: string;
@@ -29,7 +30,10 @@ interface Node {
   h: number;
 }
 
-const POINT_KINDS = new Set<PlaceKind>(["landmark", "sports", "culture", "worship", "transport", "education", "park", "nature", "peak", "water", "other", "district"]);
+const POINT_KINDS = new Set<PlaceKind>([
+  "landmark", "monument", "castle", "bridge", "dam", "lighthouse", "sports", "culture", "worship", "transport", "education",
+  "park", "zoo", "nature", "peak", "volcano", "waterfall", "glacier", "island", "beach", "water", "other", "district",
+]);
 
 export class LabelLayer {
   readonly el: HTMLDivElement;
@@ -39,6 +43,8 @@ export class LabelLayer {
   private dirty = true;
   visible = true;
   maxLabels = 45;
+  /** When set, notable places outside these kinds are hidden (world-scale names stay). */
+  private filter: Set<PlaceKind> | null = null;
   onClick?: (label: MapLabel) => void;
 
   constructor(private scene: Scene, private exaggeration: () => number) {
@@ -54,6 +60,12 @@ export class LabelLayer {
     this.visible = v;
     this.el.hidden = !v;
     this.dirty = true;
+  }
+
+  setFilter(kinds: PlaceKind[] | null) {
+    this.filter = kinds ? new Set(kinds) : null;
+    this.dirty = true;
+    this.scene.requestRender();
   }
 
   set(source: string, labels: MapLabel[]) {
@@ -88,8 +100,10 @@ export class LabelLayer {
     text.className = "ml-text";
     text.textContent = l.name;
     if (POINT_KINDS.has(l.kind)) {
+      const glyph = l.kind === "district" || (l.kind === "water" && !(l.data as { notable?: unknown } | undefined)?.notable) ? undefined : glyphFor(l.kind);
       const dot = document.createElement("span");
-      dot.className = "ml-dot";
+      dot.className = glyph ? "ml-glyph" : "ml-dot";
+      if (glyph) dot.innerHTML = glyph;
       el.append(dot);
     }
     el.append(text);
@@ -131,6 +145,7 @@ export class LabelLayer {
           n.heightKnown = true;
         }
       }
+      if (this.filter && (n.label.data as { source?: string } | undefined)?.source === "notable" && !this.filter.has(n.label.kind)) { n.el.hidden = true; continue; }
       // Behind the horizon?
       Cartesian3.subtract(cam, n.pos, toCam);
       if (Cartesian3.dot(toCam, n.normal) < 0 || shown >= this.maxLabels) { n.el.hidden = true; continue; }

@@ -649,3 +649,26 @@ input[type="range"] { accent-color: var(--accent); }
 .breakdown-item { display: inline-flex; align-items: center; gap: 4px; padding: 5px 9px 5px 7px; border-radius: 10px; background: var(--material-strong); color: var(--label); font-weight: 600; font-size: 13px; font-variant-numeric: tabular-nums; }
 .breakdown-item > span:first-child { display: grid; color: var(--theme); }
 .breakdown-item svg { width: 18px; height: 18px; }
+
+/* Label glyph pins */
+.ml-glyph {
+  display: grid; place-items: center; width: 19px; height: 19px; border-radius: 50%; flex-shrink: 0;
+  background: var(--c, #ff375f); color: #fff; box-shadow: 0 0 0 1.5px #fff, 0 1px 3px rgba(0, 0, 0, 0.45);
+}
+.ml-glyph svg { width: 11.5px; height: 11.5px; }
+.map-label.heritage .ml-glyph { box-shadow: 0 0 0 1.5px #fff, 0 0 0 3.5px #ffd60a, 0 1px 3px rgba(0, 0, 0, 0.5); }
+.k-monument { --c: #ff375f; }
+.k-castle { --c: #ac8e68; }
+.k-bridge { --c: #8e8e93; }
+.k-dam { --c: #5e5ce6; }
+.k-lighthouse { --c: #ff9f0a; }
+.k-zoo { --c: #34c759; }
+.k-volcano { --c: #ff453a; }
+.k-waterfall { --c: #0a84ff; }
+.k-glacier { --c: #5ac8fa; }
+.k-island { --c: #30b0c7; }
+.k-beach { --c: #e5a33b; }
+.k-peak .ml-glyph { --c: #8a6d4b; }
+.k-water .ml-glyph { --c: #0a84ff; }
+.glyph-thumb { display: grid; place-items: center; background: var(--c); color: #fff; }
+.glyph-thumb svg { width: 22px; height: 22px; }

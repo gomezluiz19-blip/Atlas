@@ -45,5 +45,13 @@ describe("place kinds", () => {
     expect(classifyTypes(["neighborhood of New York City"])).toBe("district");
     expect(classifyTypes(["clock tower"])).toBe("landmark");
     expect(classifyTypes(["capital city", "city"])).toBe("capital");
+    expect(classifyTypes(["stratovolcano"])).toBe("volcano");
+    expect(classifyTypes(["waterfall"])).toBe("waterfall");
+    expect(classifyTypes(["suspension bridge"])).toBe("bridge");
+    expect(classifyTypes(["arch dam", "hydroelectric power station"])).toBe("dam");
+    expect(classifyTypes(["colossal statue", "monument"])).toBe("monument");
+    expect(classifyTypes(["palace", "parliament building"])).toBe("castle");
+    expect(classifyTypes(["island"])).toBe("island");
+    expect(classifyTypes(["association football venue", "stadium"])).toBe("sports");
   });
 });

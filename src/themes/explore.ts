@@ -3,7 +3,8 @@
 // opens a card about that feature or spot.
 import type { App, Place, Subtab, Theme } from "../app";
 import { distanceKm } from "../analysis/insights";
-import { KIND_INFO, type PlaceKind } from "../analysis/placeKinds";
+import { CATEGORIES, KIND_INFO, type PlaceKind } from "../analysis/placeKinds";
+import { glyphFor } from "../ui/placeGlyphs";
 import { countryAt } from "../data/countries";
 import { elevation } from "../data/elevation";
 import { reverseGeocode } from "../data/geocode";
@@ -32,6 +33,13 @@ type FeatureData = LabelData | { type: "quake"; quake: Quake };
 
 export function exploreTheme(app: App, feeds: Feeds, overlays: Overlays): Theme {
   let areaJob = 0;
+  let category: string | null = null;
+  let showAll = false;
+  const setCategory = (id: string | null) => {
+    category = id;
+    showAll = false;
+    app.labels?.setFilter(id ? CATEGORIES.find((c) => c.id === id)!.kinds : null);
+  };
 
   const toggles = () => {
     const grid = h("div", { class: "toggle-grid" });
@@ -56,7 +64,9 @@ export function exploreTheme(app: App, feeds: Feeds, overlays: Overlays): Theme 
 
   const notableRow = (n: Notable, from?: { lon: number; lat: number }) =>
     h("button", { class: "list-row", onclick: () => openNotable(n) },
-      n.image ? h("img", { class: "thumb", src: commonsThumb(n.image, 96), alt: "", loading: "lazy" }) : h("span", { class: "thumb dot-thumb", style: `--c:${KIND_INFO[n.kind === "other" ? "landmark" : n.kind].color}` }),
+      n.image
+        ? h("img", { class: "thumb", src: commonsThumb(n.image, 96), alt: "", loading: "lazy" })
+        : h("span", { class: "thumb glyph-thumb", style: `--c:${KIND_INFO[n.kind === "other" ? "landmark" : n.kind].color}`, html: glyphFor(n.kind === "other" ? "landmark" : n.kind) ?? "" }),
       h("span", { class: "list-text" },
         h("span", { class: "list-title" }, n.name, n.heritage ? h("span", { class: "pill heritage-pill" }, "World Heritage") : ""),
         h("span", { class: "list-sub" }, [n.description, from ? `${formatKm(distanceKm(from.lon, from.lat, n.lon, n.lat))}` : ""].filter(Boolean).join(" · "))),
@@ -88,12 +98,22 @@ export function exploreTheme(app: App, feeds: Feeds, overlays: Overlays): Theme 
         reverseGeocode(v.lon, v.lat, Math.max(3, Math.min(14, Math.round(v.zoom) + 1)))
           .then((n) => { if (job === areaJob && n) app.setHeader(n.title, n.context || "Exploring"); })
           .catch(() => {});
-      // What's in view.
-      const top = feeds.notable.filter((n) => n.kind !== "district" && n.kind !== "city").slice(0, 8);
-      const labels = top.length ? [] : app.labels?.shownLabels().slice(0, 8) ?? [];
+      // What's in view, filterable by category (the filter also applies to the map's labels).
+      const places = feeds.notable.filter((n) => n.kind !== "district" && n.kind !== "city" && n.kind !== "capital");
+      const inCat = (n: Notable, id: string) => CATEGORIES.find((c) => c.id === id)!.kinds.includes(n.kind);
+      const cats = CATEGORIES.map((c) => ({ ...c, n: places.filter((p) => inCat(p, c.id)).length })).filter((c) => c.n > 0);
+      if (category && !cats.some((c) => c.id === category)) setCategory(null);
+      const shown = category ? places.filter((p) => inCat(p, category!)) : places;
+      const top = shown.slice(0, showAll ? 30 : 8);
+      const labels = places.length ? [] : app.labels?.shownLabels().slice(0, 8) ?? [];
+      const chip = (id: string | null, label: string, n: number) =>
+        h("button", { class: "chip", role: "radio", "aria-checked": String(category === id), onclick: () => { setCategory(id); update(); } }, `${label} ${n}`);
       inView.replaceChildren(
-        top.length
-          ? section("Worth knowing in view", h("div", { class: "list" }, ...top.map((n) => notableRow(n))))
+        places.length
+          ? section("Worth knowing in view",
+              cats.length > 1 ? h("div", { class: "chips", role: "radiogroup", "aria-label": "Filter by category" }, chip(null, "All", places.length), ...cats.map((c) => chip(c.id, c.label, c.n))) : "",
+              h("div", { class: "list" }, ...top.map((n) => notableRow(n))),
+              shown.length > top.length ? h("button", { class: "link-btn", onclick: () => { showAll = true; update(); } }, `Show ${Math.min(30, shown.length) - top.length} more`) : "")
           : labels.length
             ? section("In view", h("div", { class: "chips wrap" }, ...labels.map((l) => h("button", { class: "chip", onclick: () => app.labels?.onClick?.(l) }, l.name))))
             : "",
