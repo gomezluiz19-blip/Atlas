@@ -8,8 +8,16 @@ themes) and goes deep when you want it to: rock sections, watersheds, life zones
 
 ## How it works for you
 
-Tap anywhere on Earth (or search for a place) and a card opens. The tab bar along the bottom switches
-between seven themes, and each theme's subtabs describe the place you chose:
+**Explore (the default).** Just move the map. Atlas labels what's worth knowing as you go: seas, mountain
+ranges and cities when zoomed out; rivers, landmarks, stadiums, parks and museums when zoomed in (the Hudson,
+the Empire State Building and Madison Square Garden in Manhattan; the Thames, Big Ben and Wembley in London).
+Places are ranked by how many Wikipedia language editions write about them. The card follows the map with
+"Worth knowing here": whether you're in the northern-lights zone (with tonight's live chance and Kp), midnight
+sun and daylight, nearby plate boundaries, this week's earthquakes, World Heritage sites. One-touch toggles
+show labels, the live aurora forecast, earthquakes, plate boundaries, night lights, rain radar and wildlife
+records. Tap a label for its photo and summary; tap the ground for a quick glance across every theme.
+
+Then pick a theme from the tab bar; each theme's subtabs describe the chosen place:
 
 | Theme | Subtabs | What you learn |
 | --- | --- | --- |
@@ -21,7 +29,7 @@ between seven themes, and each theme's subtabs describe the place you chose:
 | **Built** | Overview · Transport · Energy · Water | Roads, rail, power, pipelines, dams and airports, with totals; Earth at night |
 | **Countries** | Overview · People · Economy · Environment | Flag, capital, languages and neighbours; population, income, forests and emissions over time |
 
-Keyboard: `1`–`7` switch themes, `Esc` cancels a line or closes a chart.
+Keyboard: `1`–`8` switch themes, `Esc` cancels a line or closes a chart.
 
 ## Run it
 
@@ -55,6 +63,10 @@ These keys end up in the public page, so restrict them to your site's domain in 
 - **Weather and climate:** [Open-Meteo](https://open-meteo.com) forecasts and ERA5 history (CC-BY 4.0); [RainViewer](https://www.rainviewer.com) radar.
 - **Countries:** Natural Earth borders via [world-atlas](https://github.com/topojson/world-atlas), [REST Countries](https://restcountries.com), [World Bank](https://data.worldbank.org) indicators.
 - **Earth at night:** NASA Black Marble via GIBS.
+- **Labels:** Natural Earth (world scale, bundled in `public/data`, rebuilt with `scripts/build-geodata.mjs`),
+  [Wikidata](https://www.wikidata.org) and Wikipedia (notable places and summaries), OpenStreetMap (rivers).
+- **Aurora and geomagnetic activity:** NOAA Space Weather Prediction Center (OVATION, Kp). **Earthquakes:** USGS.
+  **Plate boundaries:** Bird (2003) PB2002 via [fraxen/tectonicplates](https://github.com/fraxen/tectonicplates).
 - **Search and place names:** OpenStreetMap Nominatim (light, interactive use only, per its usage policy).
 
 ## How it works
@@ -63,7 +75,8 @@ These keys end up in the public page, so restrict them to your site's domain in 
 src/
   main.ts              wiring: globe, themes, search, map-style and about popovers
   app.ts               place selection, place card, theme tab bar and subtabs, hosting tools inside subtabs
-  themes/              one file per theme (land, water, climate, life, built, countries)
+  themes/              one file per theme (explore, land, water, climate, life, built, countries)
+  explore/             view tracking, label feeds and the "worth knowing" insights engine
   data/                Web Mercator math; elevation tiles; Macrostrat, iNaturalist and Overpass clients
   analysis/            pure, tested algorithms
     profile.ts         profile statistics, incision depth
@@ -71,6 +84,8 @@ src/
     commodities.ts     mine commodity groups and status
     infrastructure.ts  infrastructure categories, lengths, plant capacity
     climate.ts         monthly normals, Köppen–Geiger climate type, warming trend
+    insights.ts        magnetic latitude and aurora zones, daylight and sun position, distance to plate boundaries
+    placeKinds.ts      sorts Wikidata places into kinds (landmark, sport, water, park…)
     hydrology.ts       Priority-Flood+ε depression filling, D8 routing, flow accumulation, watersheds
     water.ts           multi-window flow tracing and adaptive watershed delineation
     hydrology.worker   runs the flow model off the main thread

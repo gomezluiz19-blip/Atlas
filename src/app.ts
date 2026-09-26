@@ -2,6 +2,7 @@
 // from the tab bar, and every subtab of that theme describes the chosen place.
 import { Cartesian2, Cartesian3, Color, HeightReference, ScreenSpaceEventHandler, ScreenSpaceEventType, type Entity } from "cesium";
 import { reverseGeocode, type PlaceName } from "./data/geocode";
+import { pickFeature } from "./globe/pickables";
 import type { Globe } from "./globe/viewer";
 import { Chart, type ChartData, type ChartOptions } from "./ui/chart";
 import { formatLonLat, h } from "./ui/dom";
@@ -15,6 +16,8 @@ export interface GeoPoint {
 
 export interface Place extends GeoPoint {
   name?: PlaceName | null;
+  /** Set when the place is a named feature (a label or map marker was tapped). */
+  feature?: unknown;
 }
 
 /** An interactive analysis that renders into its own panel. */
@@ -106,6 +109,8 @@ export interface Theme {
   subtabs: Subtab[];
   enter?(app: App): void;
   leave?(app: App): void;
+  /** Content before a place is chosen; defaults to the app's empty state. */
+  renderEmpty?(app: App, body: HTMLElement): void;
 }
 
 /** The place card: header, theme subtabs and content. */
@@ -153,6 +158,8 @@ export class App {
   onPlace?: (p: Place | null) => void;
   /** Content shown before a place is chosen (field sites etc.). */
   emptyState?: (theme: Theme) => HTMLElement;
+  /** The map's label layer, when present. */
+  labels?: import("./globe/labels").LabelLayer;
 
   constructor(readonly globe: Globe, root: HTMLElement) {
     this.tabbar = h("nav", { class: "tabbar", role: "tablist", "aria-label": "Themes" });
@@ -161,9 +168,16 @@ export class App {
 
     const handler = new ScreenSpaceEventHandler(globe.viewer.scene.canvas);
     handler.setInputAction((e: { position: Cartesian2 }) => {
+      const tool = this.interaction;
+      if (!tool?.wantsClicks?.()) {
+        const f = pickFeature(globe.viewer.scene.pick(e.position));
+        if (f) {
+          this.select({ lon: f.lon, lat: f.lat, height: 0 }, { title: f.title, context: f.context }, f.feature);
+          return;
+        }
+      }
       const p = globe.pick(e.position);
       if (!p) return;
-      const tool = this.interaction;
       if (tool?.wantsClicks?.()) {
         tool.onClick?.(p);
         if (!tool.wantsClicks()) this.setInteraction(null);
@@ -252,9 +266,10 @@ export class App {
     return this.tools.get(id)?.tool as T;
   }
 
-  select(p: GeoPoint, name?: PlaceName | null) {
+  select(p: GeoPoint, name?: PlaceName | null, feature?: unknown) {
     this.setInteraction(null);
-    this.place = { ...p, name };
+    this.subtab?.leave?.(this);
+    this.place = { ...p, name, feature };
     this.drawPin(p);
     this.drawer.hide();
     this.sheet.el.classList.remove("collapsed");
@@ -301,11 +316,20 @@ export class App {
     });
   }
 
+  private emptyHeader: [string, string] | null = null;
+
+  /** Header text while no place is chosen (e.g. the area in view). */
+  setHeader(title: string, subtitle: string) {
+    this.emptyHeader = [title, subtitle];
+    if (!this.place) this.renderHeader();
+  }
+
   private renderHeader() {
     const p = this.place;
     if (!p) {
-      this.sheet.title.textContent = this.theme.label;
-      this.sheet.subtitle.textContent = this.theme.intro;
+      const [t, sub] = this.theme.renderEmpty && this.emptyHeader ? this.emptyHeader : [this.theme.label, this.theme.intro];
+      this.sheet.title.textContent = t;
+      this.sheet.subtitle.textContent = sub;
       this.sheet.close.hidden = true;
       return;
     }
@@ -330,8 +354,13 @@ export class App {
     body.replaceChildren(content);
     body.scrollTop = 0;
     if (!this.place) {
-      content.append(this.emptyState?.(theme) ?? h("p", {}, "Tap anywhere on Earth."));
+      if (theme.renderEmpty) theme.renderEmpty(this, content);
+      else content.append(this.emptyState?.(theme) ?? h("p", {}, "Tap anywhere on Earth."));
       return;
+    }
+    if (this.place.feature && theme.id !== "explore" && this.themes.some((t) => t.id === "explore")) {
+      const title = this.place.name?.title ?? "this place";
+      content.append(h("button", { class: "about-link", onclick: () => this.setTheme("explore") }, h("span", { html: icons.compass }), h("span", {}, `About ${title}`), h("span", { class: "chev", html: "&rsaquo;" })));
     }
     this.subtab.render({ app: this, place: this.place, body: content });
   }

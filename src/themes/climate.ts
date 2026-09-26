@@ -1,13 +1,12 @@
 // Climate: the weather now, the long-term climate, and how it has changed.
-import type { ImageryLayer } from "cesium";
-import type { App, Subtab, Theme } from "../app";
+import type { Subtab, Theme } from "../app";
 import { annualMeans, koppen, linearTrend, monthlyNormals, weatherText } from "../analysis/climate";
 import { forecast, history } from "../data/openmeteo";
-import { latestRadarTiles } from "../data/radar";
+import type { Overlays } from "../globe/overlays";
 import { climograph } from "../ui/climograph";
 import { h } from "../ui/dom";
 import { icons } from "../ui/icons";
-import { asyncBlock, compass, hero, inlineChart, note, section, stats, tileLayer } from "./common";
+import { asyncBlock, compass, hero, inlineChart, note, section, stats } from "./common";
 
 const MONTH = "January February March April May June July August September October November December".split(" ");
 const deg = (v: number) => `${Math.round(v)}°`;
@@ -19,22 +18,8 @@ function weatherIcon(code: number, day = true): string {
   return icons[k];
 }
 
-export function climateTheme(): Theme {
-  let radar: ImageryLayer | null = null;
-  let radarOn = true;
-
-  const setRadar = async (app: App, on: boolean) => {
-    radarOn = on;
-    if (on && !radar) {
-      try {
-        const { url } = await latestRadarTiles();
-        radar = tileLayer(app.globe.viewer, url, { maximumLevel: 7, credit: "Radar: RainViewer", alpha: 0.7 });
-      } catch {
-        app.toast("Rain radar is unavailable right now.");
-      }
-    }
-    if (radar) radar.show = on && app.theme.id === "climate";
-  };
+export function climateTheme(overlays: Overlays): Theme {
+  let firstVisit = true;
 
   const now: Subtab = {
     id: "now",
@@ -59,7 +44,7 @@ export function climateTheme(): Theme {
         });
         const toggle = h("label", { class: "switch-row" },
           h("span", {}, h("strong", {}, "Rain radar on the map"), h("span", { class: "muted" }, "Live, updated every 10 minutes. Zoom out to see it.")),
-          h("input", { type: "checkbox", class: "switch", checked: radarOn, onchange: (e: Event) => void setRadar(app, (e.target as HTMLInputElement).checked) }));
+          h("input", { type: "checkbox", class: "switch", checked: overlays.isOn("radar"), onchange: (e: Event) => void overlays.set("radar", (e.target as HTMLInputElement).checked) }));
         const sunrise = d.sunrise[0]?.slice(11, 16), sunset = d.sunset[0]?.slice(11, 16);
         return [
           h("div", { class: "weather-now" },
@@ -151,11 +136,10 @@ export function climateTheme(): Theme {
     color: "#ff9f0a",
     intro: "Today's weather, the long-term climate, and how it's changing.",
     subtabs: [now, climate, change],
-    enter(app) {
-      void setRadar(app, radarOn);
-    },
-    leave() {
-      if (radar) radar.show = false;
+    enter() {
+      // Radar is most useful here, so switch it on the first time (it stays under the user's control after).
+      if (firstVisit) void overlays.set("radar", true);
+      firstVisit = false;
     },
   };
 }
