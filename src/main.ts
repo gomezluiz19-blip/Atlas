@@ -28,6 +28,17 @@ const $ = (id: string) => document.getElementById(id)!;
 
 const globe = new Globe($("globe"), $("credits"));
 const app = new App(globe, $("ui"));
+globe.onNotice = (m) => app.toast(m, 6000);
+
+// A thin bar along the top while terrain and imagery tiles are streaming in.
+const loadingBar = h("div", { class: "tile-progress", role: "progressbar", "aria-label": "Loading map tiles", hidden: true });
+$("ui").append(loadingBar);
+let loadingTimer = 0;
+globe.viewer.scene.globe.tileLoadProgressEvent.addEventListener((queued: number) => {
+  clearTimeout(loadingTimer);
+  if (queued > 0) loadingTimer = window.setTimeout(() => (loadingBar.hidden = false), 400);
+  else loadingBar.hidden = true;
+});
 
 // Live labels and one-touch overlays.
 const labels = new LabelLayer(globe.viewer.scene, () => globe.state.exaggeration);

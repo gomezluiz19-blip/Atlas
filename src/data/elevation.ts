@@ -3,6 +3,7 @@
 // Each 256x256 PNG encodes height as (R * 256 + G + B / 256) - 32768 metres.
 // https://registry.opendata.aws/terrain-tiles/
 
+import { fetchRetry } from "./http";
 import { TILE_SIZE, lonLatToPixel, worldSize } from "./mercator";
 
 export const TERRARIUM_URL =
@@ -36,7 +37,7 @@ export async function fetchTerrariumTile(z: number, x: number, y: number): Promi
   const url = TERRARIUM_URL.replace("{z}", String(z))
     .replace("{x}", String(x))
     .replace("{y}", String(y));
-  const res = await fetch(url);
+  const res = await fetchRetry(url, {}, 4);
   if (!res.ok) throw new Error(`Elevation tile ${z}/${x}/${y} failed: HTTP ${res.status}`);
   const bitmap = await createImageBitmap(await res.blob(), {
     colorSpaceConversion: "none",

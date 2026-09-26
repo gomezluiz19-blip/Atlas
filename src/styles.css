@@ -677,3 +677,10 @@ input[type="range"] { accent-color: var(--accent); }
 .curated-row .site-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--c, var(--theme)); flex: none; box-shadow: 0 0 0 3px color-mix(in srgb, var(--c, var(--theme)) 22%, transparent); }
 .site-where { color: var(--secondary); font-weight: 400; font-size: 13px; margin-left: 6px; }
 .group .chips + .list { margin-top: 8px; }
+
+/* Tile streaming indicator */
+.tile-progress { position: fixed; top: 0; left: 0; right: 0; height: 2px; overflow: hidden; z-index: 30; pointer-events: none; }
+.tile-progress[hidden] { display: none; }
+.tile-progress::after { content: ""; position: absolute; inset: 0; width: 30%; background: linear-gradient(90deg, transparent, var(--theme, #0a84ff), transparent); animation: tile-progress 1.2s ease-in-out infinite; }
+@keyframes tile-progress { from { transform: translateX(-100%); } to { transform: translateX(340%); } }
+@media (prefers-reduced-motion: reduce) { .tile-progress::after { animation: none; width: 100%; opacity: 0.5; } }

@@ -1,11 +1,33 @@
-// Small fetch helpers shared by the data services: JSON with a timeout,
-// a response cache, and a concurrency-limited map.
+// Small fetch helpers shared by the data services: retries with backoff,
+// JSON with a timeout, a response cache, and a concurrency-limited map.
 
 const cache = new Map<string, Promise<unknown>>();
 
 export class ServiceError extends Error {
   constructor(readonly service: string, message: string) {
     super(`${service}: ${message}`);
+  }
+}
+
+const RETRYABLE = new Set([408, 425, 429, 500, 502, 503, 504]);
+const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+/**
+ * fetch() that retries network failures and transient HTTP errors (rate
+ * limits, 5xx) with exponential backoff. Other responses, including 404,
+ * are returned as they are. Aborts are never retried.
+ */
+export async function fetchRetry(url: string, init: RequestInit = {}, tries = 3, baseDelayMs = 400): Promise<Response> {
+  for (let attempt = 1; ; attempt++) {
+    try {
+      const res = await fetch(url, init);
+      if (!RETRYABLE.has(res.status) || attempt >= tries) return res;
+      const after = Number(res.headers.get("retry-after"));
+      await wait(after > 0 && after < 30 ? after * 1000 : baseDelayMs * 2 ** (attempt - 1));
+    } catch (err) {
+      if ((err as Error).name === "AbortError" || init.signal?.aborted || attempt >= tries) throw err;
+      await wait(baseDelayMs * 2 ** (attempt - 1));
+    }
   }
 }
 
@@ -17,7 +39,7 @@ export async function getJson<T>(service: string, url: string, init?: RequestIni
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), timeoutMs);
     try {
-      const res = await fetch(url, { ...init, signal: ctrl.signal });
+      const res = await fetchRetry(url, { ...init, signal: ctrl.signal }, 2);
       if (!res.ok) throw new ServiceError(service, `HTTP ${res.status}`);
       return (await res.json()) as T;
     } catch (err) {
