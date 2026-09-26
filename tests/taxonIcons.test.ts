@@ -18,6 +18,28 @@ describe("taxonIcon", () => {
     expect(taxonIcon({ preferred_common_name: "Something obscure", iconic_taxon_name: "Amphibia" })).toBe("frog");
     expect(taxonIcon({})).toBe("plant");
   });
+  it("reads names before broad groups, in the right kingdom", () => {
+    const mammal = [48460, 1, 2, 355675, 40151];
+    expect(taxonIcon({ preferred_common_name: "African Bush Elephant", ancestor_ids: mammal })).toBe("elephant");
+    expect(taxonIcon({ preferred_common_name: "California Sea Lion", ancestor_ids: mammal })).toBe("seal");
+    expect(taxonIcon({ preferred_common_name: "Northern Elephant Seal", iconic_taxon_name: "Mammalia" })).toBe("seal");
+    expect(taxonIcon({ preferred_common_name: "Eastern Grey Kangaroo", iconic_taxon_name: "Mammalia" })).toBe("kangaroo");
+    expect(taxonIcon({ preferred_common_name: "Plains Zebra", iconic_taxon_name: "Mammalia" })).toBe("horse");
+    expect(taxonIcon({ preferred_common_name: "Horse-chestnut", iconic_taxon_name: "Plantae" })).toBe("tree");
+    expect(taxonIcon({ preferred_common_name: "Lion's Mane Jellyfish", iconic_taxon_name: "Animalia" })).toBe("jellyfish");
+    expect(taxonIcon({ preferred_common_name: "Ochre Sea Star", iconic_taxon_name: "Animalia" })).toBe("starfish");
+    expect(taxonIcon({ preferred_common_name: "Giant Green Anemone", iconic_taxon_name: "Animalia" })).toBe("coral");
+    expect(taxonIcon({ preferred_common_name: "Wood Anemone", iconic_taxon_name: "Plantae" })).toBe("plant");
+    expect(taxonIcon({ preferred_common_name: "Elephant Ear", iconic_taxon_name: "Plantae" })).toBe("plant");
+    expect(taxonIcon({ preferred_common_name: "Giant Kelp", iconic_taxon_name: "Chromista" })).toBe("kelp");
+    expect(taxonIcon({ preferred_common_name: "Something", iconic_taxon_name: "Chromista" })).toBe("kelp");
+    expect(taxonIcon({ preferred_common_name: "Emperor Penguin", ancestor_ids: [48460, 1, 2, 355675, 3] })).toBe("penguin");
+    expect(taxonIcon({ preferred_common_name: "Herring Gull", iconic_taxon_name: "Aves" })).toBe("gull");
+    expect(taxonIcon({ preferred_common_name: "American Alligator", iconic_taxon_name: "Reptilia" })).toBe("crocodile");
+    expect(taxonIcon({ preferred_common_name: "Tiger Lily", iconic_taxon_name: "Plantae" })).toBe("lily");
+    expect(taxonIcon({ preferred_common_name: "Riverbank Grape", iconic_taxon_name: "Plantae" })).toBe("vine");
+    expect(taxonIcon({ preferred_common_name: "Wolf Spider", ancestor_ids: [48460, 1, 47120, 245097, 47119, 47118] })).toBe("spider");
+  });
   it("has well-formed SVG for every icon", () => {
     for (const [k, v] of Object.entries(TAXON_ICONS)) {
       expect(v.startsWith("<svg"), k).toBe(true);

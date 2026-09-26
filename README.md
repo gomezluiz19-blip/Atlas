@@ -17,6 +17,18 @@ sun and daylight, nearby plate boundaries, this week's earthquakes, World Herita
 show labels, the live aurora forecast, earthquakes, plate boundaries, night lights, rain radar and wildlife
 records. Tap a label for its photo and summary; tap the ground for a quick glance across every theme.
 
+Filter what's in view by category (landmarks, nature, water, sport, culture, transport); the map's labels
+follow the filter, and each label carries a small glyph for its kind (stadium, bridge, volcano, museum…).
+
+**Search anything.** The search bar takes place names and street addresses (Photon, with Nominatim as a
+fallback), and whatever you paste: decimal or degrees-minutes-seconds coordinates, Google, Apple, Bing and
+OpenStreetMap links, `geo:` URIs and plus codes. Press `/` to focus it. Every view has a shareable URL, and
+the place card's share menu copies coordinates, the name or a link, or opens the spot in Google or Apple Maps.
+
+**Places to start.** Every theme opens with hand-picked collections (canyons and volcanoes, deltas and
+waterfalls, climate records, the oldest and largest trees, great migrations, megaprojects, country
+curiosities, aurora spots), about a hundred places in all, each with a one-line reason to look.
+
 Then pick a theme from the tab bar; each theme's subtabs describe the chosen place:
 
 | Theme | Subtabs | What you learn |
@@ -24,12 +36,12 @@ Then pick a theme from the tab bar; each theme's subtabs describe the chosen pla
 | **Land** | Overview · Profile · Rocks · Minerals | Elevation, slope, landform and bedrock; a slice through the land; the rock layers below (and a sliced, time-lapse rock section); mines and quarries |
 | **Water** | Overview · Nearby · Rain path · Watershed | The nearest rivers and lakes, springs and wells; where rain falling here flows; the land that drains to here |
 | **Climate** | Now · Climate · Change | Current weather and 7-day forecast with live rain radar; the climate type and a monthly climograph; warming since 1950 |
-| **Plants** | Species · Life zones · At risk | What grows here, with photos; where each species lives by elevation; threatened plants |
-| **Animals** | Species · Life zones · At risk | The same for birds, mammals, reptiles, insects and more |
+| **Plants** | Species · Life zones · At risk | What grows here, with photos and icons (conifer, palm, cactus, orchid, lily, vine, fern, moss, mushroom, kelp…); where each species lives by elevation; threatened plants |
+| **Animals** | Species · Life zones · At risk | The same for birds, mammals, reptiles, insects and more, each with its own icon on the card and the map (62 in all, from owls and penguins to seals, jellyfish and coral) |
 | **Built** | Overview · Transport · Energy · Water | Roads, rail, power, pipelines, dams and airports, with totals; Earth at night |
 | **Countries** | Overview · People · Economy · Environment | Flag, capital, languages and neighbours; population, income, forests and emissions over time |
 
-Keyboard: `1`–`8` switch themes, `Esc` cancels a line or closes a chart.
+Keyboard: `1`–`8` switch themes, `/` searches, `Esc` cancels a line or closes a chart.
 
 ## Run it
 
@@ -56,7 +68,8 @@ These keys end up in the public page, so restrict them to your site's domain in 
 
 - **Elevation:** [Terrain Tiles on AWS](https://registry.opendata.aws/terrain-tiles/) (Mapzen/Tilezen),
   which blends SRTM, USGS 3DEP, ETOPO1 bathymetry, GMTED and others. About 30 m resolution in most places.
-- **Imagery:** Esri World Imagery (check Esri's terms before commercial use), with Natural Earth II as an offline fallback.
+- **Imagery:** Esri World Imagery (check Esri's terms before commercial use). If its tiles keep failing, Atlas
+  switches in [Sentinel-2 cloudless](https://s2maps.eu) by EOX; Natural Earth II is the offline fallback.
 - **Geology:** [Macrostrat](https://macrostrat.org) stratigraphic columns, bedrock maps and map tiles (CC-BY 4.0).
 - **Life:** [iNaturalist](https://www.inaturalist.org) research-grade observations; [GBIF](https://www.gbif.org) occurrence-density tiles.
 - **Mines and infrastructure:** OpenStreetMap via the [Overpass API](https://overpass-api.de) (ODbL).
@@ -67,7 +80,8 @@ These keys end up in the public page, so restrict them to your site's domain in 
   [Wikidata](https://www.wikidata.org) and Wikipedia (notable places and summaries), OpenStreetMap (rivers).
 - **Aurora and geomagnetic activity:** NOAA Space Weather Prediction Center (OVATION, Kp). **Earthquakes:** USGS.
   **Plate boundaries:** Bird (2003) PB2002 via [fraxen/tectonicplates](https://github.com/fraxen/tectonicplates).
-- **Search and place names:** OpenStreetMap Nominatim (light, interactive use only, per its usage policy).
+- **Search and place names:** [Photon](https://photon.komoot.io) (by komoot) and OpenStreetMap Nominatim
+  (light, interactive use only, per its usage policy).
 
 ## How it works
 
@@ -77,7 +91,7 @@ src/
   app.ts               place selection, place card, theme tab bar and subtabs, hosting tools inside subtabs
   themes/              one file per theme (explore, land, water, climate, life, built, countries)
   explore/             view tracking, label feeds and the "worth knowing" insights engine
-  data/                Web Mercator math; elevation tiles; Macrostrat, iNaturalist and Overpass clients
+  data/                Web Mercator math; elevation tiles; API clients; location parsing (links, DMS, plus codes)
   analysis/            pure, tested algorithms
     profile.ts         profile statistics, incision depth
     geosection.ts      layer-cake subsurface model fitted to mapped outcrops (elevation + apparent dip)
@@ -85,17 +99,23 @@ src/
     infrastructure.ts  infrastructure categories, lengths, plant capacity
     climate.ts         monthly normals, Köppen–Geiger climate type, warming trend
     insights.ts        magnetic latitude and aurora zones, daylight and sun position, distance to plate boundaries
-    placeKinds.ts      sorts Wikidata places into kinds (landmark, sport, water, park…)
+    placeKinds.ts      sorts Wikidata places into kinds (landmark, sport, bridge, volcano, museum…) and categories
     hydrology.ts       Priority-Flood+ε depression filling, D8 routing, flow accumulation, watersheds
     water.ts           multi-window flow tracing and adaptive watershed delineation
     hydrology.worker   runs the flow model off the main thread
   globe/               Cesium viewer, keyless terrain provider, analytical imagery layers, drawing helpers
   tools/               the analyses the themes host (profile, rock section, rain path, species, …)
-  ui/                  chart, search, layers panel, DOM helpers
+  content/sites.ts     curated places to start, per theme
+  ui/                  chart, search, layers panel, taxon icons, label glyphs, DOM helpers
 legacy/                the original single-file prototype
 ```
 
 Every analysis reads the same elevation tiles that draw the 3D terrain, so what you see is what is measured.
+
+Rendering is built to recover on its own. Tile and API requests retry with backoff. A terrain tile that
+can't be fetched is filled from a coarser one rather than left as a hole. Failing satellite tiles bring in
+backup imagery. Cesium's render loop is restarted after an error, and a lost WebGL context reloads the
+page at the same view.
 
 ## Honest limits
 
