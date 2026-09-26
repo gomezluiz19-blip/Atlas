@@ -635,3 +635,17 @@ input[type="range"] { accent-color: var(--accent); }
 .share-item:hover, .share-item:focus-visible { background: var(--fill); outline: none; }
 .sheet { position: absolute; }
 .sheet-head .icon-btn + .icon-btn { margin-left: -2px; }
+
+/* ---------- Taxon icons ---------- */
+.icon-chip { display: inline-flex; align-items: center; gap: 5px; }
+.chip-icon { display: grid; }
+.chip-icon svg { width: 16px; height: 16px; }
+.species-pic { position: relative; flex-shrink: 0; }
+.species-noimg { display: grid; place-items: center; color: var(--theme); }
+.species-noimg svg { width: 28px; height: 28px; }
+.species-badge { position: absolute; right: -4px; bottom: -4px; display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; color: #fff; box-shadow: 0 0 0 2px var(--material-strong); }
+.species-badge svg { width: 14px; height: 14px; stroke-width: 2; }
+.breakdown { display: flex; flex-wrap: wrap; gap: 6px; }
+.breakdown-item { display: inline-flex; align-items: center; gap: 4px; padding: 5px 9px 5px 7px; border-radius: 10px; background: var(--material-strong); color: var(--label); font-weight: 600; font-size: 13px; font-variant-numeric: tabular-nums; }
+.breakdown-item > span:first-child { display: grid; color: var(--theme); }
+.breakdown-item svg { width: 18px; height: 18px; }

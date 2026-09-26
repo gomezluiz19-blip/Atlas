@@ -6,7 +6,8 @@ import type { App, GeoPoint, Tool } from "../app";
 import { elevation } from "../data/elevation";
 import { mapLimit } from "../data/http";
 import { observations, speciesCounts, taxonPageUrl, type SpeciesCount, type Taxon, type TaxonGroup } from "../data/inaturalist";
-import { layer, marker } from "../globe/draw";
+import { iconMarker, layer } from "../globe/draw";
+import { GROUP_ICON, TAXON_ICONS, taxonIcon, taxonMarker, type TaxonIconKey } from "../ui/taxonIcons";
 import { h } from "../ui/dom";
 import { icons } from "../ui/icons";
 import { rangeChart } from "../ui/rangeChart";
@@ -94,7 +95,8 @@ export class LifeTool implements Tool {
       "div",
       { class: "chips", role: "radiogroup", "aria-label": "Group" },
       ...s.groups.map((g) =>
-        h("button", { class: "chip", role: "radio", "aria-checked": String(g === s.group), onclick: () => { s.group = g; void this.load(); } }, g.label),
+        h("button", { class: "chip icon-chip", role: "radio", "aria-checked": String(g === s.group), onclick: () => { s.group = g; void this.load(); } },
+          GROUP_ICON[g.id] ? h("span", { class: "chip-icon", html: TAXON_ICONS[GROUP_ICON[g.id]] }) : "", g.label),
       ),
     );
     return h("div", { class: "survey-head" }, groups, radiusChips(s.radius, (r) => { s.radius = r; void this.load(); }));
@@ -109,6 +111,7 @@ export class LifeTool implements Tool {
         h("span", { class: "hero-value" }, total.toLocaleString()),
         h("span", { class: "hero-label" }, total === 1 ? `kind of ${s.noun} recorded` : `kinds of ${s.noun} recorded within ${s.radius} km`)),
       total ? "" : h("p", { class: "muted" }, "No sightings recorded here yet. Try a larger radius."),
+      breakdown(species),
       h("div", { class: "species-grid" }, ...species.map((sp) => this.card(sp))),
       h("p", { class: "fineprint" }, "From sightings people have shared on iNaturalist, so busy trails are better covered than remote places. Photos © their observers."),
     );
@@ -158,10 +161,13 @@ export class LifeTool implements Tool {
     const t = s.taxon;
     const photo = t.default_photo?.square_url;
     const status = t.conservation_status?.status_name;
+    const icon = taxonIcon(t);
     return h(
       "button",
       { class: "species", onclick: () => void this.showSpecies(t), title: t.default_photo?.attribution ?? "" },
-      photo ? h("img", { src: photo, alt: "", loading: "lazy", width: 56, height: 56 }) : h("span", { class: "species-noimg" }),
+      h("span", { class: "species-pic" },
+        photo ? h("img", { src: photo, alt: "", loading: "lazy", width: 56, height: 56 }) : h("span", { class: "species-noimg", html: TAXON_ICONS[icon] }),
+        photo ? h("span", { class: "species-badge", style: `background:${this.state.color}`, html: TAXON_ICONS[icon] }) : ""),
       h("span", { class: "species-text" },
         h("span", { class: "species-name" }, nameOf(t)),
         h("span", { class: "species-sci" }, t.name),
@@ -178,7 +184,8 @@ export class LifeTool implements Tool {
     try {
       const obs = await observations({ lon: c.lon, lat: c.lat, radiusKm: this.state.radius }, t.id);
       if (job !== this.job) return;
-      for (const o of obs) marker(this.obsDs, o.lon, o.lat, { color: this.state.color, size: 8 });
+      const pin = taxonMarker(taxonIcon(t), this.state.color);
+      for (const o of obs) iconMarker(this.obsDs, o.lon, o.lat, pin, 26);
       const heights = obs.length ? await elevation.sample(obs.map((o) => [o.lon, o.lat]), 12) : new Float32Array();
       if (job !== this.job) return;
       const sorted = Array.from(heights).sort((a, b) => a - b);
@@ -207,4 +214,17 @@ function nameOf(t: Taxon): string {
 
 function cap(s: string): string {
   return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+/** A row of group icons with counts ("12 birds, 4 raptors…") summarising the species list. */
+function breakdown(species: SpeciesCount[]): HTMLElement | "" {
+  const counts = new Map<TaxonIconKey, number>();
+  for (const sp of species) {
+    const k = taxonIcon(sp.taxon);
+    counts.set(k, (counts.get(k) ?? 0) + 1);
+  }
+  if (counts.size < 2) return "";
+  const top = [...counts].sort((a, b) => b[1] - a[1]).slice(0, 8);
+  return h("div", { class: "breakdown", "aria-label": "Kinds of species recorded" },
+    ...top.map(([k, n]) => h("span", { class: "breakdown-item", title: `${n} ${k} species` }, h("span", { html: TAXON_ICONS[k] }), h("span", {}, String(n)))));
 }

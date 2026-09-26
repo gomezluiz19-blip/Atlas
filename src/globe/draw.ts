@@ -67,6 +67,21 @@ export function marker(ds: CustomDataSource, lon: number, lat: number, opts: { c
   });
 }
 
+/** A clamped billboard marker from an image (e.g. a taxon icon marker). */
+export function iconMarker(ds: CustomDataSource, lon: number, lat: number, image: string, size = 30): Entity {
+  return ds.entities.add({
+    position: Cartesian3.fromDegrees(lon, lat),
+    billboard: {
+      image,
+      width: size,
+      height: size,
+      heightReference: HeightReference.CLAMP_TO_GROUND,
+      disableDepthTestDistance: Number.POSITIVE_INFINITY,
+      verticalOrigin: VerticalOrigin.CENTER,
+    },
+  });
+}
+
 /** Thins a long coordinate list to at most `max` points (keeping both ends). */
 export function thin<T>(items: T[], max: number): T[] {
   if (items.length <= max) return items;
