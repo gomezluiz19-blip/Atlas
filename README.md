@@ -29,6 +29,18 @@ themes, and clear when you pick a new place. A theme's own suggested layers show
 Every view ends with **Connected** links: the next questions people ask about that place in other themes
 ("How water moves through the city here", "Power for the mines"), and layers you can add without leaving.
 
+**My Places.** The house button (top right) keeps the places you care about: home, a family hotel, a farm.
+Save a spot you tapped or searched for, or start from where you are. Each place gets a dashboard:
+a **3D view** of the buildings around it (OpenStreetMap footprints extruded to their mapped height or
+number of floors, yours in orange, with an orbit), **energy** (solar panels, battery, generator: expected
+solar output month by month from five years of sunshine at that exact spot, share of your use covered,
+hours of battery backup), **water** (source, tank, daily use: rain the roof could collect, using the
+building's own footprint, and how long the tank lasts, with links to where rain from there flows and the
+pipes and drains around it), and **cameras & security** (cameras placed with two taps, their field of view
+drawn on the ground, optional links to live feeds, plus gates, alarms, lights and sensors). Everything is
+stored only in the browser, with export and import. The task robot knows your places too: *"weather at my
+hotel"*. When you open Atlas it flies to your place.
+
 **Ask it to do things.** The search box also takes requests: *"Where does rain go in downtown Chicago,
 and show the storm drains and railways"*, *"Lithium mines in Chile"*, *"Earthquakes and tectonic plates in
 Japan"*. A small task robot (rules, not a language model; it runs in the browser) works out the place, the views
@@ -120,6 +132,7 @@ These keys end up in the public page, so restrict them to your site's domain in 
 - **Aurora and geomagnetic activity:** NOAA Space Weather Prediction Center (OVATION, Kp). **Earthquakes:** USGS.
   **Plate boundaries:** Bird (2003) PB2002 via [fraxen/tectonicplates](https://github.com/fraxen/tectonicplates).
 - **Street and place names over imagery:** Esri World Transportation and World Boundaries and Places reference layers.
+- **My Places:** building footprints and heights from OpenStreetMap; sunshine and rainfall from ERA5 via Open-Meteo.
 - **Search and place names:** [Photon](https://photon.komoot.io) (by komoot) and OpenStreetMap Nominatim
   (light, interactive use only, per its usage policy).
 
@@ -130,6 +143,7 @@ src/
   main.ts              wiring: globe, themes, search, map-style and about popovers, Connected links
   canvas.ts            the shared canvas: what's on the map, across themes and places
   robot/               the task robot: plan.ts turns a request into steps, run.ts carries them out
+  myplaces/            My Places: store (saved in the browser), scene (3D buildings, devices), estimates (solar, rain), panel
   app.ts               place selection, place card, theme tab bar and subtabs, hosting tools inside subtabs
   themes/              one file per theme (explore, land, minerals, water, climate, life, built, countries)
   explore/             view tracking, label feeds and the "worth knowing" insights engine

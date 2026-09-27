@@ -466,6 +466,19 @@ export class App {
     return Object.create(this, { panel: { value: entry.panel }, drawer: { value: drawer } }) as App;
   }
 
+  /** Waits for the next tap on the globe (e.g. to place a camera), with a prompt. */
+  pickOnce(prompt: string, cb: (p: GeoPoint) => void) {
+    let done = false;
+    this.setInteraction({
+      id: "pick-once", label: "", icon: "", shortcut: "", hint: prompt,
+      activate() {}, deactivate() {},
+      wantsClicks: () => !done,
+      onClick: (p) => { done = true; cb(p); },
+      onCancel: () => { done = true; },
+    });
+    this.toast(prompt, 8000);
+  }
+
   /** Re-runs a hosted tool's line from the current place (after a finished line). */
   restartLine(tool: Tool) {
     if (!this.place) return;

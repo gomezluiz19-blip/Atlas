@@ -822,3 +822,51 @@ button.commodity-chip:hover { background: var(--fill-strong); }
 @media (max-width: 720px) {
   .robot-card { left: var(--gutter); right: var(--gutter); width: auto; top: calc(var(--gutter) + 96px); }
 }
+
+/* My Places */
+.myplaces { width: 380px; max-height: calc(100vh - 150px); overflow-y: auto; gap: 10px; }
+.mp-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.mp-head h2 { margin: 0; font-size: 20px; }
+.mp-head .link-btn { padding: 0; }
+.mp-intro { color: var(--secondary); }
+.mp-kind { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 10px; background: #ff9f0a; color: #fff; flex: none; }
+.mp-kind svg { width: 18px; height: 18px; }
+.mp-actions { display: flex; flex-direction: column; gap: 6px; }
+.mp-actions .action:disabled { opacity: 0.6; cursor: default; }
+.mp-foot { display: flex; align-items: center; gap: 12px; font-size: 12.5px; color: var(--secondary); }
+.mp-foot span { flex: 1; }
+.mp-foot .link-btn { padding: 0; }
+.mp-title { margin: 4px 0 0; font-size: 18px; }
+.mp-field { display: flex; flex-direction: column; gap: 4px; font-size: 12.5px; color: var(--secondary); font-weight: 600; }
+.mp-field input, .mp-field select, .mp-sub select { font: inherit; font-size: 15px; font-weight: 500; color: var(--label); padding: 8px 10px; border-radius: 10px; border: 0; background: var(--fill); width: 100%; min-width: 0; }
+.mp-input { display: flex; align-items: center; gap: 6px; }
+.mp-unit { font-weight: 500; flex: none; }
+.mp-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+.mp-name { font: inherit; font-size: 22px; font-weight: 700; border: 0; background: transparent; color: var(--label); padding: 2px 0; width: 100%; border-bottom: 1.5px solid transparent; }
+.mp-name:focus { outline: none; border-bottom-color: var(--accent); }
+.mp-sub { display: flex; flex-direction: column; gap: 6px; }
+.mp-sub select { width: auto; align-self: flex-start; padding: 4px 8px; font-size: 13px; }
+.mp-buttons { display: flex; flex-wrap: wrap; gap: 6px; }
+.pill-btn, .primary-btn { border: 0; border-radius: 999px; padding: 8px 14px; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
+.pill-btn { background: var(--fill); color: var(--label); }
+.pill-btn:hover { background: var(--fill-strong); }
+.primary-btn { background: var(--accent); color: #fff; align-self: flex-start; padding: 10px 22px; }
+.mp-building { margin: 0; }
+.myplaces .group { margin-top: 6px; }
+.mp-results { display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px; }
+.mp-stat { display: flex; flex-direction: column; }
+.mp-stat strong { font-size: 20px; }
+.mp-stat span { font-size: 13px; color: var(--secondary); }
+.month-bars { display: grid; grid-template-columns: repeat(12, 1fr); gap: 3px; height: 72px; align-items: end; padding: 4px 0 0; }
+.month-bar { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; gap: 2px; }
+.month-fill { width: 100%; border-radius: 3px 3px 1px 1px; min-height: 2px; }
+.month-label { font-size: 10px; color: var(--secondary); }
+.mp-devices { margin-bottom: 8px; }
+.mp-label { font: inherit; font-size: 14.5px; font-weight: 600; border: 0; background: transparent; color: var(--label); padding: 0; width: 100%; }
+.mp-url { display: block; margin-top: 4px; font: inherit; font-size: 12.5px; padding: 4px 8px; border-radius: 8px; border: 0; background: var(--fill); color: var(--label); width: 100%; }
+.mp-links { margin-top: 8px; }
+.mp-notes { width: 100%; font: inherit; font-size: 14px; padding: 8px 10px; border-radius: 10px; border: 0; background: var(--fill); color: var(--label); resize: vertical; }
+.link-btn.danger { color: #ff3b30; margin-top: 6px; }
+@media (max-width: 720px) {
+  .myplaces { width: auto; left: var(--gutter); right: var(--gutter); max-height: calc(100vh - 220px); }
+}

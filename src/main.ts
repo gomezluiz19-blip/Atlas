@@ -23,6 +23,9 @@ import { icons } from "./ui/icons";
 import { createLayersPanel } from "./ui/layers";
 import { createSearch, flyToPlace, geocode, type Command, type Place as SearchPlace, type SearchResult } from "./ui/search";
 import { createRobot } from "./ui/robotCard";
+import { PlaceStore } from "./myplaces/store";
+import { PlaceScene } from "./myplaces/scene";
+import { createMyPlaces } from "./myplaces/panel";
 import { plan } from "./robot/plan";
 import { describe } from "./robot/run";
 import { siteBrowser } from "./ui/sites";
@@ -93,9 +96,18 @@ const siteMatches = (q: string): SearchResult[] => {
     .map((s) => ({ name: s.name, detail: `${s.where} · ${s.why}`, lon: s.lon, lat: s.lat, radius: s.radius, source: "local" as const, icon: "target" as const }));
 };
 
+// My Places: saved places (home, a family hotel…) with 3D, energy, water and security.
+const myStore = new PlaceStore();
+const myScene = new PlaceScene(globe.viewer);
+const myPlaces = createMyPlaces(app, myStore, myScene);
+$("layers-btn").before(myPlaces.button);
+$("ui").append(myPlaces.panel);
+
 // The task robot: plain-language requests typed into the search box.
 const robot = createRobot(app, {
   async find(text) {
+    const mine = myStore.find(text);
+    if (mine) return { name: mine.name, detail: mine.address ?? "", lon: mine.lon, lat: mine.lat, radius: 150 };
     const local = siteMatches(text)[0] ?? searchLocal(feeds, text).find((m) => m.name.toLowerCase() === text.toLowerCase());
     if (local) return { name: local.name, detail: local.detail, lon: local.lon, lat: local.lat, radius: "radius" in local ? local.radius : 3000 };
     const [r] = await geocode(text, feeds.view.zoom > 4 ? { lat: feeds.view.lat, lon: feeds.view.lon } : null);
@@ -213,7 +225,7 @@ globe.onApply = () => {
     else if (!on && app.canvas.has(key)) app.canvas.drop(key);
   }
 };
-layersBtn.addEventListener("click", () => toggleLayers());
+layersBtn.addEventListener("click", () => { myPlaces.close(); toggleLayers(); });
 globe.viewer.scene.canvas.addEventListener("pointerdown", () => toggleLayers(false));
 
 // About / data sources.
@@ -263,7 +275,7 @@ const syncHash = () => {
     }
   }, 400);
 };
-app.onPlace = syncHash;
+app.onPlace = () => { syncHash(); myPlaces.refresh(); };
 app.onTheme = syncHash;
 globe.viewer.camera.moveEnd.addEventListener(syncHash);
 
@@ -280,6 +292,16 @@ if (shared.camera) {
 }
 if (shared.theme) app.setTheme(shared.theme);
 if (shared.place) app.select({ lon: shared.place.lon, lat: shared.place.lat, height: 0 });
+else if (!shared.camera && myStore.all().length) {
+  // Start where people are: fly in to their own place.
+  const saved = myStore.all();
+  const home = saved.find((p) => p.kind === "home") ?? saved[0];
+  setTimeout(() => {
+    void flyToPlace(globe, { name: home.name, lon: home.lon, lat: home.lat, radius: 400 });
+    app.select({ lon: home.lon, lat: home.lat, height: 0 }, { title: home.name, context: home.address ?? "My place" });
+    app.toast(`Welcome back to ${home.name}. My Places (the house button) has its 3D view and dashboard.`, 6000);
+  }, 1200);
+}
 
 // Handy for debugging from the browser console during development.
 if (import.meta.env.DEV) {
