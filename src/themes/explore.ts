@@ -230,7 +230,9 @@ export function exploreTheme(app: App, feeds: Feeds, overlays: Overlays, openSit
     id: "here",
     label: "Here",
     render({ place, body }) {
-      if (place.feature) featureCard(place, body);
+      const f = place.feature as { type?: string; source?: string } | undefined;
+      // Other themes can attach their own features (e.g. a mine); only show the ones Explore knows.
+      if (f && (f.type === "quake" || f.source)) featureCard(place, body);
       else placeCard(place, body);
     },
   };

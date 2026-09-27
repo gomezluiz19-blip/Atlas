@@ -6,6 +6,7 @@ import { recentQuakes } from "../data/quakes";
 import { GBIF_DENSITY_TILES } from "../data/inaturalist";
 import { latestRadarTiles } from "../data/radar";
 import { plates } from "../data/worldData";
+import { cullBehindHorizon } from "./draw";
 import { makePickable } from "./pickables";
 import { vectorLayer } from "./vectorLayer";
 
@@ -115,6 +116,7 @@ export class Overlays {
       }
       this.quakes = ds;
       await this.viewer.dataSources.add(ds);
+      cullBehindHorizon(this.viewer, ds);
     }
     if (this.quakes) this.quakes.show = this.isOn("quakes");
   }

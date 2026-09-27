@@ -1,4 +1,5 @@
-// Land: the ground itself: shape, slope, rocks and what's mined from them.
+// Land: the ground itself: shape, slope and the rocks beneath. (Minerals and
+// mining have their own theme.)
 import type { App, Subtab, Theme } from "../app";
 import { toolSubtab } from "../app";
 import { elevation } from "../data/elevation";
@@ -6,7 +7,6 @@ import { fetchMapUnit } from "../data/macrostrat";
 import { haversine, lonLatToPixel, metersPerPixel, pixelToLonLat } from "../data/mercator";
 import { CrossSectionTool } from "../tools/crossSection";
 import { RockSectionTool } from "../tools/geology";
-import { MinesTool } from "../tools/mines";
 import { RockColumnTool } from "../tools/rockColumn";
 import { formatDistance, formatElevation, h } from "../ui/dom";
 import { icons } from "../ui/icons";
@@ -66,7 +66,7 @@ const overview: Subtab = {
         section("Explore further",
           action("Slice through the land", () => app.setSubtab("profile"), icons.section),
           action("See the rock layers below", () => app.setSubtab("rocks"), icons.strata),
-          action("Find mines and quarries", () => app.setSubtab("minerals"), icons.pick)),
+          action("Minerals and mines here", () => app.setTheme("minerals", "here"), icons.gem)),
         note("Elevation from open terrain data (about 30 m detail in most places). Bedrock from Macrostrat."),
       ];
     });
@@ -77,10 +77,8 @@ export function landTheme(app: App): Theme {
   const profile = new CrossSectionTool();
   const column = new RockColumnTool();
   const slicer = new RockSectionTool();
-  const mines = new MinesTool();
   app.home("section", "land", "profile");
   app.home("rocksection", "land", "rocks");
-  app.home("mines", "land", "minerals");
 
   const rocks: Subtab = {
     id: "rocks",
@@ -123,7 +121,6 @@ export function landTheme(app: App): Theme {
       overview,
       toolSubtab("profile", "Profile", profile, "line"),
       rocks,
-      toolSubtab("minerals", "Minerals", mines, "point"),
     ],
   };
 }

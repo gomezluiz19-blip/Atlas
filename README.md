@@ -3,7 +3,7 @@
 **Tap anywhere on Earth and learn about it.**
 
 Atlas aims to do for GIS what Canva did for graphic design: make questions about any place on Earth
-answerable in a tap, for anyone, while staying honest about the data. It starts simple (one card, seven
+answerable in a tap, for anyone, while staying honest about the data. It starts simple (one card, eight
 themes) and goes deep when you want it to: rock sections, watersheds, life zones, climate trends.
 
 ## How it works for you
@@ -33,15 +33,26 @@ Then pick a theme from the tab bar; each theme's subtabs describe the chosen pla
 
 | Theme | Subtabs | What you learn |
 | --- | --- | --- |
-| **Land** | Overview · Profile · Rocks · Minerals | Elevation, slope, landform and bedrock; a slice through the land; the rock layers below (and a sliced, time-lapse rock section); mines and quarries |
+| **Land** | Overview · Profile · Rocks | Elevation, slope, landform and bedrock; a slice through the land; the rock layers below (and a sliced, time-lapse rock section) |
+| **Minerals** | Here · Mines nearby · Commodities | The bedrock here, the minerals in it and what rocks like it can hold; the nearest landmark mines; where the country ranks in world mining; every mapped mine and quarry nearby; 20 commodities (copper, lithium, cobalt, rare earths, gold, uranium, potash…) with uses, ores, geology and top producers |
 | **Water** | Overview · Nearby · Rain path · Watershed | The nearest rivers and lakes, springs and wells; where rain falling here flows; the land that drains to here |
 | **Climate** | Now · Climate · Change | Current weather and 7-day forecast with live rain radar; the climate type and a monthly climograph; warming since 1950 |
 | **Plants** | Species · Life zones · At risk | What grows here, with photos and icons (conifer, palm, cactus, orchid, lily, vine, fern, moss, mushroom, kelp…); where each species lives by elevation; threatened plants |
 | **Animals** | Species · Life zones · At risk | The same for birds, mammals, reptiles, insects and more, each with its own icon on the card and the map (62 in all, from owls and penguins to seals, jellyfish and coral) |
-| **Built** | Overview · Transport · Energy · Water | Roads, rail, power, pipelines, dams and airports, with totals; Earth at night |
+| **Built** | Overview · Transport · Energy · Internet · Water | How a place connects: nearest airport, seaport, main railway, highway and shipping lane; power plants and the power mix around it and nationally; undersea cable landings; and everything OpenStreetMap maps nearby |
 | **Countries** | Overview · People · Economy · Environment | Flag, capital, languages and neighbours; population, income, forests and emissions over time |
 
-Keyboard: `1`–`8` switch themes, `/` searches, `Esc` cancels a line or closes a chart.
+**Minerals, worldwide.** With no place chosen, Minerals is a commodity explorer: pick copper or lithium
+to see what it's for, which minerals it's mined from, how it forms, who produces it, and its landmark mines
+on the globe (about 60, from Escondida and Grasberg to Kiruna, Cigar Lake and Jwaneng). There's a guide to
+30-odd common minerals, and a switch for the bedrock geology map.
+
+**Infrastructure, worldwide.** Built opens on the world's networks, each a switch: railways (with every
+track from OpenRailwayMap when zoomed in), highways and ferries, shipping lanes, a thousand ports, major
+airports, 35,000 power plants coloured by fuel and sized by capacity, and the undersea cables that carry
+the internet. Tap a dot for the plant, port or airport.
+
+Keyboard: `1`–`9` switch themes, `/` searches, `Esc` cancels a line or closes a chart.
 
 ## Run it
 
@@ -72,7 +83,16 @@ These keys end up in the public page, so restrict them to your site's domain in 
   switches in [Sentinel-2 cloudless](https://s2maps.eu) by EOX; Natural Earth II is the offline fallback.
 - **Geology:** [Macrostrat](https://macrostrat.org) stratigraphic columns, bedrock maps and map tiles (CC-BY 4.0).
 - **Life:** [iNaturalist](https://www.inaturalist.org) research-grade observations; [GBIF](https://www.gbif.org) occurrence-density tiles.
-- **Mines and infrastructure:** OpenStreetMap via the [Overpass API](https://overpass-api.de) (ODbL).
+- **Mines and infrastructure near you:** OpenStreetMap via the [Overpass API](https://overpass-api.de) (ODbL).
+- **World networks:** Natural Earth railways, roads, ports and airports; shipping lanes from
+  [Benden (2022)](https://github.com/newzealandpaul/Shipping-Lanes) (CC BY 4.0); the
+  [WRI Global Power Plant Database](https://github.com/wri/global-power-plant-database) (CC BY 4.0);
+  [OpenRailwayMap](https://www.openrailwaymap.org) detail tiles (CC-BY-SA); undersea cables from
+  [TeleGeography's Submarine Cable Map](https://www.submarinecablemap.com) (CC BY-NC-SA 3.0, loaded live).
+  Rebuilt with `scripts/build-infra.mjs`.
+- **Commodities:** production shares from USGS Mineral Commodity Summaries 2024 (uranium: World Nuclear
+  Association; coal: Energy Institute; diamonds: Kimberley Process), rounded; landmark mines and the
+  mineral guide hand-compiled in `src/content/minerals.ts`.
 - **Weather and climate:** [Open-Meteo](https://open-meteo.com) forecasts and ERA5 history (CC-BY 4.0); [RainViewer](https://www.rainviewer.com) radar.
 - **Countries:** Natural Earth borders via [world-atlas](https://github.com/topojson/world-atlas), [REST Countries](https://restcountries.com), [World Bank](https://data.worldbank.org) indicators.
 - **Earth at night:** NASA Black Marble via GIBS.
@@ -89,7 +109,7 @@ These keys end up in the public page, so restrict them to your site's domain in 
 src/
   main.ts              wiring: globe, themes, search, map-style and about popovers
   app.ts               place selection, place card, theme tab bar and subtabs, hosting tools inside subtabs
-  themes/              one file per theme (explore, land, water, climate, life, built, countries)
+  themes/              one file per theme (explore, land, minerals, water, climate, life, built, countries)
   explore/             view tracking, label feeds and the "worth knowing" insights engine
   data/                Web Mercator math; elevation tiles; API clients; location parsing (links, DMS, plus codes)
   analysis/            pure, tested algorithms
@@ -103,9 +123,10 @@ src/
     hydrology.ts       Priority-Flood+ε depression filling, D8 routing, flow accumulation, watersheds
     water.ts           multi-window flow tracing and adaptive watershed delineation
     hydrology.worker   runs the flow model off the main thread
-  globe/               Cesium viewer, keyless terrain provider, analytical imagery layers, drawing helpers
+  globe/               Cesium viewer, keyless terrain provider, analytical and network tile layers, drawing helpers
   tools/               the analyses the themes host (profile, rock section, rain path, species, …)
   content/sites.ts     curated places to start, per theme
+  content/minerals.ts  commodities, landmark mines, mineral guide, rock → mineral links
   ui/                  chart, search, layers panel, taxon icons, label glyphs, DOM helpers
 legacy/                the original single-file prototype
 ```

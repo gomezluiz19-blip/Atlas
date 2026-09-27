@@ -16,7 +16,7 @@ export function stats(...items: ([string, string] | [string, string, string] | n
   return h("dl", { class: "stat-list" },
     ...items.filter(Boolean).map((it) => {
       const [label, value, hint] = it as [string, string, string?];
-      return h("div", { class: "stat-row", title: hint },
+      return h("div", { class: value.length > 44 ? "stat-row long" : "stat-row", title: hint },
         h("dt", {}, label),
         h("dd", {}, value));
     }));

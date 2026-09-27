@@ -16,6 +16,7 @@ export const icons = {
   column: svg('<rect x="8" y="3" width="8" height="18" rx="1"/><path d="M8 8h8M8 12h8M8 15h8"/><path d="M4 21h16"/>'),
   cube: svg('<path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M12 12l8-4.5M12 12v9M12 12L4 7.5"/>'),
   leaf: svg('<path d="M5 19c0-8 5-14 15-15-1 10-7 15-15 15z"/><path d="M5 19c3-4 6-7 10-10"/>'),
+  gem: svg('<path d="M6.5 3.5h11l4 5.5L12 20.5 2.5 9z"/><path d="M2.5 9h19M9 3.5 12 9l3-5.5M12 20.5 8.5 9M12 20.5 15.5 9"/>'),
   pick: svg('<path d="M4 20l9-9"/><path d="M10 5c4-1 7 0 9 2-3 0-6 1-8 3"/><path d="M19 14c1-4 0-7-2-9 0 3-1 6-3 8"/>'),
   pylon: svg('<path d="M9 21l3-18 3 18"/><path d="M7 8h10M8 13h8M5 8l2 3M19 8l-2 3"/><path d="M10 17h4"/>'),
   mountain: svg('<path d="M2.5 19.5 9 8.5l3.5 5.5 2.5-3.5 6.5 9z"/><path d="M7.4 11.2 9 12.4l1.6-1.3"/>'),

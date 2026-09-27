@@ -717,3 +717,37 @@ input[type="range"] { accent-color: var(--accent); }
 .feature-title { font-size: 19px; font-weight: 700; margin: 2px 0 6px; display: flex; gap: 8px; align-items: center; }
 .feature-card .stat-list { background: transparent; padding: 0; }
 .net-row .switch { flex: none; }
+
+/* Minerals */
+.commodity-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.commodity-tile { display: flex; align-items: center; gap: 7px; padding: 7px 8px; border-radius: 12px; border: 0; background: var(--material-strong); cursor: pointer; text-align: left; min-width: 0; }
+.commodity-tile:hover { background: var(--fill); }
+.commodity-tile[aria-checked="true"] { box-shadow: 0 0 0 2px var(--c); background: color-mix(in srgb, var(--c) 14%, var(--material-strong)); }
+.commodity-name { font-size: 12.5px; font-weight: 600; line-height: 1.15; overflow: hidden; text-overflow: ellipsis; }
+.commodity-tag { display: inline-grid; place-items: center; min-width: 26px; height: 26px; padding: 0 4px; border-radius: 13px; font-size: 11px; font-weight: 800; flex: none; letter-spacing: -0.02em; }
+.commodity-chip { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px 3px 3px; border-radius: 999px; background: var(--fill); border: 0; font-size: 13px; font-weight: 600; color: var(--label); }
+button.commodity-chip { cursor: pointer; }
+button.commodity-chip:hover { background: var(--fill-strong); }
+.commodity-chip .commodity-tag { min-width: 22px; height: 22px; font-size: 10px; }
+.commodity-card { margin: 12px 0 4px; padding: 12px 14px; border-radius: 14px; background: var(--material-strong); box-shadow: inset 4px 0 0 var(--c); }
+.commodity-card .stat-list { background: transparent; padding: 0; }
+.commodity-card .stat-row dd { text-align: right; max-width: 62%; }
+.commodity-card-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.commodity-what { margin: 8px 0 6px; font-size: 14.5px; line-height: 1.4; }
+.share-bars { display: flex; flex-direction: column; gap: 7px; padding: 10px 12px; border-radius: 12px; background: var(--material-strong); }
+.share-row { display: grid; grid-template-columns: 112px 1fr 38px; align-items: center; gap: 8px; font-size: 13px; }
+.share-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.share-track { height: 10px; border-radius: 5px; background: var(--fill); overflow: hidden; }
+.share-fill { display: block; height: 100%; border-radius: 5px; }
+.share-value { text-align: right; font-variant-numeric: tabular-nums; color: var(--secondary); }
+.mine-badge { width: 28px; height: 28px; flex: none; }
+.mineral-chips .chip[aria-checked="true"] { background: var(--theme); color: #fff; }
+.mineral-card { margin-top: 8px; padding: 10px 12px; border-radius: 12px; background: var(--material-strong); display: flex; flex-direction: column; gap: 5px; font-size: 13.5px; }
+.mineral-head { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; font-size: 15px; }
+.mineral-formula { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 12.5px; color: var(--secondary); }
+.mineral-facts { display: flex; flex-wrap: wrap; gap: 4px 12px; color: var(--secondary); font-size: 12.5px; }
+.mineral-ore { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--secondary); }
+.rock-hosts { margin: 0 0 8px; font-size: 14.5px; line-height: 1.4; }
+.rock-lith { margin-top: 6px; }
+.stat-row.long { flex-direction: column; align-items: flex-start; gap: 2px; }
+.stat-row.long dd { text-align: left; max-width: none; font-weight: 400; }

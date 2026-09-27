@@ -15,6 +15,7 @@ import { exploreTheme } from "./themes/explore";
 import { climateTheme } from "./themes/climate";
 import { countriesTheme } from "./themes/countries";
 import { landTheme } from "./themes/land";
+import { mineralsTheme } from "./themes/minerals";
 import { animalsTheme, plantsTheme } from "./themes/life";
 import { waterTheme } from "./themes/water";
 import { formatElevation, formatLonLat, h } from "./ui/dom";
@@ -23,6 +24,7 @@ import { createLayersPanel } from "./ui/layers";
 import { createSearch, flyToPlace, type Place as SearchPlace, type SearchResult } from "./ui/search";
 import { siteBrowser } from "./ui/sites";
 import { SITES, sitesFor, type Site } from "./content/sites";
+import { MINES } from "./content/minerals";
 
 const $ = (id: string) => document.getElementById(id)!;
 
@@ -67,6 +69,7 @@ const openSite = (s: Site) => {
 
 app.addTheme(exploreTheme(app, feeds, overlays, openSite));
 app.addTheme(landTheme(app));
+app.addTheme(mineralsTheme(app));
 app.addTheme(waterTheme(app));
 app.addTheme(climateTheme(overlays));
 app.addTheme(plantsTheme());
@@ -78,7 +81,8 @@ app.addTheme(countriesTheme());
 const siteMatches = (q: string): SearchResult[] => {
   const needle = q.trim().toLowerCase();
   if (needle.length < 2) return [];
-  return Object.values(SITES).flat().flatMap((c) => c.sites)
+  const mines = MINES.map((m) => ({ name: m.name, where: `${m.country} · mine`, why: m.note, lon: m.lon, lat: m.lat, radius: 4000 }));
+  return [...Object.values(SITES).flat().flatMap((c) => c.sites), ...mines]
     .filter((s) => s.name.toLowerCase().startsWith(needle) || s.name.toLowerCase().split(/[\s/–-]+/).some((w) => w.startsWith(needle)))
     .slice(0, 3)
     .map((s) => ({ name: s.name, detail: `${s.where} · ${s.why}`, lon: s.lon, lat: s.lat, radius: s.radius, source: "local" as const, icon: "target" as const }));
