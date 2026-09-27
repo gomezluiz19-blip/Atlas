@@ -16,6 +16,7 @@ export class WatershedTool implements Tool {
   icon = icons.watershed;
   shortcut = "w";
   hint = "Outline all the land that drains through a point";
+  keepsOnMap = true;
 
   private app!: App;
   private ds!: CustomDataSource;

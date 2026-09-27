@@ -149,11 +149,21 @@ export function mineralsTheme(app: App): Theme {
       });
       makePickable(e, { lon: mn.lon, lat: mn.lat, title: mn.name, context: `${commodity(mn.goods[0])!.name} mine · ${mn.country}`, feature: { type: "mine", mine: mn } satisfies MineFeature });
     }
+    const c = selected ? commodity(selected) : null;
+    // The canvas decides whether it's drawn (only in Minerals, unless pinned).
+    ds.show = false;
+    app.canvas.put({
+      id: "minerals:mines", label: c ? `${c.name} mines` : "Landmark mines", color: c?.color ?? "#c77c02", theme: "minerals", scope: "world", pinned: false,
+      show: (v) => { if (ds) ds.show = v; },
+      remove: () => { ds?.entities.removeAll(); },
+    });
   };
 
   const setCommodity = (id: string | null) => {
     selected = id;
     drawMines();
+    // Picking a commodity from another theme (e.g. a Connected link) should show its mines there too.
+    if (app.theme.id !== "minerals") app.canvas.setPinned("minerals:mines", true);
     if (!app.place) app.render();
   };
 
@@ -291,11 +301,7 @@ export function mineralsTheme(app: App): Theme {
     intro: "What the ground is made of, and what we mine from it.",
     subtabs: [here, toolSubtab("mines", "Mines nearby", minesTool, "point"), commodities],
     enter() {
-      drawMines();
-      ds!.show = true;
-    },
-    leave() {
-      if (ds) ds.show = false;
+      if (!app.canvas.has("minerals:mines")) drawMines();
     },
     renderEmpty,
   };

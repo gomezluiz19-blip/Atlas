@@ -28,6 +28,7 @@ export class MinesTool implements Tool {
   icon = icons.pick;
   shortcut = "m";
   hint = "Mines and quarries, what they produce and the rock around them";
+  keepsOnMap = true;
 
   private app!: App;
   private ds!: CustomDataSource;

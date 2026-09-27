@@ -138,7 +138,7 @@ export function climateTheme(overlays: Overlays): Theme {
     subtabs: [now, climate, change],
     enter() {
       // Radar is most useful here, so switch it on the first time (it stays under the user's control after).
-      if (firstVisit) void overlays.set("radar", true);
+      if (firstVisit) void overlays.set("radar", true, "climate");
       firstVisit = false;
     },
   };

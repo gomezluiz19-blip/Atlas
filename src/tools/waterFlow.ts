@@ -14,6 +14,7 @@ export class WaterFlowTool implements Tool {
   icon = icons.flow;
   shortcut = "f";
   hint = "Follow rainfall downhill from any point";
+  keepsOnMap = true;
 
   private app!: App;
   private ds!: CustomDataSource;

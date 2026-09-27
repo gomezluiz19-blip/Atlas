@@ -2,6 +2,7 @@
 // airports, power plants and undersea cables, each a toggleable map layer.
 import { ImageryLayer, UrlTemplateImageryProvider, type Viewer } from "cesium";
 import { airports, cables, fuelOf, landingPoints, ports, powerPlants, railways, roads, shippingLanes } from "../data/infra";
+import type { Canvas } from "../canvas";
 import { canvasLayer, drawDots, drawLines, type TileView } from "./networkLayer";
 
 export type NetworkId = "rail" | "roads" | "shipping" | "ports" | "airports" | "power" | "cables";
@@ -105,18 +106,19 @@ async function build(id: NetworkId): Promise<ImageryLayer[]> {
 }
 
 export class Networks {
-  private on = new Set<NetworkId>();
   private layers = new Map<NetworkId, ImageryLayer[]>();
   private pending = new Map<NetworkId, Promise<void>>();
-  private visible = false;
+  private shown = new Set<NetworkId>();
+  /** Suggested layers the user switched off (not suggested again). */
+  private declined = new Set<NetworkId>();
   private listeners = new Set<() => void>();
 
-  constructor(private viewer: Viewer, private toast: (m: string) => void, defaults: NetworkId[] = []) {
-    defaults.forEach((d) => this.on.add(d));
+  constructor(private viewer: Viewer, private toast: (m: string) => void, private canvas: Canvas) {
+    canvas.subscribe(() => this.emit());
   }
 
   isOn(id: NetworkId) {
-    return this.on.has(id);
+    return this.canvas.has(`net:${id}`);
   }
 
   isLoading(id: NetworkId) {
@@ -132,19 +134,36 @@ export class Networks {
     this.listeners.forEach((fn) => fn());
   }
 
-  /** Shows the switched-on networks (entering the theme) or hides them all. */
-  setVisible(v: boolean) {
-    this.visible = v;
-    for (const id of this.on) void this.ensure(id);
-    this.sync();
+  /**
+   * Switches a network on or off. `theme` marks it as that theme's suggestion
+   * (shown only there unless pinned); without it, it stays on everywhere.
+   */
+  set(id: NetworkId, on: boolean, theme?: string) {
+    const key = `net:${id}`;
+    if (!on) {
+      this.declined.add(id);
+      this.canvas.remove(key);
+      return;
+    }
+    const n = NETWORKS.find((x) => x.id === id)!;
+    this.canvas.put({
+      id: key, label: n.label, color: n.color, theme, scope: "world", pinned: false,
+      show: (v) => {
+        if (v) this.shown.add(id);
+        else this.shown.delete(id);
+        if (v) void this.ensure(id);
+        this.sync();
+      },
+      remove: () => {
+        this.shown.delete(id);
+        this.sync();
+      },
+    });
   }
 
-  async set(id: NetworkId, on: boolean) {
-    if (on) this.on.add(id);
-    else this.on.delete(id);
-    this.emit();
-    if (on && this.visible) await this.ensure(id);
-    this.sync();
+  /** Switches on a theme's suggested networks, except ones the user turned off. */
+  suggest(ids: NetworkId[], theme: string) {
+    for (const id of ids) if (!this.declined.has(id) && !this.isOn(id)) this.set(id, true, theme);
   }
 
   private ensure(id: NetworkId): Promise<void> {
@@ -158,7 +177,7 @@ export class Networks {
           this.sync();
         })
         .catch((err) => {
-          this.on.delete(id);
+          this.canvas.remove(`net:${id}`);
           const name = NETWORKS.find((n) => n.id === id)!.label;
           this.toast(`${name} couldn't be loaded right now (${(err as Error).message}).`);
         })
@@ -173,6 +192,6 @@ export class Networks {
   }
 
   private sync() {
-    for (const [id, ls] of this.layers) for (const l of ls) l.show = this.visible && this.on.has(id);
+    for (const [id, ls] of this.layers) for (const l of ls) l.show = this.shown.has(id);
   }
 }

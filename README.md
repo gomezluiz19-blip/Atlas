@@ -20,6 +20,15 @@ records. Tap a label for its photo and summary; tap the ground for a quick glanc
 Filter what's in view by category (landmarks, nature, water, sport, culture, transport); the map's labels
 follow the filter, and each label carries a small glyph for its kind (stadium, bridge, volcano, museum…).
 
+**One map, many lenses.** The themes aren't separate dashboards; they're lenses on one shared map, the
+canvas. What you put on it stays as you move between them: follow the rain in Water, then open Built and the
+path is still there, next to the city's roads and rail. Layers you switch on (railways, earthquakes, the
+geologic map) stay on everywhere. Results about the chosen place stay while you look at it through other
+themes, and clear when you pick a new place. A theme's own suggested layers show in that theme. The
+"On the map" tray lists everything that's drawn: pin something to keep it everywhere, or take it off.
+Every view ends with **Connected** links: the next questions people ask about that place in other themes
+("How water moves through the city here", "Power for the mines"), and layers you can add without leaving.
+
 **Search anything.** The search bar takes place names and street addresses (Photon, with Nominatim as a
 fallback), and whatever you paste: decimal or degrees-minutes-seconds coordinates, Google, Apple, Bing and
 OpenStreetMap links, `geo:` URIs and plus codes. Press `/` to focus it. Every view has a shareable URL, and
@@ -35,7 +44,7 @@ Then pick a theme from the tab bar; each theme's subtabs describe the chosen pla
 | --- | --- | --- |
 | **Land** | Overview · Profile · Rocks | Elevation, slope, landform and bedrock; a slice through the land; the rock layers below (and a sliced, time-lapse rock section) |
 | **Minerals** | Here · Mines nearby · Commodities | The bedrock here, the minerals in it and what rocks like it can hold; the nearest landmark mines; where the country ranks in world mining; every mapped mine and quarry nearby; 20 commodities (copper, lithium, cobalt, rare earths, gold, uranium, potash…) with uses, ores, geology and top producers |
-| **Water** | Overview · Nearby · Rain path · Watershed | The nearest rivers and lakes, springs and wells; where rain falling here flows; the land that drains to here |
+| **Water** | Overview · Nearby · City water · Rain path · Watershed | The nearest rivers and lakes, springs and wells; how water moves through the city (drains, buried streams in culverts, stormwater basins, canals, water works, sewage treatment); where rain falling here flows; the land that drains to here |
 | **Climate** | Now · Climate · Change | Current weather and 7-day forecast with live rain radar; the climate type and a monthly climograph; warming since 1950 |
 | **Plants** | Species · Life zones · At risk | What grows here, with photos and icons (conifer, palm, cactus, orchid, lily, vine, fern, moss, mushroom, kelp…); where each species lives by elevation; threatened plants |
 | **Animals** | Species · Life zones · At risk | The same for birds, mammals, reptiles, insects and more, each with its own icon on the card and the map (62 in all, from owls and penguins to seals, jellyfish and coral) |
@@ -107,7 +116,8 @@ These keys end up in the public page, so restrict them to your site's domain in 
 
 ```
 src/
-  main.ts              wiring: globe, themes, search, map-style and about popovers
+  main.ts              wiring: globe, themes, search, map-style and about popovers, Connected links
+  canvas.ts            the shared canvas: what's on the map, across themes and places
   app.ts               place selection, place card, theme tab bar and subtabs, hosting tools inside subtabs
   themes/              one file per theme (explore, land, minerals, water, climate, life, built, countries)
   explore/             view tracking, label feeds and the "worth knowing" insights engine
@@ -119,6 +129,7 @@ src/
     infrastructure.ts  infrastructure categories, lengths, plant capacity
     climate.ts         monthly normals, Köppen–Geiger climate type, warming trend
     insights.ts        magnetic latitude and aurora zones, daylight and sun position, distance to plate boundaries
+    cityWater.ts       sorts a city's water system into channels, buried streams, drains, basins, supply and wastewater
     placeKinds.ts      sorts Wikidata places into kinds (landmark, sport, bridge, volcano, museum…) and categories
     hydrology.ts       Priority-Flood+ε depression filling, D8 routing, flow accumulation, watersheds
     water.ts           multi-window flow tracing and adaptive watershed delineation
@@ -127,6 +138,7 @@ src/
   tools/               the analyses the themes host (profile, rock section, rain path, species, …)
   content/sites.ts     curated places to start, per theme
   content/minerals.ts  commodities, landmark mines, mineral guide, rock → mineral links
+  content/links.ts     how the themes connect: next questions and layers for every view
   ui/                  chart, search, layers panel, taxon icons, label glyphs, DOM helpers
 legacy/                the original single-file prototype
 ```

@@ -133,7 +133,11 @@ async function internetAround(place: Place): Promise<(Node | string)[]> {
 
 export function builtTheme(app: App, overlays: Overlays, openSite: (s: Site) => void): Theme {
   app.home("infra", "built", "overview");
-  const networks = new Networks(app.globe.viewer, (m) => app.toast(m, 5000), ["rail", "shipping", "ports", "power"]);
+  const networks = new Networks(app.globe.viewer, (m) => app.toast(m, 5000), app.canvas);
+  const SUGGESTED: NetworkId[] = ["rail", "shipping", "ports", "power"];
+  for (const n of NETWORKS) {
+    app.actions.set(`net:${n.id}`, { label: n.label, run: () => networks.set(n.id, true), isOn: () => networks.isOn(n.id) });
+  }
   const netApi = {
     isOn: (id: string) => (id === "lights" ? overlays.isOn("lights") : networks.isOn(id as NetworkId)),
     isLoading: (id: string) => id !== "lights" && networks.isLoading(id as NetworkId),
@@ -226,7 +230,7 @@ export function builtTheme(app: App, overlays: Overlays, openSite: (s: Site) => 
     label: "Internet",
     render({ app, place, body }) {
       asyncBlock(app, body, "Finding undersea cables…", async () => {
-        if (!networks.isOn("cables")) void networks.set("cables", true);
+        if (!networks.isOn("cables")) networks.set("cables", true, "built");
         return internetAround(place);
       });
       body.append(section("Masts and towers nearby", infraTelecom.el(app, body, place)));
@@ -241,8 +245,7 @@ export function builtTheme(app: App, overlays: Overlays, openSite: (s: Site) => 
     color: "#5e5ce6",
     intro: "Rail, roads, shipping, power and the internet.",
     subtabs: [overview, transport, energy, internet, toolSubtab("water", "Water", new InfrastructureTool(["water"], "infra-water"), "point")],
-    enter: () => networks.setVisible(true),
-    leave: () => networks.setVisible(false),
+    enter: () => networks.suggest(SUGGESTED, "built"),
     renderEmpty,
   };
 }

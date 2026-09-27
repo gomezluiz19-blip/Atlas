@@ -1,6 +1,7 @@
 // App shell. The model is simple: tap anywhere to choose a place, pick a theme
 // from the tab bar, and every subtab of that theme describes the chosen place.
 import { Cartesian2, Cartesian3, Color, HeightReference, ScreenSpaceEventHandler, ScreenSpaceEventType, type Entity } from "cesium";
+import { Canvas } from "./canvas";
 import { reverseGeocode, type PlaceName } from "./data/geocode";
 import { pickFeature } from "./globe/pickables";
 import type { Globe } from "./globe/viewer";
@@ -35,6 +36,8 @@ export interface Tool {
   onCancel?(): void;
   /** True while the tool is waiting for more clicks on the globe (e.g. a line's end point). */
   wantsClicks?(): boolean;
+  /** Its results stay on the map (the canvas) after you leave its subtab. */
+  keepsOnMap?: boolean;
 }
 
 /** A panel that a tool writes its content into. */
@@ -144,6 +147,10 @@ export class App {
   readonly drawer = new Drawer();
   readonly sheet = new Sheet();
   readonly themes: Theme[] = [];
+  /** Everything on the globe, shared by all themes. */
+  readonly canvas = new Canvas();
+  /** Named actions other themes can trigger (e.g. "net:rail" switches railways on). */
+  readonly actions = new Map<string, { label: string; run(): void; isOn?(): boolean }>();
   place: Place | null = null;
   theme!: Theme;
   subtab!: Subtab;
@@ -166,6 +173,8 @@ export class App {
   shareLink?: () => string;
   /** Content shown before a place is chosen (field sites etc.). */
   emptyState?: (theme: Theme) => HTMLElement;
+  /** Links to related views of the same place, shown under each subtab. */
+  connections?: (themeId: string, subtabId: string) => HTMLElement | null;
   /** The map's label layer, when present. */
   labels?: import("./globe/labels").LabelLayer;
 
@@ -253,6 +262,7 @@ export class App {
       for (const [tid, b] of this.tabButtons) b.setAttribute("aria-selected", String(tid === id));
       document.documentElement.style.setProperty("--theme", theme.color);
       theme.enter?.(this);
+      this.canvas.setTheme(theme.id);
       this.onTheme?.(id);
     }
     this.setSubtab(subtabId ?? this.subtab.id, true);
@@ -279,6 +289,7 @@ export class App {
   select(p: GeoPoint, name?: PlaceName | null, feature?: unknown) {
     this.setInteraction(null);
     this.subtab?.leave?.(this);
+    this.canvas.newPlace();
     this.place = { ...p, name, feature };
     this.drawPin(p);
     this.drawer.hide();
@@ -303,6 +314,7 @@ export class App {
   clearPlace() {
     this.subtab?.leave?.(this);
     this.setInteraction(null);
+    this.canvas.newPlace();
     this.place = null;
     if (this.pin) this.globe.viewer.entities.remove(this.pin);
     this.pin = null;
@@ -400,6 +412,8 @@ export class App {
       content.append(h("button", { class: "about-link", onclick: () => this.setTheme("explore") }, h("span", { html: icons.compass }), h("span", {}, `About ${title}`), h("span", { class: "chev", html: "&rsaquo;" })));
     }
     this.subtab.render({ app: this, place: this.place, body: content });
+    const links = this.connections?.(theme.id, this.subtab.id);
+    if (links) content.append(links);
   }
 
   /** True while `token` is still the latest render (for async subtab content). */
@@ -422,8 +436,10 @@ export class App {
       entry = { tool, panel, placeKey: "", active: false };
       this.tools.set(tool.id, entry);
     }
-    const view = Object.create(this, { panel: { value: entry.panel } }) as App;
+    const view = this.toolView(entry);
     body.append(entry.panel.el);
+    // Back in its own subtab: it's the subtab's again, not a leftover on the canvas.
+    this.canvas.drop(`tool:${tool.id}`);
     tool.activate(view);
     entry.active = true;
     const key = `${place.lon.toFixed(6)},${place.lat.toFixed(6)}`;
@@ -433,6 +449,21 @@ export class App {
       tool.onClick?.(place);
     }
     this.setInteraction(mode === "line" && tool.wantsClicks?.() ? tool : null);
+  }
+
+  /**
+   * The App as a hosted tool sees it: its own panel, and a drawer it can only
+   * open while its subtab is showing (a result that finishes after you've
+   * moved on stays on the map without popping up a chart).
+   */
+  private toolView(entry: { panel: Panel; active: boolean }): App {
+    const real = this.drawer;
+    const drawer = Object.assign(Object.create(real) as Drawer, {
+      show: (...a: Parameters<Drawer["show"]>) => { if (entry.active) real.show(...a); },
+      showCustom: (...a: Parameters<Drawer["showCustom"]>) => { if (entry.active) real.showCustom(...a); },
+      hide: () => real.hide(),
+    });
+    return Object.create(this, { panel: { value: entry.panel }, drawer: { value: drawer } }) as App;
   }
 
   /** Re-runs a hosted tool's line from the current place (after a finished line). */
@@ -449,6 +480,31 @@ export class App {
     const entry = this.tools.get(tool.id);
     if (!entry?.active) return;
     entry.active = false;
+    if (tool.keepsOnMap && this.place && entry.placeKey) {
+      // Leave its results on the map while the place is looked at through other themes.
+      this.drawer.hide();
+      const view = this.toolView(entry);
+      const where = this.place.name?.title;
+      this.canvas.put({
+        id: `tool:${tool.id}`,
+        label: `${this.theme.label} › ${this.subtab.label}${where ? ` · ${where}` : ""}`,
+        color: this.theme.color,
+        theme: this.theme.id,
+        scope: "place",
+        pinned: false,
+        show: (on) => {
+          if (on) {
+            tool.activate(view);
+            this.drawer.hide();
+          } else tool.deactivate();
+        },
+        remove: () => {
+          entry.placeKey = "";
+          tool.onCancel?.();
+        },
+      }, true);
+      return;
+    }
     tool.deactivate();
   }
 

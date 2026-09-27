@@ -55,6 +55,8 @@ export class Globe {
     photorealistic: false,
   };
   readonly hasPhotoreal = Boolean(config.googleMapsKey);
+  /** Called after every apply() (e.g. to mirror layer state elsewhere). */
+  onApply?: () => void;
   readonly hasIonTerrain = Boolean(config.cesiumIonToken);
 
   constructor(container: HTMLElement, creditContainer: HTMLElement) {
@@ -205,6 +207,7 @@ export class Globe {
       if (!this.hasIonTerrain) this.viewer.terrainProvider = createTerrariumTerrain();
     }
     this.setPhotoreal(s.photorealistic);
+    this.onApply?.();
   }
 
   private async setPhotoreal(on: boolean) {

@@ -10,6 +10,7 @@ import { tileLayer } from "./common";
 function lifeTheme(opts: { id: string; label: string; icon: string; color: string; intro: string; noun: string; groups: typeof PLANT_GROUPS; gbifKey: number }): Theme {
   const state = lifeState(opts.groups, opts.color, opts.noun);
   let records: ImageryLayer | null = null;
+  let declined = false;
   return {
     id: opts.id,
     label: opts.label,
@@ -22,11 +23,14 @@ function lifeTheme(opts: { id: string; label: string; icon: string; color: strin
       toolSubtab("threatened", "At risk", new LifeTool(`${opts.id}-threatened`, state, "threatened"), "point"),
     ],
     enter(app: App) {
+      if (declined) return;
       records ??= tileLayer(app.globe.viewer, gbifTiles(opts.gbifKey), { maximumLevel: 14, credit: "Species records: GBIF.org", alpha: 0.75 });
-      records.show = true;
-    },
-    leave() {
-      if (records) records.show = false;
+      // The theme's own layer: shown here, and everywhere if pinned from the tray.
+      app.canvas.put({
+        id: `${opts.id}:records`, label: `${opts.label} records`, color: opts.color, theme: opts.id, scope: "world", pinned: false,
+        show: (v) => { if (records) records.show = v; },
+        remove: () => { declined = true; },
+      });
     },
   };
 }

@@ -6,6 +6,7 @@ import { recentQuakes } from "../data/quakes";
 import { GBIF_DENSITY_TILES } from "../data/inaturalist";
 import { latestRadarTiles } from "../data/radar";
 import { plates } from "../data/worldData";
+import type { Canvas } from "../canvas";
 import { cullBehindHorizon } from "./draw";
 import { makePickable } from "./pickables";
 import { vectorLayer } from "./vectorLayer";
@@ -22,6 +23,10 @@ export const OVERLAYS: { id: OverlayId; label: string; about: string }[] = [
   { id: "species", label: "Wildlife records", about: "Where plants and animals have been recorded (GBIF)" },
 ];
 
+const OVERLAY_COLOR: Record<OverlayId, string> = {
+  labels: "#ffffff", aurora: "#30d158", quakes: "#ff9500", plates: "#ff6347", lights: "#ffcc66", radar: "#0a84ff", species: "#34c759",
+};
+
 const NIGHT_LIGHTS = "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/VIIRS_Black_Marble/default/2016-01-01/GoogleMapsCompatible_Level8/{z}/{y}/{x}.png";
 
 export class Overlays {
@@ -31,10 +36,12 @@ export class Overlays {
   private listeners = new Set<() => void>();
   onLabels?: (on: boolean) => void;
 
-  constructor(private viewer: Viewer, private toast: (m: string) => void) {}
+  constructor(private viewer: Viewer, private toast: (m: string) => void, private canvas: Canvas) {
+    canvas.subscribe(() => this.listeners.forEach((fn) => fn()));
+  }
 
   isOn(id: OverlayId) {
-    return this.state.get(id) ?? false;
+    return id === "labels" ? (this.state.get(id) ?? false) : this.canvas.has(`overlay:${id}`);
   }
 
   subscribe(fn: () => void): () => void {
@@ -42,12 +49,38 @@ export class Overlays {
     return () => this.listeners.delete(fn);
   }
 
-  async set(id: OverlayId, on: boolean) {
+  /**
+   * Switches an overlay on or off. Switched on by the user it stays on in every
+   * theme; `theme` marks it as that theme's suggestion instead.
+   */
+  async set(id: OverlayId, on: boolean, theme?: string) {
+    if (id === "labels") {
+      this.state.set(id, on);
+      this.onLabels?.(on);
+      this.listeners.forEach((fn) => fn());
+      return;
+    }
+    const key = `overlay:${id}`;
+    if (!on) {
+      this.canvas.remove(key);
+      return;
+    }
+    const o = OVERLAYS.find((x) => x.id === id)!;
+    this.canvas.put({
+      id: key, label: o.label, color: OVERLAY_COLOR[id], theme, scope: "world", pinned: false,
+      show: (v) => void this.display(id, v),
+      remove: () => void this.display(id, false),
+    });
+  }
+
+  toggle(id: OverlayId) {
+    return this.set(id, !this.isOn(id));
+  }
+
+  private async display(id: OverlayId, on: boolean) {
     this.state.set(id, on);
-    this.listeners.forEach((fn) => fn());
     try {
-      if (id === "labels") this.onLabels?.(on);
-      else if (id === "quakes") await this.setQuakes(on);
+      if (id === "quakes") await this.setQuakes(on);
       else {
         let layer = this.layers.get(id);
         if (on && !layer) {
@@ -56,17 +89,12 @@ export class Overlays {
           this.layers.set(id, layer);
           this.viewer.imageryLayers.add(layer);
         }
-        if (layer) layer.show = this.isOn(id);
+        if (layer) layer.show = this.state.get(id) ?? false;
       }
     } catch (err) {
-      this.state.set(id, false);
-      this.listeners.forEach((fn) => fn());
+      this.canvas.remove(`overlay:${id}`);
       this.toast(`${OVERLAYS.find((o) => o.id === id)?.label} is unavailable right now: ${(err as Error).message}`);
     }
-  }
-
-  toggle(id: OverlayId) {
-    return this.set(id, !this.isOn(id));
   }
 
   private async create(id: OverlayId): Promise<ImageryLayer | undefined> {
@@ -118,7 +146,7 @@ export class Overlays {
       await this.viewer.dataSources.add(ds);
       cullBehindHorizon(this.viewer, ds);
     }
-    if (this.quakes) this.quakes.show = this.isOn("quakes");
+    if (this.quakes) this.quakes.show = this.state.get("quakes") ?? false;
   }
 }
 

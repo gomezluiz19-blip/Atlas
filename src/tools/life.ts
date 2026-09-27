@@ -32,6 +32,7 @@ export class LifeTool implements Tool {
   icon = icons.leaf;
   shortcut = "";
   hint = "";
+  keepsOnMap = true;
 
   private app!: App;
   private ds!: CustomDataSource;

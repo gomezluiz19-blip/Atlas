@@ -31,6 +31,7 @@ export class InfrastructureTool implements Tool {
   icon = icons.pylon;
   shortcut = "i";
   hint = "Roads, rail, power, pipelines and water systems around a point";
+  keepsOnMap = true;
 
   private app!: App;
   private ds!: CustomDataSource;

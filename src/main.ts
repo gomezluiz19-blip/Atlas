@@ -4,11 +4,11 @@ import "./styles.css";
 
 import { Cartesian3, Math as CesiumMath } from "cesium";
 import { App, type Theme } from "./app";
-import { Globe } from "./globe/viewer";
+import { Globe, type OverlayKind } from "./globe/viewer";
 import { Feeds, searchLocal } from "./explore/feeds";
 import { formatHash, parseHash } from "./data/locationParse";
 import { LabelLayer } from "./globe/labels";
-import { Overlays } from "./globe/overlays";
+import { OVERLAYS, Overlays } from "./globe/overlays";
 import { KIND_INFO } from "./analysis/placeKinds";
 import { builtTheme } from "./themes/built";
 import { exploreTheme } from "./themes/explore";
@@ -23,8 +23,10 @@ import { icons } from "./ui/icons";
 import { createLayersPanel } from "./ui/layers";
 import { createSearch, flyToPlace, type Place as SearchPlace, type SearchResult } from "./ui/search";
 import { siteBrowser } from "./ui/sites";
+import { createCanvasTray } from "./ui/canvasTray";
 import { SITES, sitesFor, type Site } from "./content/sites";
 import { MINES } from "./content/minerals";
+import { LINKS } from "./content/links";
 
 const $ = (id: string) => document.getElementById(id)!;
 
@@ -46,7 +48,7 @@ globe.viewer.scene.globe.tileLoadProgressEvent.addEventListener((queued: number)
 const labels = new LabelLayer(globe.viewer.scene, () => globe.state.exaggeration);
 $("ui").prepend(labels.el);
 app.labels = labels;
-const overlays = new Overlays(globe.viewer, (m) => app.toast(m, 5000));
+const overlays = new Overlays(globe.viewer, (m) => app.toast(m, 5000), app.canvas);
 overlays.onLabels = (on) => labels.setVisible(on);
 const feeds = new Feeds(globe.viewer, labels);
 labels.onClick = (l) => {
@@ -98,14 +100,83 @@ $("search-slot").replaceWith(createSearch(globe, {
   bias: () => (feeds.view.zoom > 4 ? { lat: feeds.view.lat, lon: feeds.view.lon } : null),
 }));
 
+// Layers any theme can add to the map by name (Built registers its networks itself).
+for (const o of OVERLAYS) if (o.id !== "labels") app.actions.set(`overlay:${o.id}`, { label: o.label, run: () => void overlays.set(o.id, true), isOn: () => overlays.isOn(o.id) });
+for (const k of ["geology", "elevation", "slope", "contours"] as const)
+  app.actions.set(`globe:${k}`, { label: k, run: () => { globe.state.overlays[k].on = true; globe.apply(); }, isOn: () => globe.state.overlays[k].on });
+
+// Under every view of a place: where to go next, keeping what's on the map.
+app.connections = (themeId, subtabId) => {
+  const links = LINKS[`${themeId}/${subtabId}`];
+  if (!links?.length) return null;
+  const rows = links.map((l) => {
+    if (l.to) {
+      const [tid, sid] = l.to;
+      const th = app.themes.find((x) => x.id === tid);
+      const sub = th?.subtabs.find((s) => s.id === sid);
+      if (!th || !sub) return null;
+      return h("button", { class: "list-row link-row", onclick: () => { app.setTheme(tid, sid); app.sheet.body.scrollTop = 0; } },
+        h("span", { class: "link-icon", style: `--c:${th.color}`, html: th.icon }),
+        h("span", { class: "list-text" }, h("span", { class: "list-title" }, l.label), h("span", { class: "list-sub" }, `${th.label} › ${sub.label}`)),
+        h("span", { class: "chev", html: "&rsaquo;" }));
+    }
+    const act = l.action ? app.actions.get(l.action) : undefined;
+    if (!act) return null;
+    const on = act.isOn?.() ?? false;
+    const btn = h("button", { class: "list-row link-row", disabled: on, onclick: () => {
+      act.run();
+      btn.disabled = true;
+      btn.querySelector(".list-sub")!.textContent = "On the map";
+    } },
+      h("span", { class: "link-icon add", html: icons.layers }),
+      h("span", { class: "list-text" }, h("span", { class: "list-title" }, l.label), h("span", { class: "list-sub" }, on ? "On the map" : "Adds a layer; you stay here")),
+      h("span", { class: "chev", html: on ? "✓" : "+" }));
+    return btn;
+  }).filter((r): r is HTMLButtonElement => r !== null);
+  return rows.length ? h("section", { class: "group connected" }, h("h2", { class: "group-title" }, "Connected"), h("div", { class: "list" }, ...rows)) : null;
+};
+
+// Everything on the map, from every theme.
+$("ui").append(createCanvasTray(app));
+
 // Map style popover.
 const layersBtn = $("layers-btn");
-const layers = createLayersPanel(globe);
+let layers = createLayersPanel(globe);
 $("ui").append(layers);
 layersBtn.innerHTML = icons.layers;
 const toggleLayers = (open = layers.hidden) => {
+  if (open) {
+    // Rebuilt on open so it matches the canvas (layers can be removed from the tray).
+    const fresh = createLayersPanel(globe);
+    layers.replaceWith(fresh);
+    layers = fresh;
+  }
   layers.hidden = !open;
   layersBtn.setAttribute("aria-expanded", String(open));
+};
+
+// Analysis layers from the Layers popover (and elsewhere) live on the shared canvas too.
+const GLOBE_LAYERS: { kind: OverlayKind; label: string; color: string }[] = [
+  { kind: "geology", label: "Geologic map", color: "#a2845e" },
+  { kind: "elevation", label: "Elevation colours", color: "#34c759" },
+  { kind: "slope", label: "Slope", color: "#ff9f0a" },
+  { kind: "contours", label: "Contour lines", color: "#d1d1d6" },
+  { kind: "species", label: "Species records", color: "#30d158" },
+];
+globe.onApply = () => {
+  for (const { kind, label, color } of GLOBE_LAYERS) {
+    const key = `globe:${kind}`, on = globe.state.overlays[kind].on;
+    if (on && !app.canvas.has(key))
+      app.canvas.put({
+        id: key, label, color, scope: "world", pinned: false,
+        show: () => {},
+        remove: () => {
+          globe.state.overlays[kind].on = false;
+          globe.apply();
+        },
+      }, true);
+    else if (!on && app.canvas.has(key)) app.canvas.drop(key);
+  }
 };
 layersBtn.addEventListener("click", () => toggleLayers());
 globe.viewer.scene.canvas.addEventListener("pointerdown", () => toggleLayers(false));
@@ -115,7 +186,8 @@ const about = $("about-btn");
 about.innerHTML = icons.info;
 const aboutPanel = h("div", { class: "popover about", hidden: true },
   h("h2", { class: "group-title" }, "About Atlas"),
-  h("p", {}, "Move the map and Atlas labels what's worth knowing. Tap anything, or anywhere, then flip through the themes to learn about that place: its land, water, climate, life, what people have built, and the country it's in."),
+  h("p", {}, "Move the map and Atlas labels what's worth knowing. Tap anything, or anywhere, then flip through the themes to learn about that place: its land, minerals, water, climate, life, what people have built, and the country it's in."),
+  h("p", {}, "The themes are lenses on one shared map. What you add stays as you switch (see \"On the map\" at the top), and every view ends with Connected links to related views of the same place."),
   h("h2", { class: "group-title" }, "Where the data comes from"),
   h("ul", { class: "plain-list" },
     h("li", {}, "Terrain: open elevation tiles (SRTM, USGS 3DEP and others). Imagery: Esri."),

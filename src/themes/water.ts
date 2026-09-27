@@ -8,6 +8,7 @@ import { elementPoint, osmUrl, overpass, type OsmElement } from "../data/overpas
 import { layer, marker } from "../globe/draw";
 import { WaterFlowTool } from "../tools/waterFlow";
 import { WatershedTool } from "../tools/watershed";
+import { cityWaterSubtab } from "./cityWater";
 import { flyToPlace } from "../ui/search";
 import { formatDistance, h } from "../ui/dom";
 import { icons } from "../ui/icons";
@@ -125,6 +126,7 @@ export function waterTheme(app: App): Theme {
               tile(icons.target, `${springs} spring${springs === 1 ? "" : "s"} · ${wells} well${wells === 1 ? "" : "s"}`, `Places where groundwater reaches the surface or is drawn up, within ${RADIUS_KM} km`))),
           section("Follow the water",
             action("See all water nearby", () => app.setSubtab("nearby"), icons.drop),
+            action("How water moves through the city here", () => app.setSubtab("city"), icons.building),
             action("Where does rain falling here go?", () => app.setSubtab("rain"), icons.flow),
             action("What land drains to here?", () => app.setSubtab("watershed"), icons.watershed)),
           note("Water features from OpenStreetMap. Springs and wells are the easiest window onto groundwater, but many are unmapped."),
@@ -140,6 +142,7 @@ export function waterTheme(app: App): Theme {
       ds ??= layer(app.globe.viewer, "water-nearby");
       ds.show = true;
       ds.entities.removeAll();
+      app.canvas.drop("water:nearby");
       asyncBlock(app, body, "Finding rivers, lakes, springs and wells…", async () => {
         const all = await waterNearby(place);
         for (const f of all) marker(ds!, f.lon, f.lat, { color: KIND[f.kind].color, size: f.name ? 10 : 7 });
@@ -159,8 +162,15 @@ export function waterTheme(app: App): Theme {
         ];
       });
     },
-    leave() {
-      if (ds) ds.show = false;
+    leave(app) {
+      // The markers stay on the map while you look at this place through other themes.
+      if (!ds || !app.place || !ds.entities.values.length) return;
+      const where = app.place.name?.title;
+      app.canvas.put({
+        id: "water:nearby", label: `Water nearby${where ? ` · ${where}` : ""}`, color: "#0a84ff", theme: "water", scope: "place", pinned: false,
+        show: (v) => { if (ds) ds.show = v; },
+        remove: () => { ds?.entities.removeAll(); },
+      }, true);
     },
   };
 
@@ -173,6 +183,7 @@ export function waterTheme(app: App): Theme {
     subtabs: [
       overview,
       nearby,
+      cityWaterSubtab(),
       toolSubtab("rain", "Rain path", flow, "point"),
       toolSubtab("watershed", "Watershed", shed, "point"),
     ],
