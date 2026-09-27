@@ -159,6 +159,8 @@ export function mineralsTheme(app: App): Theme {
     });
   };
 
+  for (const c of COMMODITIES) app.actions.set(`commodity:${c.id}`, { label: c.name, run: () => setCommodity(c.id), isOn: () => selected === c.id });
+
   const setCommodity = (id: string | null) => {
     selected = id;
     drawMines();

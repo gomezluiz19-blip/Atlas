@@ -58,8 +58,10 @@ export function parseCoordinates(q: string): { lat: number; lon: number } | null
 }
 
 export interface SearchResult extends Place {
+  /** For a command: runs it instead of flying to a place. */
+  run?: () => void;
   icon?: keyof typeof icons;
-  source: "coords" | "local" | "address" | "recent" | "site";
+  source: "coords" | "local" | "address" | "recent" | "site" | "command";
   /** False when the name is only coordinates, so the app should look up a real place name. */
   named?: boolean;
 }
@@ -149,7 +151,28 @@ function saveRecent(p: SearchResult) {
   }
 }
 
+/** Looks up a place or address: Photon first, Nominatim if Photon fails. */
+export async function geocode(q: string, bias: { lat: number; lon: number } | null = null): Promise<SearchResult[]> {
+  const signal = new AbortController().signal;
+  try {
+    return await photon(q, bias, signal);
+  } catch {
+    return nominatim(q, signal);
+  }
+}
+
+/** A request the search box can run instead of (or as well as) searching. */
+export interface Command {
+  title: string;
+  steps: string[];
+  run(): void;
+}
+
 export interface SearchOptions {
+  /** Reads the input as a request (e.g. "storm drains in Chicago"); null if it isn't one. */
+  command?: (q: string) => Command | null;
+  /** Requests to suggest when the box is empty. */
+  examples?: string[];
   /** Instant matches from data already on the device (labels, curated places). */
   local?: (q: string) => SearchResult[];
   /** Bias address results toward what's on screen. */
@@ -161,7 +184,7 @@ export function createSearch(globe: Globe, opts: SearchOptions = {}): HTMLElemen
   const input = h("input", {
     id: "search-input",
     type: "search",
-    placeholder: "Search places, addresses or coordinates",
+    placeholder: "Search, or ask: “storm drains in Chicago”",
     "aria-label": "Search places, addresses, coordinates or map links",
     autocomplete: "off",
     autocapitalize: "off",
@@ -177,6 +200,11 @@ export function createSearch(globe: Globe, opts: SearchOptions = {}): HTMLElemen
 
   const pick = (p: SearchResult) => {
     list.hidden = true;
+    if (p.run) {
+      input.blur();
+      p.run();
+      return;
+    }
     input.value = p.name;
     input.blur();
     if (p.source !== "coords") saveRecent(p);
@@ -225,7 +253,12 @@ export function createSearch(globe: Globe, opts: SearchOptions = {}): HTMLElemen
     controller?.abort();
     clearTimeout(timer);
     if (!q) {
-      render([{ heading: "Recent", items: loadRecent() }, { heading: "Places to start", items: FIELD_SITES.map((s) => ({ ...s, source: "site" as const, icon: "mountain" as const })) }]);
+      const asks: SearchResult[] = [];
+      for (const ex of opts.examples ?? []) {
+        const c = opts.command?.(ex);
+        if (c) asks.push({ name: ex, detail: c.steps.join(" → "), lat: 0, lon: 0, radius: 0, icon: "sparkle", source: "command", run: () => { input.value = ex; c.run(); } });
+      }
+      render([{ heading: "Recent", items: loadRecent() }, { heading: "Try asking", items: asks }, { heading: "Places to start", items: FIELD_SITES.slice(0, 4).map((s) => ({ ...s, source: "site" as const, icon: "mountain" as const })) }]);
       return;
     }
     const parsed = parseLocation(raw);
@@ -239,8 +272,10 @@ export function createSearch(globe: Globe, opts: SearchOptions = {}): HTMLElemen
       render([], "Short links like maps.app.goo.gl can't be opened here. Open the link, then copy the full address from your browser's address bar.");
       return;
     }
+    const cmd = parsed.shortCode ? null : opts.command?.(raw) ?? null;
+    const cmdItems: SearchResult[] = cmd ? [{ name: cmd.title, detail: cmd.steps.join(" → "), lat: 0, lon: 0, radius: 0, icon: "sparkle", source: "command", run: cmd.run }] : [];
     const local = parsed.shortCode ? [] : opts.local?.(parsed.text) ?? [];
-    render([{ heading: local.length ? "On the map" : undefined, items: local.slice(0, 4) }], "Searching…");
+    render([{ heading: cmd ? "Do it" : undefined, items: cmdItems }, { heading: local.length ? "On the map" : undefined, items: local.slice(0, 4) }], "Searching…");
     timer = window.setTimeout(async () => {
       controller = new AbortController();
       const signal = controller.signal;
@@ -260,11 +295,11 @@ export function createSearch(globe: Globe, opts: SearchOptions = {}): HTMLElemen
         const seen = new Set(local.map((l) => l.name.toLowerCase()));
         const addresses = results.filter((r) => !seen.has(r.name.toLowerCase()));
         render(
-          [{ heading: local.length ? "On the map" : undefined, items: local.slice(0, 4) }, { heading: local.length ? "Places and addresses" : undefined, items: addresses }],
-          local.length + addresses.length ? undefined : "No matches. Try adding a town or country.",
+          [{ heading: cmd ? "Do it" : undefined, items: cmdItems }, { heading: local.length ? "On the map" : undefined, items: local.slice(0, 4) }, { heading: local.length || cmd ? "Places and addresses" : undefined, items: cmd ? addresses.slice(0, 3) : addresses }],
+          local.length + addresses.length + cmdItems.length ? undefined : "No matches. Try adding a town or country.",
         );
       } catch (err) {
-        if ((err as Error).name !== "AbortError") render([{ items: local }], "Address search is unavailable right now.");
+        if ((err as Error).name !== "AbortError") render([{ items: [...cmdItems, ...local] }], cmd ? undefined : "Address search is unavailable right now.");
       }
     }, 220);
   };

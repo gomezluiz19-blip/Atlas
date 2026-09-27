@@ -2,7 +2,7 @@ import "./styles.css";
 // Cesium loads its web workers and assets relative to this URL.
 (window as unknown as { CESIUM_BASE_URL: string }).CESIUM_BASE_URL = new URL("./cesium/", document.baseURI).href;
 
-import { Cartesian3, Math as CesiumMath } from "cesium";
+import { Cartesian2, Cartesian3, Math as CesiumMath } from "cesium";
 import { App, type Theme } from "./app";
 import { Globe, type OverlayKind } from "./globe/viewer";
 import { Feeds, searchLocal } from "./explore/feeds";
@@ -21,7 +21,10 @@ import { waterTheme } from "./themes/water";
 import { formatElevation, formatLonLat, h } from "./ui/dom";
 import { icons } from "./ui/icons";
 import { createLayersPanel } from "./ui/layers";
-import { createSearch, flyToPlace, type Place as SearchPlace, type SearchResult } from "./ui/search";
+import { createSearch, flyToPlace, geocode, type Command, type Place as SearchPlace, type SearchResult } from "./ui/search";
+import { createRobot } from "./ui/robotCard";
+import { plan } from "./robot/plan";
+import { describe } from "./robot/run";
 import { siteBrowser } from "./ui/sites";
 import { createCanvasTray } from "./ui/canvasTray";
 import { SITES, sitesFor, type Site } from "./content/sites";
@@ -90,7 +93,39 @@ const siteMatches = (q: string): SearchResult[] => {
     .map((s) => ({ name: s.name, detail: `${s.where} · ${s.why}`, lon: s.lon, lat: s.lat, radius: s.radius, source: "local" as const, icon: "target" as const }));
 };
 
+// The task robot: plain-language requests typed into the search box.
+const robot = createRobot(app, {
+  async find(text) {
+    const local = siteMatches(text)[0] ?? searchLocal(feeds, text).find((m) => m.name.toLowerCase() === text.toLowerCase());
+    if (local) return { name: local.name, detail: local.detail, lon: local.lon, lat: local.lat, radius: "radius" in local ? local.radius : 3000 };
+    const [r] = await geocode(text, feeds.view.zoom > 4 ? { lat: feeds.view.lat, lon: feeds.view.lon } : null);
+    return r ?? null;
+  },
+  async go(p) {
+    await flyToPlace(globe, p);
+    app.select({ lon: p.lon, lat: p.lat, height: 0 }, { title: p.name, context: p.detail ?? "" });
+  },
+  centre() {
+    const c = globe.viewer.canvas;
+    return globe.pick(new Cartesian2(c.clientWidth / 2, c.clientHeight / 2));
+  },
+});
+$("ui").append(robot.el);
+const asCommand = (q: string): Command | null => {
+  const p = plan(q);
+  if (!p.steps.length) return null;
+  const steps = describe(p);
+  return { title: steps.length === 1 ? steps[0] : `Do ${steps.length} things`, steps, run: () => void robot.run(q.trim(), p) };
+};
+
 $("search-slot").replaceWith(createSearch(globe, {
+  command: asCommand,
+  examples: [
+    "Where does rain go in downtown Chicago, and show the storm drains",
+    "Lithium mines in Chile",
+    "Railways and power plants near Munich",
+    "Earthquakes and tectonic plates in Japan",
+  ],
   onPick: pick,
   local: (q) => [...siteMatches(q), ...searchLocal(feeds, q).map((m) => ({
     name: m.name, detail: m.detail, lon: m.lon, lat: m.lat, source: "local" as const,
@@ -187,6 +222,7 @@ about.innerHTML = icons.info;
 const aboutPanel = h("div", { class: "popover about", hidden: true },
   h("h2", { class: "group-title" }, "About Atlas"),
   h("p", {}, "Move the map and Atlas labels what's worth knowing. Tap anything, or anywhere, then flip through the themes to learn about that place: its land, minerals, water, climate, life, what people have built, and the country it's in."),
+  h("p", {}, "You can also type a request into the search box, like \u201cstorm drains and railways in Chicago\u201d, and Atlas will plan the steps and do them."),
   h("p", {}, "The themes are lenses on one shared map. What you add stays as you switch (see \"On the map\" at the top), and every view ends with Connected links to related views of the same place."),
   h("h2", { class: "group-title" }, "Where the data comes from"),
   h("ul", { class: "plain-list" },

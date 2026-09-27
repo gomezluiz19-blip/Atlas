@@ -29,6 +29,16 @@ themes, and clear when you pick a new place. A theme's own suggested layers show
 Every view ends with **Connected** links: the next questions people ask about that place in other themes
 ("How water moves through the city here", "Power for the mines"), and layers you can add without leaving.
 
+**Ask it to do things.** The search box also takes requests: *"Where does rain go in downtown Chicago,
+and show the storm drains and railways"*, *"Lithium mines in Chile"*, *"Earthquakes and tectonic plates in
+Japan"*. A small task robot (rules, not a language model; it runs in the browser) works out the place, the views
+and the layers, shows the plan as you type, and on Enter carries it out step by step with a live checklist.
+Because the themes share one map, the results pile up together. Anything it didn't understand is shown, not
+guessed. Vocabulary and rules are in `src/robot/plan.ts`.
+
+**Satellite first.** Everything draws over satellite imagery, which is the default. Zoom in and street and place
+names appear, relief shading fades away, and you can see which street a canal or culvert runs under.
+
 **Search anything.** The search bar takes place names and street addresses (Photon, with Nominatim as a
 fallback), and whatever you paste: decimal or degrees-minutes-seconds coordinates, Google, Apple, Bing and
 OpenStreetMap links, `geo:` URIs and plus codes. Press `/` to focus it. Every view has a shareable URL, and
@@ -109,6 +119,7 @@ These keys end up in the public page, so restrict them to your site's domain in 
   [Wikidata](https://www.wikidata.org) and Wikipedia (notable places and summaries), OpenStreetMap (rivers).
 - **Aurora and geomagnetic activity:** NOAA Space Weather Prediction Center (OVATION, Kp). **Earthquakes:** USGS.
   **Plate boundaries:** Bird (2003) PB2002 via [fraxen/tectonicplates](https://github.com/fraxen/tectonicplates).
+- **Street and place names over imagery:** Esri World Transportation and World Boundaries and Places reference layers.
 - **Search and place names:** [Photon](https://photon.komoot.io) (by komoot) and OpenStreetMap Nominatim
   (light, interactive use only, per its usage policy).
 
@@ -118,6 +129,7 @@ These keys end up in the public page, so restrict them to your site's domain in 
 src/
   main.ts              wiring: globe, themes, search, map-style and about popovers, Connected links
   canvas.ts            the shared canvas: what's on the map, across themes and places
+  robot/               the task robot: plan.ts turns a request into steps, run.ts carries them out
   app.ts               place selection, place card, theme tab bar and subtabs, hosting tools inside subtabs
   themes/              one file per theme (explore, land, minerals, water, climate, life, built, countries)
   explore/             view tracking, label feeds and the "worth knowing" insights engine
