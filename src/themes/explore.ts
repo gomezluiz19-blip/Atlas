@@ -98,10 +98,10 @@ export function exploreTheme(app: App, feeds: Feeds, overlays: Overlays, openSit
       start.hidden = v.zoom >= 5;
       // Area name for the header.
       const job = ++areaJob;
-      if (v.zoom < 3) app.setHeader("Earth", "Zoom in anywhere to explore");
+      if (v.zoom < 3) app.setHeader("Earth", "Zoom in anywhere to explore", "explore");
       else
         reverseGeocode(v.lon, v.lat, Math.max(3, Math.min(14, Math.round(v.zoom) + 1)))
-          .then((n) => { if (job === areaJob && n) app.setHeader(n.title, n.context || "Exploring"); })
+          .then((n) => { if (job === areaJob && n) app.setHeader(n.title, n.context || "Exploring", "explore"); })
           .catch(() => {});
       // What's in view, filterable by category (the filter also applies to the map's labels).
       const places = feeds.notable.filter((n) => n.kind !== "district" && n.kind !== "city" && n.kind !== "capital");

@@ -349,18 +349,19 @@ export class App {
     );
   }
 
-  private emptyHeader: [string, string] | null = null;
+  private emptyHeader: [string, string, string] | null = null;
 
   /** Header text while no place is chosen (e.g. the area in view). */
-  setHeader(title: string, subtitle: string) {
-    this.emptyHeader = [title, subtitle];
+  setHeader(title: string, subtitle: string, themeId = this.theme.id) {
+    this.emptyHeader = [themeId, title, subtitle];
     if (!this.place) this.renderHeader();
   }
 
   private renderHeader() {
     const p = this.place;
     if (!p) {
-      const [t, sub] = this.theme.renderEmpty && this.emptyHeader ? this.emptyHeader : [this.theme.label, this.theme.intro];
+      const own = this.emptyHeader?.[0] === this.theme.id ? this.emptyHeader : null;
+      const [t, sub] = own ? [own[1], own[2]] : [this.theme.label, this.theme.intro];
       this.sheet.title.textContent = t;
       this.sheet.subtitle.textContent = sub;
       this.sheet.close.hidden = true;

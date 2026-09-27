@@ -71,7 +71,7 @@ app.addTheme(waterTheme(app));
 app.addTheme(climateTheme(overlays));
 app.addTheme(plantsTheme());
 app.addTheme(animalsTheme());
-app.addTheme(builtTheme(app, overlays));
+app.addTheme(builtTheme(app, overlays, openSite));
 app.addTheme(countriesTheme());
 
 /** Curated sites whose name starts a word with the query. */
