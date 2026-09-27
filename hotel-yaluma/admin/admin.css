@@ -77,7 +77,7 @@ svg { width: 20px; height: 20px; flex: none; }
 .login { min-height: 100vh; min-height: 100dvh; display: grid; place-items: center; padding: 24px 16px; background: radial-gradient(circle at 50% 0%, #3a3040, var(--night) 70%); }
 .login-card { width: min(380px, 100%); background: var(--cream); border-radius: 22px; padding: 28px 24px; box-shadow: 0 30px 80px -20px rgba(0, 0, 0, .6); text-align: center; }
 .login-card .field { text-align: left; }
-.login-logo { width: 44px; height: 48px; color: var(--coral); margin-bottom: 8px; }
+.login-logo { width: 44px; height: 35px; color: var(--coral); margin-bottom: 8px; }
 .login-card h1 { font-size: 1.6rem; letter-spacing: .04em; }
 .login-card > .muted { margin-bottom: 20px; }
 .first-note { text-align: left; font-size: .88rem; background: #fdeee4; color: var(--coral-ink); border-radius: 10px; padding: 10px 12px; margin-bottom: 12px; }
@@ -88,7 +88,7 @@ svg { width: 20px; height: 20px; flex: none; }
 .demo-bar button { border: 0; background: transparent; text-decoration: underline; font-weight: 600; }
 .top { position: sticky; top: 0; z-index: 20; display: flex; align-items: center; gap: 12px; padding: 10px 16px; background: var(--night); color: #fff; }
 .top-brand { display: flex; align-items: center; gap: 10px; margin-right: auto; }
-.top-logo { width: 26px; height: 29px; color: var(--peach); }
+.top-logo { width: 26px; height: 21px; color: var(--peach); }
 .top-brand strong { display: block; font-family: var(--font-display); letter-spacing: .08em; text-transform: uppercase; font-size: 1rem; }
 .top-brand small { display: block; font-size: .75rem; opacity: .7; white-space: nowrap; }
 .shift-pill { white-space: nowrap; display: inline-flex; align-items: center; gap: 8px; border: 0; border-radius: 999px; padding: 7px 14px; font-weight: 600; font-size: .85rem; background: rgba(255, 255, 255, .12); color: #fff; }
