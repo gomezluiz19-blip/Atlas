@@ -840,18 +840,36 @@
   }
 
   function bind() {
+    // Entrar. En el modo demostración, la primera vez cada usuario elige su contraseña.
+    let firstTime = false;
+    const setFirstTime = (on) => {
+      firstTime = on;
+      $("#pw2-field").hidden = !on;
+      $("#first-note").hidden = !on;
+      $("#pw-label").textContent = on ? "Nueva contraseña" : "Contraseña";
+    };
+    $("#login-form").username.addEventListener("input", () => { if (firstTime) setFirstTime(false); });
     $("#login-form").addEventListener("submit", async (e) => {
       e.preventDefault();
       const f = e.target;
       const btn = $("button[type=submit]", f);
+      const err = $("#login-error");
+      err.textContent = "";
+      if (!f.username.value.trim() || !f.password.value) { err.textContent = "Escriba su usuario y su contraseña."; return; }
       btn.disabled = true;
-      $("#login-error").textContent = "";
       try {
+        if (db.needsPassword && await db.needsPassword(f.username.value)) {
+          if (!firstTime) { setFirstTime(true); f.password2.focus(); return; }
+          if (f.password.value.length < 6) { err.textContent = "La contraseña necesita al menos 6 caracteres."; return; }
+          if (f.password.value !== f.password2.value) { err.textContent = "Las contraseñas no coinciden."; return; }
+          await db.setFirstPassword(f.username.value, f.password.value);
+        }
         me = await db.signIn(f.username.value, f.password.value);
         f.reset();
+        setFirstTime(false);
         await showApp();
-      } catch (err) {
-        $("#login-error").textContent = err.message;
+      } catch (e2) {
+        err.textContent = e2.message;
       } finally {
         btn.disabled = false;
       }
@@ -860,7 +878,7 @@
     $("#logout").addEventListener("click", () => logout());
     $("#shift-pill").addEventListener("click", toggleShift);
     $("#demo-reset").addEventListener("click", () => {
-      ask("Reiniciar datos", "Se borran los cambios y vuelven los datos de ejemplo.", "Reiniciar", () => { db.reset(); refresh(); }, true);
+      ask("Reiniciar datos", "Se borran los cambios y las contraseñas de este teléfono, y vuelven los datos de ejemplo.", "Reiniciar", () => { db.reset(); refresh(); }, true);
     });
 
     $$(".tabs button").forEach((b) => b.addEventListener("click", () => { view = b.dataset.view; render(); window.scrollTo(0, 0); }));

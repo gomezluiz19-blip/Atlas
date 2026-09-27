@@ -33,10 +33,12 @@
       <h1>Hotel Yaluma</h1>
       <p class="muted">Panel del personal</p>
       <label class="field"><span>Usuario</span><input name="username" autocomplete="username" autocapitalize="none" required /></label>
-      <label class="field"><span>Contraseña</span><input name="password" type="password" autocomplete="current-password" required /></label>
+      <label class="field"><span id="pw-label">Contraseña</span><input name="password" type="password" autocomplete="current-password" required /></label>
+      <label class="field" id="pw2-field" hidden><span>Repita la contraseña</span><input name="password2" type="password" autocomplete="new-password" /></label>
+      <p class="first-note" id="first-note" hidden>Es la primera vez que entra con este usuario. Elija su contraseña (mínimo 6 caracteres). Se pedirá siempre desde ahora.</p>
       <p class="form-error" id="login-error" role="alert"></p>
       <button class="btn btn-primary btn-block" type="submit">Entrar</button>
-      <p class="demo-hint" id="demo-hint" hidden>Modo demostración. Usuarios: <b>dueno</b>, <b>luis</b> o <b>fanny</b>. Contraseña: <b>demo</b></p>
+      <p class="demo-hint" id="demo-hint" hidden>Modo demostración: los datos son de ejemplo y se guardan solo en este teléfono o computadora.</p>
     </form>
   </main>
 

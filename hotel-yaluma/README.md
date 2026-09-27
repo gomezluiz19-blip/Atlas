@@ -23,7 +23,9 @@ Colores del tablero: **verde** libre · **naranja** ocupada por noche · **morad
 
 ### Modo demostración
 
-Mientras `supabase` esté vacío en `config.js`, el panel usa datos de ejemplo guardados solo en ese navegador. Usuarios `dueno`, `luis` y `fanny`, contraseña `demo`. Sirve para probarlo, **no** para usarlo de verdad: cada teléfono tendría sus propios datos.
+Mientras `supabase` esté vacío en `config.js`, el panel usa datos de ejemplo guardados solo en ese navegador. Usuarios: `lg` y `fg` (administradores), `luis` y `fanny` (personal). La primera vez que alguien entra con su usuario elige su contraseña; desde ahí se pide siempre. Las contraseñas no están en el código: se guardan cifradas (PBKDF2) solo en ese navegador.
+
+Sirve para probarlo, **no** para usarlo de verdad: cada teléfono tiene sus propios datos, y quien tenga el enlace puede entrar en su propio navegador con cualquiera de esos usuarios (con datos de ejemplo, no los del hotel). La seguridad real llega con Supabase.
 
 ### Conectarlo de verdad (Supabase, gratis, unos 15 minutos)
 
@@ -31,8 +33,10 @@ Mientras `supabase` esté vacío en `config.js`, el panel usa datos de ejemplo g
 2. En **SQL Editor**, pegue todo `supabase/schema.sql` y presione **Run**. Crea las tablas, las 19 habitaciones y los permisos.
 3. En **Authentication → Sign In / Providers → Email**, **desactive "Confirm email"**. El personal entra con usuario y contraseña, sin correo.
 4. En **Project Settings → API**, copie la *Project URL* y la clave *anon public* dentro de `supabase` en `config.js`.
-5. Cree **su** cuenta de administrador enseguida (la primera cuenta que exista queda como administrador): en **Authentication → Users → Add user → Create new user**, correo `dueno@personal.hotelyaluma.com`, una contraseña, y marque *Auto Confirm User*. Su usuario para entrar será `dueno`. Para que el panel muestre su nombre, ejecute en **SQL Editor**: `update profiles set name = 'Su nombre' where username = 'dueno';`
-6. Entre al panel con ese usuario, vaya a **Equipo → Crear cuenta** y cree las de Luis y Fanny.
+5. Cree la primera cuenta de administrador enseguida (la primera cuenta que exista queda como administrador): en **Authentication → Users → Add user → Create new user**, correo `lg@personal.hotelyaluma.com`, su contraseña, y marque *Auto Confirm User*. El usuario para entrar será `lg`. Para el nombre que muestra el panel, ejecute en **SQL Editor**: `update profiles set name = 'LG' where username = 'lg';`
+6. Entre al panel como `lg`, vaya a **Equipo → Crear cuenta** y cree `fg` (rol Administrador), `luis` y `fanny` (rol Personal).
+
+Use contraseñas que no sean fechas de nacimiento ni se usen en otros sitios. Nunca las escriba en `config.js` ni en otro archivo del sitio.
 
 La clave *anon public* puede estar en la página: los permisos de la base de datos solo dejan que el público **envíe** solicitudes; no puede leer nada. Las cuentas nuevas no ven nada hasta que el administrador las active.
 

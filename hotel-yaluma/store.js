@@ -105,7 +105,7 @@ window.YalumaStore = (() => {
 
   // ================================================================ Demostración
   function demoStore() {
-    const KEY = "yaluma.demo.v1";
+    const KEY = "yaluma.demo.v2";
     const SESSION = "yaluma.demo.session";
     let mem = null;
     const read = () => {
@@ -127,7 +127,7 @@ window.YalumaStore = (() => {
 
     function seed() {
       const P = (id, username, name, role) => ({ id, username, name, role, active: true, created_at: now() });
-      const profiles = [P("u1", "dueno", "Dueño", "admin"), P("u2", "luis", "Luis", "staff"), P("u3", "fanny", "Fanny", "staff")];
+      const profiles = [P("u1", "lg", "LG", "admin"), P("u4", "fg", "FG", "admin"), P("u2", "luis", "Luis", "staff"), P("u3", "fanny", "Fanny", "staff")];
       const rooms = allRooms();
       const set = (n, st) => { const r = rooms.find((x) => x.number === n); if (r) r.state = st; };
       set("203", "limpieza");
@@ -165,8 +165,9 @@ window.YalumaStore = (() => {
         { id: 3, at: at(-5), user_id: "u2", text: "Inició su turno" },
       ];
       return {
-        profiles, passwords: { dueno: "demo", luis: "demo", fanny: "demo" }, rooms, reservations, payments, shifts, activity,
-        seq: { profile: 3, reservation: id, payment: pid, shift: 3, activity: 3 },
+        // Sin contraseñas: cada persona elige la suya la primera vez que entra (ver setFirstPassword).
+        profiles, passwords: {}, rooms, reservations, payments, shifts, activity,
+        seq: { profile: 4, reservation: id, payment: pid, shift: 3, activity: 3 },
       };
     }
 
@@ -180,6 +181,22 @@ window.YalumaStore = (() => {
 
     window.addEventListener("storage", (e) => { if (e.key === KEY) { load(); listeners.forEach((f) => f()); } });
 
+    // Las contraseñas del modo demostración nunca se guardan en texto: solo un
+    // resumen PBKDF2 con sal, y solo en este navegador. (En Supabase las guarda el servidor.)
+    const b64 = (buf) => btoa(String.fromCharCode(...new Uint8Array(buf)));
+    async function digest(password, saltB64) {
+      if (!window.crypto || !crypto.subtle) throw new Error("Este navegador no permite guardar contraseñas de forma segura.");
+      const salt = saltB64 ? Uint8Array.from(atob(saltB64), (c) => c.charCodeAt(0)) : crypto.getRandomValues(new Uint8Array(16));
+      const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(password), "PBKDF2", false, ["deriveBits"]);
+      const bits = await crypto.subtle.deriveBits({ name: "PBKDF2", salt, iterations: 150000, hash: "SHA-256" }, key, 256);
+      return { salt: b64(salt), hash: b64(bits) };
+    }
+    async function checkPassword(u, password) {
+      const rec = db.passwords[u];
+      if (!rec || !rec.salt) return false;
+      return (await digest(password, rec.salt)).hash === rec.hash;
+    }
+
     return {
       demo: true,
       me,
@@ -188,19 +205,34 @@ window.YalumaStore = (() => {
         load();
         const u = cleanUser(username);
         const p = db.profiles.find((x) => x.username === u);
-        if (!p || db.passwords[u] !== password) throw new Error("Usuario o contraseña incorrectos.");
+        if (!p || !(await checkPassword(u, password))) throw new Error("Usuario o contraseña incorrectos.");
         if (!p.active) throw new Error("Su cuenta todavía no está activa. Pídale al administrador que la active.");
         try { localStorage.setItem(SESSION, p.id); } catch { /* sin almacenamiento */ }
         return p;
       },
       async signOut() { try { localStorage.removeItem(SESSION); } catch { /* sin almacenamiento */ } },
-      async changePassword(password) { load(); db.passwords[me().username] = password; save(); },
+      async changePassword(password) { const h = await digest(password); load(); db.passwords[me().username] = h; save(); },
+      // Primera vez: la cuenta existe pero todavía no tiene contraseña.
+      async needsPassword(username) {
+        load();
+        const u = cleanUser(username);
+        return db.profiles.some((p) => p.username === u) && !db.passwords[u];
+      },
+      async setFirstPassword(username, password) {
+        const u = cleanUser(username);
+        const h = await digest(password);
+        load();
+        if (db.passwords[u]) throw new Error("Esta cuenta ya tiene contraseña.");
+        db.passwords[u] = h;
+        save();
+      },
       async createAccount({ username, name, password, role }) {
         load();
         const u = cleanUser(username);
         if (db.profiles.some((p) => p.username === u)) throw new Error("Ese usuario ya existe.");
+        const h = await digest(password);
         db.profiles.push({ id: "u" + ++db.seq.profile, username: u, name, role, active: true, created_at: now() });
-        db.passwords[u] = password;
+        db.passwords[u] = h;
         save();
       },
       async profiles() { load(); return clone(db.profiles); },
