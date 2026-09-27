@@ -98,6 +98,10 @@ export function createLayersPanel(globe: Globe): HTMLElement {
     return h("div", { class: "layer" }, h("label", { class: "layer-row", title: about }, check, h("span", {}, label)), details);
   });
 
+  const streets = h("label", { class: "layer-row", title: "Road names, highway shields and place names over the imagery, once you zoom in" },
+    h("input", { type: "checkbox", checked: s.streets, onchange: (e: Event) => { s.streets = (e.target as HTMLInputElement).checked; apply(); } }),
+    h("span", {}, "Street and place names"));
+
   const veValue = h("span", { class: "value" }, `${s.exaggeration}×`);
   const ve = h("input", {
     type: "range",
@@ -141,6 +145,7 @@ export function createLayersPanel(globe: Globe): HTMLElement {
     { class: "popover layers-panel", hidden: true },
     h("h3", { class: "panel-sub" }, "Base map"),
     base,
+    streets,
     photoreal,
     h("h3", { class: "panel-sub" }, "Analysis layers"),
     ...overlays,

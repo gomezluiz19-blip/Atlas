@@ -21,7 +21,8 @@ describe("city water", () => {
 
   it("spots buried channels", () => {
     expect(isUnderground({ waterway: "stream", tunnel: "culvert" })).toBe(true);
-    expect(isUnderground({ waterway: "stream", layer: "-1" })).toBe(true);
+    expect(isUnderground({ waterway: "river", layer: "-1" })).toBe(false);
+    expect(isUnderground({ waterway: "stream", location: "underground" })).toBe(true);
     expect(isUnderground({ waterway: "stream", tunnel: "no" })).toBe(false);
     expect(isUnderground({ waterway: "river" })).toBe(false);
   });

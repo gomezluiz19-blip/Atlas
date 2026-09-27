@@ -47,7 +47,7 @@ function drawLayer(fs: CityWaterFeature[]): ImageryLayer {
       const kind = l.attrs[0] as CityWaterKind, buried = l.attrs[1] === 1;
       if (lv < 11 && (kind === "drain" || kind === "pipe")) return null;
       const g = Math.min(1.6, 0.6 + (lv - 10) * 0.18);
-      return { color: CITY_WATER[kind].color, width: (width[kind] ?? 1.5) * g, dash: buried ? [3, 2.5] : undefined, casing: kind === "river" || kind === "canal" ? "rgba(255,255,255,0.55)" : undefined };
+      return { color: CITY_WATER[kind].color, width: (width[kind] ?? 1.5) * g, dash: buried ? [3, 2.5] : undefined, casing: kind === "river" || kind === "canal" ? "rgba(255,255,255,0.7)" : "rgba(0,0,0,0.55)" };
     });
     drawDots(ctx, t, points, (p, lv) => (lv < 11 ? null : { color: CITY_WATER[p.kind].color, radius: p.kind === "basin" ? 3.5 : 4.5 }));
   }, { maximumLevel: 18, credit: "City water: © OpenStreetMap contributors" });

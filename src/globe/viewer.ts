@@ -30,11 +30,14 @@ export interface LayerState {
   exaggeration: number;
   bathymetry: boolean;
   photorealistic: boolean;
+  /** Street and place names over the imagery, once zoomed in. */
+  streets: boolean;
 }
 
 export class Globe {
   readonly viewer: Viewer;
   private satellite: ImageryLayer;
+  private streetLayers: ImageryLayer[] = [];
   private backup: ImageryLayer;
   /** Messages worth showing the user (e.g. imagery failover). */
   onNotice?: (message: string) => void;
@@ -53,6 +56,7 @@ export class Globe {
     exaggeration: 1,
     bathymetry: false,
     photorealistic: false,
+    streets: true,
   };
   readonly hasPhotoreal = Boolean(config.googleMapsKey);
   /** Called after every apply() (e.g. to mirror layer state elsewhere). */
@@ -132,6 +136,21 @@ export class Globe {
     this.viewer.imageryLayers.add(species);
     // Relief shading reads best over satellite; the order above keeps contours on top.
     this.viewer.imageryLayers.raiseToTop(this.overlays.get("contours")!);
+    // Street and place names from Esri's reference overlays (made for satellite
+    // imagery), shown once zoomed in far enough to read them. Layers added later
+    // (networks, analysis results) draw on top.
+    for (const [service, level] of [["World_Transportation", 11], ["World_Boundaries_and_Places", 9]] as const) {
+      const l = new ImageryLayer(
+        new UrlTemplateImageryProvider({
+          url: `https://server.arcgisonline.com/ArcGIS/rest/services/Reference/${service}/MapServer/tile/{z}/{y}/{x}`,
+          maximumLevel: 19,
+          credit: "Street and place names: Esri, HERE, Garmin, © OpenStreetMap contributors",
+        }),
+        { minimumTerrainLevel: level },
+      );
+      this.streetLayers.push(l);
+      this.viewer.imageryLayers.add(l);
+    }
 
     if (this.hasIonTerrain) {
       CesiumTerrainProvider.fromIonAssetId(1, { requestVertexNormals: true }).then((t) => {
@@ -197,6 +216,7 @@ export class Globe {
     const s = this.state;
     this.satellite.show = s.base === "satellite";
     if (s.base !== "satellite") this.backup.show = false;
+    for (const l of this.streetLayers) l.show = s.streets;
     for (const [kind, layer] of this.overlays) {
       layer.show = s.overlays[kind].on;
       layer.alpha = s.overlays[kind].opacity;

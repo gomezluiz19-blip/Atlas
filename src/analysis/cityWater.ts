@@ -44,8 +44,12 @@ export function classify(t: Record<string, string>): CityWaterKind | null {
   return null;
 }
 
+/**
+ * Buried: in a culvert or tunnel, or mapped as underground. (Not `layer=-1`
+ * alone: rivers are often tagged that way just where they pass under bridges.)
+ */
 export function isUnderground(t: Record<string, string>): boolean {
-  return Boolean(t.tunnel && t.tunnel !== "no") || t.location === "underground" || Number(t.layer ?? 0) < 0 || t.man_made === "pipeline";
+  return Boolean(t.tunnel && t.tunnel !== "no") || t.location === "underground" || t.man_made === "pipeline";
 }
 
 const R = 6_371_000;
