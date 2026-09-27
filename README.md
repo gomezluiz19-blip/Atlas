@@ -138,8 +138,26 @@ the internet. Tap a dot for the plant, port or airport.
   events, alliances, trade and sanctions drawn on the globe and a debrief. *Field trips*: timetable, adults
   and buses, cost per student, the forecast, the nearest hospital, a checklist and a printable permission slip.
 
+- **Learn** is for students: a daily challenge with a streak, Flight School (steer a plane over the globe to
+  named countries, seeing which country you're over as you go), Flag Match, Where in the world? and Time
+  traveller, taking a teacher's quiz from a link, a passport of country stamps and badges, and Places to
+  learn: museums, libraries, science centres, zoos, planetariums, gardens and historic sites nearby from
+  OpenStreetMap (free entry marked where recorded), plus famous museums that are free or cheaper for students.
+
 The task robot opens these too: "Europe in 1914", "the Roman Empire in 100 AD", "plan a trip to Lisbon",
 "plant health in Iowa", "plan a field trip to the Science Museum", "my cattle", "construction site".
+
+**Space.** The Saturn button shows satellites computed live from CelesTrak's orbital elements (space
+stations, the brightest, science, weather, GPS, geostationary and Starlink), the ISS with its orbit and a
+"ride along" camera, when the ISS will pass over your place, rocket launches with countdowns from Launch
+Library 2 (a rocket in flight gets an illustrative climb, labelled as such), tonight's Moon and planets,
+and a solar system view: a zoom out from Earth to every planet in its real position for any date, with
+Saturn's rings, the asteroid belt, time controls and facts.
+
+**Atlas AI.** The search box's task robot can be backed by Claude: it understands any request or
+question, acts on the globe through Atlas's own tools, and answers briefly. Connect a key or a proxy
+under About › Atlas AI; see [docs/ai-proxy.md](docs/ai-proxy.md). Without it, the rule-based planner
+still handles requests.
 
 Keyboard: `1`–`9` switch themes, `/` searches, `Esc` cancels a line or closes a chart.
 
@@ -194,6 +212,11 @@ These keys end up in the public page, so restrict them to your site's domain in 
   and contributors (GPL-3.0), loaded live when used. Borders before about 1800 are approximate.
 - **Grow:** daily temperature, rain and FAO-56 reference evapotranspiration from Open-Meteo; NDVI from NASA
   GIBS (MODIS Terra, 8-day). Crop coefficients from FAO-56; degree-day targets are typical values.
+- **Satellites:** element sets from [CelesTrak](https://celestrak.org), propagated with SGP4
+  ([satellite.js](https://github.com/shashwatak/satellite-js)). **Launches:** [The Space Devs](https://thespacedevs.com)
+  Launch Library 2. **Planets:** JPL approximate Keplerian elements (Standish).
+- **Places to learn:** OpenStreetMap via Overpass; the list of free and discounted museums is hand-compiled
+  (prices change; check before going).
 - **My Places:** building footprints and heights from OpenStreetMap; sunshine and rainfall from ERA5 via Open-Meteo.
 - **Search and place names:** [Photon](https://photon.komoot.io) (by komoot) and OpenStreetMap Nominatim
   (light, interactive use only, per its usage policy).
@@ -265,4 +288,7 @@ page at the same view.
 3. **Geology:** faults and folds in sections; multiple columns along a section; borehole data.
 4. **Time:** swipe and compare satellite imagery across years (Landsat/Sentinel-2).
 5. **3D cut-away:** slice the terrain open along a cross-section and view it from the side.
-6. **Projects:** save and share views, annotations and results; templates such as "Field site report".
+6. **Campuses and standard places:** map a whole campus into My Places (e.g. a university), and with a
+   connected CRM or student system reserve rooms, book appointments and office hours, request services and see
+   how busy each area is; then templates for schools, hospitals and similar places.
+7. **Projects:** save and share views, annotations and results; templates such as "Field site report".

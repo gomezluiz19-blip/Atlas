@@ -1304,3 +1304,38 @@ button.stage-tile:hover:not(:disabled) { transform: translateY(-3px); }
 .robot-answer { margin: 8px 0 0; padding: 10px 12px; border-radius: 12px; background: color-mix(in srgb, var(--accent) 10%, transparent); font-size: 14px; line-height: 1.45; }
 .about-ai { align-self: flex-start; }
 @media (max-width: 720px) { .ai-panel { width: auto; left: var(--gutter); right: var(--gutter); } }
+
+/* Work › Learn */
+.learn-hero { display: flex; align-items: center; gap: 12px; padding: 14px; border-radius: 16px; color: #fff; background: linear-gradient(135deg, #30d158, #0a84ff); }
+.learn-hero > div { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.learn-hero span { font-size: 13px; opacity: 0.9; }
+.learn-hero .primary-btn { background: #fff; color: #0a84ff; }
+.learn-streak { font-size: 18px !important; font-weight: 800; opacity: 1 !important; }
+.flag-big { font-size: clamp(64px, 12vw, 120px); line-height: 1.1; }
+.learn-kind { flex: none; width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; font-size: 18px; background: color-mix(in srgb, var(--c) 20%, transparent); }
+.learn-free, .learn-paid { flex: none; font-size: 11.5px; font-weight: 700; padding: 3px 8px; border-radius: 999px; }
+.learn-free { background: color-mix(in srgb, #30d158 22%, transparent); color: #1f8a3a; }
+.learn-paid { background: var(--fill); color: var(--secondary); }
+.passport-stamps { display: flex; flex-wrap: wrap; gap: 10px; padding: 14px; border-radius: 16px; background: repeating-linear-gradient(0deg, color-mix(in srgb, #e0b050 10%, transparent) 0 22px, transparent 22px 23px), color-mix(in srgb, #e0b050 8%, var(--material)); }
+.passport-stamp { display: inline-block; padding: 6px 10px; border: 2.5px solid var(--c); border-radius: 10px; color: var(--c); font-weight: 800; font-size: 12.5px; text-transform: uppercase; letter-spacing: 0.04em; transform: rotate(var(--r)); opacity: 0.85; }
+.passport-badges { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 8px; }
+.passport-badge { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 2px; padding: 10px 6px; border-radius: 14px; background: var(--material); filter: grayscale(1); opacity: 0.55; }
+.passport-badge.got { filter: none; opacity: 1; box-shadow: inset 0 0 0 2px #ffd60a; }
+.passport-badge span { font-size: 28px; }
+.passport-badge strong { font-size: 13px; }
+.passport-badge small { font-size: 11px; color: var(--secondary); }
+.flight-hud { position: absolute; left: 50%; top: 20px; transform: translateX(-50%); width: min(620px, calc(100vw - 32px)); padding: 14px 20px; border-radius: 20px; text-align: center; color: #fff; background: rgba(12,16,24,0.78); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
+.flight-hud h2 { margin: 4px 0 0; font-size: clamp(22px, 3vw, 34px); }
+.flight-hud p { margin: 4px 0 0; }
+.flight-help { font-size: 12px; opacity: 0.6; }
+.flight-over { position: absolute; left: 24px; bottom: 96px; display: flex; flex-direction: column; padding: 10px 16px; border-radius: 16px; color: #fff; background: rgba(12,16,24,0.75); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+.flight-over strong { font-size: 22px; }
+.flight-over.pop { animation: pop 0.35s ease-out; }
+@keyframes pop { from { transform: scale(0.92); opacity: 0.4; } }
+.flight-arrow { position: absolute; left: 50%; top: 50%; width: 40px; height: 240px; margin: -120px 0 0 -20px; pointer-events: none; }
+.flight-arrow span { position: absolute; top: 0; left: 0; width: 40px; height: 40px; display: grid; place-items: center; font-size: 34px; color: #ffd60a; text-shadow: 0 2px 6px rgba(0,0,0,0.6); transform: rotate(-90deg); }
+.flight-controls { position: absolute; right: 24px; bottom: 96px; display: flex; gap: 8px; }
+.flight-turn { width: 60px; height: 60px; border-radius: 50%; border: 0; font-size: 26px; color: #fff; background: rgba(12,16,24,0.75); cursor: pointer; touch-action: none; }
+.flight-turn.small { width: 44px; height: 44px; font-size: 20px; align-self: center; }
+.flight-turn:active { background: #0a84ff; }
+@media (prefers-reduced-motion: reduce) { .flight-over.pop { animation: none; } }

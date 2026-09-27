@@ -10,6 +10,13 @@ import type { WorkCtx } from "./hub";
 import { flyToView, showYear } from "./present";
 import { overhead } from "./presentModel";
 import { confetti, distanceKm, revealMap, stage } from "./quiz";
+import { award, loadPassport, savePassport } from "./passport";
+
+/** Game badges for the learner's passport. */
+function badge(app: App, id: string, label: string) {
+  const p = loadPassport();
+  if (award(p, id)) { savePassport(p); app.toast(`New badge: ${label}!`, 4000); }
+}
 
 const ROUNDS = 5;
 const best = (k: string) => { try { return Number(localStorage.getItem(`atlas.game.${k}`) ?? 0); } catch { return 0; } };
@@ -40,7 +47,7 @@ export function openGames(ctx: WorkCtx, back: () => void) {
   );
 }
 
-function where(app: App, places: GamePlace[], key: string, what: string) {
+export function where(app: App, places: GamePlace[], key: string, what: string) {
   const s = stage(app);
   const rounds = pick(places, ROUNDS);
   let r = 0, total = 0;
@@ -62,6 +69,7 @@ function where(app: App, places: GamePlace[], key: string, what: string) {
   const end = () => {
     const record = total > best(key);
     if (record) setBest(key, total);
+    if (total >= 3500) badge(app, "where", "Sharp eye 🎯");
     s.card.replaceChildren(h("span", { class: "stage-num" }, `Where in the world? · ${what}`), h("h2", {}, `${total.toLocaleString()} points`), h("p", {}, record ? "A new best score! 🎉" : `Best so far: ${best(key).toLocaleString()}`));
     s.answers.replaceChildren();
     s.bar.replaceChildren(h("button", { class: "present-btn wide", onclick: () => { s.close(); where(app, places, key, what); } }, "Play again"), h("button", { class: "present-btn", "aria-label": "Close", onclick: () => s.close() }, "✕"));
@@ -70,7 +78,7 @@ function where(app: App, places: GamePlace[], key: string, what: string) {
   void round();
 }
 
-function timeTraveller(app: App) {
+export function timeTraveller(app: App) {
   const s = stage(app);
   // Recorded history, where the maps have the most detail.
   const years = YEARS.filter((y) => y >= -500);
@@ -95,6 +103,7 @@ function timeTraveller(app: App) {
   const end = () => {
     const record = total > best("time");
     if (record) setBest("time", total);
+    if (total >= 3000) badge(app, "time", "Time traveller ⏳");
     s.card.replaceChildren(h("span", { class: "stage-num" }, "Time traveller"), h("h2", {}, `${total.toLocaleString()} points`), h("p", {}, record ? "A new best score! 🎉" : `Best so far: ${best("time").toLocaleString()}`));
     s.answers.replaceChildren();
     s.bar.replaceChildren(h("button", { class: "present-btn wide", onclick: () => { s.close(); timeTraveller(app); } }, "Play again"), h("button", { class: "present-btn", "aria-label": "Close", onclick: () => { void showYear(app, null); s.close(); } }, "✕"));

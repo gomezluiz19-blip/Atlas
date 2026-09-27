@@ -39,6 +39,9 @@ import { ndviAction, openGrow } from "./work/grow";
 import { openBuild } from "./work/build";
 import { openFlock } from "./work/flock";
 import { openTeach } from "./work/teach";
+import { openLearn } from "./work/learn";
+import { loadPassport, savePassport, stamp } from "./work/passport";
+import { countryAt } from "./data/countries";
 import { openQuizLink } from "./work/quiz";
 import { plan } from "./robot/plan";
 import { describe } from "./robot/run";
@@ -128,6 +131,7 @@ const work = createWork(app, [
   { id: "grow", label: "Grow", about: "Fields and crops: growth stage, harvest, water and frost", color: "#30d158", icon: icons.sprout, open: openGrow },
   { id: "build", label: "Build", about: "Model a building on its site and track construction; worksite tools (Pro)", color: "#ff9f0a", icon: icons.crane, open: openBuild },
   { id: "flock", label: "Flock", about: "Animals in your care: farms, vets, rescues and adoption", color: "#8bd346", icon: icons.paw, open: openFlock },
+  { id: "learn", label: "Learn", about: "Games, a daily challenge, your passport, and museums and libraries near you", color: "#30d158", icon: icons.book, open: openLearn },
   { id: "teach", label: "Teach", about: "Lessons, quizzes, games, a world politics simulation and field trips", color: "#bf5af2", icon: icons.graduate, open: openTeach },
 ]);
 myPlaces.button.before(work.button);
@@ -144,7 +148,7 @@ $("ui").append(work.panel);
 work.button.addEventListener("work:opened", () => { myPlaces.close(); pro.close(); toggleLayers(false); });
 myPlaces.button.addEventListener("click", () => work.ctx.close());
 app.actions.set("work:ndvi", ndviAction(app));
-const WORK_OPEN = { plan: openPlans, present: openPresent, video: openVideo, grow: openGrow, build: openBuild, flock: openFlock, teach: openTeach };
+const WORK_OPEN = { plan: openPlans, present: openPresent, video: openVideo, grow: openGrow, build: openBuild, flock: openFlock, teach: openTeach, learn: openLearn };
 for (const t of Object.keys(WORK_OPEN) as (keyof typeof WORK_OPEN)[])
   app.actions.set(`work:${t}`, { label: `Work › ${t}`, run: () => { work.ctx.open(); WORK_OPEN[t](work.ctx); } });
 // A student opening a quiz link from their teacher.
@@ -355,7 +359,19 @@ const syncHash = () => {
     }
   }, 400);
 };
-app.onPlace = () => { syncHash(); myPlaces.refresh(); };
+app.onPlace = (p) => {
+  syncHash();
+  myPlaces.refresh();
+  // Learn's passport: a stamp for each country explored (once a learner has opened Learn).
+  if (p && loadPassport().active)
+    void countryAt(p.lon, p.lat).then((c) => {
+      if (!c) return;
+      const pass = loadPassport();
+      const earned = stamp(pass, c.name);
+      savePassport(pass);
+      if (earned.length) app.toast(`🛂 New passport stamp: ${c.name}`, 3000);
+    }).catch(() => {});
+};
 app.onTheme = syncHash;
 globe.viewer.camera.moveEnd.addEventListener(syncHash);
 

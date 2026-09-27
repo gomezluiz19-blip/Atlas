@@ -48,6 +48,7 @@ const RULES: Rule[] = [
   { re: /\b(my (field|farm|crops?)|crop (growth|stage|health)s?|when to (harvest|plant)|irrigat(e|ion)|growing degree days|gdd)\b/, step: layer("work:grow", "Open Grow (Work)") },
   { re: /\b(construction|building site|worksite|work site|construction site|build (a |an |my )?(house|building|tower|block)|site progress)\b/, step: layer("work:build", "Open Build (Work)") },
   { re: /\b(livestock|herds?|flocks?|my (cows|cattle|sheep|goats|pigs|horses|chickens|animals)|paddocks?|vet(erinary)? (practice|clinic|records)|animal rescue|rescue cent(re|er)|(pet|animal) adoption|adoption agency|adopt a (dog|cat|pet))\b/, step: layer("work:flock", "Open Flock (Work)") },
+  { re: /\b(learn(ing)? games?|games? (for|to learn)|flight (game|school)|flag (game|quiz|match)|flags of|my passport|daily challenge|homework|(museums?|librar(y|ies)|science cent(re|er)s?|planetariums?|zoos?) (near|nearby|around|to visit|for (kids|students))|free museums?|places to learn|student discounts?)\b/, step: layer("work:learn", "Open Learn (Work)") },
   { re: /\b(field trips?|school trips?|class trips?|excursions?|lesson( plans?)?|quiz(zes)?|tests? for my class|my (class|students)|teach(ing)?|classroom|world summit)\b/, step: layer("work:teach", "Open Teach (Work)") },
   { re: /\b(plant|crop|vegetation) health\b|\bndvi\b|\bhow green\b/, step: layer("work:ndvi", "Add plant health from space (NDVI)") },
   // Map layers
