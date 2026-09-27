@@ -43,6 +43,9 @@ const RULES: Rule[] = [
   { re: /\b((make|create|start|build) (a |my )?(presentation|slides?|slideshow|slide deck)|presentation|slideshow)\b/, step: layer("work:present", "Open Present (Work)") },
   { re: /\b(record (a )?(video|tour|this)|screen ?record(ing)?|make a video|video)\b/, step: layer("work:video", "Open Video (Work)") },
   { re: /\b(my (field|farm|crops?)|crop (growth|stage|health)s?|when to (harvest|plant)|irrigat(e|ion)|growing degree days|gdd)\b/, step: layer("work:grow", "Open Grow (Work)") },
+  { re: /\b(construction|building site|worksite|work site|construction site|build (a |an |my )?(house|building|tower|block)|site progress)\b/, step: layer("work:build", "Open Build (Work)") },
+  { re: /\b(livestock|herds?|flocks?|my (cows|cattle|sheep|goats|pigs|horses|chickens|animals)|paddocks?|vet(erinary)? (practice|clinic|records)|animal rescue|rescue cent(re|er)|(pet|animal) adoption|adoption agency|adopt a (dog|cat|pet))\b/, step: layer("work:flock", "Open Flock (Work)") },
+  { re: /\b(field trips?|school trips?|class trips?|excursions?|lesson( plans?)?|quiz(zes)?|tests? for my class|my (class|students)|teach(ing)?|classroom|world summit)\b/, step: layer("work:teach", "Open Teach (Work)") },
   { re: /\b(plant|crop|vegetation) health\b|\bndvi\b|\bhow green\b/, step: layer("work:ndvi", "Add plant health from space (NDVI)") },
   // Map layers
   { re: /\b(live )?(rain )?radar\b|\bis it raining\b/, step: layer("overlay:radar", "Add live rain radar") },
@@ -105,7 +108,7 @@ const STOP = new Set(("show me the a an and or what whats what's where is are ho
   "with plus then near in at around across through for over can could you i i'd want wanna to look like all some any get give tell about this " +
   "that there my go goes going flow flows flowing it its be will would which who why when also both into from up down list compare vs versus " +
   "nearby close by let lets let's us we our on onto just now show's showing view layer layers overlay add also everything stuff things " +
-  "happens happening").split(/\s+/));
+  "happens happening plan planning check checking make making create start manage managing track tracking keep record open need help").split(/\s+/));
 
 /** Words that describe a place without naming one. */
 const GENERIC = new Set("city town area place region neighbourhood neighborhood district downtown centre center here there local spot zone streets street urban".split(" "));

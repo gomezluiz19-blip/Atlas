@@ -116,8 +116,30 @@ the internet. Tap a dot for the plant, port or airport.
   mm and litres for the field, frost and heat in the week ahead, a field diary, and plant health from space
   (MODIS NDVI). Maize, rice, wheat, beans, soybeans, tomatoes, potatoes, coffee, cacao and bananas.
 
+- **Build** models a construction project on the real site: draw the footprint, choose the use and storeys,
+  and a 3D model rises with the schedule (framed floors, closed-in floors, the floor going up, a tower crane).
+  Scrub a timeline or play a time-lapse of the plan; record each phase's progress to see planned against
+  actual, days behind and the forecast finish; get floor area and a rough cost; and see which of the next ten
+  days rain, wind (cranes) or frost (concrete) will stop work. **Worksite management is a Pro feature**
+  (open to try): a daily log with photos and crew counts, issues pinned on the site, deliveries, and a
+  daily report to send.
+- **Flock** is for anyone caring for animals: farms and ranches, vet practices, rescue centres and adoption
+  agencies. Records for each animal (tag, photo, weights and daily gain, vaccinations and treatments with
+  follow-ups, breeding and due dates), a "due in the next 30 days" list, paddocks drawn on the satellite map
+  with stocking rate and how long the grass lasts, heat stress (THI) from the weather, a CSV export, an
+  adoption listing to share, and your animals ambling around their paddocks on the globe.
+- **Teach** gathers a teacher's tools. *Lessons*: slides on the globe with classroom mode (big text, a pen
+  to draw on the globe, presenter notes, a timer) and lesson starters (continents and oceans, volcanoes and
+  earthquakes, ancient civilisations, rivers). *Quizzes and tests*: multiple choice, true or false and "find
+  it on the map" questions, hosted on the class screen with teams, a timer and a scoreboard, or sent to
+  students as a link (the quiz travels in the URL); students send back a result code and the gradebook shows
+  scores and the questions to revisit. *Games*: Where in the world? and Time traveller. *World Summit*: a
+  turn-based international relations simulation where teams lead real countries over several lessons, with
+  events, alliances, trade and sanctions drawn on the globe and a debrief. *Field trips*: timetable, adults
+  and buses, cost per student, the forecast, the nearest hospital, a checklist and a printable permission slip.
+
 The task robot opens these too: "Europe in 1914", "the Roman Empire in 100 AD", "plan a trip to Lisbon",
-"plant health in Iowa".
+"plant health in Iowa", "plan a field trip to the Science Museum", "my cattle", "construction site".
 
 Keyboard: `1`–`9` switch themes, `/` searches, `Esc` cancels a line or closes a chart.
 
@@ -230,6 +252,9 @@ page at the same view.
 - Species, mines and infrastructure show what people have recorded or mapped, which is never complete.
 - Grow's degree-day targets and crop coefficients are typical values; varieties, soils and management differ,
   and the irrigation figure ignores soil storage and system losses. NDVI pixels are about 250 m.
+- Build's cost rates and schedule durations are typical first estimates, not a quantity surveyor's figures.
+- Flock's grazing estimate ignores regrowth; gestation lengths are species averages.
+- Quizzes, results and games are kept in each browser; nothing is sent to a server, so results travel as codes or files.
 - Plan's travel times use straight-line distance with a detour factor, not a road network.
 
 ## Roadmap

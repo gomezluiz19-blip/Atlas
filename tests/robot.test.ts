@@ -87,3 +87,15 @@ describe("history and work requests", () => {
     expect(plan("plant health in Iowa").steps[0]).toMatchObject({ action: "work:ndvi" });
   });
 });
+
+describe("build, flock and teach requests", () => {
+  it("opens the right tool", () => {
+    const trip = plan("plan a field trip to the Science Museum");
+    expect(trip.steps[0]).toMatchObject({ action: "work:teach" });
+    expect(trip.place).toEqual({ kind: "query", text: "science museum" });
+    expect(plan("check on my cattle").steps[0]).toMatchObject({ action: "work:flock" });
+    expect(plan("pet adoption").steps[0]).toMatchObject({ action: "work:flock" });
+    expect(plan("construction site progress").steps[0]).toMatchObject({ action: "work:build" });
+    expect(plan("make a quiz for my class").steps[0]).toMatchObject({ action: "work:teach" });
+  });
+});

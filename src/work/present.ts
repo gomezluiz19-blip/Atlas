@@ -13,6 +13,7 @@ import { ListStore, download, newId } from "./store";
 
 const store = new ListStore<Deck>("atlas.work.decks.v1");
 export const decks = () => store.all();
+export const saveDeck = (d: Deck) => store.save(d);
 
 // ---- The borders layer, shared by the explorer and the player ------------------
 
@@ -118,6 +119,33 @@ export interface PlayOptions {
   start?: number;
   /** Called when each slide appears (Video uses it for captions). */
   onSlide?(s: Slide, i: number): void;
+  /** Classroom tools: bigger text, a pen to draw over the globe, notes and a timer. */
+  teach?: boolean;
+}
+
+/** A see-through layer to draw on over the globe while teaching. */
+function penLayer() {
+  const c = h("canvas", { class: "pen-layer" }) as HTMLCanvasElement;
+  const g = c.getContext("2d")!;
+  let on = false, down = false, color = "#ff3b30";
+  const size = () => { c.width = innerWidth * devicePixelRatio; c.height = innerHeight * devicePixelRatio; g.scale(devicePixelRatio, devicePixelRatio); };
+  size();
+  addEventListener("resize", size);
+  c.addEventListener("pointerdown", (e) => { if (!on) return; down = true; g.beginPath(); g.moveTo(e.clientX, e.clientY); c.setPointerCapture(e.pointerId); });
+  c.addEventListener("pointermove", (e) => {
+    if (!down) return;
+    g.lineTo(e.clientX, e.clientY);
+    g.strokeStyle = color; g.lineWidth = 5; g.lineCap = "round"; g.lineJoin = "round";
+    g.stroke();
+  });
+  c.addEventListener("pointerup", () => (down = false));
+  return {
+    el: c,
+    toggle(v = !on) { on = v; c.classList.toggle("on", on); return on; },
+    color(v: string) { color = v; },
+    clear() { g.clearRect(0, 0, c.width, c.height); },
+    dispose() { removeEventListener("resize", size); },
+  };
 }
 
 /** Plays a deck full screen; resolves when it ends or is closed. */
@@ -127,13 +155,26 @@ export function play(app: App, deck: Deck, opts: PlayOptions = {}): { done: Prom
   const card = h("div", { class: "present-card" });
   const counter = h("span", { class: "present-count" });
   const pauseBtn = h("button", { class: "present-btn", "aria-label": "Pause" }, "❚❚");
-  const root = h("div", { class: "present", role: "dialog", "aria-label": deck.name },
-    card,
+  // Teaching tools.
+  const pen = opts.teach ? penLayer() : null;
+  const notes = h("div", { class: "present-notes", hidden: true });
+  const clock = h("span", { class: "present-clock", title: "Time since you started" }, "0:00");
+  const t0 = performance.now();
+  const clockTimer = opts.teach ? window.setInterval(() => { const s = Math.floor((performance.now() - t0) / 1000); clock.textContent = `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`; }, 1000) : 0;
+  const penBtn = h("button", { class: "present-btn", "aria-label": "Draw on the screen", title: "Draw (D)", onclick: () => penBtn.classList.toggle("on", pen!.toggle()) }, "✎");
+  const colours = h("span", { class: "present-colours" }, ...["#ff3b30", "#ffd60a", "#30d158", "#ffffff"].map((c) =>
+    h("button", { class: "present-swatch", style: `background:${c}`, "aria-label": "Pen colour", onclick: () => { pen!.color(c); if (!penBtn.classList.contains("on")) penBtn.click(); } })));
+  const notesBtn = h("button", { class: "present-btn", "aria-label": "Show my notes", title: "Notes (N)", onclick: () => { notes.hidden = !notes.hidden; notesBtn.classList.toggle("on", !notes.hidden); } }, "🗒");
+  const root = h("div", { class: "present" + (opts.teach ? " teach" : ""), role: "dialog", "aria-label": deck.name },
+    pen ? pen.el : "",
+    card, notes,
     h("div", { class: "present-bar" },
       h("button", { class: "present-btn", "aria-label": "Previous slide", onclick: () => go(i - 1) }, "‹"),
       counter,
       h("button", { class: "present-btn", "aria-label": "Next slide", onclick: () => go(i + 1) }, "›"),
       opts.tour ? pauseBtn : "",
+      opts.teach ? penBtn : "", opts.teach ? colours : "", opts.teach ? h("button", { class: "present-btn", "aria-label": "Clear drawing", title: "Clear (C)", onclick: () => pen!.clear() }, "⌫") : "",
+      opts.teach ? notesBtn : "", opts.teach ? clock : "",
       h("button", { class: "present-btn", "aria-label": "End presentation", onclick: () => close() }, "✕")));
   let resolveDone = () => {};
   const done = new Promise<void>((r) => (resolveDone = r));
@@ -159,6 +200,8 @@ export function play(app: App, deck: Deck, opts: PlayOptions = {}): { done: Prom
     stopOrbit();
     clearTimeout(timer);
     counter.textContent = `${i + 1} / ${deck.slides.length}`;
+    pen?.clear();
+    notes.replaceChildren(h("strong", {}, "Notes"), h("p", {}, s.notes || "No notes for this slide."));
     card.replaceChildren(
       s.year !== undefined ? h("span", { class: "present-year" }, yearLabel(s.year)) : "",
       h("h2", {}, s.title || deck.name),
@@ -184,6 +227,11 @@ export function play(app: App, deck: Deck, opts: PlayOptions = {}): { done: Prom
     if (e.key === "ArrowRight" || e.key === "PageDown" || e.key === " ") { e.preventDefault(); void go(i + 1); }
     else if (e.key === "ArrowLeft" || e.key === "PageUp") { e.preventDefault(); void go(i - 1); }
     else if (e.key === "Escape") close();
+    else if (opts.teach && (e.target as HTMLElement).tagName !== "INPUT") {
+      if (e.key === "d" || e.key === "D") penBtn.click();
+      else if (e.key === "n" || e.key === "N") notesBtn.click();
+      else if (e.key === "c" || e.key === "C") pen!.clear();
+    }
   };
   const close = () => {
     if (closed) return;
@@ -191,6 +239,8 @@ export function play(app: App, deck: Deck, opts: PlayOptions = {}): { done: Prom
     stopOrbit();
     clearTimeout(timer);
     removeEventListener("keydown", onKey);
+    clearInterval(clockTimer);
+    pen?.dispose();
     root.remove();
     document.body.classList.remove("presenting");
     void showYear(app, prevYear).catch(() => {});
@@ -272,6 +322,7 @@ export function openDeck(ctx: WorkCtx, id: string) {
       h("div", { class: "present-fields" },
         h("input", { class: "mp-label", value: s.title, placeholder: "Title", "aria-label": "Slide title", onchange: (e: Event) => { s.title = (e.target as HTMLInputElement).value; save(); } }),
         h("textarea", { class: "mp-notes", rows: 2, placeholder: "What to say about this place", "aria-label": "Slide text", onchange: (e: Event) => { s.text = (e.target as HTMLTextAreaElement).value; save(); } }, s.text),
+        h("textarea", { class: "mp-notes present-notes-input", rows: 1, placeholder: "Presenter notes (only shown when you ask)", "aria-label": "Presenter notes", onchange: (e: Event) => { s.notes = (e.target as HTMLTextAreaElement).value || undefined; save(); } }, s.notes ?? ""),
         h("div", { class: "present-opts" },
           yearSelect(s),
           h("label", { class: "present-check" }, h("input", { type: "checkbox", checked: !!s.orbit, onchange: (e: Event) => { s.orbit = (e.target as HTMLInputElement).checked || undefined; save(); } }), "Circle"),
@@ -290,7 +341,8 @@ export function openDeck(ctx: WorkCtx, id: string) {
     d.slides.length ? h("div", { class: "present-slides" }, ...d.slides.map(slideRow)) : h("p", { class: "muted small" }, "No slides yet."),
     d.slides.length ? h("div", { class: "pro-actions" },
       h("button", { class: "primary-btn", onclick: () => { ctx.close(); void play(app, d).done.then(() => ctx.unhide()); } }, "Play slides"),
-      h("button", { class: "pill-btn", onclick: () => { ctx.close(); play(app, d, { tour: true }); } }, "Play as a tour")) : "",
+      h("button", { class: "pill-btn", onclick: () => { ctx.close(); play(app, d, { tour: true }); } }, "Play as a tour"),
+      h("button", { class: "pill-btn", title: "Bigger text, a pen to draw on the globe, your notes and a timer", onclick: () => { ctx.close(); play(app, d, { teach: true }); } }, "Teach with it")) : "",
     h("div", { class: "pro-actions" },
       h("button", { class: "link-btn", onclick: () => download(`${d.name.replace(/[^\w -]+/g, "").trim() || "presentation"}.atlas.json`, JSON.stringify(d)) }, "Save as a file"),
       h("button", { class: "link-btn danger", onclick: () => { if (confirm(`Delete "${d.name}"?`)) { store.remove(d.id); openPresent(ctx); } } }, "Delete presentation")),

@@ -17,6 +17,8 @@ export interface Slide {
   /** Seconds this slide stays up in a tour. */
   seconds?: number;
   thumb?: string;
+  /** Teacher's notes: shown only when the presenter asks for them. */
+  notes?: string;
 }
 
 export interface Deck { id: string; name: string; created: number; slides: Slide[] }
@@ -74,6 +76,7 @@ export function deckFromJson(data: unknown, id: () => string): Deck | null {
       orbit: s.orbit === true || undefined,
       seconds: isNum(s.seconds) && s.seconds > 0 ? s.seconds : undefined,
       thumb: typeof s.thumb === "string" && s.thumb.startsWith("data:image/") ? s.thumb : undefined,
+      notes: typeof s.notes === "string" && s.notes ? s.notes : undefined,
     }];
   });
   return { id: id(), name: String(o.name ?? "Imported presentation"), created: Date.now(), slides };

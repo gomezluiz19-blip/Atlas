@@ -33,6 +33,10 @@ import { borders, openPresent, showYear } from "./work/present";
 import { YEARS, yearLabel } from "./data/history";
 import { openVideo } from "./work/video";
 import { ndviAction, openGrow } from "./work/grow";
+import { openBuild } from "./work/build";
+import { openFlock } from "./work/flock";
+import { openTeach } from "./work/teach";
+import { openQuizLink } from "./work/quiz";
 import { plan } from "./robot/plan";
 import { describe } from "./robot/run";
 import { siteBrowser } from "./ui/sites";
@@ -119,14 +123,21 @@ const work = createWork(app, [
   { id: "present", label: "Present", about: "Slides and flying tours of places, with borders from history", color: "#e0b050", icon: icons.slides, open: openPresent },
   { id: "video", label: "Video", about: "Record the globe with a title, captions and narration", color: "#ff375f", icon: icons.video, open: openVideo },
   { id: "grow", label: "Grow", about: "Fields and crops: growth stage, harvest, water and frost", color: "#30d158", icon: icons.sprout, open: openGrow },
+  { id: "build", label: "Build", about: "Model a building on its site and track construction; worksite tools (Pro)", color: "#ff9f0a", icon: icons.crane, open: openBuild },
+  { id: "flock", label: "Flock", about: "Animals in your care: farms, vets, rescues and adoption", color: "#8bd346", icon: icons.paw, open: openFlock },
+  { id: "teach", label: "Teach", about: "Lessons, quizzes, games, a world politics simulation and field trips", color: "#bf5af2", icon: icons.graduate, open: openTeach },
 ]);
 myPlaces.button.before(work.button);
 $("ui").append(work.panel);
 work.button.addEventListener("work:opened", () => { myPlaces.close(); pro.close(); toggleLayers(false); });
 myPlaces.button.addEventListener("click", () => work.ctx.close());
 app.actions.set("work:ndvi", ndviAction(app));
-for (const t of ["plan", "present", "video", "grow"] as const)
-  app.actions.set(`work:${t}`, { label: `Work › ${t}`, run: () => { work.ctx.open(); ({ plan: openPlans, present: openPresent, video: openVideo, grow: openGrow })[t](work.ctx); } });
+const WORK_OPEN = { plan: openPlans, present: openPresent, video: openVideo, grow: openGrow, build: openBuild, flock: openFlock, teach: openTeach };
+for (const t of Object.keys(WORK_OPEN) as (keyof typeof WORK_OPEN)[])
+  app.actions.set(`work:${t}`, { label: `Work › ${t}`, run: () => { work.ctx.open(); WORK_OPEN[t](work.ctx); } });
+// A student opening a quiz link from their teacher.
+const quizLink = /^#quiz=([\w-]+)/.exec(location.hash);
+if (quizLink) void openQuizLink(app, quizLink[1]);
 for (const y of YEARS)
   app.actions.set(`work:borders:${y}`, { label: `Borders in ${yearLabel(y)}`, run: () => void showYear(app, y).catch(() => app.toast("Couldn't load the historical borders. Check the connection.", 5000)), isOn: () => borders(app).year === y });
 

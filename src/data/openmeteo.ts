@@ -77,3 +77,15 @@ export async function farmWeather(lon: number, lat: number, since: string): Prom
   }
   return { recent: farmDays(await recentP), older };
 }
+
+export interface SiteDay { date: string; rain: number; rainChance: number | null; windMax: number; gustMax: number; tmin: number; tmax: number }
+
+/** The next 10 days for a building site: rain, wind and gusts (crane limits), frost (concrete). */
+export async function siteWeather(lon: number, lat: number): Promise<SiteDay[]> {
+  const r = await getJson<{ daily: { time: string[]; precipitation_sum: number[]; precipitation_probability_max: (number | null)[]; wind_speed_10m_max: number[]; wind_gusts_10m_max: number[]; temperature_2m_min: number[]; temperature_2m_max: number[] } }>(
+    "Open-Meteo",
+    `https://api.open-meteo.com/v1/forecast?${ll(lon, lat)}&daily=precipitation_sum,precipitation_probability_max,wind_speed_10m_max,wind_gusts_10m_max,temperature_2m_min,temperature_2m_max&timezone=auto&forecast_days=10`,
+  );
+  const d = r.daily;
+  return d.time.map((date, i) => ({ date, rain: d.precipitation_sum?.[i] ?? 0, rainChance: d.precipitation_probability_max?.[i] ?? null, windMax: d.wind_speed_10m_max?.[i] ?? 0, gustMax: d.wind_gusts_10m_max?.[i] ?? 0, tmin: d.temperature_2m_min?.[i] ?? 10, tmax: d.temperature_2m_max?.[i] ?? 20 }));
+}
