@@ -53,3 +53,27 @@ export function history(lon: number, lat: number): Promise<History> {
     60_000,
   );
 }
+
+export interface FarmDay { date: string; tmax: number | null; tmin: number | null; rain: number | null; et0: number | null }
+
+type DailyFarm = { daily: { time: string[]; temperature_2m_max: (number | null)[]; temperature_2m_min: (number | null)[]; precipitation_sum: (number | null)[]; et0_fao_evapotranspiration: (number | null)[] } };
+const FARM_VARS = "daily=temperature_2m_max,temperature_2m_min,precipitation_sum,et0_fao_evapotranspiration&timezone=auto";
+const farmDays = (r: DailyFarm): FarmDay[] =>
+  r.daily.time.map((date, i) => ({ date, tmax: r.daily.temperature_2m_max[i], tmin: r.daily.temperature_2m_min[i], rain: r.daily.precipitation_sum[i], et0: r.daily.et0_fao_evapotranspiration[i] }));
+
+/**
+ * Daily temperature, rain and reference evapotranspiration (FAO-56 ET0) for a
+ * field: from `since` (YYYY-MM-DD) to 16 days ahead. The last 92 days and the
+ * forecast come from the forecast models; anything older from ERA5.
+ */
+export async function farmWeather(lon: number, lat: number, since: string): Promise<{ recent: FarmDay[]; older: FarmDay[] }> {
+  const daysAgo = Math.ceil((Date.now() - Date.parse(since)) / 86_400_000);
+  const recentP = getJson<DailyFarm>("Open-Meteo", `https://api.open-meteo.com/v1/forecast?${ll(lon, lat)}&${FARM_VARS}&past_days=${Math.min(92, Math.max(1, daysAgo + 1))}&forecast_days=16`);
+  let older: FarmDay[] = [];
+  if (daysAgo > 92) {
+    const end = new Date(Date.now() - 85 * 86_400_000).toISOString().slice(0, 10);
+    const start = since < "1940-01-01" ? "1940-01-01" : since;
+    older = farmDays(await getJson<DailyFarm>("Open-Meteo", `https://archive-api.open-meteo.com/v1/archive?${ll(lon, lat)}&start_date=${start}&end_date=${end}&${FARM_VARS}`, undefined, 40_000));
+  }
+  return { recent: farmDays(await recentP), older };
+}

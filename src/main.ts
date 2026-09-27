@@ -27,6 +27,11 @@ import { PlaceStore } from "./myplaces/store";
 import { PlaceScene } from "./myplaces/scene";
 import { createMyPlaces } from "./myplaces/panel";
 import { createPro } from "./pro/panel";
+import { createWork } from "./work/hub";
+import { openPlans } from "./work/planUi";
+import { openPresent } from "./work/present";
+import { openVideo } from "./work/video";
+import { ndviAction, openGrow } from "./work/grow";
 import { plan } from "./robot/plan";
 import { describe } from "./robot/run";
 import { siteBrowser } from "./ui/sites";
@@ -107,6 +112,19 @@ $("ui").append(myPlaces.panel);
 const pro = createPro(app, myStore, myScene, (id) => { myPlaces.open(id); myPlaces.close(); });
 $("ui").append(pro.panel);
 myPlaces.button.addEventListener("click", () => pro.close());
+// Work: plan, present, record and grow, open to everyone.
+const work = createWork(app, [
+  { id: "plan", label: "Plan", about: "Trips, events, business sites, policy zones and infrastructure", color: "#0a84ff", icon: icons.route, open: openPlans },
+  { id: "present", label: "Present", about: "Slides and flying tours of places, with borders from history", color: "#e0b050", icon: icons.slides, open: openPresent },
+  { id: "video", label: "Video", about: "Record the globe with a title, captions and narration", color: "#ff375f", icon: icons.video, open: openVideo },
+  { id: "grow", label: "Grow", about: "Fields and crops: growth stage, harvest, water and frost", color: "#30d158", icon: icons.sprout, open: openGrow },
+]);
+myPlaces.button.before(work.button);
+$("ui").append(work.panel);
+work.button.addEventListener("work:opened", () => { myPlaces.close(); pro.close(); toggleLayers(false); });
+myPlaces.button.addEventListener("click", () => work.ctx.close());
+app.actions.set("work:ndvi", ndviAction(app));
+
 /** The saved place at (or nearest to) the chosen spot, else the first one. */
 const savedPlaceHere = () => {
   const all = myStore.all();
@@ -246,7 +264,7 @@ globe.onApply = () => {
     else if (!on && app.canvas.has(key)) app.canvas.drop(key);
   }
 };
-layersBtn.addEventListener("click", () => { myPlaces.close(); pro.close(); toggleLayers(); });
+layersBtn.addEventListener("click", () => { myPlaces.close(); pro.close(); work.ctx.close(); toggleLayers(); });
 globe.viewer.scene.canvas.addEventListener("pointerdown", () => toggleLayers(false));
 
 // About / data sources.

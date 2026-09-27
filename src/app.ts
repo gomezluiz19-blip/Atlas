@@ -467,16 +467,24 @@ export class App {
   }
 
   /** Waits for the next tap on the globe (e.g. to place a camera), with a prompt. */
-  pickOnce(prompt: string, cb: (p: GeoPoint) => void) {
+  pickOnce(prompt: string | null, cb: (p: GeoPoint) => void, onCancel?: () => void) {
     let done = false;
     this.setInteraction({
-      id: "pick-once", label: "", icon: "", shortcut: "", hint: prompt,
+      id: "pick-once", label: "", icon: "", shortcut: "", hint: prompt ?? "",
       activate() {}, deactivate() {},
       wantsClicks: () => !done,
       onClick: (p) => { done = true; cb(p); },
-      onCancel: () => { done = true; },
+      onCancel: () => { done = true; onCancel?.(); },
     });
-    this.toast(prompt, 8000);
+    if (prompt) this.toast(prompt, 8000);
+  }
+
+  /** Stops waiting for a tap started with pickOnce. */
+  cancelPick() {
+    if (this.interaction?.id === "pick-once") {
+      this.interaction.onCancel?.();
+      this.setInteraction(null);
+    }
   }
 
   /** Re-runs a hosted tool's line from the current place (after a finished line). */
