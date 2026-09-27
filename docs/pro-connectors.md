@@ -86,3 +86,26 @@ Put an unguessable token in the URL path (or keep the service on a private
 network) so the occupancy feed isn't public, and return only what Atlas needs:
 room numbers, dates, guest counts and room status. No names, emails or
 payment details.
+
+## Cameras
+
+Cameras placed in My Places can be connected in Atlas Pro to count people,
+vehicles and bikes live. Detection runs on the viewer's device with a small
+TensorFlow.js model (COCO-SSD, loaded only when a camera is connected); video
+never leaves the browser, and it only recognises kinds of things, never who
+someone is. Draw a counting line on the picture (e.g. across a doorway) for
+entries and exits.
+
+A camera can be connected by:
+
+- **A snapshot link** (a URL that returns the current still image, which most
+  IP cameras and NVRs offer) or **a video link** (MP4/WebM, or HLS in Safari).
+  The camera or a relay must send `Access-Control-Allow-Origin` for Atlas to
+  analyse the pixels; without it the feed can be shown but not counted.
+  RTSP streams need a relay that converts them for the web (e.g. go2rtc or
+  MediaMTX on the local network).
+- **This device's camera**, useful for trying it out.
+- **A video file**, to run the counts on recorded footage.
+
+Check local rules on video recording and signage before pointing cameras at
+public spaces; Atlas stores no frames, only counts in memory.

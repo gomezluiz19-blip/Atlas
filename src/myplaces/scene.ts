@@ -121,6 +121,7 @@ export class PlaceScene {
   constructor(private viewer: Viewer) {
     void viewer.dataSources.add(this.ds);
     void viewer.dataSources.add(this.floorDs);
+    void viewer.dataSources.add(this.liveDs);
   }
 
   /** Loads and draws the buildings around a place. */
@@ -224,6 +225,18 @@ export class PlaceScene {
           },
         });
     }
+  }
+
+  /** Live camera detections as dots on the ground (Atlas Pro). */
+  readonly liveDs = new CustomDataSource("my-place-live");
+
+  setLive(points: { lon: number; lat: number; color: string }[]) {
+    this.liveDs.entities.removeAll();
+    for (const p of points)
+      this.liveDs.entities.add({
+        position: Cartesian3.fromDegrees(p.lon, p.lat),
+        point: { pixelSize: 11, color: Color.fromCssColorString(p.color), outlineColor: Color.WHITE, outlineWidth: 2, heightReference: HeightReference.CLAMP_TO_GROUND, disableDepthTestDistance: Number.POSITIVE_INFINITY },
+      });
   }
 
   /** A low, angled view of the place, like looking at a model. */

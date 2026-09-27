@@ -46,7 +46,12 @@ feed, a reservations export from any CRM or booking system, or a live link polle
 shows how full the place is: the building in 3D split into floors coloured by occupancy, the share of rooms
 taken and guests in the building, today's arrivals, departures and rooms being cleaned, every room by floor,
 and the next 14 nights, with a slider to watch the building fill up. Spanish column names work. Guest
-names are never read, and the data stays in the browser. Ask the robot *"how full is my hotel"*. How to
+names are never read, and the data stays in the browser. Ask the robot *"how full is my hotel"*.
+**Camera analytics:** connect the cameras placed in My Places (a snapshot or video link, this device's
+camera, or a recorded video file) and Atlas counts people, vehicles and bikes on the device with a small
+TensorFlow.js model, draws what it sees on the picture and as dots on the map inside that camera's view,
+counts entries and exits across a line you draw, and keeps an hour of history. Video never leaves the
+browser, and it never identifies anyone. How to
 connect a CRM or booking system is in [docs/pro-connectors.md](docs/pro-connectors.md).
 
 **Ask it to do things.** The search box also takes requests: *"Where does rain go in downtown Chicago,
@@ -152,7 +157,8 @@ src/
   canvas.ts            the shared canvas: what's on the map, across themes and places
   robot/               the task robot: plan.ts turns a request into steps, run.ts carries them out
   myplaces/            My Places: store (saved in the browser), scene (3D buildings, devices), estimates (solar, rain), panel
-  pro/                 Atlas Pro: model (bookings → rooms, floors, forecast), sources (demo, CSV, live link), panel
+  pro/                 Atlas Pro: model (bookings → rooms, floors, forecast), sources (demo, CSV, live link), panel,
+                       vision/ (on-device camera analytics: detection, tracking, line counts, map positions)
   app.ts               place selection, place card, theme tab bar and subtabs, hosting tools inside subtabs
   themes/              one file per theme (explore, land, minerals, water, climate, life, built, countries)
   explore/             view tracking, label feeds and the "worth knowing" insights engine

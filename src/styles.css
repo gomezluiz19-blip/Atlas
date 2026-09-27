@@ -915,3 +915,22 @@ div.pro-option { cursor: default; }
   .pro-panel { width: auto; left: var(--gutter); right: var(--gutter); max-height: calc(100vh - 220px); }
   .pro-stats { grid-template-columns: repeat(2, 1fr); }
 }
+
+/* Atlas Pro: cameras */
+.cam-list { display: flex; flex-direction: column; gap: 10px; }
+.cam-card { padding: 10px 12px; border-radius: 14px; background: var(--material); display: flex; flex-direction: column; gap: 8px; }
+.cam-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.cam-status { font-size: 12px; font-weight: 600; color: var(--secondary); }
+.cam-status.running { color: #30d158; }
+.cam-status.error { color: #ff9f0a; }
+.cam-body { display: flex; flex-direction: column; gap: 8px; }
+.cam-preview { position: relative; border-radius: 10px; overflow: hidden; background: #000; line-height: 0; }
+.cam-preview video, .cam-preview img { width: 100%; height: auto; display: block; }
+.cam-overlay { position: absolute; inset: 0; width: 100%; height: 100%; cursor: crosshair; }
+.cam-counts { display: flex; gap: 6px; flex-wrap: wrap; }
+.cam-count { display: flex; flex-direction: column; padding: 6px 10px; border-radius: 10px; background: var(--fill); font-size: 11.5px; color: var(--secondary); box-shadow: inset 3px 0 0 var(--c); }
+.cam-count strong { font-size: 18px; color: var(--label); }
+.cam-spark-wrap { display: flex; flex-direction: column; gap: 4px; }
+.cam-spark { display: flex; align-items: flex-end; gap: 1px; height: 36px; }
+.cam-spark span { flex: 1; background: #ff375f; border-radius: 2px 2px 0 0; min-width: 2px; }
+.cam-summary { margin: 0 0 8px; }

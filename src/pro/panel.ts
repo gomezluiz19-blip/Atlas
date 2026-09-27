@@ -12,6 +12,7 @@ import {
   type Room, type RoomState,
 } from "./model";
 import { demoData, demoUpdates, fetchFeed, loadConfigs, saveConfig, type Feed, type ProConfig } from "./sources";
+import { createCameraSection } from "./vision/cameras";
 
 const pct = (v: number) => `${Math.round(v * 100)}%`;
 
@@ -41,6 +42,7 @@ export function createPro(app: App, store: PlaceStore, scene: PlaceScene, showPl
   let error = "";
   let offset = 0; // hours from now shown by the time slider
   let timer = 0;
+  const cameras = createCameraSection(app, scene);
 
   const place = () => (placeId ? store.get(placeId) : undefined);
   const config = () => (placeId ? loadConfigs()[placeId] : undefined);
@@ -97,6 +99,7 @@ export function createPro(app: App, store: PlaceStore, scene: PlaceScene, showPl
             connect({ source: { kind: "url", url: v, everySec: 30 }, rooms: [] });
           } }, "Connect")))),
       h("p", { class: "fineprint" }, "Direct connections to booking systems and CRMs need their secret keys kept on a server. The format a connector should serve is in docs/pro-connectors.md in the Atlas repository."),
+      cameras.el(p),
     );
   };
 
@@ -164,6 +167,7 @@ export function createPro(app: App, store: PlaceStore, scene: PlaceScene, showPl
         stat(String(s.departures), "leaving today", STATE_INFO.departing.color),
         stat(String(s.byState.cleaning), "being cleaned", STATE_INFO.cleaning.color),
         stat(String(s.byState.vacant + s.byState.reserved), "free tonight", STATE_INFO.vacant.color)),
+      cameras.el(p),
       h("section", { class: "group" }, h("h2", { class: "group-title" }, "Look ahead"),
         h("div", { class: "pro-slider" }, slider, h("span", {}, offset ? `+${offset >= 24 ? `${Math.round(offset / 24)} day${offset >= 48 ? "s" : ""}` : `${offset} h`}` : "Now")),
         h("div", { class: "pro-nights", role: "img", "aria-label": nights.map((n) => `${new Date(n.night).toDateString()}: ${pct(n.occupancy)}`).join(", ") },
@@ -219,6 +223,8 @@ export function createPro(app: App, store: PlaceStore, scene: PlaceScene, showPl
     close() {
       panel.hidden = true;
       clearInterval(timer);
+      // Stop analysing video when nobody's looking (battery, and it's the respectful default).
+      cameras.stopAll();
     },
   };
   return ui;
