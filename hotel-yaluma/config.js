@@ -22,6 +22,7 @@ window.HOTEL = {
 
   checkIn: "3:00 PM", // EDITAR
   checkOut: "12:00 PM", // EDITAR
+  checkOutHour: 12, // la misma hora de salida, en formato de 24 horas (para el panel)
   currency: "RD$",
   acceptsCards: false, // EDITAR: true si también aceptan tarjeta en recepción.
 
@@ -32,33 +33,38 @@ window.HOTEL = {
     lastStart: 22, // EDITAR: última hora de entrada (22 = 10:00 PM)
   },
 
-  // Habitaciones. price = precio por noche en pesos dominicanos.
+  // Tipos de habitación. price = precio por noche en pesos dominicanos.
+  // numbers = números de las habitaciones de ese tipo (se usan en el panel del personal).
   rooms: [
+    {
+      id: "premium",
+      price: 2800, // EDITAR: precio por noche
+      passPrice: 1000, // EDITAR: precio del pase de 4 horas (null si no aplica)
+      maxGuests: 3, // EDITAR
+      floor: 1,
+      numbers: ["101", "102", "103", "104", "105", "106", "107"], // EDITAR: números reales
+      image: "img/premium.svg", // EDITAR: foto real de una habitación premium
+      name: { es: "Habitación Premium", en: "Premium Room" },
+      bed: { es: "Primer nivel", en: "First floor" },
+      description: {
+        es: "Más amplia, con sofá para relajarse. Ideal para estancias más largas.",
+        en: "More spacious, with a sofa to relax. Great for longer stays.",
+      },
+      features: ["ac", "wifi", "tv", "bath", "sofa"],
+    },
     {
       id: "estandar",
       price: 2000, // EDITAR: precio por noche
       passPrice: 800, // EDITAR: precio del pase de 4 horas (null si no aplica)
-      maxGuests: 2,
-      image: "img/habitacion.jpg",
+      maxGuests: 2, // EDITAR
+      floor: 2,
+      numbers: ["201", "202", "203", "204", "205", "206", "207", "208", "209", "210", "211", "212"], // EDITAR
+      image: "img/estandar.svg", // EDITAR: foto real de una habitación estándar
       name: { es: "Habitación Estándar", en: "Standard Room" },
-      bed: { es: "1 cama matrimonial", en: "1 double bed" },
+      bed: { es: "Segundo nivel", en: "Second floor" },
       description: {
-        es: "Cómoda, limpia y fresca. Ideal para parejas o viajeros de trabajo.",
-        en: "Comfortable, clean and cool. Ideal for couples or business travelers.",
-      },
-      features: ["ac", "wifi", "tv", "bath"],
-    },
-    {
-      id: "doble",
-      price: 2800, // EDITAR: precio por noche
-      passPrice: 1000, // EDITAR: precio del pase de 4 horas (null si no aplica)
-      maxGuests: 4,
-      image: "img/habitacion.jpg", // EDITAR: foto propia de esta habitación
-      name: { es: "Habitación Doble", en: "Double Room" },
-      bed: { es: "2 camas", en: "2 beds" },
-      description: {
-        es: "Más espacio para familias o amigos que viajan juntos.",
-        en: "More room for families or friends traveling together.",
+        es: "Compacta y acogedora, con todo lo necesario para descansar.",
+        en: "Compact and cozy, with everything you need to rest.",
       },
       features: ["ac", "wifi", "tv", "bath"],
     },
@@ -66,4 +72,15 @@ window.HOTEL = {
 
   // Servicios que se muestran en la sección "Servicios". EDITAR: quitar lo que no aplique.
   amenities: ["ac", "wifi", "tv", "parking", "bath", "security"],
+
+  // Base de datos para las reservas y el panel del personal (Supabase, gratis).
+  // Mientras esté vacío, el panel funciona en MODO DEMOSTRACIÓN: los datos se
+  // guardan solo en el navegador. Ver README.md para configurarlo.
+  supabase: {
+    url: "", // ej.: "https://abcdefgh.supabase.co"
+    anonKey: "", // la clave "anon public" del proyecto
+  },
+  // Los usuarios del personal entran con un nombre de usuario (luis, fanny...).
+  // Por dentro se convierte en un correo con este dominio. No se envían correos.
+  staffEmailDomain: "personal.hotelyaluma.com",
 };

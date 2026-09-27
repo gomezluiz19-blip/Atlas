@@ -35,7 +35,8 @@
       "rooms.upTo": (n) => `Hasta ${n} personas`, "rooms.night": "/ noche", "rooms.book": "Reservar",
       "gallery.label": "Fotos", "gallery.sign": "Letrero iluminado del Hotel Yaluma", "gallery.room": "Habitación con cama, TV y aire acondicionado", "gallery.front": "Entrada y estacionamiento del hotel",
       "amen.kicker": "Servicios", "amen.title": "Todo lo necesario para descansar",
-      "a.ac": "Aire acondicionado", "a.wifi": "WiFi gratis", "a.tv": "TV por cable", "a.parking": "Estacionamiento privado", "a.bath": "Baño privado", "a.security": "Ambiente seguro y tranquilo",
+      "a.ac": "Aire acondicionado", "a.wifi": "WiFi gratis", "a.tv": "TV por cable", "a.parking": "Estacionamiento privado", "a.bath": "Baño privado", "a.security": "Ambiente seguro y tranquilo", "a.sofa": "Sofá",
+      "rooms.count": (n) => `${n} habitaciones`,
       "how.kicker": "Cómo reservar", "how.title": "Reservar es fácil",
       "how.1t": "Elija fechas y habitación", "how.1p": "Vea el precio total al instante, sin sorpresas.",
       "how.2t": "Envíe su solicitud", "how.2p": "Le llega a nuestro WhatsApp con todos los detalles.",
@@ -92,7 +93,8 @@
       "rooms.upTo": (n) => `Up to ${n} guests`, "rooms.night": "/ night", "rooms.book": "Book",
       "gallery.label": "Photos", "gallery.sign": "Hotel Yaluma illuminated sign", "gallery.room": "Room with bed, TV and air conditioning", "gallery.front": "Hotel entrance and parking",
       "amen.kicker": "Amenities", "amen.title": "Everything you need to rest",
-      "a.ac": "Air conditioning", "a.wifi": "Free WiFi", "a.tv": "Cable TV", "a.parking": "Private parking", "a.bath": "Private bathroom", "a.security": "Safe, quiet setting",
+      "a.ac": "Air conditioning", "a.wifi": "Free WiFi", "a.tv": "Cable TV", "a.parking": "Private parking", "a.bath": "Private bathroom", "a.security": "Safe, quiet setting", "a.sofa": "Sofa",
+      "rooms.count": (n) => `${n} rooms`,
       "how.kicker": "How to book", "how.title": "Booking is easy",
       "how.1t": "Pick dates and a room", "how.1p": "See the full price right away, no surprises.",
       "how.2t": "Send your request", "how.2p": "It reaches our WhatsApp with every detail.",
@@ -227,7 +229,8 @@
         </div>
         <div class="room-body">
           <h3>${esc(r.name[lang])}</h3>
-          <p class="room-meta">${esc(r.bed[lang])} · ${esc(r.description[lang])}</p>
+          <p class="room-floor">${esc(r.bed[lang])} · ${esc(t("rooms.count", r.numbers.length))}</p>
+          <p class="room-meta">${esc(r.description[lang])}</p>
           <ul class="feat">${r.features.map((f) => `<li>${icon(f)}${esc(t("a." + f))}</li>`).join("")}</ul>
           <div class="room-foot">
             <div>
@@ -627,6 +630,34 @@
     return lines.join("\n");
   }
 
+  // Guarda la solicitud para el panel del personal. Si falla, el WhatsApp ya salió.
+  function saveReservation() {
+    if (!window.YalumaStore) return;
+    const r = roomById(state.roomId);
+    const d = state.details;
+    const passStart = isPass() ? new Date(state.checkIn.getFullYear(), state.checkIn.getMonth(), state.checkIn.getDate(), state.passTime) : null;
+    const row = {
+      code: state.code,
+      source: "web",
+      stay_type: isPass() ? "pase" : "noche",
+      room_tier: r.id,
+      guest_name: d.name,
+      guest_phone: d.phone,
+      guest_email: d.email || null,
+      adults: state.adults,
+      kids: state.kids,
+      check_in: iso(state.checkIn),
+      check_out: isPass() ? null : iso(state.checkOut),
+      pass_start: passStart ? passStart.toISOString() : null,
+      pass_end: passStart ? new Date(passStart.getTime() + PH * 3600000).toISOString() : null,
+      arrival: isPass() ? null : arrivalText("es-DO"),
+      notes: d.notes || null,
+      total: unitPrice(r) * units(),
+      lang,
+    };
+    YalumaStore.get().then((db) => db.submitWebReservation(row)).catch((e) => console.warn("No se guardó la reserva:", e));
+  }
+
   function renderSent() {
     $("#sent-code").textContent = state.code;
     $("#sent-wa").href = waLink(whatsappMessage());
@@ -642,6 +673,7 @@
         const url = waLink(whatsappMessage());
         // Sin "noopener" en las opciones: con él window.open siempre devuelve null.
         const w = window.open(url, "_blank");
+        saveReservation();
         if (w) w.opener = null; else location.href = url;
         go("sent");
         break;

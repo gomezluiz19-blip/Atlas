@@ -181,6 +181,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .room-body { padding: 22px 22px 24px; display: flex; flex-direction: column; gap: 12px; flex: 1; }
 .room h3 { font-size: 1.5rem; font-weight: 600; }
 .room-meta { color: var(--muted); font-size: .95rem; }
+.room-floor { font-size: .8rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--coral-ink); margin-top: -4px; }
 .feat { display: flex; flex-wrap: wrap; gap: 8px; list-style: none; padding: 0; margin: 0; }
 .feat li { display: inline-flex; align-items: center; gap: 6px; font-size: .85rem; background: var(--sand); padding: 5px 10px; border-radius: 999px; }
 .feat .ico { width: 16px; height: 16px; color: var(--coral-ink); }
