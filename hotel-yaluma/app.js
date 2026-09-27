@@ -11,6 +11,7 @@
   const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
 
   // ---------------------------------------------------------------- textos
+  const PH = H.pass.hours;
   const STRINGS = {
     es: {
       skip: "Saltar al contenido",
@@ -23,8 +24,14 @@
       rating: (r, n) => `${r.toFixed(1)} en Google · ${n} ${n === 1 ? "reseña" : "reseñas"}`,
       "quick.label": "Buscar disponibilidad", "quick.checkin": "Llegada", "quick.checkout": "Salida", "quick.guests": "Huéspedes",
       "quick.pick": "Elegir fecha", "quick.go": "Ver disponibilidad",
+      "q.date": "Fecha", "q.time": "Hora", "q.pickTime": "Elegir hora", until: "hasta",
+      "stay.label": "Tipo de estadía", "stay.night": "Por noche", "stay.nightSub": "Pase la noche",
+      "stay.pass": `Pase de ${PH} horas`, "stay.passSub": "Descanso sin pasar la noche",
+      "stay.pickTime": "¿A qué hora llega?", passUnit: "1 pase", perPass: "por pase", noPass: "No disponible por horas",
+      pickDay: "Elija el día", pickTime: "Ahora elija la hora",
+      "sum.type": "Tipo", "sum.date": "Fecha", "sum.time": "Horario",
       "cash.title": "Sin tarjeta, sin pagos por adelantado.", "cash.text": "Usted reserva aquí y paga en efectivo cuando llega al hotel.",
-      "rooms.kicker": "Habitaciones", "rooms.title": "Elija su habitación", "rooms.sub": "Todas con aire acondicionado, WiFi, TV y baño privado.",
+      "rooms.kicker": "Habitaciones", "rooms.title": "Elija su habitación", "rooms.sub": `Todas con aire acondicionado, WiFi, TV y baño privado. Por noche o con pase de ${PH} horas.`,
       "rooms.upTo": (n) => `Hasta ${n} personas`, "rooms.night": "/ noche", "rooms.book": "Reservar",
       "gallery.label": "Fotos", "gallery.sign": "Letrero iluminado del Hotel Yaluma", "gallery.room": "Habitación con cama, TV y aire acondicionado", "gallery.front": "Entrada y estacionamiento del hotel",
       "amen.kicker": "Servicios", "amen.title": "Todo lo necesario para descansar",
@@ -74,8 +81,14 @@
       rating: (r, n) => `${r.toFixed(1)} on Google · ${n} ${n === 1 ? "review" : "reviews"}`,
       "quick.label": "Check availability", "quick.checkin": "Check-in", "quick.checkout": "Check-out", "quick.guests": "Guests",
       "quick.pick": "Pick a date", "quick.go": "Check availability",
+      "q.date": "Date", "q.time": "Time", "q.pickTime": "Pick a time", until: "until",
+      "stay.label": "Type of stay", "stay.night": "Overnight", "stay.nightSub": "Stay the night",
+      "stay.pass": `${PH}-hour pass`, "stay.passSub": "Rest without staying the night",
+      "stay.pickTime": "What time will you arrive?", passUnit: "1 pass", perPass: "per pass", noPass: "Not available by the hour",
+      pickDay: "Choose the day", pickTime: "Now choose the time",
+      "sum.type": "Type", "sum.date": "Date", "sum.time": "Time",
       "cash.title": "No card, no prepayment.", "cash.text": "Book here and pay in cash when you arrive at the hotel.",
-      "rooms.kicker": "Rooms", "rooms.title": "Choose your room", "rooms.sub": "All with air conditioning, WiFi, TV and private bathroom.",
+      "rooms.kicker": "Rooms", "rooms.title": "Choose your room", "rooms.sub": `All with air conditioning, WiFi, TV and private bathroom. Overnight or with a ${PH}-hour pass.`,
       "rooms.upTo": (n) => `Up to ${n} guests`, "rooms.night": "/ night", "rooms.book": "Book",
       "gallery.label": "Photos", "gallery.sign": "Hotel Yaluma illuminated sign", "gallery.room": "Room with bed, TV and air conditioning", "gallery.front": "Hotel entrance and parking",
       "amen.kicker": "Amenities", "amen.title": "Everything you need to rest",
@@ -155,6 +168,8 @@
     step: "dates",
     checkIn: null,
     checkOut: null,
+    stay: "night", // "night" = por noche, "pass" = pase por horas
+    passTime: null, // hora de entrada del pase (0-23)
     editing: "in",
     adults: 2,
     kids: 0,
@@ -165,6 +180,16 @@
   };
   const guests = () => state.adults + state.kids;
   const nights = () => (state.checkIn && state.checkOut ? nightsBetween(state.checkIn, state.checkOut) : 0);
+  const isPass = () => state.stay === "pass";
+  const passToday = () => sameDay(state.checkIn, today());
+  // Horas de entrada que ya pasaron hoy no se pueden elegir.
+  const slotOpen = (h) => !passToday() || h > new Date().getHours();
+  const units = () => (isPass() ? (state.checkIn && state.passTime != null ? 1 : 0) : nights());
+  const unitPrice = (r) => (isPass() ? r.passPrice : r.price);
+  const unitsLabel = () => (isPass() ? t("passUnit") : t("nights", nights()));
+  const roomFits = (r) => r.maxGuests >= guests() && (!isPass() || r.passPrice != null);
+  const fmtHour = (h, loc = locale()) => new Date(2000, 0, 1, h % 24).toLocaleTimeString(loc, { hour: "numeric", minute: "2-digit" });
+  const passRange = (loc = locale()) => `${fmtHour(state.passTime, loc)} – ${fmtHour(state.passTime + PH, loc)}`;
   const guestLabel = () => t("adults", state.adults) + (state.kids ? `, ${t("kids", state.kids)}` : "");
 
   // ---------------------------------------------------------------- página
@@ -205,7 +230,10 @@
           <p class="room-meta">${esc(r.bed[lang])} · ${esc(r.description[lang])}</p>
           <ul class="feat">${r.features.map((f) => `<li>${icon(f)}${esc(t("a." + f))}</li>`).join("")}</ul>
           <div class="room-foot">
-            <p class="price">${money(r.price)} <small>${esc(t("rooms.night"))}</small></p>
+            <div>
+              <p class="price">${money(r.price)} <small>${esc(t("rooms.night"))}</small></p>
+              ${r.passPrice != null ? `<p class="price-alt">${esc(t("stay.pass"))}: <strong>${money(r.passPrice)}</strong></p>` : ""}
+            </div>
             <button class="btn btn-primary btn-sm" type="button" data-book-room="${esc(r.id)}">${esc(t("rooms.book"))}</button>
           </div>
         </div>
@@ -231,8 +259,13 @@
   }
 
   function updateQuickbook() {
+    $$("[data-stay]").forEach((b) => b.setAttribute("aria-checked", String(b.dataset.stay === state.stay)));
+    $("#qb-in-label").textContent = isPass() ? t("q.date") : t("quick.checkin");
+    $("#qb-out-label").textContent = isPass() ? t("q.time") : t("quick.checkout");
     $("#qb-in").textContent = state.checkIn ? fmtShort(state.checkIn) : t("quick.pick");
-    $("#qb-out").textContent = state.checkOut ? fmtShort(state.checkOut) : t("quick.pick");
+    $("#qb-out").textContent = isPass()
+      ? (state.passTime != null ? passRange() : t("q.pickTime"))
+      : (state.checkOut ? fmtShort(state.checkOut) : t("quick.pick"));
     $("#qb-guests").textContent = guestLabel();
   }
 
@@ -273,8 +306,20 @@
     if (lastFocus) lastFocus.focus();
   }
 
+  function setStay(stay) {
+    if (stay === state.stay) return;
+    state.stay = stay;
+    state.checkOut = null;
+    state.passTime = null;
+    state.editing = stay === "night" && state.checkIn ? "out" : "in";
+    updateQuickbook();
+    if (!sheet.hidden && state.step === "dates") { renderDates(); renderFoot(); }
+  }
+
   function resetBooking() {
-    state.checkIn = state.checkOut = state.roomId = state.code = null;
+    state.checkIn = state.checkOut = state.roomId = state.code = state.passTime = null;
+    state.month = today();
+    state.month.setDate(1);
     state.editing = "in";
     state.details.notes = "";
     state.step = "dates";
@@ -313,24 +358,27 @@
 
   function canContinue() {
     switch (state.step) {
-      case "dates": return nights() > 0;
-      case "room": { const r = roomById(state.roomId); return !!r && r.maxGuests >= guests(); }
+      case "dates": return units() > 0;
+      case "room": { const r = roomById(state.roomId); return !!r && roomFits(r); }
       default: return true;
     }
   }
 
   function renderFoot() {
     const room = roomById(state.roomId);
-    const n = nights();
+    const n = units();
     let html = "";
     if (state.step === "sent") {
       html = "";
-    } else if (room && n) {
-      html = `<strong>${money(room.price * n)}</strong><small>${esc(t("nights", n))} · ${esc(t("payAtHotel"))}</small>`;
+    } else if (room && n && roomFits(room)) {
+      html = `<strong>${money(unitPrice(room) * n)}</strong><small>${esc(unitsLabel())} · ${esc(t("payAtHotel"))}</small>`;
     } else if (n) {
-      html = `<strong>${esc(t("nights", n))}</strong><small>${esc(guestLabel())}</small>`;
+      html = `<strong>${esc(isPass() ? passRange() : unitsLabel())}</strong><small>${esc(guestLabel())}</small>`;
     } else if (state.step === "dates") {
-      html = `<small>${esc(state.editing === "out" && state.checkIn ? t("pickOut") : t("pickIn"))}</small>`;
+      const hint = isPass()
+        ? (state.checkIn ? t("pickTime") : t("pickDay"))
+        : (state.editing === "out" && state.checkIn ? t("pickOut") : t("pickIn"));
+      html = `<small>${esc(hint)}</small>`;
     }
     $("#foot-total").innerHTML = html;
     $("#sheet-next").disabled = !canContinue();
@@ -338,10 +386,18 @@
 
   // Calendario ---------------------------------------------------------
   function renderDates() {
+    const pass = isPass();
+    $("#ds-in-label").textContent = pass ? t("q.date") : t("quick.checkin");
+    $("#ds-out-label").textContent = pass ? t("q.time") : t("quick.checkout");
     $("#ds-in").textContent = state.checkIn ? fmtShort(state.checkIn) : "—";
-    $("#ds-out").textContent = state.checkOut ? fmtShort(state.checkOut) : "—";
-    $("#ds-nights").textContent = nights() ? t("nights", nights()) : "";
-    $$(".ds-box").forEach((b) => b.classList.toggle("active", b.dataset.edge === state.editing));
+    $("#ds-out").textContent = pass
+      ? (state.passTime != null ? passRange() : "—")
+      : (state.checkOut ? fmtShort(state.checkOut) : "—");
+    $("#ds-nights").textContent = pass ? `${PH} h` : (nights() ? t("nights", nights()) : "");
+    const active = pass ? (state.checkIn ? "out" : "in") : state.editing;
+    $$(".ds-box").forEach((b) => b.classList.toggle("active", b.dataset.edge === active));
+    $("#slots-wrap").hidden = !pass;
+    if (pass) renderSlots();
     $("#g-adults").textContent = state.adults;
     $("#g-kids").textContent = state.kids;
     $('[data-g="adults"][data-d="-1"]').disabled = state.adults <= 1;
@@ -393,7 +449,24 @@
       <div class="cal-grid">${dow.map((x) => `<span class="cal-dow">${esc(x)}</span>`).join("")}${cells}</div>`;
   }
 
+  function renderSlots() {
+    const hours = [];
+    for (let h = H.pass.firstStart; h <= H.pass.lastStart; h++) hours.push(h);
+    $("#slots").innerHTML = hours.map((h) => `
+      <button type="button" class="slot" role="radio" data-hour="${h}" aria-checked="${h === state.passTime}" ${slotOpen(h) ? "" : "disabled"}>
+        ${esc(fmtHour(h))}<small>${esc(t("until"))} ${esc(fmtHour(h + PH))}</small>
+      </button>`).join("");
+  }
+
   function pickDate(date) {
+    if (isPass()) {
+      state.checkIn = date;
+      if (state.passTime != null && !slotOpen(state.passTime)) state.passTime = null;
+      updateQuickbook();
+      renderDates();
+      renderFoot();
+      return;
+    }
     const { checkIn: a, checkOut: b } = state;
     if (state.editing === "in" || !a || (a && b && state.editing !== "out")) {
       state.checkIn = date;
@@ -414,12 +487,15 @@
 
   // Habitación ---------------------------------------------------------
   function renderRoomOptions() {
-    const n = nights();
-    $("#room-hint").textContent = t("roomHint", guestLabel(), t("nights", n), fmtShort(state.checkIn), fmtShort(state.checkOut));
-    const fits = H.rooms.filter((r) => r.maxGuests >= guests());
-    if (!roomById(state.roomId) || roomById(state.roomId).maxGuests < guests()) state.roomId = fits.length ? fits[0].id : null;
+    const n = units();
+    $("#room-hint").textContent = isPass()
+      ? `${guestLabel()} · ${t("stay.pass")} · ${fmtShort(state.checkIn)}, ${passRange()}`
+      : t("roomHint", guestLabel(), t("nights", n), fmtShort(state.checkIn), fmtShort(state.checkOut));
+    const fits = H.rooms.filter(roomFits);
+    if (!roomById(state.roomId) || !roomFits(roomById(state.roomId))) state.roomId = fits.length ? fits[0].id : null;
     $("#room-options").innerHTML = H.rooms.map((r) => {
-      const ok = r.maxGuests >= guests();
+      const ok = roomFits(r);
+      const why = r.maxGuests < guests() ? t("tooSmall", r.maxGuests) : t("noPass");
       return `
       <button type="button" class="room-opt" role="radio" aria-checked="${r.id === state.roomId}" data-room="${esc(r.id)}" ${ok ? "" : "disabled"}>
         <img src="${esc(r.image)}" alt="" />
@@ -427,8 +503,10 @@
           <h3>${esc(r.name[lang])}</h3>
           <p class="room-meta">${esc(r.bed[lang])} · ${esc(t("rooms.upTo", r.maxGuests))}</p>
           ${ok
-            ? `<p class="opt-price">${money(r.price * n)} <small>· ${money(r.price)} ${esc(t("perNight"))}</small></p>`
-            : `<p class="warn">${esc(t("tooSmall", r.maxGuests))}</p>`}
+            ? (isPass()
+              ? `<p class="opt-price">${money(r.passPrice)} <small>· ${esc(t("stay.pass"))}</small></p>`
+              : `<p class="opt-price">${money(r.price * n)} <small>· ${money(r.price)} ${esc(t("perNight"))}</small></p>`)
+            : `<p class="warn">${esc(why)}</p>`}
         </div>
       </button>`;
     }).join("");
@@ -439,6 +517,8 @@
     const f = $("#details-form");
     ["name", "phone", "email", "notes"].forEach((k) => { f.elements[k].value = state.details[k]; });
     f.elements.arrival.value = state.details.arrival;
+    // En el pase la hora de llegada ya se eligió en el primer paso.
+    $("#arrival-field").hidden = isPass();
   }
 
   function readDetails() {
@@ -479,49 +559,69 @@
   function renderSummary() {
     if (!state.code) state.code = newCode();
     const r = roomById(state.roomId);
-    const n = nights();
+    const n = units();
     const d = state.details;
-    const rows = [
-      [t("sum.in"), `${fmtShort(state.checkIn)} · ${H.checkIn}`],
-      [t("sum.out"), `${fmtShort(state.checkOut)} · ${H.checkOut}`],
-      [t("sum.guests"), guestLabel()],
-      [t("sum.name"), d.name],
-      [t("sum.phone"), d.phone],
-      [t("sum.arrival"), arrivalText(locale())],
-    ];
+    const rows = isPass()
+      ? [
+        [t("sum.type"), t("stay.pass")],
+        [t("sum.date"), fmtShort(state.checkIn)],
+        [t("sum.time"), passRange()],
+        [t("sum.guests"), guestLabel()],
+        [t("sum.name"), d.name],
+        [t("sum.phone"), d.phone],
+      ]
+      : [
+        [t("sum.in"), `${fmtShort(state.checkIn)} · ${H.checkIn}`],
+        [t("sum.out"), `${fmtShort(state.checkOut)} · ${H.checkOut}`],
+        [t("sum.guests"), guestLabel()],
+        [t("sum.name"), d.name],
+        [t("sum.phone"), d.phone],
+        [t("sum.arrival"), arrivalText(locale())],
+      ];
     if (d.notes) rows.push([t("sum.notes"), d.notes]);
-    rows.push([t("sum.calc", money(r.price), t("nights", n)), money(r.price * n)]);
+    rows.push([t("sum.calc", money(unitPrice(r)), unitsLabel()), money(unitPrice(r) * n)]);
     $("#summary").innerHTML = `
       <div class="sum-top">
         <img src="${esc(r.image)}" alt="" />
         <div><h3>${esc(r.name[lang])}</h3><span class="sum-code">${esc(t("sum.code"))}: ${esc(state.code)}</span></div>
       </div>
       <ul class="sum-rows">${rows.map(([k, v]) => `<li><span>${esc(k)}</span><span>${esc(v)}</span></li>`).join("")}</ul>
-      <div class="sum-total"><div>${esc(t("total"))}<small>${esc(t("payAtHotel"))}</small></div><strong>${money(r.price * n)}</strong></div>`;
+      <div class="sum-total"><div>${esc(t("total"))}<small>${esc(t("payAtHotel"))}</small></div><strong>${money(unitPrice(r) * n)}</strong></div>`;
   }
 
   // El mensaje al hotel siempre va en español, lo lea quien lo lea.
   function whatsappMessage() {
     const r = roomById(state.roomId);
-    const n = nights();
+    const n = units();
     const d = state.details;
     const guestsEs = STRINGS.es.adults(state.adults) + (state.kids ? `, ${STRINGS.es.kids(state.kids)}` : "");
+    const stay = isPass()
+      ? [
+        `*Tipo:* ${STRINGS.es["stay.pass"]}`,
+        `*Habitación:* ${r.name.es}`,
+        `*Fecha:* ${fmtLong(state.checkIn, "es-DO")}`,
+        `*Horario:* ${passRange("es-DO")}`,
+      ]
+      : [
+        `*Tipo:* Por noche`,
+        `*Habitación:* ${r.name.es}`,
+        `*Llegada:* ${fmtLong(state.checkIn, "es-DO")}`,
+        `*Salida:* ${fmtLong(state.checkOut, "es-DO")}`,
+        `*Noches:* ${n}`,
+      ];
     const lines = [
       "Hola, quiero reservar en el Hotel Yaluma.",
       "",
       `*Código:* ${state.code}`,
-      `*Habitación:* ${r.name.es}`,
-      `*Llegada:* ${fmtLong(state.checkIn, "es-DO")}`,
-      `*Salida:* ${fmtLong(state.checkOut, "es-DO")}`,
-      `*Noches:* ${n}`,
+      ...stay,
       `*Huéspedes:* ${guestsEs}`,
-      `*Total estimado:* ${money(r.price * n)} (pago en efectivo al llegar)`,
+      `*Total estimado:* ${money(unitPrice(r) * n)} (pago en efectivo al llegar)`,
       "",
       `*Nombre:* ${d.name}`,
       `*Teléfono:* ${d.phone}`,
     ];
     if (d.email) lines.push(`*Correo:* ${d.email}`);
-    lines.push(`*Hora de llegada:* ${arrivalText("es-DO")}`);
+    if (!isPass()) lines.push(`*Hora de llegada:* ${arrivalText("es-DO")}`);
     if (d.notes) lines.push(`*Comentarios:* ${d.notes}`);
     if (lang === "en") lines.push("", "(El cliente usó la página en inglés.)");
     return lines.join("\n");
@@ -567,10 +667,21 @@
         const r = roomById(state.roomId);
         if (guests() > r.maxGuests) { state.adults = Math.min(state.adults, r.maxGuests); state.kids = 0; }
       }
-      openSheet(nights() && state.roomId && !el.dataset.bookStep ? "room" : "dates");
+      openSheet(units() && state.roomId && !el.dataset.bookStep ? "room" : "dates");
     });
 
-    $("#quickbook").addEventListener("submit", (e) => { e.preventDefault(); openSheet(nights() ? "room" : "dates"); });
+    $("#quickbook").addEventListener("submit", (e) => { e.preventDefault(); openSheet(units() ? "room" : "dates"); });
+
+    $$("[data-stay]").forEach((b) => b.addEventListener("click", () => setStay(b.dataset.stay)));
+
+    $("#slots").addEventListener("click", (e) => {
+      const slot = e.target.closest("[data-hour]");
+      if (!slot || slot.disabled) return;
+      state.passTime = Number(slot.dataset.hour);
+      updateQuickbook();
+      renderDates();
+      renderFoot();
+    });
 
     $("#lang-toggle").addEventListener("click", () => {
       if (state.step === "details" && !sheet.hidden) readDetails();

@@ -25,11 +25,19 @@ window.HOTEL = {
   currency: "RD$",
   acceptsCards: false, // EDITAR: true si también aceptan tarjeta en recepción.
 
+  // Pase por horas (descanso sin pasar la noche).
+  pass: {
+    hours: 4,
+    firstStart: 8, // EDITAR: primera hora de entrada (8 = 8:00 AM)
+    lastStart: 22, // EDITAR: última hora de entrada (22 = 10:00 PM)
+  },
+
   // Habitaciones. price = precio por noche en pesos dominicanos.
   rooms: [
     {
       id: "estandar",
-      price: 2000, // EDITAR
+      price: 2000, // EDITAR: precio por noche
+      passPrice: 800, // EDITAR: precio del pase de 4 horas (null si no aplica)
       maxGuests: 2,
       image: "img/habitacion.jpg",
       name: { es: "Habitación Estándar", en: "Standard Room" },
@@ -42,7 +50,8 @@ window.HOTEL = {
     },
     {
       id: "doble",
-      price: 2800, // EDITAR
+      price: 2800, // EDITAR: precio por noche
+      passPrice: 1000, // EDITAR: precio del pase de 4 horas (null si no aplica)
       maxGuests: 4,
       image: "img/habitacion.jpg", // EDITAR: foto propia de esta habitación
       name: { es: "Habitación Doble", en: "Double Room" },

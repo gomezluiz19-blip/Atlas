@@ -79,13 +79,17 @@
 
       <!-- Barra rápida de reserva -->
       <form class="quickbook" id="quickbook" aria-label="Buscar disponibilidad" data-i18n-aria="quick.label">
+        <div class="stay-toggle qb-tabs" role="radiogroup" aria-label="Tipo de estadía" data-i18n-aria="stay.label">
+          <button type="button" role="radio" data-stay="night" data-i18n="stay.night">Por noche</button>
+          <button type="button" role="radio" data-stay="pass" data-i18n="stay.pass">Pase de 4 horas</button>
+        </div>
         <button type="button" class="qb-field" data-book-step="dates">
           <svg class="ico"><use href="#i-calendar"/></svg>
-          <span><small data-i18n="quick.checkin">Llegada</small><strong id="qb-in" data-i18n="quick.pick">Elegir fecha</strong></span>
+          <span><small id="qb-in-label">Llegada</small><strong id="qb-in">Elegir fecha</strong></span>
         </button>
         <button type="button" class="qb-field" data-book-step="dates">
           <svg class="ico"><use href="#i-calendar"/></svg>
-          <span><small data-i18n="quick.checkout">Salida</small><strong id="qb-out" data-i18n="quick.pick">Elegir fecha</strong></span>
+          <span><small id="qb-out-label">Salida</small><strong id="qb-out">Elegir fecha</strong></span>
         </button>
         <button type="button" class="qb-field" data-book-step="dates">
           <svg class="ico"><use href="#i-user"/></svg>
@@ -205,12 +209,20 @@
     <div class="sheet-body" id="sheet-body">
       <!-- Paso 1: fechas y huéspedes -->
       <section class="step" data-step="dates">
+        <div class="stay-toggle" role="radiogroup" aria-label="Tipo de estadía" data-i18n-aria="stay.label">
+          <button type="button" role="radio" data-stay="night"><strong data-i18n="stay.night">Por noche</strong><small data-i18n="stay.nightSub">Pase la noche</small></button>
+          <button type="button" role="radio" data-stay="pass"><strong data-i18n="stay.pass">Pase de 4 horas</strong><small data-i18n="stay.passSub">Descanso sin pasar la noche</small></button>
+        </div>
         <div class="date-summary">
-          <button type="button" class="ds-box" data-edge="in"><small data-i18n="quick.checkin">Llegada</small><strong id="ds-in">—</strong></button>
+          <button type="button" class="ds-box" data-edge="in"><small id="ds-in-label">Llegada</small><strong id="ds-in">—</strong></button>
           <span class="ds-nights" id="ds-nights"></span>
-          <button type="button" class="ds-box" data-edge="out"><small data-i18n="quick.checkout">Salida</small><strong id="ds-out">—</strong></button>
+          <button type="button" class="ds-box" data-edge="out"><small id="ds-out-label">Salida</small><strong id="ds-out">—</strong></button>
         </div>
         <div class="calendar" id="calendar"></div>
+        <div class="slots-wrap" id="slots-wrap" hidden>
+          <p class="slots-title" data-i18n="stay.pickTime">¿A qué hora llega?</p>
+          <div class="slots" id="slots" role="radiogroup"></div>
+        </div>
         <div class="guests">
           <div class="stepper">
             <div><strong data-i18n="g.adults">Adultos</strong><small data-i18n="g.adultsSub">13 años o más</small></div>
@@ -235,7 +247,7 @@
           <label class="field"><span data-i18n="f.name">Nombre completo</span><input name="name" autocomplete="name" required /><em class="err" data-i18n="f.nameErr">Escriba su nombre.</em></label>
           <label class="field"><span data-i18n="f.phone">Teléfono / WhatsApp</span><input name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="809-000-0000" required /><em class="err" data-i18n="f.phoneErr">Escriba un número válido.</em></label>
           <label class="field"><span><span data-i18n="f.email">Correo electrónico</span> <small data-i18n="f.optional">(opcional)</small></span><input name="email" type="email" autocomplete="email" /><em class="err" data-i18n="f.emailErr">Revise el correo.</em></label>
-          <label class="field"><span data-i18n="f.arrival">Hora estimada de llegada</span>
+          <label class="field" id="arrival-field"><span data-i18n="f.arrival">Hora estimada de llegada</span>
             <select name="arrival" id="arrival"></select>
           </label>
           <label class="field"><span><span data-i18n="f.notes">Comentarios</span> <small data-i18n="f.optional">(opcional)</small></span><textarea name="notes" rows="3" data-i18n-ph="f.notesPh" placeholder="Ej.: llegamos tarde, necesitamos una cuna…"></textarea></label>
