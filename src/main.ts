@@ -23,6 +23,8 @@ import { icons } from "./ui/icons";
 import { createLayersPanel } from "./ui/layers";
 import { createSearch, flyToPlace, geocode, type Command, type Place as SearchPlace, type SearchResult } from "./ui/search";
 import { createRobot } from "./ui/robotCard";
+import { createAiSettings } from "./ui/aiSettings";
+import { aiOn, looksLikeAsk } from "./robot/llm";
 import { PlaceStore } from "./myplaces/store";
 import { PlaceScene } from "./myplaces/scene";
 import { createMyPlaces } from "./myplaces/panel";
@@ -169,6 +171,8 @@ app.actions.set("pro:occupancy", {
 });
 
 // The task robot: plain-language requests typed into the search box.
+const aiSettings = createAiSettings();
+$("ui").append(aiSettings.panel);
 const robot = createRobot(app, {
   async find(text) {
     const mine = myStore.find(text);
@@ -186,10 +190,20 @@ const robot = createRobot(app, {
     const c = globe.viewer.canvas;
     return globe.pick(new Cartesian2(c.clientWidth / 2, c.clientHeight / 2));
   },
+}, {
+  showBorders: async (y) => { await showYear(app, y); },
+  openTool: (t) => {
+    if (t === "space") space.open();
+    else if (t === "solar") space.toSolar();
+    else app.actions.get(`work:${t}`)?.run();
+  },
+  settings: () => aiSettings.open(),
 });
 $("ui").append(robot.el);
 const asCommand = (q: string): Command | null => {
   const p = plan(q);
+  // With Claude connected, anything that reads as a request or question goes to it.
+  if (aiOn() && looksLikeAsk(q)) return { title: "Ask Atlas AI", steps: [p.steps.length ? describe(p).join(" → ") : "Claude will work out the steps"], run: () => void robot.ask(q.trim(), p.steps.length ? p : null) };
   if (!p.steps.length) return null;
   const steps = describe(p);
   return { title: steps.length === 1 ? steps[0] : `Do ${steps.length} things`, steps, run: () => void robot.run(q.trim(), p) };
@@ -300,6 +314,7 @@ const aboutPanel = h("div", { class: "popover about", hidden: true },
   h("h2", { class: "group-title" }, "About Atlas"),
   h("p", {}, "Move the map and Atlas labels what's worth knowing. Tap anything, or anywhere, then flip through the themes to learn about that place: its land, minerals, water, climate, life, what people have built, and the country it's in."),
   h("p", {}, "You can also type a request into the search box, like \u201cstorm drains and railways in Chicago\u201d, and Atlas will plan the steps and do them."),
+  h("button", { class: "pill-btn about-ai", onclick: () => { aboutPanel.hidden = true; aiSettings.open(); } }, aiOn() ? "Atlas AI: connected · settings" : "Connect Atlas AI (Claude)…"),
   h("p", {}, "The themes are lenses on one shared map. What you add stays as you switch (see \"On the map\" at the top), and every view ends with Connected links to related views of the same place."),
   h("h2", { class: "group-title" }, "Where the data comes from"),
   h("ul", { class: "plain-list" },

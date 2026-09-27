@@ -1293,3 +1293,14 @@ button.stage-tile:hover:not(:disabled) { transform: translateY(-3px); }
   .solar-note { display: none; }
   .solar-info { bottom: 130px; }
 }
+
+/* Atlas AI */
+.ai-panel { width: 400px; gap: 10px; }
+.ai-modes { display: flex; flex-direction: column; gap: 6px; }
+.ai-mode { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border-radius: 12px; background: var(--material); cursor: pointer; }
+.ai-mode > span { display: flex; flex-direction: column; gap: 2px; }
+.ai-fields { display: flex; flex-direction: column; gap: 8px; }
+.ai-fields:empty { display: none; }
+.robot-answer { margin: 8px 0 0; padding: 10px 12px; border-radius: 12px; background: color-mix(in srgb, var(--accent) 10%, transparent); font-size: 14px; line-height: 1.45; }
+.about-ai { align-self: flex-start; }
+@media (max-width: 720px) { .ai-panel { width: auto; left: var(--gutter); right: var(--gutter); } }
