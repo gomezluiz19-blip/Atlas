@@ -28,6 +28,7 @@ import { PlaceScene } from "./myplaces/scene";
 import { createMyPlaces } from "./myplaces/panel";
 import { createPro } from "./pro/panel";
 import { createWork } from "./work/hub";
+import { createSpace } from "./space/panel";
 import { openPlans } from "./work/planUi";
 import { borders, openPresent, showYear } from "./work/present";
 import { YEARS, yearLabel } from "./data/history";
@@ -128,6 +129,15 @@ const work = createWork(app, [
   { id: "teach", label: "Teach", about: "Lessons, quizzes, games, a world politics simulation and field trips", color: "#bf5af2", icon: icons.graduate, open: openTeach },
 ]);
 myPlaces.button.before(work.button);
+// Space: satellites, the ISS, launches and the solar system.
+const space = createSpace(app);
+work.button.before(space.button);
+$("ui").append(space.panel);
+space.button.addEventListener("space:opened", () => { work.ctx.close(); myPlaces.close(); pro.close(); toggleLayers(false); });
+work.button.addEventListener("work:opened", () => space.close());
+myPlaces.button.addEventListener("click", () => space.close());
+app.actions.set("space:open", { label: "Space", run: () => space.open() });
+app.actions.set("space:solar", { label: "Solar system", run: () => space.toSolar() });
 $("ui").append(work.panel);
 work.button.addEventListener("work:opened", () => { myPlaces.close(); pro.close(); toggleLayers(false); });
 myPlaces.button.addEventListener("click", () => work.ctx.close());
@@ -280,7 +290,7 @@ globe.onApply = () => {
     else if (!on && app.canvas.has(key)) app.canvas.drop(key);
   }
 };
-layersBtn.addEventListener("click", () => { myPlaces.close(); pro.close(); work.ctx.close(); toggleLayers(); });
+layersBtn.addEventListener("click", () => { myPlaces.close(); pro.close(); work.ctx.close(); space.close(); toggleLayers(); });
 globe.viewer.scene.canvas.addEventListener("pointerdown", () => toggleLayers(false));
 
 // About / data sources.

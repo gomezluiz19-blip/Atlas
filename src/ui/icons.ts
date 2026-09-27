@@ -19,6 +19,7 @@ export const icons = {
   briefcase: svg('<rect x="3" y="7" width="18" height="13" rx="2.5"/><path d="M9 7V5.5A1.5 1.5 0 0 1 10.5 4h3A1.5 1.5 0 0 1 15 5.5V7M3 12.5h18M11 12.5v1.5h2v-1.5"/>'),
   slides: svg('<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M12 16v4M8 20h8M7 8h6M7 11h10"/>'),
   video: svg('<rect x="3" y="6" width="13" height="12" rx="2.5"/><path d="M16 10.5 21 7.5v9l-5-3"/>'),
+  saturn: svg('<circle cx="12" cy="12" r="5"/><path d="M7.4 10.1C3.7 11.5 1.6 13.4 2.2 14.9c.9 2.1 7 1.5 13.6-1.3s11-6.8 10.1-8.9c-.5-1.2-2.8-1.5-6-1" transform="translate(-1.2 .6)"/>'),
   crane: svg('<path d="M6 21V4M6 4h14M6 4l-3 3M10 4l-4 4M14 4v4M14 8h-2v3h4V8h-2"/><path d="M3 21h8"/>'),
   graduate: svg('<path d="M2 9l10-5 10 5-10 5z"/><path d="M6 11v5c0 1.5 3 3 6 3s6-1.5 6-3v-5M22 9v6"/>'),
   sprout: svg('<path d="M12 21v-9"/><path d="M12 12c0-4 3-6.5 8-6.5 0 4.5-3 6.5-8 6.5zM12 14.5c0-3-2.4-5-6.5-5 0 3.5 2.4 5 6.5 5z"/>'),

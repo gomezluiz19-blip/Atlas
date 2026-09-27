@@ -38,6 +38,9 @@ const layer = (action: string, label: string): Step => ({ kind: "layer", action,
 const RULES: Rule[] = [
   // Atlas Pro: live operations for a saved building
   { re: /\b(how (full|busy|booked)|occupancy|occupied|vacanc(y|ies)|bookings?|reservations?|check.?ins?|guests? (in|at|staying)|rooms? (free|available|left))\b/, step: layer("pro:occupancy", "Show live occupancy (Pro)") },
+  // Space
+  { re: /\b(solar system|planets?|saturn|jupiter|neptune|uranus|mercury|venus)\b/, step: layer("space:solar", "Open the solar system") },
+  { re: /\b(iss|international space station|space station|satellites?|starlink|rocket launch(es)?|launch(es)?|rockets?|outer space|space view|orbit(s|ing)?)\b/, step: layer("space:open", "Open Space: satellites, the ISS and launches") },
   // Work mode
   { re: /\b(plan (a |my |the |our )?(trip|route|journey|holiday|vacation|event|party|wedding|conference)|trip planner|itinerary)\b/, step: layer("work:plan", "Open Plan (Work)") },
   { re: /\b((make|create|start|build) (a |my )?(presentation|slides?|slideshow|slide deck)|presentation|slideshow)\b/, step: layer("work:present", "Open Present (Work)") },
