@@ -69,7 +69,7 @@
       "sent.title": "¡Solicitud lista!", "sent.text": "Si WhatsApp no se abrió, llámenos o escríbanos con su código de reserva:",
       "sent.again": "Abrir WhatsApp otra vez", "sent.call": "Llamar",
       waHello: "Hola, me gustaría información sobre el Hotel Yaluma.",
-      langBtn: "EN", langLabel: "Change language to English",
+      langBtn: "EN", langLabel: "Change language to English", staff: "Acceso del personal",
     },
     en: {
       skip: "Skip to content",
@@ -127,7 +127,7 @@
       "sent.title": "Request ready!", "sent.text": "If WhatsApp didn't open, call or message us with your booking code:",
       "sent.again": "Open WhatsApp again", "sent.call": "Call",
       waHello: "Hi, I'd like information about Hotel Yaluma.",
-      langBtn: "ES", langLabel: "Cambiar idioma a español",
+      langBtn: "ES", langLabel: "Cambiar idioma a español", staff: "Staff login",
     },
   };
 
@@ -345,11 +345,12 @@
     const noBack = i === 0 || state.step === "sent";
     back.setAttribute("aria-hidden", String(noBack));
     back.tabIndex = noBack ? -1 : 0;
+    // En el resumen el botón es un enlace real a WhatsApp: abre en otra pestaña en cualquier navegador.
     const nextBtn = $("#sheet-next");
-    nextBtn.innerHTML = (state.step === "review" ? icon("whatsapp") : "") + `<span>${esc(t("next." + state.step))}</span>`;
+    nextBtn.hidden = state.step === "review";
+    $("#sheet-wa").hidden = state.step !== "review";
+    nextBtn.textContent = t("next." + state.step);
     $("#sheet-foot").classList.toggle("full", state.step === "review" || state.step === "sent");
-    $("#sheet-next").classList.toggle("btn-wa", state.step === "review");
-    $("#sheet-next").classList.toggle("btn-primary", state.step !== "review");
 
     if (state.step === "dates") renderDates();
     if (state.step === "room") renderRoomOptions();
@@ -590,6 +591,7 @@
       </div>
       <ul class="sum-rows">${rows.map(([k, v]) => `<li><span>${esc(k)}</span><span>${esc(v)}</span></li>`).join("")}</ul>
       <div class="sum-total"><div>${esc(t("total"))}<small>${esc(t("payAtHotel"))}</small></div><strong>${money(unitPrice(r) * n)}</strong></div>`;
+    $("#sheet-wa").href = waLink(whatsappMessage());
   }
 
   // El mensaje al hotel siempre va en español, lo lea quien lo lea.
@@ -669,15 +671,7 @@
       case "dates": go("room"); break;
       case "room": go("details"); break;
       case "details": if (validateDetails()) go("review"); break;
-      case "review": {
-        const url = waLink(whatsappMessage());
-        // Sin "noopener" en las opciones: con él window.open siempre devuelve null.
-        const w = window.open(url, "_blank");
-        saveReservation();
-        if (w) w.opener = null; else location.href = url;
-        go("sent");
-        break;
-      }
+      case "review": break; // lo maneja el enlace #sheet-wa
       case "sent": closeSheet(); break;
     }
   }
@@ -723,6 +717,10 @@
     });
 
     $("#sheet-next").addEventListener("click", next);
+    $("#sheet-wa").addEventListener("click", () => {
+      saveReservation();
+      setTimeout(() => go("sent"), 0);
+    });
     $("#sheet-back").addEventListener("click", back);
     $("#sheet-close").addEventListener("click", () => closeSheet());
     backdrop.addEventListener("click", () => closeSheet());

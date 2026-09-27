@@ -168,6 +168,17 @@
     if (modalOnClose) { const f = modalOnClose; modalOnClose = null; f(); }
   }
 
+  // Confirmación dentro de la página (confirm() del navegador no siempre funciona).
+  function ask(title, message, yesLabel, onYes, danger = false) {
+    const body = openModal(title, `
+      <p style="margin-bottom:16px">${esc(message)}</p>
+      <div class="modal-actions">
+        <button class="btn ${danger ? "btn-danger" : "btn-primary"}" data-yes>${esc(yesLabel)}</button>
+        <button class="btn btn-ghost" data-close>Volver</button>
+      </div>`);
+    $("[data-yes]", body).addEventListener("click", () => { closeModal(); onYes(); });
+  }
+
   // Ejecuta una acción, registra la actividad y recarga. Muestra errores sin romper nada.
   async function act(fn, done) {
     try {
@@ -721,8 +732,8 @@
   async function toggleShift() {
     const s = myShift();
     if (s) {
-      if (!confirm(`¿Terminar su turno? Duración: ${fmtDur(Date.now() - new Date(s.started_at))}.`)) return;
-      await act(async () => { await db.endShift(s.id); await db.log("Terminó su turno"); }, "Turno terminado");
+      ask("Terminar turno", `Duración del turno: ${fmtDur(Date.now() - new Date(s.started_at))}.`, "Terminar turno",
+        () => act(async () => { await db.endShift(s.id); await db.log("Terminó su turno"); }, "Turno terminado"));
     } else {
       await act(async () => { await db.startShift(); await db.log("Inició su turno"); }, "Turno iniciado");
     }
@@ -849,7 +860,7 @@
     $("#logout").addEventListener("click", () => logout());
     $("#shift-pill").addEventListener("click", toggleShift);
     $("#demo-reset").addEventListener("click", () => {
-      if (confirm("¿Borrar los cambios y volver a los datos de ejemplo?")) { db.reset(); refresh(); }
+      ask("Reiniciar datos", "Se borran los cambios y vuelven los datos de ejemplo.", "Reiniciar", () => { db.reset(); refresh(); }, true);
     });
 
     $$(".tabs button").forEach((b) => b.addEventListener("click", () => { view = b.dataset.view; render(); window.scrollTo(0, 0); }));
@@ -867,8 +878,9 @@
       if (el.dataset.filter) { resFilter = el.dataset.filter; return render(); }
       if (el.dataset.endshift) {
         const s = data.shifts.find((x) => String(x.id) === el.dataset.endshift);
-        if (s && confirm(`¿Cerrar el turno de ${personName(s.user_id)}?`)) {
-          act(async () => { await db.endShift(s.id); await db.log(`Cerró el turno de ${personName(s.user_id)}`); }, "Turno cerrado");
+        if (s) {
+          ask("Cerrar turno", `Se cierra el turno de ${personName(s.user_id)} ahora.`, "Cerrar turno",
+            () => act(async () => { await db.endShift(s.id); await db.log(`Cerró el turno de ${personName(s.user_id)}`); }, "Turno cerrado"));
         }
         return;
       }
@@ -882,11 +894,12 @@
         const a = el.dataset.r;
         if (a === "confirm") return confirmModal(r);
         if (a === "arrive") return checkInModal(r);
-        if (a === "decline" && confirm(`¿Rechazar la solicitud de ${r.guest_name}?`)) {
-          return setStatus(r, "cancelada", "Rechazó la solicitud").then((ok) => ok && afterStatusModal(r, "decline"));
+        if (a === "decline") {
+          return ask("Rechazar solicitud", `La solicitud de ${r.guest_name} pasa al historial como cancelada.`, "Rechazar",
+            () => setStatus(r, "cancelada", "Rechazó la solicitud").then((ok) => ok && afterStatusModal(r, "decline")), true);
         }
-        if (a === "cancel" && confirm(`¿Cancelar la reserva de ${r.guest_name}?`)) return setStatus(r, "cancelada", "Canceló la reserva");
-        if (a === "noshow" && confirm(`¿Marcar que ${r.guest_name} no llegó?`)) return setStatus(r, "no_llego", "Marcó como no llegó la reserva");
+        if (a === "cancel") return ask("Cancelar reserva", `Se cancela la reserva de ${r.guest_name}.`, "Cancelar reserva", () => setStatus(r, "cancelada", "Canceló la reserva"), true);
+        if (a === "noshow") return ask("No llegó", `Se marca que ${r.guest_name} no llegó.`, "Marcar no llegó", () => setStatus(r, "no_llego", "Marcó como no llegó la reserva"), true);
         return;
       }
       const a = el.dataset.act;
