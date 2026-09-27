@@ -4,7 +4,7 @@
 // cameras with their field of view on the ground.
 import {
   Cartesian2, Cartesian3, Color, CustomDataSource, HeightReference, LabelStyle, Math as CesiumMath, PolygonHierarchy, VerticalOrigin,
-  BoundingSphere, HeadingPitchRange, Matrix4, type Viewer,
+  BoundingSphere, HeadingPitchRange, HorizontalOrigin, Matrix4, type Viewer,
 } from "cesium";
 import { elevation } from "../data/elevation";
 import { overpass } from "../data/overpass";
@@ -120,6 +120,7 @@ export class PlaceScene {
 
   constructor(private viewer: Viewer) {
     void viewer.dataSources.add(this.ds);
+    void viewer.dataSources.add(this.floorDs);
   }
 
   /** Loads and draws the buildings around a place. */
@@ -139,7 +140,7 @@ export class PlaceScene {
     const accent = Color.fromCssColorString("#ff9f0a");
     for (const b of this.buildings) {
       const mine = b === this.own;
-      this.ds.entities.add({
+      const e = this.ds.entities.add({
         polygon: {
           hierarchy: new PolygonHierarchy(b.ring.map(([x, y]) => Cartesian3.fromDegrees(x, y))),
           // Sunk a metre so sloping ground doesn't leave a gap under the walls.
@@ -148,6 +149,10 @@ export class PlaceScene {
           material: mine ? accent.withAlpha(0.92) : Color.fromCssColorString("#f2f2f7").withAlpha(b.heightSource === "guess" ? 0.55 : 0.75),
         },
       });
+      if (mine) {
+        this.ownEntity = e;
+        e.show = !this.floors?.length;
+      }
     }
     for (const d of p.devices) {
       if (d.type === "camera") {
@@ -169,6 +174,55 @@ export class PlaceScene {
           scale: 0.95,
         },
       });
+    }
+  }
+
+  /** Floor-by-floor colours for the place's own building (Atlas Pro), or null for plain. */
+  floors: { floor: number; color: string; label: string }[] | null = null;
+
+  /** Floor slabs live in their own layer, so live updates don't redraw the whole neighbourhood. */
+  readonly floorDs = new CustomDataSource("my-place-floors");
+  private ownEntity: import("cesium").Entity | null = null;
+  private floorKey = "";
+
+  setFloors(_p: MyPlace, floors: { floor: number; color: string; label: string }[] | null) {
+    const key = JSON.stringify(floors);
+    if (key === this.floorKey) return;
+    this.floorKey = key;
+    this.floors = floors;
+    this.floorDs.entities.removeAll();
+    if (this.ownEntity) this.ownEntity.show = !floors?.length;
+    if (floors?.length && this.own) this.drawFloors(this.own, floors);
+  }
+
+  /** Stacks the building as floor slabs, each in its own colour, labelled at the side. */
+  private drawFloors(b: Building, floors: { floor: number; color: string; label: string }[]) {
+    const n = Math.max(floors.length, ...floors.map((f) => f.floor));
+    const storey = Math.max(2.8, b.height / n);
+    const base = b.ground ?? 0;
+    const hierarchy = new PolygonHierarchy(b.ring.map(([x, y]) => Cartesian3.fromDegrees(x, y)));
+    // Label anchor: the footprint's easternmost corner.
+    const east = b.ring.reduce((a, q) => (q[0] > a[0] ? q : a), b.ring[0]);
+    for (let i = 1; i <= n; i++) {
+      const f = floors.find((x) => x.floor === i);
+      const bottom = base + (i - 1) * storey;
+      this.floorDs.entities.add({
+        polygon: {
+          hierarchy,
+          height: i === 1 ? base - 1 : bottom + 0.25,
+          extrudedHeight: bottom + storey - 0.25,
+          material: Color.fromCssColorString(f?.color ?? "#8e8e93").withAlpha(f ? 0.95 : 0.5),
+        },
+      });
+      if (f)
+        this.floorDs.entities.add({
+          position: Cartesian3.fromDegrees(east[0], east[1], bottom + storey / 2),
+          label: {
+            text: f.label, font: "700 13px -apple-system, system-ui, sans-serif", style: LabelStyle.FILL_AND_OUTLINE,
+            fillColor: Color.WHITE, outlineColor: Color.fromCssColorString("#0b1320"), outlineWidth: 4,
+            horizontalOrigin: HorizontalOrigin.LEFT, pixelOffset: new Cartesian2(12, 0), disableDepthTestDistance: Number.POSITIVE_INFINITY,
+          },
+        });
     }
   }
 
@@ -206,6 +260,10 @@ export class PlaceScene {
 
   clear() {
     this.orbit(null, false);
+    this.floors = null;
+    this.floorKey = "";
+    this.ownEntity = null;
+    this.floorDs.entities.removeAll();
     this.ds.entities.removeAll();
     this.buildings = [];
     this.own = null;

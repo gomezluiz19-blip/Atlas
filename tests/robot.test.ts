@@ -54,3 +54,11 @@ describe("task robot planner", () => {
     expect(plan("earthquakes here and blorps").unknown).toEqual([]);
   });
 });
+
+describe("task robot and Pro", () => {
+  it("asks for live occupancy", () => {
+    expect(ids("how full is my hotel")).toEqual(["pro:occupancy"]);
+    expect(place("how full is my hotel")).toBe("hotel"); // finds the saved hotel by its kind
+    expect(ids("vacancies tonight")).toContain("pro:occupancy");
+  });
+});

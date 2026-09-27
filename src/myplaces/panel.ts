@@ -51,7 +51,7 @@ export interface MyPlacesUi {
   refresh(): void;
 }
 
-export function createMyPlaces(app: App, store: PlaceStore, scene: PlaceScene): MyPlacesUi {
+export function createMyPlaces(app: App, store: PlaceStore, scene: PlaceScene, opts: { onPro?: (id: string) => void } = {}): MyPlacesUi {
   const button = h("button", { id: "myplaces-btn", class: "round-btn", "aria-label": "My Places", "aria-expanded": "false", title: "My Places", html: icons.home }) as HTMLButtonElement;
   const panel = h("div", { class: "popover myplaces", hidden: true, role: "dialog", "aria-label": "My Places" });
   let current: string | null = null;
@@ -255,7 +255,8 @@ export function createMyPlaces(app: App, store: PlaceStore, scene: PlaceScene): 
       h("div", { class: "mp-buttons" },
         h("button", { class: "pill-btn", onclick: () => scene.frame(p) }, "3D view"),
         h("button", { class: "pill-btn", onclick: () => { scene.frame(p); setTimeout(() => scene.orbit(p, true), 2100); } }, "Orbit"),
-        h("button", { class: "pill-btn", onclick: () => { ui.close(); app.select({ lon: p.lon, lat: p.lat, height: 0 }, { title: p.name, context: p.address ?? KIND_LABEL[p.kind] }); } }, "Explore it in the themes")),
+        h("button", { class: "pill-btn", onclick: () => { ui.close(); app.select({ lon: p.lon, lat: p.lat, height: 0 }, { title: p.name, context: p.address ?? KIND_LABEL[p.kind] }); } }, "Explore it in the themes"),
+        opts.onPro ? h("button", { class: "pill-btn pro-btn", onclick: () => opts.onPro!(p.id) }, h("span", { class: "pro-badge" }, "PRO"), "Live operations") : ""),
       buildingInfo,
 
       h("section", { class: "group" }, h("h2", { class: "group-title" }, "Energy"),
@@ -330,7 +331,7 @@ export function createMyPlaces(app: App, store: PlaceStore, scene: PlaceScene): 
           scene.frame(p);
           app.canvas.put({
             id: "myplace", label: `My Places · ${p.name}`, color: "#ff9f0a", scope: "world", pinned: true,
-            show: (v) => { scene.ds.show = v; },
+            show: (v) => { scene.ds.show = v; scene.floorDs.show = v; },
             remove: () => { scene.clear(); loadedFor = ""; },
           });
         }

@@ -41,6 +41,14 @@ drawn on the ground, optional links to live feeds, plus gates, alarms, lights an
 stored only in the browser, with export and import. The task robot knows your places too: *"weather at my
 hotel"*. When you open Atlas it flies to your place.
 
+**Atlas Pro: live operations.** For a saved building, *Live operations* connects its bookings (a demo
+feed, a reservations export from any CRM or booking system, or a live link polled every 30 seconds) and
+shows how full the place is: the building in 3D split into floors coloured by occupancy, the share of rooms
+taken and guests in the building, today's arrivals, departures and rooms being cleaned, every room by floor,
+and the next 14 nights, with a slider to watch the building fill up. Spanish column names work. Guest
+names are never read, and the data stays in the browser. Ask the robot *"how full is my hotel"*. How to
+connect a CRM or booking system is in [docs/pro-connectors.md](docs/pro-connectors.md).
+
 **Ask it to do things.** The search box also takes requests: *"Where does rain go in downtown Chicago,
 and show the storm drains and railways"*, *"Lithium mines in Chile"*, *"Earthquakes and tectonic plates in
 Japan"*. A small task robot (rules, not a language model; it runs in the browser) works out the place, the views
@@ -144,6 +152,7 @@ src/
   canvas.ts            the shared canvas: what's on the map, across themes and places
   robot/               the task robot: plan.ts turns a request into steps, run.ts carries them out
   myplaces/            My Places: store (saved in the browser), scene (3D buildings, devices), estimates (solar, rain), panel
+  pro/                 Atlas Pro: model (bookings → rooms, floors, forecast), sources (demo, CSV, live link), panel
   app.ts               place selection, place card, theme tab bar and subtabs, hosting tools inside subtabs
   themes/              one file per theme (explore, land, minerals, water, climate, life, built, countries)
   explore/             view tracking, label feeds and the "worth knowing" insights engine

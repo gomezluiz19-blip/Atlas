@@ -26,6 +26,7 @@ import { createRobot } from "./ui/robotCard";
 import { PlaceStore } from "./myplaces/store";
 import { PlaceScene } from "./myplaces/scene";
 import { createMyPlaces } from "./myplaces/panel";
+import { createPro } from "./pro/panel";
 import { plan } from "./robot/plan";
 import { describe } from "./robot/run";
 import { siteBrowser } from "./ui/sites";
@@ -99,9 +100,29 @@ const siteMatches = (q: string): SearchResult[] => {
 // My Places: saved places (home, a family hotel…) with 3D, energy, water and security.
 const myStore = new PlaceStore();
 const myScene = new PlaceScene(globe.viewer);
-const myPlaces = createMyPlaces(app, myStore, myScene);
+const myPlaces = createMyPlaces(app, myStore, myScene, { onPro: (id) => { myPlaces.close(); pro.open(id); } });
 $("layers-btn").before(myPlaces.button);
 $("ui").append(myPlaces.panel);
+// Atlas Pro: live operations (bookings from a CRM or booking system) for a saved building.
+const pro = createPro(app, myStore, myScene, (id) => { myPlaces.open(id); myPlaces.close(); });
+$("ui").append(pro.panel);
+myPlaces.button.addEventListener("click", () => pro.close());
+/** The saved place at (or nearest to) the chosen spot, else the first one. */
+const savedPlaceHere = () => {
+  const all = myStore.all();
+  if (!all.length) return undefined;
+  const p = app.place;
+  if (!p) return all[0];
+  return [...all].sort((a, b) => Math.hypot(a.lon - p.lon, a.lat - p.lat) - Math.hypot(b.lon - p.lon, b.lat - p.lat))[0];
+};
+app.actions.set("pro:occupancy", {
+  label: "Live occupancy",
+  run: () => {
+    const p = savedPlaceHere();
+    if (p) pro.open(p.id);
+    else app.toast("Save the building in My Places first (the house button), then connect its bookings.", 6000);
+  },
+});
 
 // The task robot: plain-language requests typed into the search box.
 const robot = createRobot(app, {
@@ -225,7 +246,7 @@ globe.onApply = () => {
     else if (!on && app.canvas.has(key)) app.canvas.drop(key);
   }
 };
-layersBtn.addEventListener("click", () => { myPlaces.close(); toggleLayers(); });
+layersBtn.addEventListener("click", () => { myPlaces.close(); pro.close(); toggleLayers(); });
 globe.viewer.scene.canvas.addEventListener("pointerdown", () => toggleLayers(false));
 
 // About / data sources.

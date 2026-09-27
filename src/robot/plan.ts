@@ -34,6 +34,8 @@ const layer = (action: string, label: string): Step => ({ kind: "layer", action,
 
 // Most specific phrases first; each match is removed before the next rule runs.
 const RULES: Rule[] = [
+  // Atlas Pro: live operations for a saved building
+  { re: /\b(how (full|busy|booked)|occupancy|occupied|vacanc(y|ies)|bookings?|reservations?|check.?ins?|guests? (in|at|staying)|rooms? (free|available|left))\b/, step: layer("pro:occupancy", "Show live occupancy (Pro)") },
   // Map layers
   { re: /\b(live )?(rain )?radar\b|\bis it raining\b/, step: layer("overlay:radar", "Add live rain radar") },
   { re: /\b(earthquakes?|quakes?|seismic( activity)?)\b/, step: layer("overlay:quakes", "Add this week's earthquakes") },
