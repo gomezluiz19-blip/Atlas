@@ -37,7 +37,7 @@ class Recording {
     this.out.width = w;
     this.out.height = hh;
     const g = this.out.getContext("2d")!;
-    const credits = (document.getElementById("credits")?.textContent ?? "").replace(/\s+/g, " ").trim();
+    const credits = mapCredits(this.app);
     this.offFrame = scene.postRender.addEventListener(() => this.draw(g, src, credits));
 
     const stream = this.out.captureStream(30);
@@ -148,6 +148,18 @@ class Recording {
   }
 }
 
+/** The credits of the map layers on screen, as plain text. */
+function mapCredits(app: App): string {
+  const out = new Set<string>();
+  const layers = app.globe.viewer.imageryLayers;
+  for (let i = 0; i < layers.length; i++) {
+    const l = layers.get(i);
+    const html = l.show && l.ready !== false ? l.imageryProvider?.credit?.html : undefined;
+    if (html) out.add(new DOMParser().parseFromString(html, "text/html").body.textContent!.trim());
+  }
+  return [...out].filter(Boolean).join(" · ");
+}
+
 const fileName = (ext: string) => {
   const d = new Date(), p = (n: number) => String(n).padStart(2, "0");
   return `atlas-${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}.${ext}`;
@@ -197,7 +209,7 @@ function result(ctx: WorkCtx, blob: Blob, ext: string, seconds: number) {
 
 async function record(ctx: WorkCtx, deckId?: string) {
   const { app } = ctx;
-  const rec = new Recording(app, { ...settings });
+  const rec = new Recording(app, settings);
   try {
     await rec.start();
   } catch (e) {

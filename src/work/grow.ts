@@ -108,6 +108,9 @@ function seasonView(f: Field, s: Season, m2: number): (Node | string)[] {
       crop.gdd ? ["Heat units so far", `${n0(s.gdd)} of ~${n0(crop.gdd[0])}–${n0(crop.gdd[1])} GDD`, `Growing degree days above ${crop.base} °C; the target is typical and varies by variety`] : null,
       s.harvest ? ["Harvest", s.harvest[0] === s.harvest[1] ? (s.harvest[0] === today() ? "Now" : fmtDate(s.harvest[0])) : `${fmtDate(s.harvest[0])} – ${fmtDate(s.harvest[1])}`, "Projected from recent and forecast temperatures"] : null,
     ),
+    s.harvest && crop.gdd && Date.parse(s.harvest[0]) - Date.now() > 45 * 86_400_000 && s.f > 0.5
+      ? h("p", { class: "muted small" }, "Growth is slowing as the weather cools, so this is a long projection. In cool climates crops are often harvested before the full target, or a shorter variety is used.")
+      : "",
     h("section", { class: "group" }, h("h2", { class: "group-title" }, "Water"),
       stats(
         ["Crop used, last 7 days", `${s.used7.toFixed(0)} mm`, `Reference evapotranspiration × crop coefficient (Kc ${s.kc.toFixed(2)}, FAO-56)`],

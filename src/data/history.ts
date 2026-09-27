@@ -90,10 +90,15 @@ export class HistoryLayer {
           tracePath(ctx, t, new Float32Array(ring.flat()));
           ctx.closePath();
         }
-        ctx.fillStyle = polityColor(p.name).replace("hsl", "hsla").replace(")", ", 0.38)");
+        ctx.fillStyle = polityColor(p.name).replace("hsl", "hsla").replace(")", ", 0.5)");
         ctx.fill("evenodd");
-        ctx.lineWidth = 2;
-        ctx.strokeStyle = "rgba(255,255,255,0.85)";
+        // A dark edge under a light line reads over both desert and forest.
+        ctx.lineJoin = "round";
+        ctx.lineWidth = 4;
+        ctx.strokeStyle = "rgba(20,16,10,0.55)";
+        ctx.stroke();
+        ctx.lineWidth = 1.6;
+        ctx.strokeStyle = "rgba(255,248,230,0.95)";
         ctx.stroke();
       }
     }, { maximumLevel: 8, credit: HISTORY_CREDIT });

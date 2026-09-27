@@ -6,6 +6,8 @@
 // the request, plus rules for finding the place. Anything it can't place is
 // reported back rather than guessed at.
 
+import { nearestYear, yearLabel } from "../data/history";
+
 export type PlanPlace =
   | { kind: "query"; text: string }
   | { kind: "here" };
@@ -36,6 +38,12 @@ const layer = (action: string, label: string): Step => ({ kind: "layer", action,
 const RULES: Rule[] = [
   // Atlas Pro: live operations for a saved building
   { re: /\b(how (full|busy|booked)|occupancy|occupied|vacanc(y|ies)|bookings?|reservations?|check.?ins?|guests? (in|at|staying)|rooms? (free|available|left))\b/, step: layer("pro:occupancy", "Show live occupancy (Pro)") },
+  // Work mode
+  { re: /\b(plan (a |my |the |our )?(trip|route|journey|holiday|vacation|event|party|wedding|conference)|trip planner|itinerary)\b/, step: layer("work:plan", "Open Plan (Work)") },
+  { re: /\b((make|create|start|build) (a |my )?(presentation|slides?|slideshow|slide deck)|presentation|slideshow)\b/, step: layer("work:present", "Open Present (Work)") },
+  { re: /\b(record (a )?(video|tour|this)|screen ?record(ing)?|make a video|video)\b/, step: layer("work:video", "Open Video (Work)") },
+  { re: /\b(my (field|farm|crops?)|crop (growth|stage|health)s?|when to (harvest|plant)|irrigat(e|ion)|growing degree days|gdd)\b/, step: layer("work:grow", "Open Grow (Work)") },
+  { re: /\b(plant|crop|vegetation) health\b|\bndvi\b|\bhow green\b/, step: layer("work:ndvi", "Add plant health from space (NDVI)") },
   // Map layers
   { re: /\b(live )?(rain )?radar\b|\bis it raining\b/, step: layer("overlay:radar", "Add live rain radar") },
   { re: /\b(earthquakes?|quakes?|seismic( activity)?)\b/, step: layer("overlay:quakes", "Add this week's earthquakes") },
@@ -131,8 +139,39 @@ function findPlace(text: string): { place: PlanPlace | null; used: string } {
   return { place: null, used: "" };
 }
 
+const HISTORY_WORDS = /\b(historical |old )?(borders?|empires?|kingdoms?|who ruled|history|historical map|political map)\b/;
+const YEAR = /\b(?:(?:in|of|during|around|from|circa|by)\s+)?(?:(ad|ce)\s*)?(\d{1,6})(?:\s*(bc|bce|ad|ce)\b)?/;
+
+/** Empires named by adjective, and where to look for them. */
+const EMPIRES: Record<string, string> = {
+  "holy roman": "Germany", roman: "Rome", byzantine: "Istanbul", ottoman: "Istanbul", mongol: "Mongolia", persian: "Iran", achaemenid: "Iran",
+  aztec: "Mexico City", inca: "Cusco", mughal: "Delhi", british: "London", spanish: "Madrid", portuguese: "Lisbon", french: "Paris",
+  russian: "Moscow", chinese: "China", qing: "China", ming: "China", han: "China", egyptian: "Egypt", greek: "Greece", macedonian: "Greece",
+  mali: "Mali", songhai: "Mali", ghana: "Ghana", maurya: "India", gupta: "India", carolingian: "Aachen", austro: "Vienna", "austro-hungarian": "Vienna",
+  habsburg: "Vienna", japanese: "Japan", khmer: "Angkor", assyrian: "Mosul", babylonian: "Iraq",
+};
+
+/** "borders in 1914", "empires of 500 BC": the nearest year there's a map for. */
+export function historyYear(text: string): { year: number; match: string } | null {
+  // A history word, an era (BC/AD), or "in 1914".
+  const bare = /\b(?:in|during|around) (1\d{3}|20[01]\d)\b(?! [a-z]*\s*(street|st|avenue|ave|road|rd))/.exec(text);
+  if (!HISTORY_WORDS.test(text) && !/\d\s*(bc|bce)\b|\b(ad|ce)\s*\d/.test(text) && !bare) return null;
+  const m = YEAR.exec(text);
+  if (!m) return null;
+  const n = Number(m[2]);
+  if (!n) return null;
+  return { year: nearestYear(/bc/.test(m[3] ?? "") ? -n : n), match: m[0] };
+}
+
 export function plan(request: string): Plan {
-  const text = request.toLowerCase().replace(/[“”"]/g, "").replace(/\s+/g, " ").trim();
+  let text = request.toLowerCase().replace(/[“”"]/g, "").replace(/\s+/g, " ").trim();
+  const hist = historyYear(text);
+  if (hist) {
+    text = text.replace(hist.match, " ");
+    const e = /\b(holy roman|austro-hungarian|[a-z]+) (empire|kingdom|dynasty|sultanate|caliphate)\b/.exec(text);
+    if (e && EMPIRES[e[1]]) text = text.replace(e[0], ` in ${EMPIRES[e[1]].toLowerCase()} `);
+    text = text.replace(HISTORY_WORDS, " ").replace(/\s+/g, " ").trim();
+  }
   const { place, used } = findPlace(text);
   // Match the vocabulary in what's left once the place name is taken out,
   // so words in a place name ("Salt Lake City", "Iron Mountain") aren't read as requests.
@@ -156,6 +195,7 @@ export function plan(request: string): Plan {
     found.push({ at: Infinity, step: view("water", "city", "Map how water moves through the city") });
   found.sort((a, b) => a.at - b.at);
   const layers = found.filter((f) => f.step.kind === "layer").map((f) => f.step);
+  if (hist) layers.unshift(layer(`work:borders:${hist.year}`, `Show the borders in ${yearLabel(hist.year)}`));
   let views = found.filter((f) => f.step.kind === "view").map((f) => f.step);
   if (!views.length && !commodities.length) {
     const rel = found.find((f) => f.related)?.related;

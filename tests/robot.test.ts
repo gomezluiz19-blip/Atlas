@@ -62,3 +62,28 @@ describe("task robot and Pro", () => {
     expect(ids("vacancies tonight")).toContain("pro:occupancy");
   });
 });
+
+describe("history and work requests", () => {
+  it("reads a year and a place", () => {
+    const p = plan("Europe in 1914");
+    expect(p.place).toEqual({ kind: "query", text: "europe" });
+    expect(p.steps[0]).toMatchObject({ kind: "layer", action: "work:borders:1914" });
+  });
+  it("reads BC years and named empires", () => {
+    expect(plan("empires of 500 BC in the Mediterranean").steps[0]).toMatchObject({ action: "work:borders:-500" });
+    const r = plan("the Roman Empire in 100 AD");
+    expect(r.steps[0]).toMatchObject({ action: "work:borders:100" });
+    expect(r.place).toEqual({ kind: "query", text: "rome" });
+  });
+  it("snaps to the nearest map", () => {
+    expect(plan("borders in 1916").steps[0]).toMatchObject({ action: "work:borders:1914" });
+  });
+  it("leaves addresses alone", () => {
+    expect(plan("350 Fifth Avenue New York").steps).toEqual([]);
+  });
+  it("opens Work tools", () => {
+    expect(plan("plan a trip to Lisbon").steps[0]).toMatchObject({ action: "work:plan" });
+    expect(plan("make a presentation").steps[0]).toMatchObject({ action: "work:present" });
+    expect(plan("plant health in Iowa").steps[0]).toMatchObject({ action: "work:ndvi" });
+  });
+});

@@ -947,6 +947,7 @@ div.pro-option { cursor: default; }
 .draw-bar .primary-btn:disabled { opacity: 0.5; }
 
 /* Work mode */
+.work-panel > * { flex-shrink: 0; }
 .work-panel { width: 420px; max-height: calc(100vh - 150px); overflow-y: auto; gap: 10px; transition: opacity 0.2s, transform 0.2s; }
 .work-panel.tucked { opacity: 0; transform: translateY(-8px); pointer-events: none; }
 .work-title { font-size: 20px; margin: 0; }
@@ -1060,3 +1061,4 @@ a.primary-btn { text-decoration: none; display: inline-flex; align-items: center
 .pro-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .pro-actions select { font: inherit; font-size: 14px; border: 0; background: var(--fill); color: var(--label); border-radius: 10px; padding: 7px 8px; max-width: 200px; }
 .pro-warn { margin: 0; padding: 8px 12px; border-radius: 10px; font-size: 13.5px; line-height: 1.4; background: color-mix(in srgb, #ff9f0a 16%, transparent); }
+.pro-actions .link-btn.danger { margin-top: 0; }

@@ -108,7 +108,7 @@ export function orbit(app: App, secondsPerTurn = 90): () => void {
 }
 
 /** Map layers switched on right now (so a slide can bring them back). */
-const layersOn = (app: App) => [...app.actions].filter(([, a]) => a.isOn?.()).map(([id]) => id);
+const layersOn = (app: App) => [...app.actions].filter(([id, a]) => !id.startsWith("work:borders:") && a.isOn?.()).map(([id]) => id);
 
 // ---- Playing a deck ------------------------------------------------------------------
 
@@ -174,6 +174,8 @@ export function play(app: App, deck: Deck, opts: PlayOptions = {}): { done: Prom
     }
     await flyToView(app, s.camera, i === 0 && n === 0 ? 2 : 3);
     if (my !== token || closed) return;
+    // Slides from a template get their picture the first time they're shown.
+    if (!s.thumb) void captureView(app).then((v) => { if (v.thumb && store.get(deck.id)) { s.thumb = v.thumb; store.save(deck); } });
     if (s.orbit || opts.tour) stopOrbit = orbit(app, s.orbit ? 70 : 140);
     schedule();
   };
@@ -326,7 +328,7 @@ export function openBorders(ctx: WorkCtx, deckId?: string) {
     try {
       polities = await showYear(app, y);
       if (YEARS[idx] !== y) return;
-      status.textContent = `${polities.length} states, empires and peoples mapped. ${find.value ? "" : "The largest:"}`;
+      status.textContent = `${polities.length} states, empires and peoples mapped. Type a name to find one, or pick from the largest:`;
       list();
     } catch {
       status.textContent = "Couldn't load the borders for this year. Check the connection and try again.";

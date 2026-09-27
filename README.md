@@ -96,6 +96,29 @@ track from OpenRailwayMap when zoomed in), highways and ferries, shipping lanes,
 airports, 35,000 power plants coloured by fuel and sized by capacity, and the undersea cables that carry
 the internet. Tap a dot for the plant, port or airport.
 
+**Work.** The briefcase button puts the map to work, for anyone:
+
+- **Plan** trips (stops in order, distances, travel times, the weather at each stop), events (venue, reach
+  rings at 15/30/60 minutes, the nearest airport, rail and port, parking), business sites (candidates
+  compared side by side on transport and power), policy zones (area, and the power plants, rail, roads, ports,
+  airports and mines inside) and infrastructure (proposed routes with length, an elevation profile, climb,
+  steepest grade, and the rivers, railways and highways they cross). Everything is drawn on the map, with
+  notes, a checklist and an export.
+- **Present** turns places into slides: frame a view, add a caption, borders from any of 54 moments in
+  history (123,000 BC to 2010), and any map layers. Play it full screen, one slide at a time or as a flying
+  tour that circles each place. Topic templates (the Roman Empire, World War I, the age of exploration) and a
+  *Borders through time* slider help with school projects. Decks save to a file to share.
+- **Video** records the globe (widescreen, square or vertical) with a title, a live caption, narration from
+  the microphone and/or a music file, and the map credits in the corner. It can record a presentation as a
+  tour, and a clean view hides every control for streaming with OBS, Zoom or Meet.
+- **Grow** follows fields drawn on the satellite map: the crop's growth stage from growing degree days, a
+  harvest window, what the crop used (FAO-56 ET₀ × Kc) against the rain, how much to irrigate this week in
+  mm and litres for the field, frost and heat in the week ahead, a field diary, and plant health from space
+  (MODIS NDVI). Maize, rice, wheat, beans, soybeans, tomatoes, potatoes, coffee, cacao and bananas.
+
+The task robot opens these too: "Europe in 1914", "the Roman Empire in 100 AD", "plan a trip to Lisbon",
+"plant health in Iowa".
+
 Keyboard: `1`–`9` switch themes, `/` searches, `Esc` cancels a line or closes a chart.
 
 ## Run it
@@ -145,6 +168,10 @@ These keys end up in the public page, so restrict them to your site's domain in 
 - **Aurora and geomagnetic activity:** NOAA Space Weather Prediction Center (OVATION, Kp). **Earthquakes:** USGS.
   **Plate boundaries:** Bird (2003) PB2002 via [fraxen/tectonicplates](https://github.com/fraxen/tectonicplates).
 - **Street and place names over imagery:** Esri World Transportation and World Boundaries and Places reference layers.
+- **Historical borders:** [historical-basemaps](https://github.com/aourednik/historical-basemaps) by A. Ourednik
+  and contributors (GPL-3.0), loaded live when used. Borders before about 1800 are approximate.
+- **Grow:** daily temperature, rain and FAO-56 reference evapotranspiration from Open-Meteo; NDVI from NASA
+  GIBS (MODIS Terra, 8-day). Crop coefficients from FAO-56; degree-day targets are typical values.
 - **My Places:** building footprints and heights from OpenStreetMap; sunshine and rainfall from ERA5 via Open-Meteo.
 - **Search and place names:** [Photon](https://photon.komoot.io) (by komoot) and OpenStreetMap Nominatim
   (light, interactive use only, per its usage policy).
@@ -201,6 +228,9 @@ page at the same view.
   sequences like the Grand Canyon and misses folds, faults and layers that pinch out. Macrostrat columns are
   densest in North America.
 - Species, mines and infrastructure show what people have recorded or mapped, which is never complete.
+- Grow's degree-day targets and crop coefficients are typical values; varieties, soils and management differ,
+  and the irrigation figure ignores soil storage and system losses. NDVI pixels are about 250 m.
+- Plan's travel times use straight-line distance with a detour factor, not a road network.
 
 ## Roadmap
 

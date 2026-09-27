@@ -52,7 +52,9 @@ export async function runPlan(app: App, plan: Plan, resolver: Resolver, onUpdate
         onUpdate([...steps]);
         return false;
       }
-      await resolver.go(found);
+      // History maps are read at the scale of countries and empires.
+      const wide = plan.steps.some((s) => s.kind === "layer" && s.action.startsWith("work:borders:"));
+      await resolver.go(wide ? { ...found, radius: Math.max(found.radius, 900_000) } : found);
       set(i, "done", found.detail ? `${found.name}, ${found.detail}` : found.name);
     } else {
       if (!app.place) {

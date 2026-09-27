@@ -29,7 +29,8 @@ import { createMyPlaces } from "./myplaces/panel";
 import { createPro } from "./pro/panel";
 import { createWork } from "./work/hub";
 import { openPlans } from "./work/planUi";
-import { openPresent } from "./work/present";
+import { borders, openPresent, showYear } from "./work/present";
+import { YEARS, yearLabel } from "./data/history";
 import { openVideo } from "./work/video";
 import { ndviAction, openGrow } from "./work/grow";
 import { plan } from "./robot/plan";
@@ -124,6 +125,10 @@ $("ui").append(work.panel);
 work.button.addEventListener("work:opened", () => { myPlaces.close(); pro.close(); toggleLayers(false); });
 myPlaces.button.addEventListener("click", () => work.ctx.close());
 app.actions.set("work:ndvi", ndviAction(app));
+for (const t of ["plan", "present", "video", "grow"] as const)
+  app.actions.set(`work:${t}`, { label: `Work › ${t}`, run: () => { work.ctx.open(); ({ plan: openPlans, present: openPresent, video: openVideo, grow: openGrow })[t](work.ctx); } });
+for (const y of YEARS)
+  app.actions.set(`work:borders:${y}`, { label: `Borders in ${yearLabel(y)}`, run: () => void showYear(app, y).catch(() => app.toast("Couldn't load the historical borders. Check the connection.", 5000)), isOn: () => borders(app).year === y });
 
 /** The saved place at (or nearest to) the chosen spot, else the first one. */
 const savedPlaceHere = () => {
