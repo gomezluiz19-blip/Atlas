@@ -48,3 +48,16 @@ describe("fields in the brief", () => {
     expect(titles.some((t) => t.startsWith("Orchard"))).toBe(false);
   });
 });
+
+import { makeBackup, readBackup } from "../src/myplaces/backup";
+describe("backups", () => {
+  it("round-trips Atlas data and never includes the AI settings", () => {
+    const store = new Map<string, string>([["atlas.myplaces.v1", "[1]"], ["atlas.ai.v1", '{"key":"sk-secret"}'], ["other.app", "x"]]);
+    (globalThis as { localStorage?: unknown }).localStorage = { get length() { return store.size; }, key: (i: number) => [...store.keys()][i], getItem: (k: string) => store.get(k) ?? null, setItem: (k: string, v: string) => store.set(k, v) };
+    const b = makeBackup();
+    expect(Object.keys(b.data)).toEqual(["atlas.myplaces.v1"]);
+    expect(readBackup(JSON.stringify(b)).data["atlas.myplaces.v1"]).toBe("[1]");
+    expect(() => readBackup(JSON.stringify({ ...b, data: { "atlas.ai.v1": "{}" } }))).toThrow();
+    expect(() => readBackup('{"hello":1}')).toThrow();
+  });
+});

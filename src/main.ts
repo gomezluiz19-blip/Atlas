@@ -32,6 +32,7 @@ import { createPro } from "./pro/panel";
 import { createWork, type WorkCtx, type WorkTool } from "./work/hub";
 import { createModeBar, type Mode } from "./ui/modes";
 import { todayCard } from "./myplaces/todayUi";
+import { backupRow, keepStorage } from "./myplaces/backup";
 import { createSpace } from "./space/panel";
 import { createLenses } from "./lenses/bar";
 import { LENSES } from "./lenses";
@@ -166,11 +167,14 @@ const placeHub = createWork(app, PLACE_TOOLS, {
         h("div", { class: "today-head" }, h("strong", {}, "Start with your place")),
         h("p", { class: "small" }, "Search for your address (or tap it on the map) and save it. Atlas then gives you a daily brief there: frost, heat, storms, and what's due for your animals, fields and projects.")),
       h("h2", { class: "group-title" }, "Your places"),
-      ...myPlaces.listBody(),
+      // The places-only export is covered by "Back up everything" below.
+      ...myPlaces.listBody().filter((n) => !(n instanceof HTMLElement && n.classList.contains("mp-foot"))),
       h("h2", { class: "group-title" }, "Run your place"),
     ];
   },
+  bottom: () => [backupRow((m) => app.toast(m, 5000))],
 });
+keepStorage();
 const makeHub = createWork(app, MAKE_TOOLS, {
   title: "Make",
   intro: "Make something from the map: plan a trip or a new road, present a place's story, record a video, or teach a lesson.",
