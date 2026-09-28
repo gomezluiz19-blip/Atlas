@@ -116,9 +116,22 @@ describe("grow", () => {
     expect(s.stage.name).toBe("Drying down");
     expect(s.rain7).toBe(16);
     expect(s.need7).toBeGreaterThan(0);
-    expect(s.irrigate7).toBeCloseTo(s.need7 - s.rainNext7);
+    expect(s.irrigate7).toBe(0); // drying down: no irrigation near harvest
     expect(s.frost.map((f) => f.date)).toEqual(["2026-08-02"]);
     expect(s.harvest![0] <= s.harvest![1]).toBe(true);
     expect(s.harvest![0] >= "2026-08-01").toBe(true);
+  });
+});
+
+describe("irrigation near harvest", () => {
+  it("stops suggesting irrigation once the crop is ripening", () => {
+    const maize = cropById("maize");
+    const days: Day[] = [];
+    for (let i = 0; i < 200; i++) { const d = new Date(Date.UTC(2026, 3, 1) + i * 864e5).toISOString().slice(0, 10); days.push({ date: d, tmax: 30, tmin: 18, rain: 0, et0: 6 }); }
+    const s = season(maize, "2026-04-01", days, "2026-09-10");
+    expect(s.f).toBeGreaterThan(0.85);
+    expect(s.irrigate7).toBe(0);
+    const early = season(maize, "2026-04-01", days, "2026-05-20");
+    expect(early.irrigate7).toBeGreaterThan(0);
   });
 });

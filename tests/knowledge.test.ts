@@ -52,3 +52,15 @@ describe("feature facts", () => {
     expect(new Set(keys).size).toBe(keys.length);
   });
 });
+
+import { WATCH, phaseOf, watchFor } from "../src/work/cropWatch";
+describe("crop watch list", () => {
+  it("covers real crops and splits the season", () => {
+    for (const id of Object.keys(WATCH)) expect(CROPS.some((c) => c.id === id), id).toBe(true);
+    expect(phaseOf(0, 6)).toBe("early");
+    expect(phaseOf(3, 6)).toBe("mid");
+    expect(phaseOf(5, 6)).toBe("late");
+    expect(watchFor("potato", 3, 6).now.map((x) => x.name)).toContain("Late blight");
+    expect(watchFor("potato", 5, 6).next).toEqual([]);
+  });
+});

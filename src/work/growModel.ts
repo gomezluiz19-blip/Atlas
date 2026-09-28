@@ -201,7 +201,8 @@ export function season(crop: Crop, planted: string, days: Day[], today: string):
   }
   return {
     gdd, daysSince, f, stage: stageAt(crop, f), kc: kcAt(crop, Math.min(1, f)),
-    used7, rain7, used, rain, need7, rainNext7, irrigate7: Math.max(0, need7 - rainNext7),
+    // No irrigation once the crop is ripening (perennials are watered all year).
+    used7, rain7, used, rain, need7, rainNext7, irrigate7: !crop.perennial && f >= 0.85 ? 0 : Math.max(0, need7 - rainNext7),
     frost, heat, harvest, curve,
   };
 }
