@@ -179,6 +179,8 @@ export class App {
   connections?: (themeId: string, subtabId: string) => HTMLElement | null;
   /** The map's label layer, when present. */
   labels?: import("./globe/labels").LabelLayer;
+  /** The theme looks (relief, depths, night…), for tools that switch them directly. */
+  looks?: import("./globe/looks").Looks;
   /** "On the map" switches for a theme (peaks, lakes, migrations…). */
   layerChips?: (themeId: string) => HTMLElement | null;
 

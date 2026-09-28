@@ -1,22 +1,23 @@
-// Work › Video: records the globe as a video, with a title, captions and
-// narration (microphone and/or a music or voice-over file), in widescreen,
-// square or vertical. Presentations can be recorded as flying tours with their
-// slide captions. A clean view hides the controls for streaming with OBS or
-// any screen-capture tool.
+// Work › Video: the recorder behind the studio (see studio.ts). It draws the
+// globe, its place names, a title, captions and the map credits into a video,
+// with narration (microphone and/or a music or voice-over file), in
+// widescreen, square or vertical. A clean view hides the controls for
+// streaming with OBS or any screen-capture tool.
 import type { App } from "../app";
 import { yearLabel } from "../data/history";
 import { h } from "../ui/dom";
 import type { WorkCtx } from "./hub";
-import { decks, orbit, play } from "./present";
 import type { Slide } from "./presentModel";
-import { SHAPES, clock, coverCrop, outputSize, pickMime, wrap, type Shape } from "./videoModel";
+import { coverCrop, outputSize, pickMime, wrap, type Shape } from "./videoModel";
 
-interface Settings { shape: Shape; title: string; caption: string; mic: boolean; credits: boolean }
-const settings: Settings = { shape: "wide", title: "", caption: "", mic: false, credits: true };
+export interface Settings { shape: Shape; title: string; caption: string; mic: boolean; credits: boolean; /** Draw the map's place names into the video. */ names: boolean }
+export const settings: Settings = { shape: "wide", title: "", caption: "", mic: false, credits: true, names: true };
 let music: File | null = null;
+export const setMusic = (f: File | null) => { music = f; };
+export const getMusic = () => music;
 
 /** Draws the globe plus titles into a canvas every frame and records it. */
-class Recording {
+export class Recording {
   readonly out = document.createElement("canvas");
   slide: Slide | null = null;
   private recorder!: MediaRecorder;
@@ -26,7 +27,7 @@ class Recording {
   readonly started = performance.now();
   ext = "webm";
 
-  constructor(private app: App, private s: Settings) {}
+  constructor(readonly app: App, private s: Settings) {}
 
   async start(): Promise<void> {
     const format = pickMime((t) => typeof MediaRecorder !== "undefined" && MediaRecorder.isTypeSupported(t));
@@ -84,11 +85,44 @@ class Recording {
     });
   }
 
+  /** The HTML place names, drawn where they sit on screen. */
+  private drawNames(g: CanvasRenderingContext2D, src: HTMLCanvasElement, c: { sx: number; sy: number; sw: number; sh: number }) {
+    const names = this.app.labels?.drawn() ?? [];
+    if (!names.length) return;
+    const k = src.width / (src.clientWidth || src.width), sc = this.out.width / c.sw;
+    const X = (x: number) => (x * k - c.sx) * sc, Y = (y: number) => (y * k - c.sy) * sc, px = k * sc;
+    g.save();
+    g.textBaseline = "middle";
+    g.lineJoin = "round";
+    for (const n of names) {
+      const x = X(n.x), y = Y(n.y + n.h / 2);
+      if (x < -50 || y < -20 || x > this.out.width + 50 || y > this.out.height + 20) continue;
+      let tx = x;
+      if (n.point) {
+        g.beginPath();
+        g.arc(x + 5.5 * px, y, 5.5 * px, 0, Math.PI * 2);
+        g.fillStyle = n.color; g.fill();
+        g.lineWidth = 1.5 * px; g.strokeStyle = "#fff"; g.stroke();
+        tx = x + 16 * px;
+      }
+      g.font = `${n.italic ? "italic " : ""}600 ${Math.round(12.5 * px)}px -apple-system, "SF Pro Text", "Segoe UI", system-ui, sans-serif`;
+      g.lineWidth = 3.5 * px; g.strokeStyle = "rgba(0,0,0,0.65)"; g.strokeText(n.name, tx, y);
+      g.fillStyle = "#fff"; g.fillText(n.name, tx, y);
+      if (n.sub) {
+        const w = g.measureText(n.name).width;
+        g.font = `500 ${Math.round(11 * px)}px -apple-system, system-ui, sans-serif`;
+        g.strokeText(n.sub, tx + w + 5 * px, y); g.fillStyle = "rgba(255,255,255,0.85)"; g.fillText(n.sub, tx + w + 5 * px, y);
+      }
+    }
+    g.restore();
+  }
+
   private draw(g: CanvasRenderingContext2D, src: HTMLCanvasElement, credits: string) {
     const { width: w, height: hh } = this.out;
     const c = coverCrop(src.width, src.height, w, hh);
     g.drawImage(src, c.sx, c.sy, c.sw, c.sh, 0, 0, w, hh);
     const u = Math.min(w, hh) / 1080, pad = 48 * u;
+    if (this.s.names) this.drawNames(g, src, c);
     const font = (weight: number, px: number) => `${weight} ${Math.round(px * u)}px -apple-system, "SF Pro Display", "Segoe UI", system-ui, sans-serif`;
     g.textBaseline = "top";
     if (this.s.title) {
@@ -149,7 +183,7 @@ class Recording {
 }
 
 /** The credits of the map layers on screen, as plain text. */
-function mapCredits(app: App): string {
+export function mapCredits(app: App): string {
   const out = new Set<string>();
   const layers = app.globe.viewer.imageryLayers;
   for (let i = 0; i < layers.length; i++) {
@@ -160,75 +194,10 @@ function mapCredits(app: App): string {
   return [...out].filter(Boolean).join(" · ");
 }
 
-const fileName = (ext: string) => {
+export const fileName = (ext: string) => {
   const d = new Date(), p = (n: number) => String(n).padStart(2, "0");
   return `atlas-${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}.${ext}`;
 };
-
-/** Floating controls while recording (not part of the video). */
-function recordingBar(app: App, rec: Recording, onStop: () => void, live = true) {
-  const time = h("span", { class: "rec-time" }, "0:00");
-  const tick = setInterval(() => (time.textContent = clock(performance.now() - rec.started)), 500);
-  let stopOrbit: (() => void) | null = null;
-  const circle = h("button", { class: "pill-btn", onclick: () => {
-    if (stopOrbit) { stopOrbit(); stopOrbit = null; circle.classList.remove("on"); }
-    else { stopOrbit = orbit(app, 60); circle.classList.add("on"); }
-  } }, "Circle here");
-  const caption = h("input", { class: "rec-caption", value: settings.caption, placeholder: "Caption (shown in the video)", "aria-label": "Caption", oninput: (e: Event) => (settings.caption = (e.target as HTMLInputElement).value) });
-  const bar = h("div", { class: "rec-bar", role: "toolbar", "aria-label": "Recording" },
-    h("span", { class: "rec-dot", "aria-hidden": "true" }), time,
-    live ? caption : "", live ? circle : "",
-    h("button", { class: "primary-btn rec-stop", onclick: () => finish() }, "Stop"));
-  let done = false;
-  const finish = () => {
-    if (done) return;
-    done = true;
-    clearInterval(tick);
-    stopOrbit?.();
-    bar.remove();
-    onStop();
-  };
-  document.body.append(bar);
-  return finish;
-}
-
-function result(ctx: WorkCtx, blob: Blob, ext: string, seconds: number) {
-  const url = URL.createObjectURL(blob);
-  const name = fileName(ext);
-  ctx.show("Your video", () => openVideo(ctx),
-    h("video", { class: "rec-preview", src: url, controls: true, playsinline: true }),
-    h("p", { class: "muted small" }, `${clock(seconds * 1000)} · ${(blob.size / 1e6).toFixed(1)} MB · ${ext.toUpperCase()}`),
-    h("div", { class: "pro-actions" },
-      h("a", { class: "primary-btn", href: url, download: name }, "Download"),
-      h("button", { class: "pill-btn", onclick: () => openVideo(ctx) }, "Record another")),
-    h("p", { class: "muted small" }, "The map imagery's credits are written in the corner of the video. Keep them when you share it."));
-  // The panel may be closed after a tour; bring it back to show the result.
-  ctx.unhide();
-  ctx.open();
-}
-
-async function record(ctx: WorkCtx, deckId?: string) {
-  const { app } = ctx;
-  const rec = new Recording(app, settings);
-  try {
-    await rec.start();
-  } catch (e) {
-    app.toast((e as Error).message, 6000);
-    return;
-  }
-  ctx.close();
-  const t0 = performance.now();
-  const end = async () => {
-    const blob = await rec.stop();
-    result(ctx, blob, rec.ext, (performance.now() - t0) / 1000);
-  };
-  const deck = deckId ? decks().find((d) => d.id === deckId) : undefined;
-  if (deck) {
-    const show = play(app, deck, { tour: true, onSlide: (s) => (rec.slide = s) });
-    const stop = recordingBar(app, rec, () => { show.close(); void end(); }, false);
-    void show.done.then(stop);
-  } else recordingBar(app, rec, () => void end());
-}
 
 /** Hides every control so only the globe shows, for streaming or screen capture. */
 export function cleanView(app: App) {
@@ -246,32 +215,7 @@ export function cleanView(app: App) {
   app.toast("Clean view: controls hidden. Press Esc or the corner button to bring them back.", 4000);
 }
 
+/** Video opens straight into the studio. */
 export function openVideo(ctx: WorkCtx) {
-  const { app } = ctx;
-  const supported = typeof MediaRecorder !== "undefined" && typeof HTMLCanvasElement.prototype.captureStream === "function";
-  const field = (label: string, input: HTMLElement) => h("label", { class: "mp-field" }, h("span", {}, label), input);
-  const all = decks().filter((d) => d.slides.length);
-  const deckPick = h("select", { "aria-label": "Presentation" }, ...all.map((d) => h("option", { value: d.id }, d.name))) as HTMLSelectElement;
-  const musicIn = h("input", { type: "file", accept: "audio/*", onchange: (e: Event) => (music = (e.target as HTMLInputElement).files?.[0] ?? null) }) as HTMLInputElement;
-
-  ctx.show("Video", ctx.home,
-    h("p", { class: "mp-intro" }, "Record the globe as you move it: fly somewhere, circle a mountain, switch layers on. Add a title and captions, and narrate with your microphone or a sound file."),
-    supported ? "" : h("p", { class: "pro-warn" }, "This browser can't record video. Try Chrome, Edge or Firefox; the clean view below still works for streaming."),
-    field("Shape", h("select", { onchange: (e: Event) => (settings.shape = (e.target as HTMLSelectElement).value as Shape) },
-      ...(Object.keys(SHAPES) as Shape[]).map((k) => h("option", { value: k, selected: settings.shape === k }, SHAPES[k].label)))),
-    field("Title", h("input", { value: settings.title, placeholder: "Optional, shown at the top", oninput: (e: Event) => (settings.title = (e.target as HTMLInputElement).value) })),
-    field("Caption", h("input", { value: settings.caption, placeholder: "Optional; you can change it while recording", oninput: (e: Event) => (settings.caption = (e.target as HTMLInputElement).value) })),
-    h("label", { class: "present-check" }, h("input", { type: "checkbox", checked: settings.mic, onchange: (e: Event) => (settings.mic = (e.target as HTMLInputElement).checked) }), "Narrate with the microphone"),
-    field("Music or voice-over", musicIn),
-    h("label", { class: "present-check" }, h("input", { type: "checkbox", checked: settings.credits, onchange: (e: Event) => (settings.credits = (e.target as HTMLInputElement).checked) }), "Write the map credits in the corner"),
-    h("div", { class: "pro-actions" },
-      h("button", { class: "primary-btn", disabled: !supported, onclick: () => void record(ctx) }, "● Start recording")),
-    h("section", { class: "group" }, h("h2", { class: "group-title" }, "Record a presentation"),
-      all.length
-        ? h("div", { class: "pro-actions" }, deckPick, h("button", { class: "pill-btn", disabled: !supported, onclick: () => void record(ctx, deckPick.value) }, "Record as a tour"))
-        : h("p", { class: "muted small" }, "Make a presentation in Present, then record it here as a flying tour with its captions.")),
-    h("section", { class: "group" }, h("h2", { class: "group-title" }, "Streaming"),
-      h("p", { class: "muted small" }, "For live streams, share this window in OBS, Zoom or Meet and switch to the clean view so only the globe shows."),
-      h("button", { class: "pill-btn", onclick: () => { ctx.close(); cleanView(app); } }, "Clean view")),
-  );
+  void import("./studio").then((m) => m.openStudio(ctx));
 }

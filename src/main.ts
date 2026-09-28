@@ -582,6 +582,7 @@ app.onPlace = (p) => {
 // Each theme sees the planet its own way (relief, depths, clouds, greenness, night lights…).
 const looks = new Looks(globe, $("ui"));
 looks.set(app.theme.id);
+app.looks = looks;
 app.onTheme = (id) => { looks.set(id); syncHash(); };
 globe.viewer.camera.moveEnd.addEventListener(syncHash);
 

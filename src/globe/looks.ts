@@ -136,6 +136,17 @@ export class Looks {
     this.set(this.themeId);
   }
 
+  /** Shows one look regardless of theme (the video studio); null for the satellite photo. */
+  preview(id: string | null) {
+    const next = id ? LOOKS[id] ?? null : null;
+    if (next !== this.current) this.apply(next);
+  }
+
+  /** Back to the current theme's look. */
+  restore() {
+    this.set(this.themeId);
+  }
+
   get active(): Look | null {
     return this.current;
   }

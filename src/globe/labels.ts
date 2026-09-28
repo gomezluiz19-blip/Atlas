@@ -186,6 +186,16 @@ export class LabelLayer {
     if (this.sorted.some((n) => !n.heightKnown && n.shown)) this.dirty = true;
   }
 
+  /** Labels on screen with their positions (CSS pixels from the map's corner), to draw them into a video. */
+  drawn(): { name: string; sub?: string; x: number; y: number; w: number; h: number; point: boolean; italic: boolean; color: string }[] {
+    if (!this.visible) return [];
+    return this.sorted.filter((n) => n.shown && Number.isFinite(n.tx)).map((n) => ({
+      name: n.label.name, sub: n.label.sub, x: n.tx, y: n.ty, w: n.w, h: n.h,
+      point: n.el.classList.contains("pt"), italic: n.label.kind === "water" && !n.el.classList.contains("pt"),
+      color: getComputedStyle(n.el).getPropertyValue("--c").trim() || "#ff375f",
+    }));
+  }
+
   /** Labels currently drawn (for "in view" lists). */
   shownLabels(): MapLabel[] {
     return this.sorted.filter((n) => n.shown).map((n) => n.label);
