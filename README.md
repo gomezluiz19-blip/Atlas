@@ -223,7 +223,7 @@ the terrain you've looked at stay cached, so Atlas opens in a field with no sign
 device (satellite imagery follows the browser's own cache until an imagery licence allows storing it). **Back up everything** (in My Place) saves all your places, animals, fields,
 projects, plans, decks and quizzes to one file to keep or to restore on another device.
 
-**Worth knowing.** Tap a notable feature and the place card says something true about it: about 290 rivers,
+**Worth knowing.** Tap a notable feature and the place card says something true about it: about 270 rivers,
 lakes, waterfalls, canyons, deserts, peaks, volcanoes, impact craters, ocean trenches, forests and metro
 systems, with their key figures (a
 river's length, flow and where it ends; a peak's height and first ascent; a crater's size and age). The
