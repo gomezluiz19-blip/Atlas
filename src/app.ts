@@ -427,6 +427,7 @@ export class App {
     this.renderHeader();
     const { tabs, body } = this.sheet;
     const theme = this.theme;
+    this.sheet.el.classList.toggle("has-place", !!this.place);
     tabs.hidden = !this.place || theme.subtabs.length < 2;
     tabs.style.setProperty("--count", String(theme.subtabs.length));
     tabs.replaceChildren(

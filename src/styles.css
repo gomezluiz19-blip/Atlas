@@ -1753,3 +1753,12 @@ body.st-recording .st-record i { background: #ff453a; border-radius: 2px; }
 .year-bar span { overflow: hidden; text-overflow: ellipsis; }
 .year-x { border: 0; background: none; padding: 0; font-size: 11px; cursor: pointer; color: inherit; opacity: 0.6; }
 .year-today { position: absolute; top: 0; bottom: 0; width: 2px; background: #ff453a; }
+
+/* Each mode has the screen: while working in My Place or Make, the empty Explore card steps aside */
+@media (min-width: 821px) {
+  .sheet { transition: opacity 0.25s ease, transform 0.25s ease; }
+  body[data-work="1"] .sheet:not(.has-place) { opacity: 0; transform: translateX(-24px); pointer-events: none; }
+  .tabbar, .look-legend { transition: opacity 0.25s ease, transform 0.25s ease; }
+  body[data-work="1"] .sheet:not(.has-place) ~ .tabbar, body[data-work="1"]:not(:has(.sheet.has-place)) .look-legend { opacity: 0; pointer-events: none; }
+}
+@media (prefers-reduced-motion: reduce) { .sheet { transition: none; } }

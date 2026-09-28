@@ -35,7 +35,8 @@ export const FIELD_SITES: Place[] = [
 export function freeArea(canvas: HTMLCanvasElement): { left: number; right: number; top: number; bottom: number } {
   const c = canvas.getBoundingClientRect();
   const pad = { left: 0, right: 0, top: 0, bottom: 0 };
-  const shown = (el: Element) => { const r = el.getBoundingClientRect(); return r.width > 0 && r.height > 0 && getComputedStyle(el).visibility !== "hidden" ? r : null; };
+  // Stepped-aside panels (the empty place card while working) don't count.
+  const shown = (el: Element) => { const r = el.getBoundingClientRect(), st = getComputedStyle(el); return r.width > 0 && r.height > 0 && st.visibility !== "hidden" && !(el.classList.contains("sheet") && st.pointerEvents === "none") ? r : null; };
   for (const el of document.querySelectorAll("#ui .sheet, #ui .popover:not([hidden]), #ui .lens-panel:not([hidden]), #ui .topbar, #ui .tabbar")) {
     const r = shown(el);
     if (!r) continue;

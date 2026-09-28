@@ -155,14 +155,14 @@ const PLACE_TOOLS: WorkTool[] = [
   tool("occupancy", "Live occupancy", "Rooms, floors and bookings from your booking system (Pro)", "#ff375f", icons.building, () => app.actions.get("pro:occupancy")?.run()),
 ];
 const MAKE_TOOLS: WorkTool[] = [
-  tool("plan", "Plan", "Trips, events, business sites, policy zones and infrastructure", "#0a84ff", icons.route, openPlans),
+  tool("plan", "Plan", "Trips told step by step, an event's running order, sites, zones and routes", "#0a84ff", icons.route, openPlans),
   tool("present", "Present", "Slides and flying tours of places, with borders from history", "#e0b050", icons.slides, openPresent),
-  tool("video", "Video", "Record the globe with a title, captions and narration", "#ff375f", icons.video, openVideo),
+  tool("video", "Video", "A studio: the globe on a monitor, shots, looks, camera moves and narration", "#ff375f", icons.video, openVideo),
   tool("teach", "Teach", "Lessons, quizzes, games, a world politics simulation and field trips", "#bf5af2", icons.graduate, openTeach),
 ];
 const LOOK_TOOLS: WorkTool[] = [
   tool("learn", "Learn", "Games, a daily challenge, your passport, and museums and libraries near you", "#30d158", icons.book, openLearn),
-  tool("space", "Space", "Satellites, the ISS, rocket launches and the solar system", "#5e5ce6", icons.saturn, () => space.open()),
+  tool("space", "Space", "Satellites, the ISS, rocket launches and the solar system", "#5e5ce6", icons.saturn, () => app.setTheme("space")),
 ];
 
 /** The saved place at (or nearest to) the chosen spot, else home, else the first one. */
@@ -316,6 +316,8 @@ const syncMode = () => {
   modes.set([placeHub.panel, myPlaces.panel, pro.panel].some(shown) ? "place" : shown(makeHub.panel) ? "make" : "look");
   // Phones have room for one panel: the place card steps aside while a mode panel is open.
   document.body.dataset.panel = [placeHub.panel, myPlaces.panel, pro.panel, makeHub.panel, lookHub.panel, space.panel].some(shown) ? "open" : "";
+  // Working in My Place or Make: the empty Explore card steps aside so the mode has the screen.
+  document.body.dataset.work = [placeHub.panel, myPlaces.panel, pro.panel, makeHub.panel].some(shown) ? "1" : "";
 };
 const watcher = new MutationObserver(syncMode);
 for (const el of [placeHub.panel, myPlaces.panel, pro.panel, makeHub.panel, lookHub.panel, space.panel]) watcher.observe(el, { attributes: true, attributeFilter: ["hidden"] });
