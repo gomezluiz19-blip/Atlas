@@ -6,6 +6,8 @@ import { countryAt } from "../data/countries";
 import { elevation } from "../data/elevation";
 import { haversine } from "../data/mercator";
 import { riverLines, riversIn } from "../data/worldData";
+import { featureFor } from "../content/features";
+import { factCard } from "./facts";
 import { formatDistance, h } from "../ui/dom";
 import { lines, stat } from "./charts";
 import { offset } from "./slice";
@@ -95,7 +97,9 @@ async function traceRiver(host: LensHost, s: Subject, ds: CustomDataSource): Pro
   host.app.globe.viewer.camera.flyTo({ destination: Cartesian3.fromDegrees((path[0][0] + path[path.length - 1][0]) / 2, (path[0][1] + path[path.length - 1][1]) / 2, Math.min(9_000_000, Math.max(300_000, length * 1.6))), duration: 2 });
   const countriesEl = h("p", { class: "small" }, "Finding the countries it flows through…");
   const statsEl = h("div", { class: "lens-stats" }, stat(formatDistance(length), "Length of this stretch"), stat(`${Math.round(Math.max(...prof))} m`, "Highest point"), stat(`${Math.round(prof[prof.length - 1])} m`, "At the end"));
+  const known = featureFor({ name: bestName, lon: s.lon, lat: s.lat, kinds: ["river"] });
   host.body.replaceChildren(
+    known ? factCard(known) : "",
     h("p", {}, h("strong", {}, `The ${bestName}`), " from its upper reaches to where it ends, as mapped at world scale."),
     statsEl,
     lines([{ values: prof, color: "#4fc3f7" }], { yLabel: (v) => `${Math.round(v)} m`, xLabels: ["source", "mouth"], fill: true }),

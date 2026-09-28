@@ -1,5 +1,6 @@
 // Works out what was tapped: from the label or map feature when there is one,
 // and from the shape of the ground (a summit, a bowl, the seafloor, a flat lake).
+import { featureFor } from "../content/features";
 import { elevation } from "../data/elevation";
 import type { Place } from "../app";
 import type { Subject, SubjectKind } from "./types";
@@ -80,7 +81,10 @@ export async function identify(place: Place, radiusHint?: number): Promise<Subje
   const f = (place.feature ?? {}) as { kind?: string; name?: string };
   const name = place.name?.title ?? f.name ?? "This place";
   const text = `${place.name?.title ?? ""} ${place.name?.context ?? ""}`;
-  const hinted = kindFromHint(f.kind, text);
+  // A feature Atlas knows by name settles it (Vredefort is a crater even though it's worn flat).
+  const known = featureFor({ name, lon: place.lon, lat: place.lat });
+  const KNOWN: Record<string, SubjectKind> = { crater: "crater", volcano: "volcano", peak: "peak", deep: "sea", forest: "forest", river: "river", metro: "city" };
+  const hinted = (known ? KNOWN[known.kind] : null) ?? kindFromHint(f.kind, text);
   // Probe at two scales: ~6 km for summits and bowls, ~40 km for ranges and seas.
   const probeAt = async (radiusM: number) => {
     const dLat = radiusM / 110_540, dLon = radiusM / (111_320 * Math.cos((place.lat * Math.PI) / 180));

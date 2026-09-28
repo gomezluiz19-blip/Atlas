@@ -5,6 +5,7 @@ import type { Viewer } from "cesium";
 import { KIND_INFO } from "../analysis/placeKinds";
 import { overpass } from "../data/overpass";
 import { notablePlaces, type Notable } from "../data/wikidata";
+import { FEATURES } from "../content/features";
 import { detailLabels, riverLines, riversIn, worldLabels, type RiverLine, type WorldLabel } from "../data/worldData";
 import type { LabelLayer, MapLabel } from "../globe/labels";
 import { currentView, type ViewInfo } from "./view";
@@ -35,7 +36,16 @@ export class Feeds {
   constructor(private viewer: Viewer, private labels: LabelLayer) {
     this.view = currentView(viewer);
     void Promise.all([worldLabels(), riverLines()]).then(([w, r]) => {
-      this.world = w;
+      // Impact craters, ocean trenches and great forests from the bundled facts, as labels too.
+      const have = new Set(w.map((l) => l.name));
+      const extra: WorldLabel[] = FEATURES.filter((x) => (x.kind === "crater" || x.kind === "deep" || x.kind === "forest") && !have.has(x.name)).map((x) => ({
+        name: x.name, lon: x.lon, lat: x.lat,
+        kind: x.kind === "deep" ? "sea" : "nature",
+        minZoom: x.kind === "deep" ? 3 : x.kind === "forest" ? 4.5 : /about (\d{2,})/.test(x.facts[0][1]) ? 4.5 : 7,
+        rank: x.kind === "deep" ? 150 : 120,
+        detail: x.kind === "deep" ? "ocean trench" : x.kind === "crater" ? "impact crater" : "forest",
+      }));
+      this.world = [...w, ...extra];
       this.rivers = r;
       this.refreshWorld();
       // Towns, lakes and parks for closer zooms (and offline search), once the globe has settled.

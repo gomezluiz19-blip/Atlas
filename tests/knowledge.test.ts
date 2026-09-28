@@ -31,3 +31,24 @@ describe("crop library", () => {
     }
   });
 });
+
+import { FEATURES, featureFor } from "../src/content/features";
+
+describe("feature facts", () => {
+  it("finds features by name, alias and place", () => {
+    expect(featureFor({ name: "Mount Everest", lon: 86.9, lat: 27.9 })?.kind).toBe("peak");
+    expect(featureFor({ name: "Sagarmatha", lon: 86.9, lat: 27.9 })?.name).toBe("Mount Everest");
+    expect(featureFor({ name: "Barringer Crater", lon: -111.02, lat: 35.03 })?.kind).toBe("crater");
+    expect(featureFor({ name: "River Thames", lon: -0.12, lat: 51.5, kinds: ["river"] })?.name).toBe("Thames");
+    // Same name, wrong place: no match.
+    expect(featureFor({ name: "Etna", lon: -95, lat: 40 })).toBeUndefined();
+    // Nearest within a distance.
+    expect(featureFor({ lon: 142, lat: 12, kinds: ["deep"], withinKm: 400 })?.name).toBe("Mariana Trench");
+    expect(featureFor({ lon: 0, lat: 0, kinds: ["deep"], withinKm: 400 })).toBeUndefined();
+  });
+  it("has sane coordinates and no duplicate names within a kind", () => {
+    for (const x of FEATURES) { expect(Math.abs(x.lat)).toBeLessThanOrEqual(90); expect(Math.abs(x.lon)).toBeLessThanOrEqual(180); expect(x.facts.length).toBeGreaterThan(0); }
+    const keys = FEATURES.map((x) => `${x.kind}:${x.name}`);
+    expect(new Set(keys).size).toBe(keys.length);
+  });
+});

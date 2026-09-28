@@ -79,8 +79,9 @@ const overlays = new Overlays(globe.viewer, (m) => app.toast(m, 5000), app.canva
 overlays.onLabels = (on) => labels.setVisible(on);
 const feeds = new Feeds(globe.viewer, labels);
 labels.onClick = (l) => {
-  const n = (l.data as { notable?: { description?: string } } | undefined)?.notable;
-  app.select({ lon: l.lon, lat: l.lat, height: 0 }, { title: l.name, context: n?.description ?? l.sub ?? KIND_INFO[l.kind].label }, { ...((l.data as object | undefined) ?? { source: "world" }), kind: l.kind, name: l.name });
+  const d = l.data as { notable?: { description?: string }; world?: { detail?: string } } | undefined;
+  const detail = d?.world?.detail && !/^\d/.test(d.world.detail) ? d.world.detail.replace("range/mtn", "mountain range").replace("pen/cape", "peninsula or cape") : undefined;
+  app.select({ lon: l.lon, lat: l.lat, height: 0 }, { title: l.name, context: d?.notable?.description ?? (detail ? detail[0].toUpperCase() + detail.slice(1) : undefined) ?? l.sub ?? KIND_INFO[l.kind].label }, { ...((l.data as object | undefined) ?? { source: "world" }), kind: l.kind, name: l.name });
 };
 
 const pick = (p: SearchPlace | SearchResult) =>

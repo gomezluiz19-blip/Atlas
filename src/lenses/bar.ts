@@ -5,6 +5,7 @@ import type { App, Place } from "../app";
 import { h } from "../ui/dom";
 import { icons } from "../ui/icons";
 import { identify } from "./identify";
+import { factCard, factsFor } from "./facts";
 import { KIND_LABEL, type Lens, type LensHost, type Subject, type SubjectKind } from "./types";
 
 const KIND_ICON: Record<SubjectKind, string> = {
@@ -57,10 +58,12 @@ export function createLenses(app: App, lenses: Lens[]) {
   const ranked = () => subject ? lenses.map((l) => ({ l, score: l.score(subject!) })).filter((x) => x.score > 0).sort((a, b) => b.score - a.score) : [];
   const render = () => {
     if (!subject) return;
+    const fact = factsFor(subject);
     const list = ranked();
     const shown = showAll ? list : list.filter((x, i) => i < 6 || x.l === active);
     strip.replaceChildren(
       h("div", { class: "lens-kind" }, h("span", {}, KIND_ICON[subject.kind]), h("span", {}, h("strong", {}, KIND_LABEL[subject.kind]), h("small", {}, "Look at it through a lens"))),
+      fact ? factCard(fact, true) : "",
       h("div", { class: "lens-chips" },
         ...shown.map(({ l }) => h("button", { class: "lens-chip" + (active === l ? " on" : ""), title: l.blurb, onclick: () => void (active === l ? close() : open(l)) }, h("span", {}, l.icon), l.label)),
         list.length > shown.length ? h("button", { class: "lens-chip more", onclick: () => { showAll = true; render(); } }, `+${list.length - shown.length}`) : ""));
