@@ -84,7 +84,7 @@ export function exploreTheme(app: App, feeds: Feeds, overlays: Overlays, openSit
   const lookFurther = (app: App) => {
     const go = (id: string) => () => app.actions.get(id)?.run();
     return h("div", { class: "look-further" },
-      h("button", { class: "look-tile", onclick: go("space:open") }, h("span", { class: "look-tile-icon", style: "--c:#5e5ce6", html: icons.saturn }), h("span", {}, h("strong", {}, "Space"), h("small", {}, "Satellites, the ISS, launches, planets"))),
+      h("button", { class: "look-tile", onclick: () => app.setTheme("space") }, h("span", { class: "look-tile-icon", style: "--c:#5e5ce6", html: icons.saturn }), h("span", {}, h("strong", {}, "Space"), h("small", {}, "Satellites, the ISS, launches, planets"))),
       h("button", { class: "look-tile", onclick: go("work:learn") }, h("span", { class: "look-tile-icon", style: "--c:#30d158", html: icons.book }), h("span", {}, h("strong", {}, "Learn"), h("small", {}, "Games, daily challenge, places to learn"))));
   };
   /** First visit: what Atlas is for, in three taps. */

@@ -1,6 +1,7 @@
 // Field trips: distance and bus times, how many adults and buses, the cost per
 // student, and the day's timetable.
 import { metres } from "./geo";
+import type { Journey, Timeline } from "./journeyModel";
 
 export interface Stop { name: string; lon: number; lat: number }
 
@@ -25,6 +26,34 @@ export interface FieldTrip {
   fee: number;
   notes: string;
   checklist: { text: string; done: boolean }[];
+  /** The day step by step (bus there, stops, walks, bus back). */
+  journey?: Journey;
+}
+
+/** The day as steps, from an older trip that only had a school and a destination. */
+export function tripJourney(t: FieldTrip): Journey {
+  if (t.journey) return t.journey;
+  const id = () => Math.random().toString(36).slice(2, 10);
+  return {
+    id: t.id, name: t.title, start: t.date, time: t.depart, origin: t.school, created: 0,
+    steps: t.school && t.dest ? [
+      { id: id(), kind: "move", mode: "bus", to: t.dest },
+      { id: id(), kind: "stay", place: t.dest, hours: t.hours, visits: [] },
+      { id: id(), kind: "move", mode: "bus", to: t.school },
+    ] : [],
+  };
+}
+
+/** Adults, buses and cost for the day, from its steps: bus hire counts every bus leg. */
+export function groupNumbers(t: FieldTrip, tl: Timeline) {
+  const busKm = tl.byMode.bus?.km ?? 0;
+  const adults = Math.max(1, Math.ceil(t.students / Math.max(1, t.ratio)));
+  const people = t.students + adults;
+  const buses = busKm ? Math.max(1, Math.ceil(people / Math.max(1, t.seats))) : 0;
+  const busCost = buses * busKm * t.busPerKm;
+  const total = busCost + t.fee * t.students;
+  const minutes = tl.end - tl.start;
+  return { busKm, adults, buses, busCost, total, perStudent: t.students ? total / t.students : 0, leave: hhmm(tl.start), back: hhmm(tl.end), long: minutes > 10 * 60 };
 }
 
 /** Typical students per adult by grade band; schools and venues set their own rules. */

@@ -31,6 +31,18 @@ export class ListStore<T extends { id: string }> {
     this.persist();
   }
 
+  /** Adds at the end (for lists in order, like a film's shots). */
+  push(item: T) {
+    this.items.push(item);
+    this.persist();
+  }
+
+  /** Replaces the whole list (after reordering). */
+  saveAll(items: T[]) {
+    this.items = items;
+    this.persist();
+  }
+
   remove(id: string) {
     this.items = this.items.filter((x) => x.id !== id);
     this.persist();

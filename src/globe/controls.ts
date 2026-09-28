@@ -10,7 +10,7 @@ const minus = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" strok
 const needle = '<svg viewBox="0 0 24 24" width="22" height="22"><path d="M12 2.5 15.5 12h-7z" fill="#ff453a"/><path d="M12 21.5 8.5 12h7z" fill="currentColor" opacity=".55"/></svg>';
 
 /** The point on the ground at a screen position (or the screen centre). */
-function groundAt(viewer: Viewer, at?: Cartesian2): Cartesian3 | undefined {
+export function groundAt(viewer: Viewer, at?: Cartesian2): Cartesian3 | undefined {
   const c = viewer.canvas;
   const p = at ?? new Cartesian2(c.clientWidth / 2, c.clientHeight / 2);
   const ray = viewer.camera.getPickRay(p);
@@ -18,7 +18,7 @@ function groundAt(viewer: Viewer, at?: Cartesian2): Cartesian3 | undefined {
 }
 
 /** Glides the camera towards (factor < 1) or away from (factor > 1) a ground point, keeping the view's angle. */
-function glide(viewer: Viewer, target: Cartesian3, factor: number, seconds = 0.35) {
+export function glide(viewer: Viewer, target: Cartesian3, factor: number, seconds = 0.35) {
   const cam = viewer.camera;
   const offset = Cartesian3.subtract(cam.positionWC, target, new Cartesian3());
   const dist = Cartesian3.magnitude(offset);

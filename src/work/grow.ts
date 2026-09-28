@@ -17,6 +17,7 @@ import { CROP_GROUPS, CROPS, cropById, litres, mergeDays, season, type Season } 
 import { ListStore, download, newId } from "./store";
 import { parseFieldLog, type FieldLogEntry } from "./growLog";
 import { watchFor, type Watch } from "./cropWatch";
+import { seasonPlan, type Planting } from "./planWords";
 
 interface Field {
   id: string;
@@ -26,6 +27,52 @@ interface Field {
   planted: string;
   pts: LonLat[];
   diary: { date: string; text: string }[];
+  /** What follows in this field, in order ("then cabbages, then winter wheat"). */
+  next?: Planting[];
+}
+
+/** When the next crop's planting day comes, it becomes the field's crop (and the diary says so). */
+function rollOn(f: Field): boolean {
+  let moved = false;
+  while (f.next?.length && f.next[0].planted <= today()) {
+    const n = f.next.shift()!;
+    f.diary.unshift({ date: n.planted, text: `${cropById(f.crop).label} done; ${cropById(n.crop).label.toLowerCase()} planted` });
+    f.crop = n.crop; f.planted = n.planted;
+    moved = true;
+  }
+  return moved;
+}
+
+/** The field's year: the crop in the ground and what follows, on one strip. */
+function yearStrip(f: Field, onChange: () => void): HTMLElement {
+  const items = [{ crop: f.crop, planted: f.planted, now: true }, ...(f.next ?? []).map((x) => ({ ...x, now: false }))];
+  const from = Date.parse(items[0].planted.slice(0, 7) + "-01"), ends = items.map((x) => Date.parse(x.planted) + cropById(x.crop).days * 86_400_000);
+  const to = Math.max(from + 365 * 86_400_000, ...ends) + 20 * 86_400_000, span = to - from;
+  const pct = (t: number) => `${Math.max(0, Math.min(100, ((t - from) / span) * 100)).toFixed(2)}%`;
+  const months: HTMLElement[] = [];
+  for (let d = new Date(from); d.getTime() < to; d.setUTCMonth(d.getUTCMonth() + 1))
+    months.push(h("span", { style: `left:${pct(d.getTime())}` }, d.toLocaleDateString(undefined, { month: "narrow" })));
+  const input = h("input", { class: "pro-url", placeholder: "Then: cabbages after harvest, winter wheat 15 October", "aria-label": "What comes next in this field" }) as HTMLInputElement;
+  const add = () => {
+    const last = items[items.length - 1];
+    const plan = seasonPlan(input.value, today(), new Date(Date.parse(last.planted) + cropById(last.crop).days * 86_400_000).toISOString().slice(0, 10));
+    if (!plan.length) { input.setCustomValidity("Name a crop: “cabbages after harvest”, “winter wheat 15 October”."); input.reportValidity(); return; }
+    f.next = [...(f.next ?? []), ...plan];
+    onChange();
+  };
+  input.addEventListener("keydown", (e) => { input.setCustomValidity(""); if (e.key === "Enter") add(); });
+  return h("section", { class: "group" }, h("h2", { class: "group-title" }, "The field's year"),
+    h("div", { class: "year-strip" },
+      h("div", { class: "year-months" }, ...months),
+      ...items.map((x, i) => {
+        const c = cropById(x.crop), start = Date.parse(x.planted), end = start + c.days * 86_400_000;
+        return h("div", { class: `year-bar${x.now ? " now" : ""}`, style: `left:${pct(start)};width:calc(${pct(end)} - ${pct(start)});--c:${CROP_COLOR[c.id] ?? "#30d158"}`, title: `${c.label}: ${fmtDate(x.planted)} to about ${fmtDate(new Date(end).toISOString().slice(0, 10))}` },
+          h("span", {}, c.label.replace(/\s*\(.*\)/, "")),
+          i ? h("button", { class: "year-x", "aria-label": `Remove ${c.label}`, onclick: () => { f.next!.splice(i - 1, 1); onChange(); } }, "✕") : "");
+      }),
+      h("i", { class: "year-today", style: `left:${pct(Date.now())}` })),
+    h("div", { class: "pro-url-row" }, input, h("button", { class: "pill-btn", onclick: add }, "Add")),
+    h("p", { class: "muted small" }, "Harvest ends are typical season lengths; the season above uses this year's warmth. When a next crop's day comes, it becomes the field's crop."));
 }
 
 const store = new ListStore<Field>("atlas.work.fields.v1");
@@ -82,6 +129,7 @@ export function logFieldText(text: string): FieldLogEntry | null {
 export function openGrow(ctx: WorkCtx) {
   const { app } = ctx;
   store.reload();
+  for (const f of store.all()) if (rollOn(f)) store.save(f);
   drawFields(app);
   const addField = async () => {
     ctx.hide();
@@ -171,6 +219,7 @@ export function openField(ctx: WorkCtx, id: string) {
   const lon = f.pts.reduce((s, p) => s + p[0], 0) / f.pts.length, lat = f.pts.reduce((s, p) => s + p[1], 0) / f.pts.length;
   const body = h("div", { class: "work-analysis" }, h("p", { class: "muted small" }, "Reading the season's weather…"));
   drawFields(app);
+  if (rollOn(f)) save();
   const crop = cropById(f.crop);
   const diaryIn = h("input", { class: "pro-url", placeholder: "Add a note (sprayed, fertilised, rain gauge…) and press Enter", onkeydown: (e: Event) => {
     const v = (e.target as HTMLInputElement).value.trim();
@@ -185,6 +234,7 @@ export function openField(ctx: WorkCtx, id: string) {
     h("label", { class: "mp-field" }, h("span", {}, crop.perennial && crop.id !== "banana" ? "Flowering date" : "Planting date"),
       h("input", { type: "date", value: f.planted, max: today(), onchange: (e: Event) => { const v = (e.target as HTMLInputElement).value; if (v) { f.planted = v; save(); again(); } } })),
     body,
+    yearStrip(f, () => { save(); again(); }),
     h("section", { class: "group" }, h("h2", { class: "group-title" }, "Field diary"),
       diaryIn,
       f.diary.length ? h("div", { class: "work-checklist" }, ...f.diary.map((d) => h("div", { class: "work-check" }, h("span", { class: "muted small" }, fmtDate(d.date)), h("span", {}, d.text)))) : ""),

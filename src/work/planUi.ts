@@ -2,21 +2,86 @@
 // proposals, drawn on the map with the numbers each kind of plan needs.
 import { airports, fuelOf, formatMw, nearby, nearestLine, ports, powerPlants, railways, roads } from "../data/infra";
 import { elevation } from "../data/elevation";
-import { forecast } from "../data/openmeteo";
 import { riverLines } from "../data/worldData";
 import { MINES } from "../content/minerals";
 import { inlineChart, stats } from "../themes/common";
 import { h } from "../ui/dom";
 import { flyToPlace } from "../ui/search";
 import { drawOnMap } from "./draw";
-import { along, areaM2, crossings, fmtArea, fmtDist, fmtHours, pathLength, type LonLat } from "./geo";
+import { along, areaM2, crossings, fmtArea, fmtDist, pathLength, type LonLat } from "./geo";
 import { WorkLayer } from "./layer";
-import { circle, countInside, legs, lengthInside, MODES, PLAN_TYPES, profileStats, type Plan, type PlanItem, type PlanType, type TravelMode } from "./planModel";
+import { circle, countInside, lengthInside, PLAN_TYPES, profileStats, type Plan, type PlanItem, type PlanType } from "./planModel";
 import { ListStore, download, newId } from "./store";
 import type { WorkCtx } from "./hub";
+import { addFromText, copyJourney, frameJourney, highlight, journeyEditor, journeyFeatures, playJourney, stopPlaying } from "./journey";
+import { MODES as JMODES, type Journey, type Mode } from "./journeyModel";
 
 const store = new ListStore<Plan>("atlas.work.plans.v1");
+const trips = new ListStore<Journey>("atlas.work.journeys.v1");
 let layer: WorkLayer | null = null;
+let tripLayer: WorkLayer | null = null;
+
+/** Older trip plans (stops with one way of travelling for all) become step-by-step trips. */
+function migrateTrips() {
+  for (const p of store.all().filter((x) => x.type === "trip")) {
+    const stops = p.items.filter((i) => i.kind === "point");
+    const spot = (i: PlanItem) => ({ name: i.name, lon: i.pts[0][0], lat: i.pts[0][1] });
+    const mode: Mode = p.mode === "transit" ? "train" : p.mode && p.mode in JMODES ? (p.mode as Mode) : "drive";
+    const j: Journey = { id: p.id, name: p.name, start: stops.find((s) => s.date)?.date ?? new Date().toISOString().slice(0, 10), time: "09:00", origin: stops[0] ? spot(stops[0]) : null, created: p.created, notes: p.notes, checklist: p.checklist,
+      steps: stops.slice(1).map((s) => ({ id: s.id, kind: "move" as const, mode, to: spot(s), note: s.note })) };
+    trips.save(j);
+    store.remove(p.id);
+  }
+}
+
+/** A trip typed anywhere ("fly to Manila, stay 3 nights, train to Baguio"): made, then opened. */
+export async function tripFromText(ctx: WorkCtx, text: string) {
+  const j: Journey = { id: newId(), name: "New trip", start: new Date(Date.now() + 14 * 86_400_000).toISOString().slice(0, 10), time: "09:00", origin: null, steps: [], created: Date.now() };
+  ctx.show("Trip", () => openPlans(ctx), h("div", { class: "loading" }, h("div", { class: "spinner" }), "Planning it: finding the places…"));
+  const { missed } = await addFromText(j, text);
+  trips.save(j);
+  openTrip(ctx, j.id);
+  frameJourney(ctx.app, j);
+  if (missed.length) ctx.app.toast(`${missed.join(". ")}. Add it in the trip.`, 6000);
+}
+
+export function openTrip(ctx: WorkCtx, id: string) {
+  const j = trips.get(id);
+  if (!j) return openPlans(ctx);
+  tripLayer ??= new WorkLayer(ctx.app, "work:trip-plan", j.name, PLAN_TYPES.trip.color);
+  const draw = () => tripLayer!.set(journeyFeatures(j), `Trip · ${j.name}`);
+  const again = () => openTrip(ctx, id);
+  const editor = journeyEditor({ ctx, journey: j, save: () => { trips.save(j); draw(); }, rerender: again });
+  const playBtn = h("button", { class: "pill-btn jr-play", disabled: !j.steps.length, onclick: () => {
+    if (playBtn.dataset.on) { stopPlaying(); delete playBtn.dataset.on; playBtn.textContent = "▶ Play the trip"; highlight(editor, -2); return; }
+    playBtn.dataset.on = "1"; playBtn.textContent = "■ Stop";
+    void playJourney(ctx.app, j, (i) => { highlight(editor, i); if (i === -2) { delete playBtn.dataset.on; playBtn.textContent = "▶ Play the trip"; } });
+  } }, "▶ Play the trip");
+  j.checklist ??= [];
+  const todo = h("input", { class: "pro-url", placeholder: "Add a to-do and press Enter: passport, visa, adapter…", onkeydown: (e: Event) => {
+    const v = (e.target as HTMLInputElement).value.trim();
+    if ((e as KeyboardEvent).key === "Enter" && v) { j.checklist!.push({ text: v, done: false }); trips.save(j); again(); }
+  } });
+  ctx.show("Trip", () => { stopPlaying(); openPlans(ctx); },
+    h("input", { class: "mp-name", value: j.name, "aria-label": "Trip name", onchange: (e: Event) => { j.name = (e.target as HTMLInputElement).value || j.name; trips.save(j); draw(); } }),
+    j.steps.length ? h("div", { class: "jr-actions" }, playBtn,
+      h("button", { class: "pill-btn", onclick: () => frameJourney(ctx.app, j) }, "Whole trip"),
+      h("button", { class: "pill-btn", onclick: () => void copyJourney(ctx.app, j) }, "Copy itinerary")) : h("p", { class: "muted small" }, "Tell it the trip the way you'd say it. Each step can travel its own way, and stays hold their own stops."),
+    editor,
+    h("section", { class: "group" }, h("h2", { class: "group-title" }, "Packing and to-dos"),
+      j.checklist.length ? h("div", { class: "work-checklist" }, ...j.checklist.map((c) =>
+        h("label", { class: "work-check" + (c.done ? " done" : "") },
+          h("input", { type: "checkbox", checked: c.done, onchange: () => { c.done = !c.done; trips.save(j); again(); } }), h("span", {}, c.text),
+          h("button", { class: "link-btn", onclick: (e: Event) => { e.preventDefault(); j.checklist = j.checklist!.filter((x) => x !== c); trips.save(j); again(); } }, "Remove")))) : "",
+      todo),
+    h("section", { class: "group" }, h("h2", { class: "group-title" }, "Notes"),
+      h("textarea", { class: "mp-notes", rows: 3, placeholder: "Ideas, contacts, budget…", onchange: (e: Event) => { j.notes = (e.target as HTMLTextAreaElement).value; trips.save(j); } }, j.notes ?? "")),
+    h("div", { class: "mp-foot" },
+      h("span", {}, "Saved in this browser."),
+      h("button", { class: "link-btn", onclick: () => download(`${j.name}.json`, JSON.stringify(j, null, 2)) }, "Export"),
+      h("button", { class: "link-btn danger", onclick: () => { if (confirm(`Delete ${j.name}?`)) { trips.remove(j.id); tripLayer?.clear(); openPlans(ctx); } } }, "Delete")));
+  draw();
+}
 
 const km = (m: number) => fmtDist(m);
 const letter = (i: number) => String.fromCharCode(65 + (i % 26));
@@ -27,6 +92,7 @@ function features(p: Plan, extra: import("./layer").WorkFeature[] = []) {
   return [
     ...(p.type === "trip" && pts.length > 1 ? [{ id: "route", kind: "line" as const, pts: pts.map((s) => s.pts[0]), color, dashed: p.mode === "fly" }] : []),
     ...extra,
+    ...(p.type === "event" && p.program?.steps.length ? journeyFeatures(p.program, "Venue").filter((f) => f.id !== "origin") : []),
     ...p.items.filter((i) => i.kind !== "point").map((i) => ({ id: i.id, kind: i.kind, pts: i.pts, color, label: i.name, fill: 0.22 })),
     ...pts.map((i, k) => ({ id: i.id, kind: "point" as const, pts: i.pts, color, label: p.type === "trip" ? `${k + 1}. ${i.name}` : p.type === "business" ? `${letter(k)} · ${i.name}` : i.name })),
   ];
@@ -42,17 +108,28 @@ function focus(ctx: WorkCtx, p: Plan) {
 
 export function openPlans(ctx: WorkCtx) {
   layer?.clear();
+  tripLayer?.clear();
+  migrateTrips();
   const types = Object.keys(PLAN_TYPES) as PlanType[];
   ctx.show("Plan", ctx.home,
     h("p", { class: "mp-intro" }, "Plan on the map: pick what kind of plan, then place its stops, sites, zones or routes."),
     h("div", { class: "work-types" }, ...types.map((t) =>
       h("button", { class: "work-type", style: `--c:${PLAN_TYPES[t].color}`, onclick: () => {
-        const p: Plan = { id: newId(), type: t, name: `New ${PLAN_TYPES[t].label.toLowerCase()} plan`, created: Date.now(), items: [], checklist: [], mode: t === "trip" ? "drive" : undefined };
+        if (t === "trip") {
+          const j: Journey = { id: newId(), name: "New trip", start: new Date(Date.now() + 14 * 86_400_000).toISOString().slice(0, 10), time: "09:00", origin: null, steps: [], created: Date.now() };
+          trips.save(j);
+          return openTrip(ctx, j.id);
+        }
+        const p: Plan = { id: newId(), type: t, name: `New ${PLAN_TYPES[t].label.toLowerCase()} plan`, created: Date.now(), items: [], checklist: [] };
         store.save(p);
         openPlan(ctx, p.id);
       } }, h("strong", {}, PLAN_TYPES[t].label), h("span", {}, PLAN_TYPES[t].about)))),
-    store.all().length ? h("section", { class: "group" }, h("h2", { class: "group-title" }, "Your plans"),
-      h("div", { class: "list" }, ...store.all().map((p) =>
+    store.all().length || trips.all().length ? h("section", { class: "group" }, h("h2", { class: "group-title" }, "Your plans"),
+      h("div", { class: "list" }, ...trips.all().map((j) =>
+        h("button", { class: "list-row", onclick: () => openTrip(ctx, j.id) },
+          h("span", { class: "dot big", style: `background:${PLAN_TYPES.trip.color}` }),
+          h("span", { class: "list-text" }, h("span", { class: "list-title" }, j.name), h("span", { class: "list-sub" }, `Trip · ${j.steps.map((s) => (s.kind === "move" ? JMODES[s.mode].emoji : s.nights ? "🛏️" : "📍")).join(" ") || "no steps yet"}`)),
+          h("span", { class: "chev", html: "&rsaquo;" }))), ...store.all().map((p) =>
         h("button", { class: "list-row", onclick: () => openPlan(ctx, p.id) },
           h("span", { class: "dot big", style: `background:${PLAN_TYPES[p.type].color}` }),
           h("span", { class: "list-text" }, h("span", { class: "list-title" }, p.name), h("span", { class: "list-sub" }, `${PLAN_TYPES[p.type].label} · ${p.items.length} item${p.items.length === 1 ? "" : "s"}`)),
@@ -62,12 +139,24 @@ export function openPlans(ctx: WorkCtx) {
 
 export function openPlan(ctx: WorkCtx, id: string) {
   const p = store.get(id);
-  if (!p) return openPlans(ctx);
+  if (!p) return trips.get(id) ? openTrip(ctx, id) : openPlans(ctx);
   const cfg = PLAN_TYPES[p.type];
   layer ??= new WorkLayer(ctx.app, "work:plan", p.name, cfg.color);
   const save = (patch: Partial<Plan> = {}) => { Object.assign(p, patch); store.save(p); };
   const redraw = (extra: import("./layer").WorkFeature[] = []) => layer!.set(features(p, extra), `Plan · ${p.name}`);
   const analysis = h("div", { class: "work-analysis" });
+  // Events: the day's programme, starting at the venue.
+  let program: HTMLElement | string = "";
+  if (p.type === "event") {
+    const venue = p.items.find((i) => i.kind === "point");
+    const spot = venue ? { name: venue.name, lon: venue.pts[0][0], lat: venue.pts[0][1] } : null;
+    const j = (p.program ??= { id: `${p.id}-day`, name: p.name, start: new Date(Date.now() + 14 * 86_400_000).toISOString().slice(0, 10), time: "18:00", origin: spot, steps: [], created: Date.now() });
+    if (spot && (!j.origin || j.origin.name === spot.name || !j.steps.length)) j.origin = spot;
+    program = h("section", { class: "group" }, h("h2", { class: "group-title" }, "The day, step by step"),
+      h("p", { class: "muted small" }, "“Doors and drinks for an hour, talks for 2 hours, walk to dinner at Manam, dinner for 2 hours.” Each part gets its times; walks and rides between places are timed too."),
+      journeyEditor({ ctx, journey: j, short: true, originLabel: "Venue", save: () => { save(); redraw(); }, rerender: () => openPlan(ctx, p.id) }),
+      j.steps.length ? h("button", { class: "link-btn", onclick: () => void copyJourney(ctx.app, j, true) }, "Copy the running order") : "");
+  }
 
   const addItem = async (kind: PlanItem["kind"], name: string) => {
     ctx.hide();
@@ -107,13 +196,11 @@ export function openPlan(ctx: WorkCtx, id: string) {
   ctx.show(cfg.label, () => openPlans(ctx),
     h("input", { class: "mp-name", value: p.name, "aria-label": "Plan name", onchange: (e: Event) => { save({ name: (e.target as HTMLInputElement).value || p.name }); redraw(); } }),
     h("p", { class: "muted small" }, cfg.about),
-    p.type === "trip" ? h("label", { class: "mp-field" }, h("span", {}, "Getting around"),
-      h("select", { onchange: (e: Event) => { save({ mode: (e.target as HTMLSelectElement).value as TravelMode }); openPlan(ctx, p.id); } },
-        ...(Object.keys(MODES) as TravelMode[]).map((m) => h("option", { value: m, selected: p.mode === m }, MODES[m].label)))) : "",
     p.type === "event" ? h("label", { class: "mp-field" }, h("span", {}, "Expected attendees"),
       h("input", { type: "number", min: 0, value: p.attendees ?? "", onchange: (e: Event) => { save({ attendees: parseInt((e.target as HTMLInputElement).value, 10) || undefined }); openPlan(ctx, p.id); } })) : "",
     h("div", { class: "chips wrap" }, ...cfg.add.map((a) => h("button", { class: "chip", onclick: () => void addItem(a.kind, a.name) }, `+ ${a.label}`))),
     p.items.length ? h("div", { class: "list" }, ...p.items.map(itemRow)) : h("p", { class: "muted small" }, "Nothing placed yet."),
+    program,
     analysis,
     h("section", { class: "group" }, h("h2", { class: "group-title" }, "Notes"),
       h("textarea", { class: "mp-notes", rows: 3, placeholder: "Ideas, contacts, budget…", onchange: (e: Event) => save({ notes: (e.target as HTMLTextAreaElement).value }) }, p.notes ?? "")),
@@ -136,37 +223,25 @@ async function analyse(p: Plan, box: HTMLElement, redraw: (extra?: import("./lay
   const loading = h("div", { class: "loading" }, h("div", { class: "spinner" }), "Working it out…");
   box.replaceChildren(loading);
   try {
-    if (p.type === "trip") {
-      if (pts.length < 2) { box.replaceChildren(h("p", { class: "muted small" }, "Add at least two stops to see distances and travel times.")); return; }
-      const ls = legs(pts, p.mode ?? "drive");
-      const total = ls.reduce((s, l) => s + l.route, 0), hours = ls.reduce((s, l) => s + l.hours, 0);
-      const weather = h("div");
-      box.replaceChildren(section("The route",
-        h("div", { class: "mp-stat" }, h("strong", {}, `${km(total)} · ${fmtHours(hours)}`), h("span", {}, `${MODES[p.mode ?? "drive"].label}, about ${Math.round((MODES[p.mode ?? "drive"].detour - 1) * 100)}% longer than straight lines, at typical speeds`)),
-        stats(...ls.map((l, i) => [`${i + 1} → ${i + 2}: ${l.to.name}`, `${km(l.route)} · ${fmtHours(l.hours)}`] as [string, string])),
-        h("button", { class: "link-btn", onclick: async () => {
-          weather.replaceChildren(h("div", { class: "loading" }, h("div", { class: "spinner" }), "Checking the forecast…"));
-          const rows = await Promise.all(pts.map(async (s) => {
-            const f = await forecast(s.pts[0][0], s.pts[0][1]).catch(() => null);
-            if (!f) return [s.name, "Unavailable"] as [string, string];
-            const d = Math.max(0, s.date ? f.daily.time.indexOf(s.date) : 0);
-            if (s.date && f.daily.time.indexOf(s.date) < 0) return [s.name, "Beyond the 7-day forecast"] as [string, string];
-            return [`${s.name}${s.date ? ` (${s.date})` : ""}`, `${Math.round(f.daily.temperature_2m_min[d])}–${Math.round(f.daily.temperature_2m_max[d])} °C · ${f.daily.precipitation_probability_max[d] ?? "?"}% rain`] as [string, string];
-          }));
-          weather.replaceChildren(stats(...rows));
-        } }, "Weather at each stop"), weather));
-    } else if (p.type === "event") {
+    if (p.type === "event") {
       const venue = pts[0];
       if (!venue) { box.replaceChildren(h("p", { class: "muted small" }, "Place the venue to see how far people can come from.")); return; }
       const v = venue.pts[0];
-      // Reach rings at typical urban driving speed (30 km/h door to door).
-      const rings = [15, 30, 60].map((min) => ({ min, r: (30 * 1000 * min) / 60 / 1.3 }));
-      redraw(rings.map((x, i) => ({ id: `ring${i}`, kind: "area" as const, pts: circle(v, x.r), color: PLAN_TYPES.event.color, fill: 0.06 * (3 - i), dashed: true })));
+      // Reach rings for the way people will come, at typical door-to-door speeds in town.
+      const REACH = { walk: { label: "On foot", emoji: "🚶", kmh: 4.8, color: "#8e8e93" }, bike: { label: "By bike", emoji: "🚲", kmh: 14, color: "#34c759" }, transit: { label: "Bus or train", emoji: "🚌", kmh: 18, color: "#ff9f0a" }, drive: { label: "By car", emoji: "🚗", kmh: 30, color: PLAN_TYPES.event.color } } as const;
+      const how = (p.mode && p.mode in REACH ? p.mode : "drive") as keyof typeof REACH;
+      const rm = REACH[how];
+      const rings = [15, 30, 60].map((min) => ({ min, r: (rm.kmh * 1000 * min) / 60 / 1.3 }));
+      redraw(rings.map((x, i) => ({ id: `ring${i}`, kind: "area" as const, pts: circle(v, x.r), color: rm.color, fill: 0.06 * (3 - i), dashed: true })));
+      const pickHow = h("div", { class: "chips wrap" }, ...(Object.keys(REACH) as (keyof typeof REACH)[]).map((k) =>
+        h("button", { class: `chip${k === how ? " on" : ""}`, "aria-pressed": String(k === how), onclick: () => { p.mode = k; store.save(p); void analyse(p, box, redraw); } }, `${REACH[k].emoji} ${REACH[k].label}`)));
       const [aps, prt, rail] = await Promise.all([airports(), ports(), railways()]);
       const ap = nearby(aps, v[0], v[1], 2000, 1)[0], rl = nearestLine(rail, v[0], v[1], 200);
       const parking = p.attendees ? Math.ceil(p.attendees / 2.5) : 0;
       box.replaceChildren(section("Reach and access",
-        h("p", { class: "muted small" }, "Dashed rings: roughly 15, 30 and 60 minutes by car in town. Real travel depends on roads and traffic."),
+        h("p", { class: "muted small" }, "How will people come? The dashed rings show roughly 15, 30 and 60 minutes that way."),
+        pickHow,
+        h("p", { class: "muted small" }, `${rm.emoji} 15 min ≈ ${km(rings[0].r)}, 30 min ≈ ${km(rings[1].r)}, an hour ≈ ${km(rings[2].r)} in a straight line. Real travel depends on streets, stops and traffic.`),
         stats(
           ap ? ["Nearest airport", `${ap.name} · ${km(ap.km * 1000)}`] : null,
           ["Nearest main railway", rl ? km(rl.km * 1000) : "Over 200 km"],

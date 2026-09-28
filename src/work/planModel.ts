@@ -26,10 +26,12 @@ export interface Plan {
   mode?: TravelMode;
   attendees?: number;
   notes?: string;
+  /** Events: the day, step by step (a journey starting at the venue). */
+  program?: import("./journeyModel").Journey;
 }
 
 export const PLAN_TYPES: Record<PlanType, { label: string; color: string; about: string; add: { kind: PlanItem["kind"]; label: string; name: string }[] }> = {
-  trip: { label: "Trip", color: "#0a84ff", about: "Stops in order, with distances, travel times and the weather on the way", add: [{ kind: "point", label: "Add a stop", name: "Stop" }] },
+  trip: { label: "Trip", color: "#0a84ff", about: "Fly, drive, stay: step by step, each leg its own way, with times and stops", add: [{ kind: "point", label: "Add a stop", name: "Stop" }] },
   event: { label: "Event", color: "#ff375f", about: "A venue, meeting points and parking, and how far people can reach it", add: [{ kind: "point", label: "Place the venue", name: "Venue" }, { kind: "point", label: "Add a meeting point or parking", name: "Meeting point" }] },
   business: { label: "Business", color: "#30d158", about: "Candidate sites compared side by side: transport, power and markets", add: [{ kind: "point", label: "Add a candidate site", name: "Site" }] },
   policy: { label: "Policy", color: "#bf5af2", about: "Zones drawn on the map, and what's inside each one", add: [{ kind: "area", label: "Draw a zone", name: "Zone" }] },

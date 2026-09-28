@@ -66,7 +66,7 @@ export function openTeach(ctx: WorkCtx) {
       tile("Quizzes and tests", "Host with teams on the class screen, or send a link", "#ff375f", "❓", () => openQuizzes(ctx, home)),
       tile("Games", "Where in the world? · Time traveller", "#0a84ff", "🎯", () => openGames(ctx, home)),
       tile("World Summit", "A simulation of world politics, played over weeks", "#bf5af2", "🌐", () => openSims(ctx, home)),
-      tile("Field trips", "Timetable, buses, costs, safety and permission slips", "#ff9f0a", "🚌", () => openTrips(ctx, home))),
+      tile("Field trips", "The day step by step: timetable, buses, costs, safety and permission slips", "#ff9f0a", "🚌", () => openTrips(ctx, home))),
   );
 }
 

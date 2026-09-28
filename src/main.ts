@@ -4,6 +4,8 @@ import "./styles.css";
 
 import { Cartesian2, Cartesian3, EasingFunction, Math as CesiumMath } from "cesium";
 import { createMapControls, homeRegion } from "./globe/controls";
+import { Looks } from "./globe/looks";
+import { featureChips } from "./explore/featureLayers";
 import { App, type Theme } from "./app";
 import { Globe, type OverlayKind } from "./globe/viewer";
 import { Feeds, searchLocal } from "./explore/feeds";
@@ -36,7 +38,9 @@ import { briefFor, todayCard } from "./myplaces/todayUi";
 import { backupRow, keepStorage } from "./myplaces/backup";
 import { hasDemo, loadDemo, removeDemo } from "./myplaces/demo";
 import { planLog } from "./myplaces/logAny";
+import { describeDrafts, parseSteps } from "./work/journeyModel";
 import { createSpace } from "./space/panel";
+import { spaceTheme } from "./space/theme";
 import { createLenses } from "./lenses/bar";
 import { LENSES } from "./lenses";
 import { borders, openPresent, showYear } from "./work/present";
@@ -83,6 +87,7 @@ globe.viewer.scene.globe.tileLoadProgressEvent.addEventListener((queued: number)
 const labels = new LabelLayer(globe.viewer.scene, () => globe.state.exaggeration);
 $("ui").prepend(labels.el);
 app.labels = labels;
+app.layerChips = (id) => featureChips(app, id);
 const overlays = new Overlays(globe.viewer, (m) => app.toast(m, 5000), app.canvas);
 overlays.onLabels = (on) => labels.setVisible(on);
 const feeds = new Feeds(globe.viewer, labels);
@@ -106,8 +111,17 @@ const openSite = (s: Site) => {
 };
 
 app.addTheme(exploreTheme(app, feeds, overlays, openSite));
-app.addTheme(landTheme(app));
-app.addTheme(mineralsTheme(app));
+// Earth: the ground, the rocks and the minerals in them, in one place.
+{
+  const land = landTheme(app), minerals = mineralsTheme(app);
+  app.addTheme({
+    ...land, label: "Earth", icon: icons.globe, intro: "Mountains, volcanoes, canyons, the rock beneath them and the minerals in it.",
+    subtabs: [...land.subtabs, ...minerals.subtabs.map((t) => (t.id === "here" ? { ...t, label: "Minerals" } : t.id === "mines" ? { ...t, label: "Mines" } : t))],
+    enter: (a) => { land.enter?.(a); minerals.enter?.(a); },
+    leave: (a) => { land.leave?.(a); minerals.leave?.(a); },
+  });
+  app.aliases.set("minerals", "land");
+}
 app.addTheme(waterTheme(app));
 app.addTheme(climateTheme(overlays));
 app.addTheme(plantsTheme());
@@ -141,14 +155,14 @@ const PLACE_TOOLS: WorkTool[] = [
   tool("occupancy", "Live occupancy", "Rooms, floors and bookings from your booking system (Pro)", "#ff375f", icons.building, () => app.actions.get("pro:occupancy")?.run()),
 ];
 const MAKE_TOOLS: WorkTool[] = [
-  tool("plan", "Plan", "Trips, events, business sites, policy zones and infrastructure", "#0a84ff", icons.route, openPlans),
+  tool("plan", "Plan", "Trips told step by step, an event's running order, sites, zones and routes", "#0a84ff", icons.route, openPlans),
   tool("present", "Present", "Slides and flying tours of places, with borders from history", "#e0b050", icons.slides, openPresent),
-  tool("video", "Video", "Record the globe with a title, captions and narration", "#ff375f", icons.video, openVideo),
+  tool("video", "Video", "A studio: the globe on a monitor, shots, looks, camera moves and narration", "#ff375f", icons.video, openVideo),
   tool("teach", "Teach", "Lessons, quizzes, games, a world politics simulation and field trips", "#bf5af2", icons.graduate, openTeach),
 ];
 const LOOK_TOOLS: WorkTool[] = [
   tool("learn", "Learn", "Games, a daily challenge, your passport, and museums and libraries near you", "#30d158", icons.book, openLearn),
-  tool("space", "Space", "Satellites, the ISS, rocket launches and the solar system", "#5e5ce6", icons.saturn, () => space.open()),
+  tool("space", "Space", "Satellites, the ISS, rocket launches and the solar system", "#5e5ce6", icons.saturn, () => app.setTheme("space")),
 ];
 
 /** The saved place at (or nearest to) the chosen spot, else home, else the first one. */
@@ -251,6 +265,7 @@ const pro = createPro(app, myStore, myScene, (id) => { myPlaces.open(id); myPlac
 $("ui").append(pro.panel);
 // Space: satellites, the ISS, launches and the solar system.
 const space = createSpace(app);
+app.addTheme(spaceTheme(space));
 $("ui").append(space.panel, placeHub.panel, makeHub.panel, lookHub.panel);
 space.button.addEventListener("space:opened", () => closePanels(space.panel));
 for (const hub of [placeHub, makeHub, lookHub]) hub.button.addEventListener("work:opened", () => closePanels(hub.panel));
@@ -301,6 +316,8 @@ const syncMode = () => {
   modes.set([placeHub.panel, myPlaces.panel, pro.panel].some(shown) ? "place" : shown(makeHub.panel) ? "make" : "look");
   // Phones have room for one panel: the place card steps aside while a mode panel is open.
   document.body.dataset.panel = [placeHub.panel, myPlaces.panel, pro.panel, makeHub.panel, lookHub.panel, space.panel].some(shown) ? "open" : "";
+  // Working in My Place or Make: the empty Explore card steps aside so the mode has the screen.
+  document.body.dataset.work = [placeHub.panel, myPlaces.panel, pro.panel, makeHub.panel].some(shown) ? "1" : "";
 };
 const watcher = new MutationObserver(syncMode);
 for (const el of [placeHub.panel, myPlaces.panel, pro.panel, makeHub.panel, lookHub.panel, space.panel]) watcher.observe(el, { attributes: true, attributeFilter: ["hidden"] });
@@ -369,9 +386,22 @@ const logCommand = (q: string): Command | null => {
   return plan ? { title: `Log for ${plan.tool}: ${plan.summary}`, steps: [plan.saves], run: () => void plan.run().then((r) => app.toast(r ? `Logged: ${r}` : "Couldn't log that.", 4000)) } : null;
 };
 
+/** A trip typed into the search box: "fly to Manila, taxi to the Peninsula, stay 3 nights". */
+const tripCommand = (q: string): Command | null => {
+  const d = parseSteps(q);
+  if (d.length < 2 || !d.some((x) => x.kind === "move" || x.kind === "stay")) return null;
+  return { title: "Plan this trip", steps: [describeDrafts(d)], run: () => {
+    closePanels(makeHub.panel);
+    makeHub.ctx.open();
+    void import("./work/planUi").then((m) => m.tripFromText(makeHub.ctx, q)).catch(() => app.toast("Couldn't load the planner. Check the connection and try again.", 5000));
+  } };
+};
+
 const asCommand = (q: string): Command | null => {
   const logged = logCommand(q);
   if (logged) return logged;
+  const trip = tripCommand(q);
+  if (trip) return trip;
   const p = plan(q);
   // With Claude connected, anything that reads as a request or question goes to it.
   if (aiOn() && looksLikeAsk(q)) return { title: "Ask Atlas AI", steps: [p.steps.length ? describe(p).join(" → ") : "Claude will work out the steps"], run: () => void robot.ask(q.trim(), p.steps.length ? p : null) };
@@ -398,9 +428,9 @@ $("search-slot").replaceWith(createSearch(globe, {
 }));
 
 // Layers any theme can add to the map by name (Built registers its networks itself).
-for (const o of OVERLAYS) if (o.id !== "labels") app.actions.set(`overlay:${o.id}`, { label: o.label, run: () => void overlays.set(o.id, true), isOn: () => overlays.isOn(o.id) });
+for (const o of OVERLAYS) if (o.id !== "labels") app.actions.set(`overlay:${o.id}`, { label: o.label, run: () => void overlays.set(o.id, true), isOn: () => overlays.isOn(o.id), stop: () => void overlays.set(o.id, false) });
 for (const k of ["geology", "elevation", "slope", "contours"] as const)
-  app.actions.set(`globe:${k}`, { label: k, run: () => { globe.state.overlays[k].on = true; globe.apply(); }, isOn: () => globe.state.overlays[k].on });
+  app.actions.set(`globe:${k}`, { label: k, run: () => { globe.state.overlays[k].on = true; globe.apply(); }, isOn: () => globe.state.overlays[k].on, stop: () => { globe.state.overlays[k].on = false; globe.apply(); } });
 
 // Under every view of a place: where to go next, keeping what's on the map.
 app.connections = (themeId, subtabId) => {
@@ -551,7 +581,11 @@ app.onPlace = (p) => {
       if (earned.length) app.toast(`🛂 New passport stamp: ${c.name}`, 3000);
     }).catch(() => {});
 };
-app.onTheme = syncHash;
+// Each theme sees the planet its own way (relief, depths, clouds, greenness, night lights…).
+const looks = new Looks(globe, $("ui"));
+looks.set(app.theme.id);
+app.looks = looks;
+app.onTheme = (id) => { looks.set(id); syncHash(); };
 globe.viewer.camera.moveEnd.addEventListener(syncHash);
 
 // Opening view: a shared link's view, or the whole planet.

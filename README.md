@@ -141,16 +141,30 @@ Then pick a theme from the tab bar; each theme's subtabs describe the chosen pla
 
 | Theme | Subtabs | What you learn |
 | --- | --- | --- |
-| **Land** | Overview · Profile · Rocks | Elevation, slope, landform and bedrock; a slice through the land; the rock layers below (and a sliced, time-lapse rock section) |
-| **Minerals** | Here · Mines nearby · Commodities | The bedrock here, the minerals in it and what rocks like it can hold; the nearest landmark mines; where the country ranks in world mining; every mapped mine and quarry nearby; 20 commodities (copper, lithium, cobalt, rare earths, gold, uranium, potash…) with uses, ores, geology and top producers |
+| **Earth** | Overview · Profile · Rocks · Minerals · Mines · Commodities | Elevation, slope, landform and bedrock; a slice through the land; the rock layers below (and a sliced, time-lapse rock section); and, from the same tab, minerals: |
+| | | The bedrock here, the minerals in it and what rocks like it can hold; the nearest landmark mines; where the country ranks in world mining; every mapped mine and quarry nearby; 20 commodities (copper, lithium, cobalt, rare earths, gold, uranium, potash…) with uses, ores, geology and top producers |
 | **Water** | Overview · Nearby · City water · Rain path · Watershed | The nearest rivers and lakes, springs and wells; how water moves through the city (drains, buried streams in culverts, stormwater basins, canals, water works, sewage treatment); where rain falling here flows; the land that drains to here |
 | **Climate** | Now · Climate · Change | Current weather and 7-day forecast with live rain radar; the climate type and a monthly climograph; warming since 1950 |
 | **Plants** | Species · Life zones · At risk | What grows here, with photos and icons (conifer, palm, cactus, orchid, lily, vine, fern, moss, mushroom, kelp…); where each species lives by elevation; threatened plants |
 | **Animals** | Species · Life zones · At risk | The same for birds, mammals, reptiles, insects and more, each with its own icon on the card and the map (62 in all, from owls and penguins to seals, jellyfish and coral) |
 | **Built** | Overview · Transport · Energy · Internet · Water | How a place connects: nearest airport, seaport, main railway, highway and shipping lane; power plants and the power mix around it and nationally; undersea cable landings; and everything OpenStreetMap maps nearby |
 | **Countries** | Overview · People · Economy · Environment | Flag, capital, languages and neighbours; population, income, forests and emissions over time |
+| **Space** | Sky here | The globe with real day and night; satellites, the ISS, launches and the solar system; tonight's Moon and planets over the chosen place |
 
-**Minerals, worldwide.** With no place chosen, Minerals is a commodity explorer: pick copper or lithium
+**Each theme sees the planet its own way.** Earth in relief, Water by depth, Climate as yesterday's clouds
+(NASA VIIRS), Plants by greenness (MODIS NDVI), Animals as a glowing map of recorded life, Built at night
+(Black Marble), Countries as a political map, Space with the sun where it really is and cities lighting the
+dark side. A small legend names the view, with one tap back to the satellite photo; close in, each view
+eases back to the imagery.
+
+**On the map, per theme.** Each theme has its own one-tap layers: Earth's peaks, volcanoes, canyons,
+deserts, craters, plates, earthquakes, rocks and contours; Water's ocean deeps, lakes, rivers traced in blue,
+great rivers, waterfalls, rain, shipping lanes and ports; Climate's rain, surface heat, snow cover and
+aurora; Plants' great forests, greenness and plant records; Animals' wildlife wonders (36 places, from the
+Serengeti to South Georgia) and the great migrations (wildebeest, Arctic terns, monarchs, whales,
+godwits…); Built's metro systems and night lights.
+
+**Minerals, worldwide.** Earth's Commodities view is a commodity explorer: pick copper or lithium
 to see what it's for, which minerals it's mined from, how it forms, who produces it, and its landmark mines
 on the globe (about 60, from Escondida and Grasberg to Kiruna, Cigar Lake and Jwaneng). There's a guide to
 30-odd common minerals, and a switch for the bedrock geology map.
@@ -163,8 +177,12 @@ the internet. Tap a dot for the plant, port or airport.
 **The tools.** Grow, Flock, Build and live occupancy live under **My Place**; Plan, Present, Video and Teach
 under **Make**; Learn under **Look**. All of them are open to anyone:
 
-- **Plan** trips (stops in order, distances, travel times, the weather at each stop), events (venue, reach
-  rings at 15/30/60 minutes, the nearest airport, rail and port, parking), business sites (candidates
+- **Plan** trips told step by step, the way you'd say them: "fly to Manila, taxi to the Peninsula, stay 3
+  nights, train to Baguio". Each leg travels its own way (fly, train, drive, taxi, bus, ferry, walk, bike) with
+  times and distances; stays hold their own stops by day; the trip plays back on the globe, names itself and
+  copies as a text itinerary. Typing a trip into the search box starts one. Events (a running order typed as "doors and drinks for an
+  hour, talks for 2 hours, walk to dinner", venue, reach rings at
+  15/30/60 minutes on foot, by bike, bus or car, the nearest airport, rail and port, parking), business sites (candidates
   compared side by side on transport and power), policy zones (area, and the power plants, rail, roads, ports,
   airports and mines inside) and infrastructure (proposed routes with length, an elevation profile, climb,
   steepest grade, and the rivers, railways and highways they cross). Everything is drawn on the map, with
@@ -173,10 +191,17 @@ under **Make**; Learn under **Look**. All of them are open to anyone:
   history (123,000 BC to 2010), and any map layers. Play it full screen, one slide at a time or as a flying
   tour that circles each place. Topic templates (the Roman Empire, World War I, the age of exploration) and a
   *Borders through time* slider help with school projects. Decks save to a file to share.
-- **Video** records the globe (widescreen, square or vertical) with a title, a live caption, narration from
-  the microphone and/or a music file, and the map credits in the corner. It can record a presentation as a
-  tour, and a clean view hides every control for streaming with OBS, Zoom or Meet.
-- **Grow** follows fields drawn on the satellite map: the crop's growth stage from growing degree days, a
+- **Video** is a studio: the globe on a monitor framed to the film's shape (widescreen, square or
+  vertical), with the title, caption and safe area shown as they'll be recorded. Save shots (with a
+  thumbnail and caption) and play or record them as the camera flies between them; switch the look
+  (relief, depths, night…) and use camera moves (circle, drift in, pull back, tilt up, spin the Earth);
+  narrate with the microphone (with a level meter) and/or a music file. Place names and the map credits are
+  drawn into the video. It can record a presentation as a tour, and a stream view hides every control for
+  OBS, Zoom or Meet.
+- **Build** schedules can be typed: "start 2 March; site 2 weeks, foundations 6 weeks, frame 3 months, roof 8
+  weeks overlapping 4 weeks" previews the new plan before it's applied.
+- **Grow** follows fields drawn on the satellite map (and each field's year: "cabbages after harvest, then
+  winter wheat 15 October", rolling on to the next crop when its day comes): the crop's growth stage from growing degree days, a
   harvest window, what the crop used (FAO-56 ET₀ × Kc) against the rain, how much to irrigate this week in
   mm and litres for the field, frost and heat in the week ahead, a field diary, and plant health from space
   (MODIS NDVI). 42 crops in seven groups: grains (maize, rice, spring and winter wheat, barley, oats,
@@ -210,8 +235,8 @@ under **Make**; Learn under **Look**. All of them are open to anyone:
   students as a link (the quiz travels in the URL); students send back a result code and the gradebook shows
   scores and the questions to revisit. *Games*: Where in the world? and Time traveller. *World Summit*: a
   turn-based international relations simulation where teams lead real countries over several lessons, with
-  events, alliances, trade and sanctions drawn on the globe and a debrief. *Field trips*: timetable, adults
-  and buses, cost per student, the forecast, the nearest hospital, a checklist and a printable permission slip.
+  events, alliances, trade and sanctions drawn on the globe and a debrief. *Field trips*: the day step by step
+  ("bus to the museum, stay 3 hours, walk to the park, bus back to school"), timetable, adults and buses, cost per student, the forecast, the nearest hospital, a checklist and a printable permission slip.
 
 - **Learn** is for students: a daily challenge with a streak, Flight School (steer a plane over the globe to
   named countries, seeing which country you're over as you go), Flag Match, Where in the world? and Time
@@ -332,7 +357,8 @@ src/
   pro/                 Atlas Pro: model (bookings → rooms, floors, forecast), sources (demo, CSV, live link), panel,
                        vision/ (on-device camera analytics: detection, tracking, line counts, map positions)
   app.ts               place selection, place card, theme tab bar and subtabs, hosting tools inside subtabs
-  themes/              one file per theme (explore, land, minerals, water, climate, life, built, countries)
+  themes/              one file per theme (explore, land and minerals (Earth), water, climate, life, built, countries); space/theme.ts
+  globe/looks.ts       each theme's view of the planet; explore/featureLayers.ts its one-tap layers
   explore/             view tracking, label feeds and the "worth knowing" insights engine
   data/                Web Mercator math; elevation tiles; API clients; location parsing (links, DMS, plus codes)
   analysis/            pure, tested algorithms
