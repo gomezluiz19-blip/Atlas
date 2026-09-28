@@ -43,7 +43,7 @@ function printReport(p: MyPlace, el: HTMLElement) {
     const main = value?.firstChild?.textContent ?? "", sub = value?.querySelector("small")?.textContent ?? "";
     return `<tr><th>${esc(label)}</th><td><b>${esc(main)}</b>${sub ? `<br><span>${esc(sub)}</span>` : ""}</td></tr>`;
   }).join("");
-  const sow = [...el.querySelectorAll(".sowing > div:first-of-type .sow-row")].map((r) => `<li>${esc(r.textContent?.replace(/\s+/g, " ").trim() ?? "")}</li>`).join("");
+  const sow = [...el.querySelectorAll(".sowing > div:first-of-type .sow-row")].map((r) => `<li><b>${esc(r.querySelector("strong")?.textContent ?? "")}</b>: ${esc(r.querySelector("small")?.textContent ?? "")}</li>`).join("");
   const link = `${location.origin}${location.pathname}`;
   const w = window.open("", "_blank");
   if (!w) { alert("Allow pop-ups for Atlas to print the report."); return; }
