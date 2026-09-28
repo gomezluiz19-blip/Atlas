@@ -71,7 +71,8 @@ heat, heavy rain or gales in the next four days (with what to do about them for 
 building site), animals due to give birth or due a vaccination (overdue first), fields ready to harvest or
 within two weeks of it, how much to irrigate this week (mm and litres for the field), projects running
 behind, seedlings just planted, and disease weather: blight (Hutton periods) for potatoes and tomatoes and
-flystrike for sheep. Tap an item to open the tool it came from, or log what happened in the box beneath.
+flystrike for sheep. Tap an item to open the animal, field or project it's about, or log what happened in
+the box beneath.
 
 **About this place.** The moment a place is saved, Atlas reports what it knows about the ground: its height,
 slope and the way it faces (the sunny or shady side), the rock below from the geologic map, the average last
@@ -79,7 +80,8 @@ spring and first autumn frost and frost-free days from ten years of daily weathe
 and the crops it suits, rain, and the nearest main river, with one tap to see where the rain goes, slice the
 ground, compare then and now, or lift it out in 3D. A **sowing calendar** worked out from those frost dates
 says what to sow indoors, plant out or sow outdoors in the next six weeks (and the whole year) for about 30
-garden crops and autumn jobs like garlic and overwintering broad beans.
+garden crops and autumn jobs like garlic and overwintering broad beans. **Print or save it as a PDF** to share
+with a vet, adviser, landlord or neighbour.
 
 **Log it in plain words.** Type or say what happened and Atlas files it: *"Daisy had twins"* or *"wormed all
 the sheep with Cydectin"* (Flock), *"sprayed Top field with fungicide"* or *"planted Barn plot with winter
@@ -180,6 +182,8 @@ under **Make**; Learn under **Look**. All of them are open to anyone:
   (MODIS NDVI). 42 crops in seven groups: grains (maize, rice, spring and winter wheat, barley, oats,
   sorghum, millet), pulses and oilseeds, garden vegetables, fruit (including grapes and apples), cotton,
   sugarcane and roots, grass for hay or silage and alfalfa per cut, and tree crops (coffee, cacao, bananas).
+  Each field also lists the pests and diseases to **watch for** at its stage (and what's coming next), and
+  irrigation advice stops once a crop is ripening.
 
 - **Build** models a construction project on the real site: draw the footprint, choose the use and storeys,
   and a 3D model rises with the schedule (framed floors, closed-in floors, the floor going up, a tower crane).

@@ -31,6 +31,7 @@ and what still needs a decision.
 | Finding | Status |
 |---|---|
 | Nothing tells you what to do today | ✅ Today's brief: frost, heat, heavy rain, gales; births and vaccinations due (grouped); harvest windows and irrigation per field; projects behind; blight and flystrike weather |
+| Brief items only opened the tool | ✅ Tapping one opens the exact animal, field or project |
 | Recording things meant forms | ✅ Plain-words logging for Flock, Grow and Build: typed or spoken (Flock), in the search box, or in the box under the brief; shows what it will save first |
 | Atlas AI didn't know about your place | ✅ Tools for the brief and for logging |
 | Records could be lost with the browser | ✅ Back up everything / Restore (never includes the AI key); asks the browser to keep storage |
@@ -43,6 +44,9 @@ and what still needs a decision.
 | Finding | Status |
 |---|---|
 | Flock had species but no breeds | ✅ About 150 breeds with typical weights; weight against the breed; routine care in one tap |
+| Grow suggested irrigating crops ready to harvest | ✅ Fixed: no irrigation advice once a crop is ripening |
+| Nothing on what might go wrong with a crop | ✅ "Watch for": common pests and diseases for 40 crops by stage |
+| Nothing to share with a vet or adviser | ✅ The place report prints or saves as a PDF, with a link back to Atlas |
 | Grow had 10 crops | ✅ 42, grouped, including hay and alfalfa per cut, winter wheat, garden vegetables and orchard crops |
 | Look knew little about the famous features themselves | ✅ About 270 features with key facts (rivers, lakes, falls, canyons, deserts, peaks, volcanoes, craters, deeps, forests, metros), plus a 10 m gazetteer (about 11,700 names) and detailed rivers |
 | Duplicated or crowded cards | ✅ Facts collapse to one line in the place card; panels don't repeat them |
