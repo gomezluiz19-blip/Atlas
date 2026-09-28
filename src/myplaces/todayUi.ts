@@ -27,6 +27,14 @@ const localDate = () => {
 
 const cache = new Map<string, { at: number; days: Awaited<ReturnType<typeof siteWeather>> }>();
 
+/** Today's items for a place (for Atlas AI and anything else that wants them as data). */
+export async function briefFor(place: MyPlace): Promise<TodayItem[]> {
+  const days = await siteWeather(place.lon, place.lat).catch(() => null);
+  const records = localRecords();
+  const seasons = await seasonsFor(records.fields, place, localDate()).catch(() => []);
+  return todayItems({ today: localDate(), weather: days, ...records, seasons });
+}
+
 export function todayCard(place: MyPlace, openTool: (t: NonNullable<TodayItem["tool"]>) => void): HTMLElement {
   const body = h("div", { class: "today-list" }, h("p", { class: "muted small" }, "Checking the forecast and your records…"));
   const when = new Date().toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "long" });

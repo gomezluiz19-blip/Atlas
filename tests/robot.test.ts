@@ -123,6 +123,7 @@ describe("my place phrases", () => {
     expect(acts("frost at my farm")).toContain("mode:place");
     expect(acts("what's due today at my farm")).toContain("mode:place");
     expect(acts("my daily brief")).toContain("mode:place");
+    expect(acts("what do I need to do today")).toContain("mode:place");
     expect(acts("my cattle")).toContain("work:flock");
     expect(plan("frost at my farm").place).toBeNull();
     expect(plan("my daily brief").place).toBeNull();

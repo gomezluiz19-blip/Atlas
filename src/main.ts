@@ -31,7 +31,7 @@ import { createMyPlaces } from "./myplaces/panel";
 import { createPro } from "./pro/panel";
 import { createWork, type WorkCtx, type WorkTool } from "./work/hub";
 import { createModeBar, type Mode } from "./ui/modes";
-import { todayCard } from "./myplaces/todayUi";
+import { briefFor, todayCard } from "./myplaces/todayUi";
 import { backupRow, keepStorage } from "./myplaces/backup";
 import { hasDemo, loadDemo, removeDemo } from "./myplaces/demo";
 import { planLog } from "./myplaces/logAny";
@@ -334,6 +334,13 @@ const robot = createRobot(app, {
     else app.actions.get(`work:${t}`)?.run();
   },
   settings: () => aiSettings.open(),
+  brief: async () => {
+    const main = savedPlaceHere();
+    if (!main) return "";
+    const items = await briefFor(main);
+    return `Today at ${main.name}:\n${items.map((x) => `- [${x.urgency}] ${x.title}. ${x.detail}`).join("\n") || "- Nothing pressing."}`;
+  },
+  logLine: async (line) => { const plan = planLog(line); return plan ? plan.run() : null; },
 });
 $("ui").append(robot.el);
 /** "Daisy had twins", "sprayed Top field" or "Oak Street: slab poured" typed into the search box. */

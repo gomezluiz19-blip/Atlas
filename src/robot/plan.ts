@@ -53,7 +53,7 @@ const RULES: Rule[] = [
   { re: /\b(forest (cover|types?)|leaf types?|evergreen|deciduous|conifers?|how much (forest|woodland)|woodlands?)\b/, step: layer("lens:forest", "Look at the forest") },
   { re: /\b(true size|real size|actual size|how big is|compare (the )?size|size (of|compared)|drop (it|this) on|as big as)\b/, step: layer("lens:size", "Compare its true size") },
   // My Place: your own place's daily brief
-  { re: /\b((frost|weather|rain|heat|storms?|wind|what'?s due|today)( at| on| for)? my (place|farm|home|house|site|land|smallholding|ranch)|my (place|places|home|house|land|smallholding)|daily brief|morning brief|today at my)\b/, step: layer("mode:place", "Open My Place: today's brief") },
+  { re: /\b((frost|weather|rain|heat|storms?|wind|what'?s due|today)( at| on| for)? my (place|farm|home|house|site|land|smallholding|ranch)|my (place|places|home|house|land|smallholding)|daily brief|morning brief|today at my|what (do|should) (i|we) (need to )?do today|anything due( today)?|jobs for today|to-?do today)\b/, step: layer("mode:place", "Open My Place: today's brief") },
   // Work mode
   { re: /\b(plan (a |my |the |our )?(trip|route|journey|holiday|vacation|event|party|wedding|conference)|trip planner|itinerary)\b/, step: layer("work:plan", "Open Plan (Work)") },
   { re: /\b((make|create|start|build) (a |my )?(presentation|slides?|slideshow|slide deck)|presentation|slideshow)\b/, step: layer("work:present", "Open Present (Work)") },
