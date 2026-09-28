@@ -80,12 +80,20 @@ export function exploreTheme(app: App, feeds: Feeds, overlays: Overlays, openSit
   };
 
   /** The live "what's in view" card. */
+  /** Space and Learn, one tap from the Earth card. */
+  const lookFurther = (app: App) => {
+    const go = (id: string) => () => app.actions.get(id)?.run();
+    return h("div", { class: "look-further" },
+      h("button", { class: "look-tile", onclick: go("space:open") }, h("span", { class: "look-tile-icon", style: "--c:#5e5ce6", html: icons.saturn }), h("span", {}, h("strong", {}, "Space"), h("small", {}, "Satellites, the ISS, launches, planets"))),
+      h("button", { class: "look-tile", onclick: go("work:learn") }, h("span", { class: "look-tile-icon", style: "--c:#30d158", html: icons.book }), h("span", {}, h("strong", {}, "Learn"), h("small", {}, "Games, daily challenge, places to learn"))));
+  };
   const renderEmpty = (app: App, body: HTMLElement) => {
     const insightsBox = h("div", { class: "insights" });
     const inView = h("div", { class: "in-view" });
     const start = siteBrowser(SITES.explore, openSite, { color: "#0a84ff" });
     body.append(
-      h("div", { class: "empty-hint compact" }, h("span", { class: "empty-icon", html: icons.compass }), h("span", {}, h("strong", {}, "Move the map to explore"), h("span", {}, "Labels appear as you zoom in. Tap one, or anywhere, to learn more."))),
+      h("div", { class: "empty-hint compact" }, h("span", { class: "empty-icon", html: icons.compass }), h("span", {}, h("strong", {}, "Move the map to explore"), h("span", {}, "Labels appear as you zoom in. Tap a mountain, sea, river or city to look at it through a lens."))),
+      lookFurther(app),
       insightsBox,
       start,
       inView,

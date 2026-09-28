@@ -29,7 +29,9 @@ import { PlaceStore } from "./myplaces/store";
 import { PlaceScene } from "./myplaces/scene";
 import { createMyPlaces } from "./myplaces/panel";
 import { createPro } from "./pro/panel";
-import { createWork } from "./work/hub";
+import { createWork, type WorkCtx, type WorkTool } from "./work/hub";
+import { createModeBar, type Mode } from "./ui/modes";
+import { todayCard } from "./myplaces/todayUi";
 import { createSpace } from "./space/panel";
 import { createLenses } from "./lenses/bar";
 import { LENSES } from "./lenses";
@@ -115,64 +117,135 @@ const siteMatches = (q: string): SearchResult[] => {
     .map((s) => ({ name: s.name, detail: `${s.where} · ${s.why}`, lon: s.lon, lat: s.lat, radius: s.radius, source: "local" as const, icon: "target" as const }));
 };
 
-// My Places: saved places (home, a family hotel…) with 3D, energy, water and security.
+// ---- The three modes: My Place, Look, Make -------------------------------------------------
+// My Place: saved places (home, a farm, a hotel…) with today's brief, 3D, energy, water and
+// security, and the tools to run them (Grow, Flock, Build, live occupancy).
+// Look: the Earth through themes and lenses (the place card), plus Space and Learn.
+// Make: Plan, Present, Video and Teach.
 const myStore = new PlaceStore();
 const myScene = new PlaceScene(globe.viewer);
-const myPlaces = createMyPlaces(app, myStore, myScene, { onPro: (id) => { myPlaces.close(); pro.open(id); } });
-$("layers-btn").before(myPlaces.button);
+const tool = (id: string, label: string, about: string, color: string, icon: string, open: (ctx: WorkCtx) => void): WorkTool => ({ id, label, about, color, icon, open });
+const PLACE_TOOLS: WorkTool[] = [
+  tool("grow", "Grow", "Fields and crops: growth stage, harvest, water and frost", "#30d158", icons.sprout, openGrow),
+  tool("flock", "Flock", "Animals in your care: farms, vets, rescues and adoption", "#8bd346", icons.paw, openFlock),
+  tool("build", "Build", "Model a building on its site and track construction; worksite tools (Pro)", "#ff9f0a", icons.crane, openBuild),
+  tool("occupancy", "Live occupancy", "Rooms, floors and bookings from your booking system (Pro)", "#ff375f", icons.building, () => app.actions.get("pro:occupancy")?.run()),
+];
+const MAKE_TOOLS: WorkTool[] = [
+  tool("plan", "Plan", "Trips, events, business sites, policy zones and infrastructure", "#0a84ff", icons.route, openPlans),
+  tool("present", "Present", "Slides and flying tours of places, with borders from history", "#e0b050", icons.slides, openPresent),
+  tool("video", "Video", "Record the globe with a title, captions and narration", "#ff375f", icons.video, openVideo),
+  tool("teach", "Teach", "Lessons, quizzes, games, a world politics simulation and field trips", "#bf5af2", icons.graduate, openTeach),
+];
+const LOOK_TOOLS: WorkTool[] = [
+  tool("learn", "Learn", "Games, a daily challenge, your passport, and museums and libraries near you", "#30d158", icons.book, openLearn),
+  tool("space", "Space", "Satellites, the ISS, rocket launches and the solar system", "#5e5ce6", icons.saturn, () => space.open()),
+];
+
+/** The saved place at (or nearest to) the chosen spot, else home, else the first one. */
+const savedPlaceHere = () => {
+  const all = myStore.all();
+  if (!all.length) return undefined;
+  const p = app.place;
+  if (!p) return all.find((x) => x.kind === "home" || x.kind === "farm") ?? all[0];
+  return [...all].sort((a, b) => Math.hypot(a.lon - p.lon, a.lat - p.lat) - Math.hypot(b.lon - p.lon, b.lat - p.lat))[0];
+};
+
+const placeHub = createWork(app, PLACE_TOOLS, {
+  title: "My Place",
+  intro: "Your home, farm, site or business: what matters there today, and the tools to run it.",
+  top: () => {
+    const main = savedPlaceHere();
+    return [
+      main ? todayCard(main, (t) => PLACE_TOOLS.find((x) => x.id === t)?.open(placeHub.ctx)) : h("div", { class: "today-card first" },
+        h("div", { class: "today-head" }, h("strong", {}, "Start with your place")),
+        h("p", { class: "small" }, "Search for your address (or tap it on the map) and save it. Atlas then gives you a daily brief there: frost, heat, storms, and what's due for your animals, fields and projects.")),
+      h("h2", { class: "group-title" }, "Your places"),
+      ...myPlaces.listBody(),
+      h("h2", { class: "group-title" }, "Run your place"),
+    ];
+  },
+});
+const makeHub = createWork(app, MAKE_TOOLS, {
+  title: "Make",
+  intro: "Make something from the map: plan a trip or a new road, present a place's story, record a video, or teach a lesson.",
+});
+const lookHub = createWork(app, LOOK_TOOLS, {
+  title: "Look further",
+  intro: "Beyond the themes and lenses in the place card: games and places to learn, and everything above the Earth.",
+});
+
+const myPlaces = createMyPlaces(app, myStore, myScene, {
+  onPro: (id) => { myPlaces.close(); pro.open(id); },
+  home: () => openMode("place"),
+  onShow: () => closePanels(myPlaces.panel),
+});
 $("ui").append(myPlaces.panel);
 // Atlas Pro: live operations (bookings from a CRM or booking system) for a saved building.
 const pro = createPro(app, myStore, myScene, (id) => { myPlaces.open(id); myPlaces.close(); });
 $("ui").append(pro.panel);
-myPlaces.button.addEventListener("click", () => pro.close());
-// Work: plan, present, record and grow, open to everyone.
-const work = createWork(app, [
-  { id: "plan", label: "Plan", about: "Trips, events, business sites, policy zones and infrastructure", color: "#0a84ff", icon: icons.route, open: openPlans },
-  { id: "present", label: "Present", about: "Slides and flying tours of places, with borders from history", color: "#e0b050", icon: icons.slides, open: openPresent },
-  { id: "video", label: "Video", about: "Record the globe with a title, captions and narration", color: "#ff375f", icon: icons.video, open: openVideo },
-  { id: "grow", label: "Grow", about: "Fields and crops: growth stage, harvest, water and frost", color: "#30d158", icon: icons.sprout, open: openGrow },
-  { id: "build", label: "Build", about: "Model a building on its site and track construction; worksite tools (Pro)", color: "#ff9f0a", icon: icons.crane, open: openBuild },
-  { id: "flock", label: "Flock", about: "Animals in your care: farms, vets, rescues and adoption", color: "#8bd346", icon: icons.paw, open: openFlock },
-  { id: "learn", label: "Learn", about: "Games, a daily challenge, your passport, and museums and libraries near you", color: "#30d158", icon: icons.book, open: openLearn },
-  { id: "teach", label: "Teach", about: "Lessons, quizzes, games, a world politics simulation and field trips", color: "#bf5af2", icon: icons.graduate, open: openTeach },
-]);
-myPlaces.button.before(work.button);
 // Space: satellites, the ISS, launches and the solar system.
 const space = createSpace(app);
-work.button.before(space.button);
-$("ui").append(space.panel);
-space.button.addEventListener("space:opened", () => { work.ctx.close(); myPlaces.close(); pro.close(); toggleLayers(false); });
-work.button.addEventListener("work:opened", () => space.close());
-myPlaces.button.addEventListener("click", () => space.close());
+$("ui").append(space.panel, placeHub.panel, makeHub.panel, lookHub.panel);
+space.button.addEventListener("space:opened", () => closePanels(space.panel));
+for (const hub of [placeHub, makeHub, lookHub]) hub.button.addEventListener("work:opened", () => closePanels(hub.panel));
 app.actions.set("space:open", { label: "Space", run: () => space.open() });
 app.actions.set("space:solar", { label: "Solar system", run: () => space.toSolar() });
-$("ui").append(work.panel);
-work.button.addEventListener("work:opened", () => { myPlaces.close(); pro.close(); toggleLayers(false); });
-myPlaces.button.addEventListener("click", () => work.ctx.close());
 app.actions.set("work:ndvi", ndviAction(app));
-const WORK_OPEN = { plan: openPlans, present: openPresent, video: openVideo, grow: openGrow, build: openBuild, flock: openFlock, teach: openTeach, learn: openLearn };
-for (const t of Object.keys(WORK_OPEN) as (keyof typeof WORK_OPEN)[])
-  app.actions.set(`work:${t}`, { label: `Work › ${t}`, run: () => { work.ctx.open(); WORK_OPEN[t](work.ctx); } });
+
+/** Closes every mode panel except one. */
+function closePanels(keep?: HTMLElement) {
+  if (keep !== placeHub.panel) placeHub.ctx.close();
+  if (keep !== makeHub.panel) makeHub.ctx.close();
+  if (keep !== lookHub.panel) lookHub.ctx.close();
+  if (keep !== myPlaces.panel) myPlaces.close();
+  if (keep !== pro.panel) pro.close();
+  if (keep !== space.panel) space.close();
+  toggleLayers(false);
+}
+function openMode(m: Mode) {
+  if (m === "look") { closePanels(); modes.set("look"); return; }
+  const hub = m === "place" ? placeHub : makeHub;
+  // Tapping the current mode again goes back to its home screen.
+  hub.ctx.open();
+  hub.ctx.home();
+  // My Place takes you to your place when you're looking at somewhere far away.
+  const main = m === "place" ? savedPlaceHere() : undefined;
+  if (main) {
+    const cam = globe.viewer.camera.positionCartographic;
+    const far = cam.height > 60_000 || Math.hypot(CesiumMath.toDegrees(cam.longitude) - main.lon, CesiumMath.toDegrees(cam.latitude) - main.lat) > 1;
+    if (far) void flyToPlace(globe, { name: main.name, lon: main.lon, lat: main.lat, radius: 1500 });
+  }
+}
+const modes = createModeBar(openMode);
+$("layers-btn").parentElement!.before(modes.el);
+// The switch follows whichever panel is showing.
+const syncMode = () => {
+  const shown = (el: HTMLElement) => !el.hidden;
+  modes.set([placeHub.panel, myPlaces.panel, pro.panel].some(shown) ? "place" : shown(makeHub.panel) ? "make" : "look");
+  // Phones have room for one panel: the place card steps aside while a mode panel is open.
+  document.body.dataset.panel = [placeHub.panel, myPlaces.panel, pro.panel, makeHub.panel, lookHub.panel, space.panel].some(shown) ? "open" : "";
+};
+const watcher = new MutationObserver(syncMode);
+for (const el of [placeHub.panel, myPlaces.panel, pro.panel, makeHub.panel, lookHub.panel, space.panel]) watcher.observe(el, { attributes: true, attributeFilter: ["hidden"] });
+
+const HUB_OF: Record<string, { hub: typeof placeHub; open: (ctx: WorkCtx) => void }> = {};
+for (const [hub, tools] of [[placeHub, PLACE_TOOLS], [makeHub, MAKE_TOOLS], [lookHub, LOOK_TOOLS]] as const)
+  for (const t of tools) if (t.id !== "occupancy" && t.id !== "space") HUB_OF[t.id] = { hub, open: t.open };
+for (const [t, { hub, open }] of Object.entries(HUB_OF))
+  app.actions.set(`work:${t}`, { label: `${hub === placeHub ? "My Place" : hub === makeHub ? "Make" : "Look"} › ${t}`, run: () => { hub.ctx.open(); open(hub.ctx); } });
 // A student opening a quiz link from their teacher.
 const quizLink = /^#quiz=([\w-]+)/.exec(location.hash);
 if (quizLink) void openQuizLink(app, quizLink[1]);
 for (const y of YEARS)
   app.actions.set(`work:borders:${y}`, { label: `Borders in ${yearLabel(y)}`, run: () => void showYear(app, y).catch(() => app.toast("Couldn't load the historical borders. Check the connection.", 5000)), isOn: () => borders(app).year === y });
 
-/** The saved place at (or nearest to) the chosen spot, else the first one. */
-const savedPlaceHere = () => {
-  const all = myStore.all();
-  if (!all.length) return undefined;
-  const p = app.place;
-  if (!p) return all[0];
-  return [...all].sort((a, b) => Math.hypot(a.lon - p.lon, a.lat - p.lat) - Math.hypot(b.lon - p.lon, b.lat - p.lat))[0];
-};
 app.actions.set("pro:occupancy", {
   label: "Live occupancy",
   run: () => {
     const p = savedPlaceHere();
     if (p) pro.open(p.id);
-    else app.toast("Save the building in My Places first (the house button), then connect its bookings.", 6000);
+    else { app.toast("Save the building in My Place first, then connect its bookings.", 6000); openMode("place"); }
   },
 });
 
@@ -310,7 +383,7 @@ globe.onApply = () => {
     else if (!on && app.canvas.has(key)) app.canvas.drop(key);
   }
 };
-layersBtn.addEventListener("click", () => { myPlaces.close(); pro.close(); work.ctx.close(); space.close(); toggleLayers(); });
+layersBtn.addEventListener("click", () => { const open = layers.hidden; for (const c of [placeHub.ctx, makeHub.ctx, lookHub.ctx]) c.close(); myPlaces.close(); pro.close(); space.close(); toggleLayers(open); });
 globe.viewer.scene.canvas.addEventListener("pointerdown", () => toggleLayers(false));
 
 // About / data sources.
@@ -318,7 +391,7 @@ const about = $("about-btn");
 about.innerHTML = icons.info;
 const aboutPanel = h("div", { class: "popover about", hidden: true },
   h("h2", { class: "group-title" }, "About Atlas"),
-  h("p", {}, "Move the map and Atlas labels what's worth knowing. Tap anything, or anywhere, then flip through the themes to learn about that place: its land, minerals, water, climate, life, what people have built, and the country it's in."),
+  h("p", {}, "Atlas does three things, switched at the top. My Place: your home, farm, site or business, with a daily brief and the tools to run it (Grow, Flock, Build, live occupancy). Look: the whole Earth and space; tap anything, then flip through the themes or look at it through a lens. Make: plans, presentations, videos and lessons made from the map."),
   h("p", {}, "You can also type a request into the search box, like \u201cstorm drains and railways in Chicago\u201d, and Atlas will plan the steps and do them."),
   h("button", { class: "pill-btn about-ai", onclick: () => { aboutPanel.hidden = true; aiSettings.open(); } }, aiOn() ? "Atlas AI: connected · settings" : "Connect Atlas AI (Claude)…"),
   h("p", {}, "The themes are lenses on one shared map. What you add stays as you switch (see \"On the map\" at the top), and every view ends with Connected links to related views of the same place."),
@@ -332,7 +405,7 @@ const aboutPanel = h("div", { class: "popover about", hidden: true },
     h("li", {}, "Aurora and geomagnetic activity: NOAA Space Weather Prediction Center. Earthquakes: USGS. Plates: Bird (2003)."),
     h("li", {}, "Place names: OpenStreetMap Nominatim.")),
   h("p", { class: "fineprint" }, "Every dataset is a record of what's been measured or mapped. None of them is complete, so treat gaps as unknowns, not absences."),
-  h("p", { class: "fineprint" }, "Keyboard: 1–8 switch themes · Esc cancels a line or closes a chart."));
+  h("p", { class: "fineprint" }, "Keyboard: 1–9 switch themes · / searches · Esc cancels a line or closes a chart."));
 $("ui").append(aboutPanel);
 about.addEventListener("click", () => (aboutPanel.hidden = !aboutPanel.hidden));
 
@@ -369,6 +442,8 @@ app.onName = (p) => lenses.rename(p);
 for (const l of LENSES) app.actions.set(`lens:${l.id}`, { label: l.label, run: () => void lenses.openWhenReady(l.id).then((ok) => { if (!ok) app.toast("Tap a place first, then choose a lens.", 4000); }) });
 app.onPlace = (p) => {
   void lenses.update(p);
+  // My Place's home lists "Save this spot": keep it in step with the selection.
+  if (!placeHub.panel.hidden && placeHub.panel.querySelector(".today-card")) placeHub.ctx.home();
   syncHash();
   myPlaces.refresh();
   // Learn's passport: a stamp for each country explored (once a learner has opened Learn).
@@ -404,7 +479,7 @@ else if (!shared.camera && myStore.all().length) {
   setTimeout(() => {
     void flyToPlace(globe, { name: home.name, lon: home.lon, lat: home.lat, radius: 400 });
     app.select({ lon: home.lon, lat: home.lat, height: 0 }, { title: home.name, context: home.address ?? "My place" });
-    app.toast(`Welcome back to ${home.name}. My Places (the house button) has its 3D view and dashboard.`, 6000);
+    app.toast(`Welcome back to ${home.name}. My Place (top right) has today's brief and its dashboard.`, 6000);
   }, 1200);
 }
 

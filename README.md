@@ -8,6 +8,15 @@ themes) and goes deep when you want it to: rock sections, watersheds, life zones
 
 ## How it works for you
 
+Atlas does three things, switched at the top of the screen:
+
+- **My Place**: your home, farm, site or business. A daily brief ("Today at Hillside Farm": frost tonight,
+  a ewe due to lamb, a vaccination due, a project running behind), your saved places with their 3D view,
+  energy, water and security, and the tools to run them: **Grow**, **Flock**, **Build** and live occupancy (Pro).
+- **Look**: the whole Earth and space. Tap anything, flip through the themes, or look at it through a lens.
+  **Space** and **Learn** are one tap away on the Earth card.
+- **Make**: **Plan**, **Present**, **Video** and **Teach**: things made from the map to share.
+
 **Explore (the default).** Just move the map. Atlas labels what's worth knowing as you go: seas, mountain
 ranges and cities when zoomed out; rivers, landmarks, stadiums, parks and museums when zoomed in (the Hudson,
 the Empire State Building and Madison Square Garden in Manhattan; the Thames, Big Ben and Wembley in London).
@@ -57,7 +66,7 @@ ground, and offers the lenses that suit it, best first. Each lens is designed on
 The task robot opens lenses too: "slice open Mount Rainier", "drain the ocean around Britain", "true size
 of Greenland", "subway map of Tokyo", "ocean currents in the Atlantic", "where was London during Pangaea".
 
-**My Places.** The house button (top right) keeps the places you care about: home, a family hotel, a farm.
+**My Place.** The My Place mode (top right) keeps the places you care about: home, a family hotel, a farm.
 Save a spot you tapped or searched for, or start from where you are. Each place gets a dashboard:
 a **3D view** of the buildings around it (OpenStreetMap footprints extruded to their mapped height or
 number of floors, yours in orange, with an orbit), **energy** (solar panels, battery, generator: expected
@@ -124,7 +133,8 @@ track from OpenRailwayMap when zoomed in), highways and ferries, shipping lanes,
 airports, 35,000 power plants coloured by fuel and sized by capacity, and the undersea cables that carry
 the internet. Tap a dot for the plant, port or airport.
 
-**Work.** The briefcase button puts the map to work, for anyone:
+**The tools.** Grow, Flock, Build and live occupancy live under **My Place**; Plan, Present, Video and Teach
+under **Make**; Learn under **Look**. All of them are open to anyone:
 
 - **Plan** trips (stops in order, distances, travel times, the weather at each stop), events (venue, reach
   rings at 15/30/60 minutes, the nearest airport, rail and port, parking), business sites (candidates
@@ -175,7 +185,7 @@ the internet. Tap a dot for the plant, port or airport.
 The task robot opens these too: "Europe in 1914", "the Roman Empire in 100 AD", "plan a trip to Lisbon",
 "plant health in Iowa", "plan a field trip to the Science Museum", "my cattle", "construction site".
 
-**Space.** The Saturn button shows satellites computed live from CelesTrak's orbital elements (space
+**Space** (from the Earth card in Look, or "satellites" in the search box) shows satellites computed live from CelesTrak's orbital elements (space
 stations, the brightest, science, weather, GPS, geostationary and Starlink), the ISS with its orbit and a
 "ride along" camera, when the ISS will pass over your place, rocket launches with countdowns from Launch
 Library 2 (a rocket in flight gets an illustrative climb, labelled as such), tonight's Moon and planets,
