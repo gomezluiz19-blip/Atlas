@@ -150,7 +150,7 @@ export class App {
   /** Everything on the globe, shared by all themes. */
   readonly canvas = new Canvas();
   /** Named actions other themes can trigger (e.g. "net:rail" switches railways on). */
-  readonly actions = new Map<string, { label: string; run(): void; isOn?(): boolean }>();
+  readonly actions = new Map<string, { label: string; run(): void; isOn?(): boolean; stop?(): void }>();
   place: Place | null = null;
   theme!: Theme;
   subtab!: Subtab;
@@ -179,6 +179,8 @@ export class App {
   connections?: (themeId: string, subtabId: string) => HTMLElement | null;
   /** The map's label layer, when present. */
   labels?: import("./globe/labels").LabelLayer;
+  /** "On the map" switches for a theme (peaks, lakes, migrations…). */
+  layerChips?: (themeId: string) => HTMLElement | null;
 
   private handleClick: (pos: Cartesian2) => void = () => {};
 
@@ -436,6 +438,12 @@ export class App {
     if (!this.place) {
       if (theme.renderEmpty) theme.renderEmpty(this, content);
       else content.append(this.emptyState?.(theme) ?? h("p", {}, "Tap anywhere on Earth."));
+      // The theme's own switches for the map, just under the first hint.
+      const chips = this.layerChips?.(theme.id);
+      if (chips) {
+        const host = content.firstElementChild?.classList.contains("empty") ? content.firstElementChild : content;
+        host.insertBefore(chips, host.children[1] ?? null);
+      }
       return;
     }
     if (this.place.feature && theme.id !== "explore" && this.themes.some((t) => t.id === "explore")) {

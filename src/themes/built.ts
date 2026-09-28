@@ -136,7 +136,7 @@ export function builtTheme(app: App, overlays: Overlays, openSite: (s: Site) => 
   const networks = new Networks(app.globe.viewer, (m) => app.toast(m, 5000), app.canvas);
   const SUGGESTED: NetworkId[] = ["rail", "shipping", "ports", "power"];
   for (const n of NETWORKS) {
-    app.actions.set(`net:${n.id}`, { label: n.label, run: () => networks.set(n.id, true), isOn: () => networks.isOn(n.id) });
+    app.actions.set(`net:${n.id}`, { label: n.label, run: () => networks.set(n.id, true), isOn: () => networks.isOn(n.id), stop: () => networks.set(n.id, false) });
   }
   const netApi = {
     isOn: (id: string) => (id === "lights" ? overlays.isOn("lights") : networks.isOn(id as NetworkId)),

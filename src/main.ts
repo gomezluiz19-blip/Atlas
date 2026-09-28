@@ -5,6 +5,7 @@ import "./styles.css";
 import { Cartesian2, Cartesian3, EasingFunction, Math as CesiumMath } from "cesium";
 import { createMapControls, homeRegion } from "./globe/controls";
 import { Looks } from "./globe/looks";
+import { featureChips } from "./explore/featureLayers";
 import { App, type Theme } from "./app";
 import { Globe, type OverlayKind } from "./globe/viewer";
 import { Feeds, searchLocal } from "./explore/feeds";
@@ -86,6 +87,7 @@ globe.viewer.scene.globe.tileLoadProgressEvent.addEventListener((queued: number)
 const labels = new LabelLayer(globe.viewer.scene, () => globe.state.exaggeration);
 $("ui").prepend(labels.el);
 app.labels = labels;
+app.layerChips = (id) => featureChips(app, id);
 const overlays = new Overlays(globe.viewer, (m) => app.toast(m, 5000), app.canvas);
 overlays.onLabels = (on) => labels.setVisible(on);
 const feeds = new Feeds(globe.viewer, labels);
@@ -424,9 +426,9 @@ $("search-slot").replaceWith(createSearch(globe, {
 }));
 
 // Layers any theme can add to the map by name (Built registers its networks itself).
-for (const o of OVERLAYS) if (o.id !== "labels") app.actions.set(`overlay:${o.id}`, { label: o.label, run: () => void overlays.set(o.id, true), isOn: () => overlays.isOn(o.id) });
+for (const o of OVERLAYS) if (o.id !== "labels") app.actions.set(`overlay:${o.id}`, { label: o.label, run: () => void overlays.set(o.id, true), isOn: () => overlays.isOn(o.id), stop: () => void overlays.set(o.id, false) });
 for (const k of ["geology", "elevation", "slope", "contours"] as const)
-  app.actions.set(`globe:${k}`, { label: k, run: () => { globe.state.overlays[k].on = true; globe.apply(); }, isOn: () => globe.state.overlays[k].on });
+  app.actions.set(`globe:${k}`, { label: k, run: () => { globe.state.overlays[k].on = true; globe.apply(); }, isOn: () => globe.state.overlays[k].on, stop: () => { globe.state.overlays[k].on = false; globe.apply(); } });
 
 // Under every view of a place: where to go next, keeping what's on the map.
 app.connections = (themeId, subtabId) => {
