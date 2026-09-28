@@ -13,6 +13,7 @@ import { riverLines } from "../data/worldData";
 import type { MapLabel } from "../globe/labels";
 import { canvasLayer, tracePath } from "../globe/networkLayer";
 import { h } from "../ui/dom";
+import { iconFor } from "../ui/glyph";
 
 interface Layer {
   id: string;
@@ -174,7 +175,7 @@ export function featureChips(app: App, themeId: string): HTMLElement | null {
   const render = () => box.replaceChildren(...list.map((l) => {
     const on = isOn(l);
     return h("button", { class: `fl-chip${on ? " on" : ""}`, style: `--c:${l.color}`, "aria-pressed": String(on), title: l.about, onclick: () => void toggle(l) },
-      h("span", { class: "fl-emoji", "aria-hidden": "true" }, l.emoji), h("span", {}, l.label));
+      iconFor(l.emoji, 15), h("span", {}, l.label));
   }));
   const toggle = async (l: Layer) => {
     if (l.action) {

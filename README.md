@@ -149,6 +149,7 @@ Then pick a theme from the tab bar; each theme's subtabs describe the chosen pla
 | **Animals** | Species · Life zones · At risk | The same for birds, mammals, reptiles, insects and more, each with its own icon on the card and the map (62 in all, from owls and penguins to seals, jellyfish and coral) |
 | **Built** | Overview · Transport · Energy · Internet · Water | How a place connects: nearest airport, seaport, main railway, highway and shipping lane; power plants and the power mix around it and nationally; undersea cable landings; and everything OpenStreetMap maps nearby |
 | **Countries** | Overview · People · Economy · Environment | Flag, capital, languages and neighbours; population, income, forests and emissions over time |
+| **People** | Here · Homes · Health · Online · Events | How many people live around a place (7,300 towns and cities), and the country's figures next to the world's: crowdedness, growth, city dwellers, children and over-65s, births; homeowners and renters (US neighbourhoods from the Census Bureau's American Community Survey: own vs rent, rent, home value, income); life expectancy, child deaths, doctors, safe water; mobile phones, internet, electricity, income. The world view glows with every town and city, or colours countries by any of 16 views. **Events**: what's on nearby (today, this weekend, this week, next 30 days; music, sports, arts, family, food, talks) with tickets and the venues pinned, from Ticketmaster, SeatGeek or Eventbrite once connected ([docs/events.md](docs/events.md)), plus festivals and annual events from Wikidata |
 | **Space** | Sky here | The globe with real day and night; satellites, the ISS, launches and the solar system; tonight's Moon and planets over the chosen place |
 
 **Each theme sees the planet its own way.** Earth in relief, Water by depth, Climate as yesterday's clouds
@@ -187,7 +188,16 @@ under **Make**; Learn under **Look**. All of them are open to anyone:
   airports and mines inside) and infrastructure (proposed routes with length, an elevation profile, climb,
   steepest grade, and the rivers, railways and highways they cross). Everything is drawn on the map, with
   notes, a checklist and an export.
-- **Present** turns places into slides: frame a view, add a caption, borders from any of 54 moments in
+- **Stories** are made to be shared. Find one in the library (by words, topic, most used or newest, or the
+  part of the world on the map; Explore also shows "Stories about here"), play it as a flying tour, step
+  through it or teach with it, and **remix** it into your own copy, which credits the original and its
+  sources ("Remixed from … by …, from … by Atlas"). Stories point on to other stories, offered when one ends:
+  the featured Nile set links the river to the Aswan High Dam, Ancient Egypt, the Great Rift Valley and the
+  Amazon. Publish your own with a summary, topics and who it's for. With a Supabase project connected
+  ([docs/stories-backend.md](docs/stories-backend.md)) there's one shared library with uses, remixes, likes
+  and reports; without one, a story travels in its link. Every new story makes the library better for the
+  next teacher: that's the loop.
+- **Present** (inside Stories) turns places into slides: frame a view, add a caption, borders from any of 54 moments in
   history (123,000 BC to 2010), and any map layers. Play it full screen, one slide at a time or as a flying
   tour that circles each place. Topic templates (the Roman Empire, World War I, the age of exploration) and a
   *Borders through time* slider help with school projects. Decks save to a file to share.
@@ -273,7 +283,7 @@ under About › Atlas AI; see [docs/ai-proxy.md](docs/ai-proxy.md). Without it, 
 still handles requests. With it, Atlas AI can also read today's brief for your place ("what do I need to do
 today?") and log free-form sentences as records ("Daisy and Bramble both calved yesterday").
 
-Keyboard: `1`–`9` switch themes, `/` searches, `Esc` cancels a line or closes a chart.
+Keyboard: `1`–`9` switch the first nine themes, `/` searches, `Esc` cancels a line or closes a chart.
 
 ## Run it
 

@@ -15,6 +15,7 @@ import {
   type Draft, type Journey, type Mode, type MoveRow, type Spot, type StayRow, type StayStep, type Step,
 } from "./journeyModel";
 import { newId } from "./store";
+import { iconFor, labelled } from "../ui/glyph";
 
 export interface JourneyHost {
   ctx: WorkCtx;
@@ -240,7 +241,7 @@ export function journeyEditor(host: JourneyHost): HTMLElement {
     h("strong", {}, host.short ? `${timeOf(t.start)} – ${timeOf(t.end)}` : `${dayFmt(dateOf(t.start), { day: "numeric", month: "short" })} – ${dayFmt(dateOf(t.end), { day: "numeric", month: "short" })}`),
     h("span", {}, host.short ? fmtHours((t.end - t.start) / 60) : `${plural(days, "day")}${t.nights ? ` · ${plural(t.nights, "night")}` : ""}`),
     t.km ? h("span", {}, fmtDist(t.km * 1000)) : "",
-    ...MODE_IDS.filter((m) => t.byMode[m]).map((m) => h("span", { class: "jr-mode-count", style: `--c:${MODES[m].color}`, title: `${MODES[m].label}: ${fmtDist(t.byMode[m]!.km * 1000)}` }, `${MODES[m].emoji} ${t.byMode[m]!.n}`))) : "";
+    ...MODE_IDS.filter((m) => t.byMode[m]).map((m) => h("span", { class: "jr-mode-count", style: `--c:${MODES[m].color}`, title: `${MODES[m].label}: ${fmtDist(t.byMode[m]!.km * 1000)}` }, iconFor(MODES[m].emoji, 13), String(t.byMode[m]!.n)))) : "";
 
   // Start.
   const startInput = h("input", { class: "jr-inline", placeholder: host.short ? "Your school's name or address" : "Where do you start? A city or address", value: j.origin?.name ?? "" }) as HTMLInputElement;
@@ -255,7 +256,7 @@ export function journeyEditor(host: JourneyHost): HTMLElement {
   startInput.addEventListener("keydown", (e) => { if (e.key === "Enter") void findStart(); });
   startInput.addEventListener("change", () => { if (startInput.value.trim() !== (j.origin?.name ?? "")) void findStart(); });
   const start = h("div", { class: "jr-step jr-start", style: "--c:#8e8e93" },
-    h("span", { class: "jr-icon" }, originEmoji(host.originLabel)),
+    h("span", { class: "jr-icon", style: "--c:#8e8e93" }, iconFor(originEmoji(host.originLabel))),
     h("div", { class: "jr-body" },
       h("div", { class: "jr-title" }, host.originLabel === "Venue" ? "Start at " : host.short ? "Leave from " : "Start from ", startInput),
       h("div", { class: "jr-when" },
@@ -272,14 +273,14 @@ export function journeyEditor(host: JourneyHost): HTMLElement {
   const moveCard = (r: MoveRow, i: number) => {
     const s = r.step, m = MODES[s.mode], open = ui.open === s.id;
     return h("div", { class: `jr-step jr-move${open ? " open" : ""}`, style: `--c:${m.color}`, "data-i": i },
-      h("button", { class: "jr-icon", title: "Change how you travel", "aria-label": `${m.label}; change how you travel`, onclick: () => { ui.open = open ? "" : s.id; host.rerender(); } }, m.emoji),
+      h("button", { class: "jr-icon", title: "Change how you travel", "aria-label": `${m.label}; change how you travel`, onclick: () => { ui.open = open ? "" : s.id; host.rerender(); } }, iconFor(m.emoji)),
       h("div", { class: "jr-body", onclick: (e: Event) => { if ((e.target as HTMLElement).closest("button,input,select")) return; ui.open = open ? "" : s.id; host.rerender(); } },
         h("div", { class: "jr-title" }, `${m.verb} to `, h("b", {}, s.to.name)),
         h("div", { class: "jr-sub" }, r.from ? `${when(r.start)} → ${r.end - r.start >= 1440 || dateOf(r.end) !== dateOf(r.start) ? when(r.end) : timeOf(r.end)} · ${fmtDist(r.km * 1000)} · about ${fmtHours(r.hours)}` : "Add where you start to see times and distances"),
         s.note ? h("div", { class: "jr-note" }, s.note) : "",
         open ? h("div", { class: "jr-edit" },
           h("div", { class: "jr-modes", role: "group", "aria-label": "How you travel" }, ...MODE_IDS.filter((x) => !host.short || x !== "fly").map((x) =>
-            h("button", { class: `jr-mode${x === s.mode ? " on" : ""}`, style: `--c:${MODES[x].color}`, title: MODES[x].label, onclick: () => { s.mode = x; change(); } }, h("span", {}, MODES[x].emoji), h("small", {}, MODES[x].label)))),
+            h("button", { class: `jr-mode${x === s.mode ? " on" : ""}`, style: `--c:${MODES[x].color}`, title: MODES[x].label, onclick: () => { s.mode = x; change(); } }, iconFor(MODES[x].emoji, 18), h("small", {}, MODES[x].label)))),
           h("div", { class: "jr-fields" },
             h("label", {}, h("span", {}, "Leave at"), h("input", { type: "time", value: s.at ?? "", onchange: (e: Event) => { s.at = (e.target as HTMLInputElement).value || undefined; change(); } })),
             h("label", { class: "grow" }, h("span", {}, s.mode === "fly" ? "Flight, booking" : "Note"), h("input", { value: s.note ?? "", placeholder: s.mode === "fly" ? "PR 101, seat 12A" : s.mode === "train" ? "Coach 4, booking ref" : "Anything to remember", onchange: (e: Event) => { s.note = (e.target as HTMLInputElement).value || undefined; change(); } }))),
@@ -325,7 +326,7 @@ export function journeyEditor(host: JourneyHost): HTMLElement {
       h("button", { class: "icon-btn", "aria-label": `Remove ${v.name}`, onclick: () => { s.visits = s.visits.filter((x) => x !== v); change(); } }, "✕"));
     const byDay = long ? r.days.map((d, k) => ({ d, k, vs: s.visits.filter((v) => v.day === k) })).filter((x) => x.vs.length) : [];
     return h("div", { class: `jr-step jr-stay${open ? " open" : ""}`, style: "--c:#ff375f", "data-i": i },
-      h("span", { class: "jr-icon" }, long ? "🛏️" : "📍"),
+      h("span", { class: "jr-icon" }, iconFor(long ? "🛏️" : "📍")),
       h("div", { class: "jr-body" },
         !long && s.label
           ? h("div", { class: "jr-title" }, h("b", {}, s.label), ` · ${fmtHours(s.hours ?? 1)}`, h("span", { class: "jr-at" }, ` at ${s.place.name}`))
@@ -360,7 +361,7 @@ export function journeyEditor(host: JourneyHost): HTMLElement {
     preview.hidden = false;
     preview.replaceChildren(
       ...pending.map((p, k) => h("div", { class: `jr-prev${p.step || p.origin || p.visit ? "" : " bad"}` },
-        h("span", {}, p.label),
+        h("span", { class: "jr-prev-label" }, ...labelled(p.label, 15)),
         p.alts.length > 1 ? h("span", { class: "jr-alts" }, "Not this? ", ...p.alts.map((a, n) => n === p.pick ? "" : h("button", { class: "chip small", onclick: () => {
           const spot = toSpot(a, p.draft.kind !== "stay" ? p.draft.query : p.draft.query ?? a.name);
           if (p.origin) p.origin = spot;
@@ -401,7 +402,7 @@ export function journeyEditor(host: JourneyHost): HTMLElement {
     showPreview();
   };
   input.addEventListener("keydown", (e) => { if (e.key === "Enter") void understand(); });
-  const quick = (label: string, text: string) => h("button", { class: "chip", onclick: () => { input.value = text; input.focus(); input.setSelectionRange(text.length, text.length); } }, label);
+  const quick = (label: string, text: string) => h("button", { class: "chip", onclick: () => { input.value = text; input.focus(); input.setSelectionRange(text.length, text.length); } }, ...labelled(label, 14));
   const here = whereAfter(j, ui.insertAt < 0 ? j.steps.length : ui.insertAt);
   const composer = h("div", { class: "jr-compose" },
     ui.insertAt >= 0 && ui.insertAt < j.steps.length ? h("div", { class: "jr-inserting" }, `Adding after step ${ui.insertAt}`, h("button", { class: "link-btn", onclick: () => { ui.insertAt = -1; host.rerender(); } }, "Add at the end instead")) : "",

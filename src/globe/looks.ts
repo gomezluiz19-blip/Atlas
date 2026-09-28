@@ -9,7 +9,10 @@ import { gbifTiles } from "../data/inaturalist";
 import { h } from "../ui/dom";
 import { createAnalyticLayer, DEPTH_RAMP, LAND_RAMP } from "./analyticLayers";
 import { vectorLayer } from "./vectorLayer";
+import { canvasLayer } from "./networkLayer";
+import { populationPoints, type PopPoint } from "../data/people";
 import type { Globe } from "./viewer";
+import { iconFor } from "../ui/glyph";
 
 interface Tint { brightness?: number; saturation?: number; contrast?: number; gamma?: number; hue?: number }
 interface LookLayer { layer: ImageryLayer; alpha: number; /** Lit side / night side only (with lighting on). */ day?: number; night?: number }
@@ -24,6 +27,9 @@ export interface Look {
   /** How the satellite imagery is tinted underneath. */
   tint?: Tint;
   layers?: () => LookLayer[];
+  /** A layer that needs data first (swapped in when it arrives). */
+  late?: () => Promise<ImageryLayer>;
+  lateAlpha?: number;
   /** Day and night: the sun where it really is now. */
   lighting?: boolean;
   /** Close in, the look eases back to the plain imagery (km above ground where it's gone). */
@@ -86,9 +92,17 @@ export const LOOKS: Record<string, Look> = {
   countries: {
     id: "countries", name: "Political", emoji: "🗺️", about: "Every country in its own colour",
     tint: { saturation: 0.4, brightness: 0.85 },
-    // Swapped for the real fills once the country shapes load (see Looks.loadCountries).
-    layers: () => [{ layer: placeholder(), alpha: 0.5 }],
+    late: () => countryShapes().then((shapes) => vectorLayer(shapes, { stroke: "rgba(0,0,0,0)", width: 0, fillOf: (s) => colorOf((s as unknown as { id: string }).id) })),
+    lateAlpha: 0.5,
     fadeKm: [300, 40], source: "Natural Earth",
+  },
+  people: {
+    id: "people", name: "Where people live", emoji: "👥", about: "Every town and city glowing by how many live there",
+    legend: { stops: ["#1a0f05", "#7a2e0b", "#e0641a", "#ffb347", "#fff4d6"], from: "Few", to: "Millions" },
+    tint: { brightness: 0.28, saturation: 0.15 },
+    late: () => populationPoints().then(heatLayer),
+    lateAlpha: 1,
+    fadeKm: [40, 6], source: "Natural Earth populated places",
   },
   space: {
     id: "space", name: "Day and night", emoji: "🌗", about: "Sunlight where the sun is now; the night side lit by its cities",
@@ -98,10 +112,36 @@ export const LOOKS: Record<string, Look> = {
   },
 };
 
-/** The political fills load their shapes in the background; this layer is swapped in when they arrive. */
-const countryLayer: { ready: Promise<ImageryLayer> | null } = { ready: null };
-function placeholder(): ImageryLayer {
-  return new ImageryLayer(new UrlTemplateImageryProvider({ url: "about:blank?{z}/{x}/{y}", maximumLevel: 0 }), { show: false });
+const placeholder = () => new ImageryLayer(new UrlTemplateImageryProvider({ url: "about:blank?{z}/{x}/{y}", maximumLevel: 0 }), { show: false });
+
+/** Every town and city as a glow, bigger and brighter for more people. */
+export function heatLayer(points: PopPoint[]): ImageryLayer {
+  const withBox = points.map(([lon, lat, pop]) => {
+    const rKm = 4 + Math.sqrt(pop) / 55;
+    const dLat = rKm / 111, dLon = dLat / Math.max(0.15, Math.cos((lat * Math.PI) / 180));
+    return { lon, lat, pop, rKm, box: [lon - dLon, lat - dLat, lon + dLon, lat + dLat] as [number, number, number, number] };
+  });
+  return canvasLayer((ctx, t) => {
+    ctx.globalCompositeOperation = "lighter";
+    const kmPx = (() => { const [x0] = t.project(t.west, (t.south + t.north) / 2), [x1] = t.project(t.east, (t.south + t.north) / 2); return (x1 - x0) / ((t.east - t.west) * 111 * Math.cos((((t.south + t.north) / 2) * Math.PI) / 180)); })();
+    for (const p of withBox) {
+      if (!t.touches(p.box, 40)) continue;
+      const [x, y] = t.project(p.lon, p.lat);
+      // Seen from far away every town still glows; close in, glows stay city-sized, not screen-sized.
+      const lg = Math.log10(Math.max(1000, p.pop));
+      const r = Math.max((lg - 2.6) * 3.2, Math.min(90, p.rKm * kmPx));
+      const a = Math.min(0.95, 0.22 + (lg - 3) / 5);
+      const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+      g.addColorStop(0, `rgba(255, 236, 190, ${a})`);
+      g.addColorStop(0.25, `rgba(255, 150, 60, ${a * 0.8})`);
+      g.addColorStop(0.6, `rgba(200, 70, 20, ${a * 0.35})`);
+      g.addColorStop(1, "rgba(120, 30, 10, 0)");
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }, { maximumLevel: 10, credit: "Population: Natural Earth populated places" });
 }
 
 export class Looks {
@@ -136,6 +176,13 @@ export class Looks {
     this.set(this.themeId);
   }
 
+  /** A theme's own legend in place of its look's (People's views: mobile phones, homeowners…). */
+  private customLegend: { theme: string; emoji: string; name: string; stops: string[]; from: string; to: string } | null = null;
+  setLegend(l: { emoji: string; name: string; stops: string[]; from: string; to: string } | null) {
+    this.customLegend = l ? { ...l, theme: this.themeId } : null;
+    this.renderLegend();
+  }
+
   /** Shows one look regardless of theme (the video studio); null for the satellite photo. */
   preview(id: string | null) {
     const next = id ? LOOKS[id] ?? null : null;
@@ -157,21 +204,20 @@ export class Looks {
       got = look.layers?.() ?? [];
       for (const l of got) { l.layer.alpha = 0; this.globe.addUnder(l.layer); }
       this.made.set(look.id, got);
-      if (look.id === "countries") void this.loadCountries(got);
+      if (look.late) void this.loadLate(look, got);
     }
     return got;
   }
 
-  private async loadCountries(got: LookLayer[]) {
-    countryLayer.ready ??= countryShapes().then((shapes) => vectorLayer(shapes, { stroke: "rgba(0,0,0,0)", width: 0, fillOf: (s) => colorOf((s as unknown as { id: string }).id) }));
-    const layer = await countryLayer.ready.catch(() => null);
+  private async loadLate(look: Look, got: LookLayer[]) {
+    const holder = { layer: placeholder(), alpha: look.lateAlpha ?? 1 };
+    got.push(holder);
+    const layer = await look.late!().catch(() => null);
     if (!layer) return;
-    const old = got[0].layer;
-    this.globe.viewer.imageryLayers.remove(old, true);
-    got[0].layer = layer;
+    holder.layer = layer;
     layer.alpha = 0;
     this.globe.addUnder(layer);
-    if (this.current?.id === "countries") this.tween(this.current);
+    if (this.current?.id === look.id) this.tween(look);
   }
 
   private apply(next: Look | null) {
@@ -237,18 +283,26 @@ export class Looks {
   }
 
   private renderLegend() {
+    const c = this.customLegend?.theme === this.themeId ? this.customLegend : null;
+    if (c) {
+      this.legend.hidden = false;
+      this.legend.replaceChildren(
+        h("span", { class: "look-emoji", "aria-hidden": "true" }, iconFor(c.emoji, 17)),
+        h("span", { class: "look-text" }, h("strong", {}, c.name), h("span", { class: "look-ramp" }, h("small", {}, c.from), h("i", { style: `background:linear-gradient(90deg,${c.stops.join(",")})` }), h("small", {}, c.to))));
+      return;
+    }
     const look = LOOKS[this.themeId];
     if (!look) { this.legend.hidden = true; return; }
     const on = this.current === look;
     this.legend.hidden = false;
     this.legend.replaceChildren(
-      h("span", { class: "look-emoji", "aria-hidden": "true" }, on ? look.emoji : "🛰️"),
+      h("span", { class: "look-emoji", "aria-hidden": "true" }, iconFor(on ? look.emoji : "🛰️", 17)),
       h("span", { class: "look-text" },
         h("strong", {}, on ? look.name : "Satellite"),
         on && look.legend ? h("span", { class: "look-ramp" },
           h("small", {}, look.legend.from),
           h("i", { style: `background:linear-gradient(90deg,${look.legend.stops.join(",")})` }),
           h("small", {}, look.legend.to)) : h("small", { class: "look-about" }, on ? look.about : "The plain photo of the planet")),
-      h("button", { class: "look-switch", title: on ? look.about : `Back to the ${look.name.toLowerCase()} view`, onclick: () => this.toggle() }, on ? "Satellite" : `${look.emoji} ${look.name}`));
+      h("button", { class: "look-switch", title: on ? look.about : `Back to the ${look.name.toLowerCase()} view`, onclick: () => this.toggle() }, on ? "Satellite" : look.name));
   }
 }

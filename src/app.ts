@@ -150,7 +150,7 @@ export class App {
   /** Everything on the globe, shared by all themes. */
   readonly canvas = new Canvas();
   /** Named actions other themes can trigger (e.g. "net:rail" switches railways on). */
-  readonly actions = new Map<string, { label: string; run(): void; isOn?(): boolean; stop?(): void }>();
+  readonly actions = new Map<string, { label: string; run(arg?: string): void; isOn?(): boolean; stop?(): void }>();
   place: Place | null = null;
   theme!: Theme;
   subtab!: Subtab;

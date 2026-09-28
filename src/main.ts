@@ -41,6 +41,7 @@ import { planLog } from "./myplaces/logAny";
 import { describeDrafts, parseSteps } from "./work/journeyModel";
 import { createSpace } from "./space/panel";
 import { spaceTheme } from "./space/theme";
+import { peopleTheme } from "./themes/people";
 import { createLenses } from "./lenses/bar";
 import { LENSES } from "./lenses";
 import { borders, openPresent, showYear } from "./work/present";
@@ -127,6 +128,7 @@ app.addTheme(climateTheme(overlays));
 app.addTheme(plantsTheme());
 app.addTheme(animalsTheme());
 app.addTheme(builtTheme(app, overlays, openSite));
+app.addTheme(peopleTheme(app));
 app.addTheme(countriesTheme());
 
 /** Curated sites whose name starts a word with the query. */
@@ -156,7 +158,7 @@ const PLACE_TOOLS: WorkTool[] = [
 ];
 const MAKE_TOOLS: WorkTool[] = [
   tool("plan", "Plan", "Trips told step by step, an event's running order, sites, zones and routes", "#0a84ff", icons.route, openPlans),
-  tool("present", "Present", "Slides and flying tours of places, with borders from history", "#e0b050", icons.slides, openPresent),
+  tool("present", "Stories", "Tell a story on the globe, publish it, and use or remix others'", "#e0b050", icons.slides, openPresent),
   tool("video", "Video", "A studio: the globe on a monitor, shots, looks, camera moves and narration", "#ff375f", icons.video, openVideo),
   tool("teach", "Teach", "Lessons, quizzes, games, a world politics simulation and field trips", "#bf5af2", icons.graduate, openTeach),
 ];
@@ -330,6 +332,15 @@ for (const [t, { hub, open }] of Object.entries(HUB_OF))
 // A student opening a quiz link from their teacher.
 const quizLink = /^#quiz=([\w-]+)/.exec(location.hash);
 if (quizLink) void import("./work/quiz").then((m) => m.openQuizLink(app, quizLink[1]));
+app.actions.set("story:open", { label: "Open a story", run: (id) => { if (id) void import("./stories/ui").then((m) => { makeHub.ctx.open(); void m.openStory(makeHub.ctx, id); }); } });
+// A story someone shared: from the library (#story=…) or carried in the link (#s=…).
+const openStoryHash = () => {
+  const hash = location.hash;
+  if (/^#(story|s)=/.test(hash)) void import("./stories/ui").then((m) => { closePanels(makeHub.panel); modes.set("make"); void m.openFromHash(makeHub.ctx, hash); });
+};
+openStoryHash();
+// Pasting a story link into a tab that already has Atlas open.
+addEventListener("hashchange", openStoryHash);
 for (const y of YEARS)
   app.actions.set(`work:borders:${y}`, { label: `Borders in ${yearLabel(y)}`, run: () => void showYear(app, y).catch(() => app.toast("Couldn't load the historical borders. Check the connection.", 5000)), isOn: () => borders(app).year === y });
 
