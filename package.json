@@ -10,7 +10,8 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "check": "tsc --noEmit && vitest run"
   },
   "dependencies": {
     "@tensorflow-models/coco-ssd": "^2.2.3",

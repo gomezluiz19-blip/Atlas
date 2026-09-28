@@ -84,8 +84,8 @@ export function parseLog(text: string, flock: Flock): LogEntry | null {
   for (const [re, kind, what, every] of health) {
     if (!re.test(t)) continue;
     const detail = /\b(?:with|for|against)\s+(.+)$/i.exec(text.trim())?.[1]?.replace(/[.!]$/, "");
-    const text = detail ? `${what}: ${detail}` : what;
-    return { animals, action: { kind: "health", event: { date: today(), kind, text, due: every ? addDays(every) : undefined } }, summary: `${who}: ${text.toLowerCase()}${every ? " (next due set)" : ""}` };
+    const desc = detail ? `${what}: ${detail}` : what;
+    return { animals, action: { kind: "health", event: { date: today(), kind, text: desc, due: every ? addDays(every) : undefined } }, summary: `${who}: ${desc[0].toLowerCase()}${desc.slice(1)}${every ? " (next due set)" : ""}` };
   }
   // Anything else about a named animal becomes a dated note ("Bramble is lame").
   if (animals.length <= 3 && /\b(is|was|seems|looks|has|limping|lame|sick|off (her|his) feed|coughing|scouring|injured|cut|lost|found|moved|escaped)\b/.test(t)) {
