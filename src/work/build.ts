@@ -21,6 +21,7 @@ import type { WorkCtx } from "./hub";
 import { WorkLayer } from "./layer";
 import { ListStore, download, newId } from "./store";
 import { parseSiteLog, type SiteLogEntry } from "./buildLog";
+import { schedulePhases } from "./planWords";
 
 const store = new ListStore<BuildProject>("atlas.work.build.v1");
 let scene: CustomDataSource | null = null;
@@ -168,6 +169,26 @@ export function openBuild(ctx: WorkCtx) {
   );
 }
 
+/** "Start 2 March; site 2 weeks, foundations 6 weeks, frame 3 months…": a schedule from words, previewed before it's applied. */
+function sayPlan(p: BuildProject, done: () => void): HTMLElement {
+  const input = h("input", { class: "pro-url", placeholder: "Start 2 March; site 2 weeks, foundations 6 weeks, frame 3 months, roof 8 weeks overlapping 4 weeks", "aria-label": "The schedule in words" }) as HTMLInputElement;
+  const out = h("div", { class: "say-plan-out" });
+  const read = () => {
+    const plan = schedulePhases(input.value, p.phases, today());
+    if (!plan) { out.replaceChildren(h("p", { class: "muted small" }, "Name a phase and how long it takes: “foundations 6 weeks”, “fit-out 3 months”, or “start 2 March”.")); return; }
+    const said = new Set(plan.understood.map((u) => u.id));
+    out.replaceChildren(
+      h("div", { class: "say-plan-rows" }, ...plan.phases.map((ph) => {
+        const meta = PHASES.find((x) => x.id === ph.id)!;
+        return h("div", { class: `say-plan-row${said.has(ph.id) ? " said" : ""}`, style: `--c:${meta.color}` }, h("i", {}), h("span", {}, meta.label), h("small", {}, `${fmtDate(ph.start)} → ${fmtDate(ph.end)}`));
+      })),
+      h("p", { class: "muted small" }, `Finishes ${fmtDate(plan.phases[plan.phases.length - 1].end)}. Phases you didn't mention keep their length; progress is kept.`),
+      h("div", { class: "pro-actions" }, h("button", { class: "primary-btn", onclick: () => { p.phases = plan.phases; done(); } }, "Use this schedule"), h("button", { class: "link-btn", onclick: () => { input.value = ""; out.replaceChildren(); } }, "Cancel")));
+  };
+  input.addEventListener("keydown", (e) => { if (e.key === "Enter") read(); });
+  return h("div", { class: "say-plan" }, h("span", { class: "say-plan-label" }, "Or say the plan"), h("div", { class: "pro-url-row" }, input, h("button", { class: "pill-btn", onclick: read }, "Preview")), out);
+}
+
 export function openProject(ctx: WorkCtx, id: string) {
   const p = store.get(id);
   if (!p) return openBuild(ctx);
@@ -259,6 +280,7 @@ export function openProject(ctx: WorkCtx, id: string) {
     h("section", { class: "group" }, h("h2", { class: "group-title" }, "Schedule and progress"),
       h("p", { class: "muted small" }, "Drag each phase's slider to record progress; change dates to re-plan."),
       gantt,
+      sayPlan(p, () => { save(); again(); }),
       h("button", { class: "link-btn", onclick: () => { if (confirm("Replace the dates with a typical schedule starting today?")) { p.phases = defaultSchedule(today(), p.floors, gfa).map((x) => ({ ...x, done: p.phases.find((y) => y.id === x.id)?.done ?? 0 })); save(); again(); } } }, "Re-plan from today")),
     h("section", { class: "group" }, h("h2", { class: "group-title" }, "Site weather, next 10 days"), weather),
     worksite(ctx, p, again),

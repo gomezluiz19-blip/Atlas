@@ -1734,3 +1734,22 @@ body.st-recording .st-record i { background: #ff453a; border-radius: 2px; }
   .st-title-in { order: 5; flex-basis: 100%; max-width: none; }
 }
 @media (prefers-reduced-motion: reduce) { .st-rec i { animation: none; } }
+
+/* Plain-words schedules: Build's phases and a field's year */
+.say-plan { display: flex; flex-direction: column; gap: 6px; margin-top: 6px; }
+.say-plan-label { font-size: 12px; font-weight: 600; color: var(--secondary); text-transform: uppercase; letter-spacing: 0.04em; }
+.say-plan-rows { display: flex; flex-direction: column; gap: 3px; }
+.say-plan-row { display: grid; grid-template-columns: 10px 1fr auto; gap: 8px; align-items: center; font-size: 13px; padding: 3px 6px; border-radius: 8px; }
+.say-plan-row i { width: 10px; height: 10px; border-radius: 3px; background: var(--c); }
+.say-plan-row small { color: var(--secondary); }
+.say-plan-row.said { background: color-mix(in srgb, var(--c) 16%, transparent); font-weight: 600; }
+.year-strip { position: relative; height: 92px; margin: 4px 0 6px; border-radius: 12px; background: var(--fill); overflow: hidden; }
+.year-months { position: absolute; inset: 0 0 auto 0; height: 18px; }
+.year-months span { position: absolute; top: 3px; font-size: 10px; color: var(--secondary); transform: translateX(3px); }
+.year-months span::before { content: ""; position: absolute; left: -3px; top: -3px; width: 1px; height: 92px; background: var(--separator); }
+.year-bar { position: absolute; display: flex; align-items: center; justify-content: space-between; gap: 4px; min-width: 18px; height: 26px; padding: 0 6px; border-radius: 8px; font-size: 12px; font-weight: 600; color: #1d1d1f; background: color-mix(in srgb, var(--c) 70%, #fff); box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.12); overflow: hidden; white-space: nowrap; }
+.year-bar:nth-of-type(odd) { top: 26px; } .year-bar:nth-of-type(even) { top: 58px; }
+.year-bar.now { box-shadow: inset 0 0 0 2px var(--c), 0 2px 8px rgba(0, 0, 0, 0.15); }
+.year-bar span { overflow: hidden; text-overflow: ellipsis; }
+.year-x { border: 0; background: none; padding: 0; font-size: 11px; cursor: pointer; color: inherit; opacity: 0.6; }
+.year-today { position: absolute; top: 0; bottom: 0; width: 2px; background: #ff453a; }
