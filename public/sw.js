@@ -1,11 +1,13 @@
 // Atlas service worker: the app keeps working with a weak or no connection.
 // - Pages: network first, falling back to the cached copy.
 // - Built files, Cesium and bundled data: served from cache, refreshed in the background.
-// - Map tiles (terrain and imagery): cached as you look, capped, so the places
-//   you visit (your farm, your site) still show offline.
+// - Terrain tiles (open data): cached as you look, capped, so the shape of the
+//   places you visit still shows offline. Satellite imagery is left to the
+//   browser's own cache: its providers' terms limit storing tiles (see
+//   docs/data-licensing.md); add the host here once a licence allows it.
 const VERSION = "atlas-v1";
 const APP = `${VERSION}-app`, TILES = `${VERSION}-tiles`;
-const TILE_HOSTS = /(^|\.)(s3\.amazonaws\.com|server\.arcgisonline\.com|services\.arcgisonline\.com|tiles\.maps\.eox\.at)$/;
+const TILE_HOSTS = /(^|\.)(s3\.amazonaws\.com)$/;
 const MAX_TILES = 4000;
 
 self.addEventListener("install", (e) => {
