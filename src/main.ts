@@ -223,6 +223,8 @@ function openMode(m: Mode) {
   }
 }
 const modes = createModeBar(openMode);
+app.actions.set("mode:place", { label: "My Place", run: () => openMode("place") });
+app.actions.set("mode:make", { label: "Make", run: () => openMode("make") });
 $("layers-btn").parentElement!.before(modes.el);
 // The switch follows whichever panel is showing.
 const syncMode = () => {
