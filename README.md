@@ -187,7 +187,16 @@ under **Make**; Learn under **Look**. All of them are open to anyone:
   airports and mines inside) and infrastructure (proposed routes with length, an elevation profile, climb,
   steepest grade, and the rivers, railways and highways they cross). Everything is drawn on the map, with
   notes, a checklist and an export.
-- **Present** turns places into slides: frame a view, add a caption, borders from any of 54 moments in
+- **Stories** are made to be shared. Find one in the library (by words, topic, most used or newest, or the
+  part of the world on the map; Explore also shows "Stories about here"), play it as a flying tour, step
+  through it or teach with it, and **remix** it into your own copy, which credits the original and its
+  sources ("Remixed from … by …, from … by Atlas"). Stories point on to other stories, offered when one ends:
+  the featured Nile set links the river to the Aswan High Dam, Ancient Egypt, the Great Rift Valley and the
+  Amazon. Publish your own with a summary, topics and who it's for. With a Supabase project connected
+  ([docs/stories-backend.md](docs/stories-backend.md)) there's one shared library with uses, remixes, likes
+  and reports; without one, a story travels in its link. Every new story makes the library better for the
+  next teacher: that's the loop.
+- **Present** (inside Stories) turns places into slides: frame a view, add a caption, borders from any of 54 moments in
   history (123,000 BC to 2010), and any map layers. Play it full screen, one slide at a time or as a flying
   tour that circles each place. Topic templates (the Roman Empire, World War I, the age of exploration) and a
   *Borders through time* slider help with school projects. Decks save to a file to share.

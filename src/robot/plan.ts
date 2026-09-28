@@ -57,7 +57,7 @@ const RULES: Rule[] = [
   { re: /\b(what (should|can|do) (i|we) (plant|sow|grow)( now| this month)?|when (to|should i|do i) (plant|sow)( out)?( \w+)?|sowing (calendar|dates)|planting (calendar|dates)|(last|first) frost( date)?|frost dates?|growing season (here|at my))\b/, step: layer("myplace:report", "Open your place's report and sowing calendar") },
   // Work mode
   { re: /\b(plan (a |my |the |our )?(trip|route|journey|holiday|vacation|event|party|wedding|conference)|trip planner|itinerary)\b/, step: layer("work:plan", "Open Plan (Work)") },
-  { re: /\b((make|create|start|build) (a |my )?(presentation|slides?|slideshow|slide deck)|presentation|slideshow)\b/, step: layer("work:present", "Open Present (Work)") },
+  { re: /\b((make|create|start|build|tell) (a |my )?(presentation|slides?|slideshow|slide deck|story)|presentation|slideshow|stor(y|ies) (library|about)|story library)\b/, step: layer("work:present", "Open Stories (Make)") },
   { re: /\b(record (a )?(video|tour|this)|screen ?record(ing)?|make a video|video)\b/, step: layer("work:video", "Open Video (Work)") },
   { re: /\b(my (field|farm|crops?)|crop (growth|stage|health)s?|when to (harvest|plant)|irrigat(e|ion)|growing degree days|gdd)\b/, step: layer("work:grow", "Open Grow (Work)") },
   { re: /\b(construction|building site|worksite|work site|construction site|build (a |an |my )?(house|building|tower|block)|site progress)\b/, step: layer("work:build", "Open Build (Work)") },

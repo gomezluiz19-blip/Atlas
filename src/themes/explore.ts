@@ -107,17 +107,19 @@ export function exploreTheme(app: App, feeds: Feeds, overlays: Overlays, openSit
   const renderEmpty = (app: App, body: HTMLElement) => {
     const insightsBox = h("div", { class: "insights" });
     const inView = h("div", { class: "in-view" });
+    const storiesBox = h("div", { class: "stories-here" });
     const start = siteBrowser(SITES.explore, openSite, { color: "#0a84ff" });
     body.append(
       welcome(app),
       h("div", { class: "empty-hint compact" }, h("span", { class: "empty-icon", html: icons.compass }), h("span", {}, h("strong", {}, "Move the map to explore"), h("span", {}, "Labels appear as you zoom in. Tap a mountain, sea, river or city to look at it through a lens."))),
       lookFurther(app),
       insightsBox,
+      storiesBox,
       start,
       inView,
       section("Map layers", toggles()),
     );
-    let insightJob = 0;
+    let insightJob = 0, storyJob = 0;
     const update = () => {
       if (!body.isConnected) { off(); return; }
       const v = feeds.view;
@@ -149,6 +151,16 @@ export function exploreTheme(app: App, feeds: Feeds, overlays: Overlays, openSit
             ? section("In view", h("div", { class: "chips wrap" }, ...labels.map((l) => h("button", { class: "chip", onclick: () => app.labels?.onClick?.(l) }, l.name))))
             : "",
       );
+      // Stories about this part of the world, from the library.
+      const sj = ++storyJob;
+      void import("../stories/ui").then((m) => m.storiesHere(app, 3)).then((list) => {
+        if (sj !== storyJob || !body.isConnected) return;
+        storiesBox.replaceChildren(...(list.length ? [section("Stories about here",
+          h("div", { class: "list" }, ...list.map((st) => h("button", { class: "list-row", onclick: () => { app.actions.get("mode:make")?.run(); app.actions.get("story:open")?.run(st.id); } },
+            st.cover ? h("img", { class: "present-mini", src: st.cover, alt: "" }) : h("span", { class: "story-mini-emoji" }, "📖"),
+            h("span", { class: "list-text" }, h("span", { class: "list-title" }, st.title), h("span", { class: "list-sub" }, `${st.author.name} · ${st.slideCount} places`)),
+            h("span", { class: "chev", html: "&rsaquo;" })))))] : []));
+      }).catch(() => {});
       // Insights (slower: live data).
       const ij = ++insightJob;
       void insightsFor(v.lon, v.lat, v.radiusKm, feeds.notable).then((list) => {

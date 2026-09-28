@@ -1762,3 +1762,47 @@ body.st-recording .st-record i { background: #ff453a; border-radius: 2px; }
   body[data-work="1"] .sheet:not(.has-place) ~ .tabbar, body[data-work="1"]:not(:has(.sheet.has-place)) .look-legend { opacity: 0; pointer-events: none; }
 }
 @media (prefers-reduced-motion: reduce) { .sheet { transition: none; } }
+
+/* Stories: the library, cards, a story's page */
+.story-search { width: 100%; font: inherit; font-size: 15px; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--separator); background: var(--material-strong); color: var(--label); }
+.story-search:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+.chip.on { background: var(--accent); color: #fff; }
+.chip.static { cursor: default; }
+.chip-x { border: 0; background: none; padding: 0 0 0 4px; cursor: pointer; color: inherit; opacity: 0.6; font-size: 11px; }
+.story-topics { max-height: 76px; overflow: hidden; }
+.story-topics:hover, .story-topics:focus-within { max-height: none; }
+.story-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.story-grid > p { grid-column: 1 / -1; }
+.story-card { display: flex; flex-direction: column; text-align: left; padding: 0; border: 0; border-radius: 14px; overflow: hidden; background: var(--material); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08), inset 0 0 0 1px var(--separator); cursor: pointer; font: inherit; color: var(--label); transition: transform 0.15s, box-shadow 0.15s; }
+.story-card:hover { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(0, 0, 0, 0.14), inset 0 0 0 1px var(--separator); }
+.story-cover { position: relative; display: grid; place-items: center; aspect-ratio: 16 / 10; background: linear-gradient(135deg, #1b3a5c, #0e6b6b); overflow: hidden; }
+.story-cover img { width: 100%; height: 100%; object-fit: cover; }
+.story-cover-emoji { font-size: 34px; }
+.story-cover-emoji.big { font-size: 44px; }
+.story-badge { position: absolute; left: 8px; top: 8px; padding: 2px 8px; border-radius: 999px; font-size: 10.5px; font-weight: 700; letter-spacing: 0.02em; color: #1d1d1f; background: #ffd60a; }
+.story-badge.remix { background: #bf5af2; color: #fff; }
+.story-card-body { display: flex; flex-direction: column; gap: 2px; padding: 8px 10px 10px; }
+.story-card-body strong { font-size: 13.5px; line-height: 1.25; }
+.story-card-body small { font-size: 11.5px; color: var(--secondary); }
+.story-stats { font-variant-numeric: tabular-nums; }
+.story-hero { display: grid; grid-template-columns: 96px 1fr; gap: 12px; align-items: center; }
+.story-hero > img, .story-hero > .story-cover-emoji { width: 96px; aspect-ratio: 1; border-radius: 14px; object-fit: cover; display: grid; place-items: center; background: linear-gradient(135deg, #1b3a5c, #0e6b6b); }
+.story-title { margin: 0; font-size: 20px; line-height: 1.2; }
+.story-by { margin: 4px 0 0; font-size: 13px; color: var(--secondary); }
+.story-summary { margin: 0; font-size: 14.5px; line-height: 1.45; }
+.story-credit { margin: 0; font-size: 12.5px; color: var(--secondary); }
+.story-credit .link-btn { font-size: inherit; padding: 0; }
+.story-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.story-places { margin: 0; padding-left: 22px; display: flex; flex-direction: column; gap: 2px; }
+.story-place { display: flex; flex-direction: column; gap: 1px; width: 100%; text-align: left; border: 0; background: none; padding: 5px 6px; border-radius: 8px; font: inherit; color: var(--label); cursor: pointer; }
+.story-place:hover { background: var(--fill); }
+.story-place span { font-size: 12.5px; color: var(--secondary); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.story-mini-emoji { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 10px; background: var(--fill); font-size: 18px; flex: none; }
+.story-report { align-self: flex-start; font-size: 12px; }
+.story-publish .mp-field input, .story-publish .mp-field select { width: 100%; }
+.story-link-results { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+.present-next { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 12px; }
+.present-next small { width: 100%; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; opacity: 0.7; }
+.present-next-btn { border: 0; border-radius: 999px; padding: 8px 14px; font: inherit; font-weight: 600; cursor: pointer; background: var(--accent); color: #fff; }
+@media (max-width: 420px) { .story-grid { grid-template-columns: 1fr 1fr; gap: 8px; } }
+@media (prefers-reduced-motion: reduce) { .story-card { transition: none; } }

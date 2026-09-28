@@ -6,9 +6,8 @@ import { Cartesian2, Cartesian3, HeadingPitchRange, Math as CesiumMath, Matrix4,
 import type { App } from "../app";
 import { HISTORY_CREDIT, HistoryLayer, YEARS, nearestYear, polityColor as polityColorCss, yearLabel, type Polity } from "../data/history";
 import { h } from "../ui/dom";
-import { icons } from "../ui/icons";
 import type { WorkCtx } from "./hub";
-import { TEMPLATES, deckFromJson, slideSeconds, type Deck, type Slide, type SlideCamera } from "./presentModel";
+import { deckFromJson, slideSeconds, type Deck, type Slide, type SlideCamera } from "./presentModel";
 import { ListStore, download, newId } from "./store";
 
 const store = new ListStore<Deck>("atlas.work.decks.v1");
@@ -121,6 +120,8 @@ export interface PlayOptions {
   onSlide?(s: Slide, i: number): void;
   /** Classroom tools: bigger text, a pen to draw over the globe, notes and a timer. */
   teach?: boolean;
+  /** Stories this one leads on to, offered on the last slide. */
+  next?: { title: string; go(): void }[];
 }
 
 /** A see-through layer to draw on over the globe while teaching. */
@@ -192,7 +193,7 @@ export function play(app: App, deck: Deck, opts: PlayOptions = {}): { done: Prom
 
   const go = async (n: number) => {
     if (closed) return;
-    if (n >= deck.slides.length) return opts.tour ? close() : undefined;
+    if (n >= deck.slides.length) return opts.tour && !opts.next?.length ? close() : undefined;
     if (n < 0) return;
     i = n;
     const my = ++token;
@@ -202,10 +203,13 @@ export function play(app: App, deck: Deck, opts: PlayOptions = {}): { done: Prom
     counter.textContent = `${i + 1} / ${deck.slides.length}`;
     pen?.clear();
     notes.replaceChildren(h("strong", {}, "Notes"), h("p", {}, s.notes || "No notes for this slide."));
+    const last = i === deck.slides.length - 1;
     card.replaceChildren(
       s.year !== undefined ? h("span", { class: "present-year" }, yearLabel(s.year)) : "",
       h("h2", {}, s.title || deck.name),
-      s.text ? h("p", {}, s.text) : "");
+      s.text ? h("p", {}, s.text) : "",
+      last && opts.next?.length ? h("div", { class: "present-next" }, h("small", {}, "Continue with"),
+        ...opts.next.map((n) => h("button", { class: "present-next-btn", onclick: () => { close(); n.go(); } }, `${n.title} →`))) : "");
     card.classList.remove("in");
     void card.offsetWidth;
     card.classList.add("in");
@@ -255,8 +259,14 @@ export function play(app: App, deck: Deck, opts: PlayOptions = {}): { done: Prom
 
 // ---- Screens ---------------------------------------------------------------------------
 
+/** Stories open on the library: find one to use or remix, or make your own. */
 export function openPresent(ctx: WorkCtx) {
-  const fileIn = h("input", { type: "file", accept: ".json,application/json", hidden: true, onchange: async () => {
+  void import("../stories/ui").then((m) => m.openLibrary(ctx));
+}
+
+/** Opens a presentation file someone sent (the older way to share). */
+export function openFile(ctx: WorkCtx) {
+  const fileIn = h("input", { type: "file", accept: ".json,application/json", onchange: async () => {
     const f = fileIn.files?.[0];
     if (!f) return;
     try {
@@ -265,30 +275,17 @@ export function openPresent(ctx: WorkCtx) {
       store.save(d);
       openDeck(ctx, d.id);
     } catch {
-      ctx.app.toast("That file isn't an Atlas presentation.", 5000);
+      ctx.app.toast("That file isn't an Atlas story or presentation.", 5000);
     }
   } }) as HTMLInputElement;
-  const newDeck = (name: string, slides: Omit<Slide, "id">[] = []) => {
-    const d: Deck = { id: newId(), name, created: Date.now(), slides: slides.map((s) => ({ ...s, id: newId() })) };
-    store.save(d);
-    openDeck(ctx, d.id);
-  };
-  ctx.show("Present", ctx.home,
-    h("p", { class: "mp-intro" }, "Make a presentation out of places. Each slide is a view of the globe with a caption; add borders from history, or any map layer, and play it as slides or as a flying tour."),
-    h("div", { class: "chips wrap" },
-      h("button", { class: "chip", onclick: () => newDeck("My presentation") }, "+ New presentation"),
-      h("button", { class: "chip", onclick: () => openBorders(ctx) }, "Borders through time"),
-      h("button", { class: "chip", onclick: () => fileIn.click() }, "Open a file…"), fileIn),
-    store.all().length ? h("section", { class: "group" }, h("h2", { class: "group-title" }, "Your presentations"),
-      h("div", { class: "list" }, ...store.all().map((d) =>
-        h("button", { class: "list-row", onclick: () => openDeck(ctx, d.id) },
-          d.slides[0]?.thumb ? h("img", { class: "present-mini", src: d.slides[0].thumb, alt: "" }) : h("span", { class: "work-tool-icon small", html: icons.slides }),
-          h("span", { class: "list-text" }, h("span", { class: "list-title" }, d.name), h("span", { class: "list-sub" }, `${d.slides.length} slide${d.slides.length === 1 ? "" : "s"}`)),
-          h("span", { class: "chev", html: "&rsaquo;" }))))) : "",
-    h("section", { class: "group" }, h("h2", { class: "group-title" }, "Start from a topic"),
-      h("div", { class: "work-types" }, ...TEMPLATES.map((t) =>
-        h("button", { class: "work-type", style: "--c:#e0b050", onclick: () => newDeck(t.name, t.slides) }, h("strong", {}, t.name), h("span", {}, t.about))))),
-  );
+  fileIn.click();
+}
+
+/** Starts a story from one of the ready-made topics. */
+export function fromTemplate(ctx: WorkCtx, name: string, slides: Omit<Slide, "id">[]) {
+  const d: Deck = { id: newId(), name, created: Date.now(), slides: slides.map((x) => ({ ...x, id: newId() })) };
+  store.save(d);
+  openDeck(ctx, d.id);
 }
 
 export function openDeck(ctx: WorkCtx, id: string) {
@@ -297,6 +294,8 @@ export function openDeck(ctx: WorkCtx, id: string) {
   const { app } = ctx;
   const save = () => store.save(d);
   const again = () => openDeck(ctx, id);
+  const publish = h("div");
+  void import("../stories/ui").then((m) => publish.replaceWith(m.publishSection(ctx, d, again)));
   const addSlide = async () => {
     const { camera, thumb } = await captureView(app);
     const year = borders(app).year ?? undefined;
@@ -332,8 +331,8 @@ export function openDeck(ctx: WorkCtx, id: string) {
           k > 0 ? h("button", { class: "link-btn", onclick: () => { [d.slides[k - 1], d.slides[k]] = [d.slides[k], d.slides[k - 1]]; save(); again(); } }, "Move up") : "",
           h("button", { class: "link-btn danger", onclick: () => { d.slides.splice(k, 1); save(); again(); } }, "Delete"))));
 
-  ctx.show("Presentation", () => openPresent(ctx),
-    h("input", { class: "mp-name", value: d.name, "aria-label": "Presentation name", onchange: (e: Event) => { d.name = (e.target as HTMLInputElement).value || d.name; save(); } }),
+  ctx.show("Story", () => openPresent(ctx),
+    h("input", { class: "mp-name", value: d.name, "aria-label": "Story name", onchange: (e: Event) => { d.name = (e.target as HTMLInputElement).value || d.name; save(); } }),
     h("p", { class: "muted small" }, "Move the globe to what you want to show (turn on borders or layers too), then add it as a slide."),
     h("div", { class: "chips wrap" },
       h("button", { class: "chip", onclick: () => void addSlide() }, "+ Add this view as a slide"),
@@ -345,8 +344,9 @@ export function openDeck(ctx: WorkCtx, id: string) {
       h("button", { class: "pill-btn", title: "Bigger text, a pen to draw on the globe, your notes and a timer", onclick: () => { ctx.close(); play(app, d, { teach: true }); } }, "Teach with it")) : "",
     h("div", { class: "pro-actions" },
       h("button", { class: "link-btn", onclick: () => download(`${d.name.replace(/[^\w -]+/g, "").trim() || "presentation"}.atlas.json`, JSON.stringify(d)) }, "Save as a file"),
-      h("button", { class: "link-btn danger", onclick: () => { if (confirm(`Delete "${d.name}"?`)) { store.remove(d.id); openPresent(ctx); } } }, "Delete presentation")),
-    h("p", { class: "muted small" }, "In a presentation: arrow keys or the buttons move between slides; Esc ends it. ", HISTORY_CREDIT, "."),
+      h("button", { class: "link-btn danger", onclick: () => { if (confirm(`Delete "${d.name}"?`)) { store.remove(d.id); openPresent(ctx); } } }, "Delete story")),
+    publish,
+    h("p", { class: "muted small" }, "While playing: arrow keys or the buttons move between places; Esc ends it. ", HISTORY_CREDIT, "."),
   );
 }
 
