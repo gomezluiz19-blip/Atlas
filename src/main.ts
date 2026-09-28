@@ -280,6 +280,7 @@ const robot = createRobot(app, {
   showBorders: async (y) => { await showYear(app, y); },
   openTool: (t) => {
     if (t === "space") space.open();
+    else if (t === "myplace") openMode("place");
     else if (t === "solar") space.toSolar();
     else app.actions.get(`work:${t}`)?.run();
   },

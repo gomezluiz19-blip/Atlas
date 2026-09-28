@@ -116,3 +116,15 @@ describe("lens phrases", () => {
     expect(p.place).toEqual({ kind: "query", text: expect.stringMatching(/mount rainier/i) });
   });
 });
+
+describe("my place phrases", () => {
+  it("opens My Place for a person's own place", () => {
+    const acts = (t: string) => plan(t).steps.map((s) => (s.kind === "layer" ? s.action : ""));
+    expect(acts("frost at my farm")).toContain("mode:place");
+    expect(acts("what's due today at my farm")).toContain("mode:place");
+    expect(acts("my daily brief")).toContain("mode:place");
+    expect(acts("my cattle")).toContain("work:flock");
+    expect(plan("frost at my farm").place).toBeNull();
+    expect(plan("my daily brief").place).toBeNull();
+  });
+});
