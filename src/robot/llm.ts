@@ -5,6 +5,7 @@
 // (kept in this browser, sent only to Anthropic) or a small proxy that holds a
 // key for everyone (see docs/ai-proxy.md). Without either, the rule-based
 // planner answers as before.
+import { LENSES } from "../lenses";
 import type { App } from "../app";
 import { YEARS, nearestYear, yearLabel } from "../data/history";
 import type { Resolver, RunStep } from "./run";
@@ -48,7 +49,8 @@ interface Tool { name: string; description: string; input_schema: Record<string,
 const WORK_TOOLS = ["plan", "present", "video", "grow", "build", "flock", "teach", "learn"];
 
 function tools(app: App): Tool[] {
-  const layers = [...app.actions.keys()].filter((k) => !k.startsWith("work:borders:") && !k.startsWith("work:") && !k.startsWith("space:") && k !== "pro:occupancy");
+  const layers = [...app.actions.keys()].filter((k) => !k.startsWith("work:borders:") && !k.startsWith("work:") && !k.startsWith("space:") && !k.startsWith("lens:") && k !== "pro:occupancy");
+  const lenses = LENSES.filter((l) => app.actions.has(`lens:${l.id}`));
   const views = app.themes.flatMap((t) => t.subtabs.map((s) => `${t.id}/${s.id}`));
   return [
     { name: "fly_to", description: "Find a place by name (city, address, landmark, region, country, mountain, river…) and fly the globe there, selecting it. Do this before opening a view about a place.", input_schema: { type: "object", properties: { place: { type: "string", description: "The place, as specific as possible, e.g. 'Lisbon, Portugal' or 'Mount Fuji'." }, zoom: { type: "string", enum: ["street", "city", "region", "country", "continent"], description: "How far out to frame it." } }, required: ["place"] } },
@@ -56,11 +58,12 @@ function tools(app: App): Tool[] {
     { name: "open_view", description: `Open a theme's view about the selected place (fly_to first). Views: ${app.themes.map((t) => `${t.id} (${t.label}): ${t.subtabs.map((s) => `${s.id} = ${s.label}`).join(", ")}`).join(" | ")}.`, input_schema: { type: "object", properties: { view: { type: "string", enum: views } }, required: ["view"] } },
     { name: "show_borders", description: `Show the world's political borders in a past year (maps exist for ${yearLabel(YEARS[0])} to ${yearLabel(YEARS[YEARS.length - 1])}; the nearest map is used). Use a negative year for BC. Pass null to hide them.`, input_schema: { type: "object", properties: { year: { type: ["integer", "null"] } }, required: ["year"] } },
     { name: "open_tool", description: "Open one of Atlas's tools: plan (trips, events, sites, zones, routes), present (slides), video (record the globe), grow (fields and crops), build (construction projects), flock (animals), teach (lessons, quizzes, field trips), learn (games for students, places to learn), space (satellites, ISS, launches), solar (the solar system view).", input_schema: { type: "object", properties: { tool: { type: "string", enum: [...WORK_TOOLS, "space", "solar"] } }, required: ["tool"] } },
+    { name: "open_lens", description: `Look at the selected feature (fly_to it first) through a lens. Lenses: ${lenses.map((l) => `${l.id} = ${l.label}: ${l.blurb}`).join(" | ")}.`, input_schema: { type: "object", properties: { lens: { type: "string", enum: lenses.map((l) => l.id) } }, required: ["lens"] } },
   ];
 }
 
 const SYSTEM = `You are the assistant inside Atlas, a 3D globe with real satellite imagery and terrain. People type requests in its search box.
-Act by calling tools: fly to places, switch on layers, open views, show historical borders, open tools. Chain several calls for multi-part requests (place first, then layers, then a view).
+Act by calling tools: fly to places, switch on layers, open views, look at a feature through a lens, show historical borders, open tools. Chain several calls for multi-part requests (place first, then layers, then a view).
 Then reply in at most three short sentences: what you showed and one interesting, accurate fact. Plain text, no markdown, no lists.
 Only use the layers, views and tools listed. If something isn't available, say so briefly and show the closest thing that is.
 Never invent data. If you aren't sure of a fact, don't state it. Keep it friendly and suitable for all ages.`;
@@ -146,6 +149,7 @@ function describeUse(app: App, u: Extract<Block, { type: "tool_use" }>): string 
     }
     case "show_borders": return i.year === null ? "Hide historical borders" : `Show the borders in ${yearLabel(nearestYear(Number(i.year)))}`;
     case "open_tool": return `Open ${String(i.tool)}`;
+    case "open_lens": return `Look through the ${LENSES.find((l) => l.id === i.lens)?.label ?? String(i.lens)} lens`;
     default: return u.name;
   }
 }
@@ -190,6 +194,13 @@ async function runTool(app: App, deps: AiDeps, u: Extract<Block, { type: "tool_u
     case "open_tool":
       deps.openTool(String(i.tool));
       return `Opened ${i.tool}.`;
+    case "open_lens": {
+      const a = app.actions.get(`lens:${String(i.lens)}`);
+      if (!a) throw new Error("No such lens.");
+      a.run();
+      await new Promise((r) => setTimeout(r, 900));
+      return `Opened the ${String(i.lens)} lens on the selected place.`;
+    }
   }
   throw new Error(`Unknown tool ${u.name}.`);
 }

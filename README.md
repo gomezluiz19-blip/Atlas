@@ -29,6 +29,34 @@ themes, and clear when you pick a new place. A theme's own suggested layers show
 Every view ends with **Connected** links: the next questions people ask about that place in other themes
 ("How water moves through the city here", "Power for the mines"), and layers you can add without leaving.
 
+**Lenses: any feature, looked at properly.** Tap something (a mountain, a crater, a sea, a river, a
+forest, a city) and the card says what Atlas thinks it is, worked out from its name and the shape of the
+ground, and offers the lenses that suit it, best first. Each lens is designed once and works anywhere:
+
+- **Slice** cuts the feature open along its grain and shows the real rock layers inside (Macrostrat columns
+  fitted to the bedrock map, or ocean crust and sediment under the sea), as a figure and as a wall standing
+  in the 3D globe. Turn the cut, lengthen it, tap a layer to pick it out.
+- **Block** lifts a square of the Earth out as a 3D block, satellite image on top and rock layers on all
+  four sides. Turn it, raise the height, X-ray the surface, explode the faces apart, spin it, save a picture.
+- **Anatomy** reads a mountain or volcano: summit, relief, steepest slope, which way the slopes face, a
+  hypsometric curve and the bands of life (forest, treeline, alpine, snow) painted on the ground for its
+  latitude. For a crater it measures rim to rim, rim to floor and what the depth-to-width ratio says.
+- **Sea floor** paints the depth zones (shelf, slope, abyss, trench), finds the deepest point and draws a profile.
+- **Sea level** moves the sea from the last ice age (−120 m, Doggerland) to all the ice melted (+66 m), with
+  the land flooded or uncovered.
+- **Trace** follows a river from source to mouth (length, fall, countries crossed, a fly-along), shows where
+  rain on each side of a mountain ends up, or draws the major ocean currents moving.
+- **Rewind** swipes between today's imagery and past years (Esri Wayback), or goes to deep time: where the
+  place sat 20 to 500 million years ago, with the coastlines of the day.
+- **Transit** draws a city's metro and light rail in their colours with trains running, and an underground
+  view that makes the streets see-through.
+- **Forest** colours woods by leaf type, with cover, named woods and the trees recorded there.
+- **True size** picks up the outline of a park, lake, island or country and drops it anywhere, keeping its
+  real size, with comparisons ("about 310 football pitches").
+
+The task robot opens lenses too: "slice open Mount Rainier", "drain the ocean around Britain", "true size
+of Greenland", "subway map of Tokyo", "ocean currents in the Atlantic", "where was London during Pangaea".
+
 **My Places.** The house button (top right) keeps the places you care about: home, a family hotel, a farm.
 Save a spot you tapped or searched for, or start from where you are. Each place gets a dashboard:
 a **3D view** of the buildings around it (OpenStreetMap footprints extruded to their mapped height or
@@ -217,6 +245,10 @@ These keys end up in the public page, so restrict them to your site's domain in 
   Launch Library 2. **Planets:** JPL approximate Keplerian elements (Standish).
 - **Places to learn:** OpenStreetMap via Overpass; the list of free and discounted museums is hand-compiled
   (prices change; check before going).
+- **Lenses:** past imagery from [Esri World Imagery Wayback](https://livingatlas.arcgis.com/wayback/);
+  plate reconstructions from the [GPlates Web Service](https://gws.gplates.org) (Merdith et al. 2021 model);
+  forests, park and lake outlines and metro lines from OpenStreetMap; ocean currents are a hand-drawn schematic
+  of the major surface currents. The 3D block uses [three.js](https://threejs.org), loaded only when opened.
 - **My Places:** building footprints and heights from OpenStreetMap; sunshine and rainfall from ERA5 via Open-Meteo.
 - **Search and place names:** [Photon](https://photon.komoot.io) (by komoot) and OpenStreetMap Nominatim
   (light, interactive use only, per its usage policy).
@@ -228,6 +260,7 @@ src/
   main.ts              wiring: globe, themes, search, map-style and about popovers, Connected links
   canvas.ts            the shared canvas: what's on the map, across themes and places
   robot/               the task robot: plan.ts turns a request into steps, run.ts carries them out
+  lenses/              lenses on a feature: identify.ts decides what it is, bar.ts offers lenses, one file per family
   myplaces/            My Places: store (saved in the browser), scene (3D buildings, devices), estimates (solar, rain), panel
   pro/                 Atlas Pro: model (bookings → rooms, floors, forecast), sources (demo, CSV, live link), panel,
                        vision/ (on-device camera analytics: detection, tracking, line counts, map positions)
@@ -278,6 +311,11 @@ page at the same view.
 - Build's cost rates and schedule durations are typical first estimates, not a quantity surveyor's figures.
 - Flock's grazing estimate ignores regrowth; gestation lengths are species averages.
 - Quizzes, results and games are kept in each browser; nothing is sent to a server, so results travel as codes or files.
+- Lenses: what a feature is gets guessed from its name and the ground, and can be wrong; the lens strip
+  says what it assumed. Rock below mapped units in Slice and Block is drawn to typical depths where no
+  column exists. Sea level floods everything below the line, including land protected by dykes or not
+  connected to the sea. Metro depths in the underground view are typical, not surveyed. Deep-time positions
+  come from one plate model and grow less certain with age.
 - Plan's travel times use straight-line distance with a detour factor, not a road network.
 
 ## Roadmap
@@ -286,8 +324,9 @@ page at the same view.
    each labelled with how certain it is.
 2. **Live Earth:** earthquakes (USGS), active fires (NASA FIRMS), weather and precipitation radar, river gauges.
 3. **Geology:** faults and folds in sections; multiple columns along a section; borehole data.
-4. **Time:** swipe and compare satellite imagery across years (Landsat/Sentinel-2).
-5. **3D cut-away:** slice the terrain open along a cross-section and view it from the side.
+4. **Time:** Landsat/Sentinel-2 time series beyond Wayback's years, for change before 2014.
+5. **More lenses:** glaciers then and now, a volcano's lava and ash reach, a city's growth, flood reach
+   along a river, and more feature templates (reefs, deltas, dunes).
 6. **Campuses and standard places:** map a whole campus into My Places (e.g. a university), and with a
    connected CRM or student system reserve rooms, book appointments and office hours, request services and see
    how busy each area is; then templates for schools, hospitals and similar places.

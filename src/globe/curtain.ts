@@ -26,20 +26,24 @@ export class Curtain {
     highlight: number | null,
   ) {
     this.clear(false);
-    const n = points.length;
     let zmin = Infinity, zmax = -Infinity;
-    for (let i = 0; i < n; i++) { zmin = Math.min(zmin, elevation[i]); zmax = Math.max(zmax, elevation[i]); }
+    for (let i = 0; i < points.length; i++) { zmin = Math.min(zmin, elevation[i]); zmax = Math.max(zmax, elevation[i]); }
     const bottom = zmin - Math.max(400, (zmax - zmin) * 0.8);
+    this.showTexture(points, elevation, bottom, exaggeration, paint(distance, elevation, stack, structure, bottom, highlight));
+  }
+
+  /** Hangs any painted section (ground in the first row, `bottom` in the last) under a line. */
+  showTexture(points: [number, number][], elevation: ArrayLike<number>, bottom: number, exaggeration: number, texture: HTMLCanvasElement, top?: (i: number) => number) {
+    this.clear(false);
+    const n = points.length;
     const step = Math.max(1, Math.floor(n / 150));
     const idx: number[] = [];
     for (let i = 0; i < n; i += step) idx.push(i);
     if (idx[idx.length - 1] !== n - 1) idx.push(n - 1);
-
-    const texture = paint(distance, elevation, stack, structure, bottom, highlight);
     this.wall = this.viewer.entities.add({
       wall: {
         positions: Cartesian3.fromDegreesArray(idx.flatMap((i) => points[i])),
-        maximumHeights: idx.map((i) => elevation[i] * exaggeration),
+        maximumHeights: idx.map((i) => (top ? top(i) : elevation[i]) * exaggeration),
         minimumHeights: idx.map(() => bottom * exaggeration),
         material: new ImageMaterialProperty({ image: texture, transparent: false }),
       },

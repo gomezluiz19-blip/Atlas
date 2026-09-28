@@ -31,6 +31,8 @@ import { createMyPlaces } from "./myplaces/panel";
 import { createPro } from "./pro/panel";
 import { createWork } from "./work/hub";
 import { createSpace } from "./space/panel";
+import { createLenses } from "./lenses/bar";
+import { LENSES } from "./lenses";
 import { openPlans } from "./work/planUi";
 import { borders, openPresent, showYear } from "./work/present";
 import { YEARS, yearLabel } from "./data/history";
@@ -76,7 +78,7 @@ overlays.onLabels = (on) => labels.setVisible(on);
 const feeds = new Feeds(globe.viewer, labels);
 labels.onClick = (l) => {
   const n = (l.data as { notable?: { description?: string } } | undefined)?.notable;
-  app.select({ lon: l.lon, lat: l.lat, height: 0 }, { title: l.name, context: n?.description ?? l.sub ?? KIND_INFO[l.kind].label }, l.data ?? { source: "world" });
+  app.select({ lon: l.lon, lat: l.lat, height: 0 }, { title: l.name, context: n?.description ?? l.sub ?? KIND_INFO[l.kind].label }, { ...((l.data as object | undefined) ?? { source: "world" }), kind: l.kind, name: l.name });
 };
 
 const pick = (p: SearchPlace | SearchResult) =>
@@ -359,7 +361,14 @@ const syncHash = () => {
     }
   }, 400);
 };
+// Lenses: ways of looking at whatever was tapped, offered in the place card.
+const lenses = createLenses(app, LENSES);
+app.sheet.el.querySelector(".share-menu")!.after(lenses.strip);
+$("ui").append(lenses.panel);
+app.onName = (p) => lenses.rename(p);
+for (const l of LENSES) app.actions.set(`lens:${l.id}`, { label: l.label, run: () => void lenses.openWhenReady(l.id).then((ok) => { if (!ok) app.toast("Tap a place first, then choose a lens.", 4000); }) });
 app.onPlace = (p) => {
+  void lenses.update(p);
   syncHash();
   myPlaces.refresh();
   // Learn's passport: a stamp for each country explored (once a learner has opened Learn).

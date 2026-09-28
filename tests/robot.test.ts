@@ -99,3 +99,20 @@ describe("build, flock and teach requests", () => {
     expect(plan("make a quiz for my class").steps[0]).toMatchObject({ action: "work:teach" });
   });
 });
+
+describe("lens phrases", () => {
+  const acts = (t: string) => plan(t).steps.map((s) => (s.kind === "layer" ? s.action : s.kind === "view" ? `${s.theme}/${s.subtab}` : s.id));
+  it("maps requests about a feature to lenses", () => {
+    expect(acts("slice open Mount Rainier")).toContain("lens:slice");
+    expect(acts("drain the ocean around Britain")).toContain("lens:sealevel");
+    expect(acts("true size of Greenland")).toContain("lens:size");
+    expect(acts("subway map of Tokyo")).toContain("lens:transit");
+    expect(acts("ocean currents in the Atlantic")).toContain("lens:trace");
+    expect(acts("3d block of the Grand Canyon")).toContain("lens:block");
+    expect(acts("where was London during pangaea")).toContain("lens:rewind");
+  });
+  it("still finds the place", () => {
+    const p = plan("slice open Mount Rainier");
+    expect(p.place).toEqual({ kind: "query", text: expect.stringMatching(/mount rainier/i) });
+  });
+});

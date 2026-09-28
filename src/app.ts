@@ -167,6 +167,8 @@ export class App {
   onPointer?: (p: GeoPoint | null) => void;
   /** Called when a place is chosen (for example to update the status bar). */
   onPlace?: (p: Place | null) => void;
+  /** Called when a place's name arrives (reverse geocoding). */
+  onName?: (p: Place) => void;
   /** Called when the theme changes. */
   onTheme?: (id: string) => void;
   /** A link that reopens the current view (set by main). */
@@ -303,6 +305,7 @@ export class App {
           if (this.place !== place) return;
           place.name = n;
           this.renderHeader();
+          this.onName?.(place);
         })
         .catch(() => {
           if (this.place === place) place.name = null;
