@@ -42,6 +42,7 @@ import { ndviAction, openGrow } from "./work/grow";
 import { loadPassport, savePassport, stamp } from "./work/passport";
 import { countryAt } from "./data/countries";
 import { plan } from "./robot/plan";
+import { parseLog } from "./work/flockLog";
 import { describe } from "./robot/run";
 import { siteBrowser } from "./ui/sites";
 import { createCanvasTray } from "./ui/canvasTray";
@@ -291,7 +292,23 @@ const robot = createRobot(app, {
   settings: () => aiSettings.open(),
 });
 $("ui").append(robot.el);
+/** "Daisy had twins" typed into the search box: a log line for Flock. */
+const flockLogCommand = (q: string): Command | null => {
+  let e: ReturnType<typeof parseLog> = null;
+  try {
+    const f = JSON.parse(localStorage.getItem("atlas.work.flock.v1") ?? "null");
+    if (f?.animals?.length) e = parseLog(q, f);
+  } catch { /* no records */ }
+  if (!e) return null;
+  return {
+    title: `Log for Flock: ${e.summary}`, steps: ["Saves it to the animal's record, with the date"],
+    run: () => void import("./work/flock").then((m) => { const r = m.logText(q); app.toast(r ? `Logged: ${r.summary}` : "Couldn't log that.", 4000); }),
+  };
+};
+
 const asCommand = (q: string): Command | null => {
+  const logged = flockLogCommand(q);
+  if (logged) return logged;
   const p = plan(q);
   // With Claude connected, anything that reads as a request or question goes to it.
   if (aiOn() && looksLikeAsk(q)) return { title: "Ask Atlas AI", steps: [p.steps.length ? describe(p).join(" → ") : "Claude will work out the steps"], run: () => void robot.ask(q.trim(), p.steps.length ? p : null) };

@@ -16,6 +16,52 @@ import { WorkLayer } from "./layer";
 import { ORGS, SPECIES, age, counts, dueDate, dueList, gain, grazing, speciesById, thi, type Animal, type Flock, type HealthEvent, type Org } from "./flockModel";
 import { download, newId } from "./store";
 import { CARE, breedsFor, findBreed } from "./breeds";
+import { applyLog, parseLog, type LogEntry } from "./flockLog";
+
+/** Logs one plain-words line ("Daisy had twins") to the records; null if it couldn't be read. */
+export function logText(text: string): LogEntry | null {
+  flock = load() ?? flock;
+  if (!flock) return null;
+  const e = parseLog(text, flock);
+  if (!e) return null;
+  applyLog(flock, e, newId);
+  save();
+  return e;
+}
+
+type SpeechCtor = new () => { lang: string; interimResults: boolean; onresult: ((ev: { results: ArrayLike<ArrayLike<{ transcript: string }>> }) => void) | null; onerror: (() => void) | null; onend: (() => void) | null; start(): void; stop(): void };
+
+/** "Say or type what happened": the log bar at the top of Flock. */
+function logBar(ctx: WorkCtx): HTMLElement {
+  const input = h("input", { class: "pro-url", placeholder: "Say or type what happened: \u201cDaisy had twins\u201d", "aria-label": "Log what happened" }) as HTMLInputElement;
+  const preview = h("p", { class: "muted small flock-log-preview" }, "Try: \u201cweighed 101 at 590 kg\u201d, \u201cwormed all the sheep\u201d, \u201cBramble is lame\u201d.");
+  const commit = () => {
+    const e = logText(input.value);
+    if (!e) { preview.textContent = "Couldn't tell which animal or what happened. Use a name or tag number."; preview.classList.add("warn"); return; }
+    ctx.app.toast(`Logged: ${e.summary}`, 4000);
+    openFlock(ctx);
+  };
+  input.addEventListener("input", () => {
+    preview.classList.remove("warn");
+    const e = flock && input.value.trim() ? parseLog(input.value, flock) : null;
+    preview.textContent = e ? `Will log: ${e.summary}` : input.value.trim() ? "…" : preview.textContent;
+  });
+  input.addEventListener("keydown", (e) => { if (e.key === "Enter") commit(); });
+  const Speech = ((window as unknown as { SpeechRecognition?: SpeechCtor; webkitSpeechRecognition?: SpeechCtor }).SpeechRecognition ?? (window as unknown as { webkitSpeechRecognition?: SpeechCtor }).webkitSpeechRecognition);
+  const mic: HTMLElement | "" = Speech ? h("button", { class: "pill-btn flock-mic", title: "Speak", "aria-label": "Speak", onclick: () => {
+    const btn = mic as HTMLElement;
+    const r = new Speech();
+    r.lang = navigator.language || "en-GB";
+    r.interimResults = false;
+    btn.classList.add("on");
+    preview.textContent = "Listening…";
+    r.onresult = (ev) => { input.value = ev.results[0][0].transcript; input.dispatchEvent(new Event("input")); };
+    r.onerror = () => { preview.textContent = "Didn't catch that. Try again, or type it."; };
+    r.onend = () => btn.classList.remove("on");
+    r.start();
+  } }, "🎙") : "";
+  return h("div", { class: "flock-log" }, h("div", { class: "build-log-form" }, input, mic, h("button", { class: "pill-btn", onclick: commit }, "Log")), preview);
+}
 
 /** A text box that suggests the breeds of a species (any other text is fine too). */
 function breedInput(species: () => string, value = "", onChange?: (v: string) => void): HTMLElement {
@@ -143,6 +189,8 @@ function parade(): HTMLElement {
 }
 
 export function openFlock(ctx: WorkCtx) {
+  // Pick up anything logged from the search box since this was last open.
+  flock = load() ?? flock;
   if (!flock) return setup(ctx);
   const f = flock;
   drawFlock(ctx.app);
@@ -180,6 +228,7 @@ export function openFlock(ctx: WorkCtx) {
 
   ctx.show(f.name, ctx.home,
     parade(),
+    f.animals.length ? logBar(ctx) : "",
     h("div", { class: "flock-counts" }, ...counts(f.animals).map((c) => h("span", { class: "chip" }, `${speciesById(c.species).emoji} ${c.n}`)),
       h("span", { class: "muted small" }, `${f.animals.length} animal${f.animals.length === 1 ? "" : "s"} · ${ORGS[f.org].label}`)),
     heat,

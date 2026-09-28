@@ -1502,3 +1502,7 @@ button.today-item:hover { background: var(--fill-strong); }
 .backup-row { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; padding: 12px; border-radius: 12px; background: var(--fill); }
 .backup-row > div:first-child { display: flex; flex-direction: column; gap: 2px; }
 .backup-actions { display: flex; gap: 10px; align-items: center; }
+.flock-log { display: flex; flex-direction: column; gap: 4px; }
+.flock-log-preview { margin: 0; }
+.flock-log-preview.warn { color: var(--warn); }
+.flock-mic.on { background: #ff375f; color: #fff; }
