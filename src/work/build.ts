@@ -20,6 +20,7 @@ import { areaM2, fmtArea, pathLength, type LonLat } from "./geo";
 import type { WorkCtx } from "./hub";
 import { WorkLayer } from "./layer";
 import { ListStore, download, newId } from "./store";
+import { parseSiteLog, type SiteLogEntry } from "./buildLog";
 
 const store = new ListStore<BuildProject>("atlas.work.build.v1");
 let scene: CustomDataSource | null = null;
@@ -119,7 +120,21 @@ function smallPhoto(file: File, max = 640): Promise<string> {
 
 // ---- Screens ----------------------------------------------------------------------------
 
+/** Writes one plain-words line ("Oak Street: poured the slab, 14 crew") to a project; null if unclear. */
+export function logSiteText(text: string): SiteLogEntry | null {
+  store.reload();
+  const e = parseSiteLog(text, store.all());
+  if (!e) return null;
+  const p = store.get(e.project.id)!;
+  if (e.delivery) { p.deliveries.push(e.delivery); p.deliveries.sort((a, b) => a.date.localeCompare(b.date)); }
+  if (e.log) p.log.unshift({ date: today(), text: e.log.text, crew: e.log.crew });
+  if (e.phase) { const ph = p.phases.find((x) => x.id === e.phase!.id); if (ph) ph.done = e.phase.done; }
+  store.save(p);
+  return e;
+}
+
 export function openBuild(ctx: WorkCtx) {
+  store.reload();
   const { app } = ctx;
   const add = async () => {
     ctx.hide();

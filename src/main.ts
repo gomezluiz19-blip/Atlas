@@ -45,6 +45,7 @@ import { countryAt } from "./data/countries";
 import { plan } from "./robot/plan";
 import { parseLog } from "./work/flockLog";
 import { parseFieldLog } from "./work/growLog";
+import { parseSiteLog } from "./work/buildLog";
 import { describe } from "./robot/run";
 import { siteBrowser } from "./ui/sites";
 import { createCanvasTray } from "./ui/canvasTray";
@@ -298,7 +299,7 @@ const robot = createRobot(app, {
   settings: () => aiSettings.open(),
 });
 $("ui").append(robot.el);
-/** "Daisy had twins" or "sprayed Top field" typed into the search box: a log line for Flock or Grow. */
+/** "Daisy had twins", "sprayed Top field" or "Oak Street: slab poured" typed into the search box: a log line for Flock, Grow or Build. */
 const flockLogCommand = (q: string): Command | null => {
   const read = (key: string) => { try { return JSON.parse(localStorage.getItem(key) ?? "null"); } catch { return null; } };
   const flock = read("atlas.work.flock.v1");
@@ -312,6 +313,12 @@ const flockLogCommand = (q: string): Command | null => {
   if (field) return {
     title: `Log for Grow: ${field.summary}`, steps: ["Adds it to the field's diary, with the date"],
     run: () => void import("./work/grow").then((m) => { const r = m.logFieldText(q); app.toast(r ? `Logged: ${r.summary}` : "Couldn't log that.", 4000); }),
+  };
+  const builds = read("atlas.work.build.v1");
+  const site = Array.isArray(builds) && builds.length ? parseSiteLog(q, builds) : null;
+  if (site) return {
+    title: `Log for Build: ${site.summary}`, steps: [site.delivery ? "Adds it to the project's deliveries" : site.phase ? "Adds it to the site log and updates progress" : "Adds it to the project's site log, with the date"],
+    run: () => void import("./work/build").then((m) => { const r = m.logSiteText(q); app.toast(r ? `Logged: ${r.summary}` : "Couldn't log that.", 4000); }),
   };
   return null;
 };
