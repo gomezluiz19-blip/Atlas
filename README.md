@@ -178,6 +178,14 @@ the internet. Tap a dot for the plant, port or airport.
 **The tools.** Grow, Flock, Build and live occupancy live under **My Place**; Plan, Present, Video and Teach
 under **Make**; Learn under **Look**. All of them are open to anyone:
 
+- **Ask the map** (in Look, or typed into the search box) answers questions no single layer can: "flat,
+  south-facing land under 800 m, near an airport, low flood risk". The sentence becomes conditions you can see
+  and tune with sliders (height, slope, which way it faces, warmth, coldest month, frost, rain, sunshine, the
+  nearest big city, people nearby, airports, seaports, rail, main roads, rivers, the sea, a flood proxy,
+  volcanoes, plate boundaries, internet use, income, life expectancy). Every place on screen is scored against
+  all of them at once from terrain tiles, last year's weather, towns, infrastructure, rivers, plates and World
+  Bank figures; the map glows where they're met, and the best five places are pinned and ranked with the reasons
+  and what held each back. Things Atlas can't measure yet (prices, schools, crime) are said plainly.
 - **Plan** trips told step by step, the way you'd say them: "fly to Manila, taxi to the Peninsula, stay 3
   nights, train to Baguio". Each leg travels its own way (fly, train, drive, taxi, bus, ferry, walk, bike) with
   times and distances; stays hold their own stops by day; the trip plays back on the globe, names itself and

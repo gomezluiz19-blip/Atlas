@@ -23,6 +23,7 @@ import { animalsTheme, plantsTheme } from "./themes/life";
 import { waterTheme } from "./themes/water";
 import { formatElevation, formatLonLat, h } from "./ui/dom";
 import { icons } from "./ui/icons";
+import { describe as describeCriterion, looksLikeSearch, parseQuery } from "./answers/criteria";
 import { createLayersPanel } from "./ui/layers";
 import { createSearch, flyToPlace, geocode, type Command, type Place as SearchPlace, type SearchResult } from "./ui/search";
 import { createRobot } from "./ui/robotCard";
@@ -69,6 +70,7 @@ const openBuild = lazy(() => import("./work/build").then((m) => m.openBuild));
 const openFlock = lazy(() => import("./work/flock").then((m) => m.openFlock));
 const openTeach = lazy(() => import("./work/teach").then((m) => m.openTeach));
 const openLearn = lazy(() => import("./work/learn").then((m) => m.openLearn));
+const openAsk = lazy(() => import("./answers/ui").then((m) => (ctx: WorkCtx) => m.openAsk(ctx)));
 
 const globe = new Globe($("globe"), $("credits"));
 const app = new App(globe, $("ui"));
@@ -163,6 +165,7 @@ const MAKE_TOOLS: WorkTool[] = [
   tool("teach", "Teach", "Lessons, quizzes, games, a world politics simulation and field trips", "#bf5af2", icons.graduate, openTeach),
 ];
 const LOOK_TOOLS: WorkTool[] = [
+  tool("ask", "Ask the map", "Find places that meet many things at once: ground, climate, towns, access, rivers, hazards", "#ffb04a", icons.sparkle, openAsk),
   tool("learn", "Learn", "Games, a daily challenge, your passport, and museums and libraries near you", "#30d158", icons.book, openLearn),
   tool("space", "Space", "Satellites, the ISS, rocket launches and the solar system", "#5e5ce6", icons.saturn, () => app.setTheme("space")),
 ];
@@ -253,7 +256,7 @@ const makeHub = createWork(app, MAKE_TOOLS, {
 });
 const lookHub = createWork(app, LOOK_TOOLS, {
   title: "Look further",
-  intro: "Beyond the themes and lenses in the place card: games and places to learn, and everything above the Earth.",
+  intro: "Beyond the themes and lenses in the place card: ask the map a question, games and places to learn, and everything above the Earth.",
 });
 
 const myPlaces = createMyPlaces(app, myStore, myScene, {
@@ -408,11 +411,25 @@ const tripCommand = (q: string): Command | null => {
   } };
 };
 
+/** "Flat land under 800 m near an airport": a question for every place on screen at once. */
+const askMap = (q?: string) => {
+  closePanels(lookHub.panel);
+  lookHub.ctx.open();
+  void import("./answers/ui").then((m) => m.openAsk(lookHub.ctx, q)).catch(() => app.toast("Couldn't load that tool. Check the connection and try again.", 5000));
+};
+app.actions.set("answers:ask", { label: "Ask the map", run: (q) => askMap(q) });
+const answerCommand = (q: string): Command | null => {
+  if (!looksLikeSearch(q)) return null;
+  return { title: "Answer on the map", steps: parseQuery(q).criteria.map(describeCriterion), run: () => askMap(q) };
+};
+
 const asCommand = (q: string): Command | null => {
   const logged = logCommand(q);
   if (logged) return logged;
   const trip = tripCommand(q);
   if (trip) return trip;
+  const answer = answerCommand(q);
+  if (answer) return answer;
   const p = plan(q);
   // With Claude connected, anything that reads as a request or question goes to it.
   if (aiOn() && looksLikeAsk(q)) return { title: "Ask Atlas AI", steps: [p.steps.length ? describe(p).join(" → ") : "Claude will work out the steps"], run: () => void robot.ask(q.trim(), p.steps.length ? p : null) };
@@ -428,6 +445,7 @@ $("search-slot").replaceWith(createSearch(globe, {
     "Lithium mines in Chile",
     "Railways and power plants near Munich",
     "Earthquakes and tectonic plates in Japan",
+    "Find flat, sunny land under 800 m near an airport, low flood risk",
   ],
   onPick: pick,
   local: (q) => [...siteMatches(q), ...searchLocal(feeds, q).map((m) => ({
