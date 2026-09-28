@@ -8,7 +8,10 @@ import { dueList, speciesById, type Flock } from "../work/flockModel";
 export type Urgency = "now" | "soon" | "fyi";
 export interface TodayItem { icon: string; title: string; detail: string; urgency: Urgency; tool?: "flock" | "grow" | "build" }
 
-interface FieldLite { name: string; crop: string; planted: string }
+export interface FieldLite { id?: string; name: string; crop: string; planted: string; pts?: [number, number][] }
+
+/** A field's season from the Grow model, when it could be worked out. */
+export interface FieldSeason { name: string; stage: string; harvest?: [string, string]; irrigate7: number; m2: number; frost: boolean }
 
 export interface TodayInputs {
   today: string;
@@ -16,6 +19,8 @@ export interface TodayInputs {
   flock: Flock | null;
   fields: FieldLite[];
   builds: BuildProject[];
+  /** Growth stage, harvest window and water need per field (optional). */
+  seasons?: FieldSeason[];
 }
 
 const dayName = (iso: string, today: string) => {
@@ -27,6 +32,8 @@ const dayName = (iso: string, today: string) => {
   if (iso === addDays(today, 1)) return "tomorrow";
   return new Date(iso + "T12:00:00Z").toLocaleDateString(undefined, { weekday: "long" });
 };
+
+const short = (iso: string) => new Date(iso + "T12:00:00Z").toLocaleDateString(undefined, { day: "numeric", month: "short" });
 
 /** What matters at a place today, most urgent first. */
 export function todayItems(x: TodayInputs): TodayItem[] {
@@ -65,7 +72,7 @@ export function todayItems(x: TodayInputs): TodayItem[] {
       const soon = d.date <= addDays(x.today, 2);
       out.push({ icon: d.kind === "birth" ? speciesById(d.animal.species).emoji : "💉",
         title: `${name}: ${d.what.toLowerCase()}${d.overdue ? " (overdue)" : ""}`,
-        detail: d.overdue ? `Was due ${dayName(d.date, x.today)}.` : `Due ${dayName(d.date, x.today)}${soon ? "" : ` (${d.date})`}.`,
+        detail: d.overdue ? `Was due ${dayName(d.date, x.today)}.` : `Due ${dayName(d.date, x.today)}${soon ? "" : ` (${short(d.date)})`}.`,
         urgency: d.overdue || soon ? "now" : "soon", tool: "flock" });
     }
   }
@@ -76,8 +83,27 @@ export function todayItems(x: TodayInputs): TodayItem[] {
     if (s.behindDays >= 7) out.push({ icon: "🏗️", title: `${p.name} is ${s.behindDays} days behind`, detail: `${Math.round(s.actual)}% built against ${Math.round(s.planned)}% planned. Finish now ${s.finish}.`, urgency: "soon", tool: "build" });
   }
 
-  // Fields: a nudge for anything just planted.
+  // Fields: harvest windows and water, from the season model.
+  const seasonal = new Set<string>();
+  for (const fs of x.seasons ?? []) {
+    seasonal.add(fs.name);
+    if (fs.harvest) {
+      const [a, b] = fs.harvest;
+      const opensIn = Math.round((Date.parse(a) - Date.parse(x.today)) / 86_400_000);
+      if (opensIn <= 0) out.push({ icon: "🌾", title: `${fs.name}: ready to harvest`, detail: b > x.today ? `The window runs to about ${short(b)}.` : "Harvest when conditions allow.", urgency: "now", tool: "grow" });
+      else if (opensIn <= 14) out.push({ icon: "🌾", title: `${fs.name}: harvest in about ${opensIn} days`, detail: `${fs.stage}; window ${short(a)} to ${short(b)} at this week's warmth.`, urgency: "soon", tool: "grow" });
+    }
+    if (fs.irrigate7 >= 10) {
+      const l = fs.irrigate7 * fs.m2;
+      out.push({ icon: "💧", title: `${fs.name}: irrigate about ${Math.round(fs.irrigate7)} mm this week`, detail: `The crop will use more than the rain forecast${fs.m2 ? ` (about ${l >= 1e6 ? `${(l / 1e6).toFixed(1)} million` : Math.round(l).toLocaleString()} litres for the field)` : ""}.`, urgency: fs.irrigate7 >= 25 ? "soon" : "fyi", tool: "grow" });
+    }
+    if (!fs.harvest || Date.parse(fs.harvest[0]) - Date.parse(x.today) > 14 * 86_400_000)
+      if (fs.irrigate7 < 10) out.push({ icon: "🌱", title: `${fs.name}: ${fs.stage.toLowerCase()}`, detail: fs.frost ? "Frost is forecast this week." : "On track; nothing needed today.", urgency: fs.frost ? "soon" : "fyi", tool: "grow" });
+  }
+
+  // Fields without a season yet: a nudge for anything just planted.
   for (const f of x.fields) {
+    if (seasonal.has(f.name)) continue;
     const age = Math.round((Date.parse(x.today) - Date.parse(f.planted)) / 86_400_000);
     if (age >= 0 && age <= 14) out.push({ icon: "🌱", title: `${f.name}: ${age === 0 ? "planted today" : `${age} days since planting`}`, detail: "Watch for emergence and keep the seedbed moist.", urgency: "fyi", tool: "grow" });
   }

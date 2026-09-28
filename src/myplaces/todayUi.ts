@@ -1,8 +1,24 @@
 // The Today card at the top of My Place: the brief for your main place.
-import { siteWeather } from "../data/openmeteo";
+import { farmWeather, siteWeather } from "../data/openmeteo";
+import { areaM2 } from "../work/geo";
+import { cropById, mergeDays, season } from "../work/growModel";
 import { h } from "../ui/dom";
 import type { MyPlace } from "./store";
-import { localRecords, todayItems, type TodayItem } from "./today";
+import { localRecords, todayItems, type FieldLite, type FieldSeason, type TodayItem } from "./today";
+
+/** Each field's season (up to four fields, near this place), for the brief. */
+async function seasonsFor(fields: FieldLite[], place: MyPlace, today: string): Promise<FieldSeason[]> {
+  const near = fields.filter((f) => f.pts && f.pts.length >= 3).map((f) => {
+    const lon = f.pts!.reduce((t, p) => t + p[0], 0) / f.pts!.length, lat = f.pts!.reduce((t, p) => t + p[1], 0) / f.pts!.length;
+    return { f, lon, lat, d: Math.hypot(lon - place.lon, lat - place.lat) };
+  }).filter((x) => x.d < 0.5).sort((a, b) => a.d - b.d).slice(0, 4);
+  const out = await Promise.allSettled(near.map(async ({ f, lon, lat }) => {
+    const w = await farmWeather(lon, lat, f.planted);
+    const s = season(cropById(f.crop), f.planted, mergeDays(w.older, w.recent), today);
+    return { name: f.name, stage: s.stage.name, harvest: s.harvest, irrigate7: s.irrigate7, m2: areaM2(f.pts!), frost: s.frost.length > 0 } satisfies FieldSeason;
+  }));
+  return out.flatMap((r) => (r.status === "fulfilled" ? [r.value] : []));
+}
 
 const localDate = () => {
   const d = new Date();
@@ -20,8 +36,10 @@ export function todayCard(place: MyPlace, openTool: (t: NonNullable<TodayItem["t
   const key = `${place.lon.toFixed(2)},${place.lat.toFixed(2)}`;
   const hit = cache.get(key);
   const weather = hit && Date.now() - hit.at < 30 * 60_000 ? Promise.resolve(hit.days) : siteWeather(place.lon, place.lat).then((days) => { cache.set(key, { at: Date.now(), days }); return days; });
-  void weather.catch(() => null).then((days) => {
-    const items = todayItems({ today: localDate(), weather: days, ...localRecords() });
+  const records = localRecords();
+  const seasons = seasonsFor(records.fields, place, localDate()).catch(() => []);
+  void Promise.all([weather.catch(() => null), seasons]).then(([days, seasons]) => {
+    const items = todayItems({ today: localDate(), weather: days, ...records, seasons });
     const rows = items.slice(0, 6).map((it) =>
       h(it.tool ? "button" : "div", { class: `today-item ${it.urgency}`, ...(it.tool ? { onclick: () => openTool(it.tool!) } : {}) },
         h("span", { class: "today-icon" }, it.icon),

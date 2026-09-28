@@ -33,3 +33,18 @@ describe("today at your place", () => {
     expect(items.some((i) => i.title.startsWith("Daisy"))).toBe(true);
   });
 });
+
+describe("fields in the brief", () => {
+  it("flags a harvest window, irrigation, and quiet fields", () => {
+    const items = todayItems({ ...base, weather: null, fields: [{ name: "Top field", crop: "wheat", planted: "2026-03-01" }, { name: "Barn plot", crop: "potato", planted: "2026-04-01" }, { name: "Orchard", crop: "apple", planted: "2026-04-20" }], seasons: [
+      { name: "Top field", stage: "Ripening", harvest: ["2026-05-16", "2026-05-24"], irrigate7: 0, m2: 40_000, frost: false },
+      { name: "Barn plot", stage: "Tubers bulking", irrigate7: 22, m2: 2000, frost: false, harvest: ["2026-07-01", "2026-07-10"] },
+    ] });
+    const titles = items.map((i) => i.title);
+    expect(titles).toContain("Top field: harvest in about 6 days");
+    expect(titles).toContain("Barn plot: irrigate about 22 mm this week");
+    expect(items.find((i) => i.title.startsWith("Barn plot: irrigate"))!.detail).toMatch(/44,000 litres/);
+    // No season for the orchard: falls back to the planting nudge only if recent (it's 20 days: none).
+    expect(titles.some((t) => t.startsWith("Orchard"))).toBe(false);
+  });
+});
