@@ -123,3 +123,32 @@ export async function nearestNamed(lon: number, lat: number, n = 6, exclude?: st
   }
   return out.sort((a, b) => a.d - b.d).slice(0, n).map((o) => fromEntry(ix, o.s, o.e));
 }
+
+let loaded: Index | null = null;
+/** Starts loading the index early, so typing finds places at once. */
+export function warmPlaces() { void placeIndex().then((ix) => (loaded = ix)).catch(() => {}); }
+
+const fold = (s: string) => s.normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+
+/** Named places matching what's typed, best first (empty until the index has loaded). */
+export function searchPlaces(q: string, limit = 5): (Resolved & { detail: string })[] {
+  const ix = loaded;
+  const needle = fold(q.trim());
+  if (!ix || needle.length < 2) return [];
+  const hits: { e: PlaceEntry; s: string; score: number }[] = [];
+  for (const [s, e] of ix.bySlug) {
+    const n = fold(e.name);
+    const score = n === needle ? 3 : n.startsWith(needle) ? 2 : n.includes(` ${needle}`) ? 1 : 0;
+    if (score) hits.push({ e, s, score: score * 10_000 + (e.source === "feature" ? 2000 : 0) + e.rank });
+  }
+  return hits.sort((a, b) => b.score - a.score).slice(0, limit).map(({ e, s }) => {
+    const r = fromEntry(ix, s, e);
+    const word = e.source === "feature" ? e.kind : KIND_WORD[r.kind] ?? r.kind;
+    return { ...r, detail: [word.charAt(0).toUpperCase() + word.slice(1), r.context && !r.context.includes(":") ? r.context : ""].filter(Boolean).join(" · ") };
+  });
+}
+
+const KIND_WORD: Partial<Record<PlaceKind, string>> = {
+  city: "town or city", capital: "capital", water: "lake or water", sea: "sea", island: "island", peak: "mountain", range: "mountain range",
+  desert: "desert", region: "region", continent: "continent", glacier: "glacier", nature: "natural feature", park: "park", waterfall: "waterfall", volcano: "volcano",
+};

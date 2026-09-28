@@ -110,7 +110,9 @@ export interface SearchResult extends Place {
   /** For a command: runs it instead of flying to a place. */
   run?: () => void;
   icon?: keyof typeof icons;
-  source: "coords" | "local" | "address" | "recent" | "site" | "command";
+  /** An icon as SVG markup, in place of `icon`. */
+  svg?: string;
+  source: "coords" | "local" | "address" | "recent" | "site" | "command" | "thing";
   /** False when the name is only coordinates, so the app should look up a real place name. */
   named?: boolean;
 }
@@ -224,6 +226,10 @@ export interface SearchOptions {
   examples?: string[];
   /** Instant matches from data already on the device (labels, curated places). */
   local?: (q: string) => SearchResult[];
+  /** What Atlas can show and do that matches ("railways", "homeowners", "plan a trip"), by group. */
+  things?: (q: string) => { heading: string; items: SearchResult[] }[];
+  /** The front door, shown when the box is empty (after recent searches and examples). */
+  frontDoor?: () => { heading: string; items: SearchResult[] }[];
   /** Bias address results toward what's on screen. */
   bias?: () => { lat: number; lon: number } | null;
   onPick?: (p: SearchResult) => void;
@@ -233,8 +239,8 @@ export function createSearch(globe: Globe, opts: SearchOptions = {}): HTMLElemen
   const input = h("input", {
     id: "search-input",
     type: "search",
-    placeholder: matchMedia("(max-width: 520px)").matches ? "Search places, or ask anything" : "Search, or ask: “storm drains in Chicago”",
-    "aria-label": "Search places, addresses, coordinates or map links",
+    placeholder: matchMedia("(max-width: 520px)").matches ? "Search or ask anything" : "Search a place, ask a question, or show anything",
+    "aria-label": "Search places, addresses or coordinates; ask a question; or show a layer, view, tool or story",
     autocomplete: "off",
     autocapitalize: "off",
     spellcheck: "false",
@@ -280,7 +286,7 @@ export function createSearch(globe: Globe, opts: SearchOptions = {}): HTMLElemen
               onmousedown: (e: Event) => e.preventDefault(),
               onclick: () => pick(p),
             },
-            h("span", { class: "search-item-icon", html: icons[p.icon ?? (p.source === "recent" ? "search" : "target")] }),
+            h("span", { class: "search-item-icon", html: p.svg ?? icons[p.icon ?? (p.source === "recent" ? "search" : "target")] }),
             h("span", { class: "search-item-text" }, h("span", { class: "site-name" }, p.name), p.detail ? h("span", { class: "site-detail" }, p.detail) : ""),
           );
         }),
@@ -307,7 +313,8 @@ export function createSearch(globe: Globe, opts: SearchOptions = {}): HTMLElemen
         const c = opts.command?.(ex);
         if (c) asks.push({ name: ex, detail: c.steps.join(" → "), lat: 0, lon: 0, radius: 0, icon: "sparkle", source: "command", run: () => { input.value = ex; c.run(); } });
       }
-      render([{ heading: "Recent", items: loadRecent() }, { heading: "Try asking", items: asks }, { heading: "Places to start", items: FIELD_SITES.slice(0, 4).map((s) => ({ ...s, source: "site" as const, icon: "mountain" as const })) }]);
+      const door = opts.frontDoor?.() ?? [{ heading: "Places to start", items: FIELD_SITES.slice(0, 4).map((s) => ({ ...s, source: "site" as const, icon: "mountain" as const })) }];
+      render([{ heading: "Recent", items: loadRecent().slice(0, 3) }, { heading: "Ask", items: asks }, ...door]);
       return;
     }
     const parsed = parseLocation(raw);
@@ -324,7 +331,9 @@ export function createSearch(globe: Globe, opts: SearchOptions = {}): HTMLElemen
     const cmd = parsed.shortCode ? null : opts.command?.(raw) ?? null;
     const cmdItems: SearchResult[] = cmd ? [{ name: cmd.title, detail: cmd.steps.join(" → "), lat: 0, lon: 0, radius: 0, icon: "sparkle", source: "command", run: cmd.run }] : [];
     const local = parsed.shortCode ? [] : opts.local?.(parsed.text) ?? [];
-    render([{ heading: cmd ? "Do it" : undefined, items: cmdItems }, { heading: local.length ? "On the map" : undefined, items: local.slice(0, 4) }], "Searching…");
+    const things = parsed.shortCode || cmd ? [] : opts.things?.(parsed.text) ?? [];
+    const thingGroups = () => things.map((g) => ({ heading: g.heading, items: g.items }));
+    render([{ heading: cmd ? "Do it" : undefined, items: cmdItems }, { heading: local.length ? "Places" : undefined, items: local.slice(0, 4) }, ...thingGroups()], "Searching…");
     timer = window.setTimeout(async () => {
       controller = new AbortController();
       const signal = controller.signal;
@@ -344,11 +353,11 @@ export function createSearch(globe: Globe, opts: SearchOptions = {}): HTMLElemen
         const seen = new Set(local.map((l) => l.name.toLowerCase()));
         const addresses = results.filter((r) => !seen.has(r.name.toLowerCase()));
         render(
-          [{ heading: cmd ? "Do it" : undefined, items: cmdItems }, { heading: local.length ? "On the map" : undefined, items: local.slice(0, 4) }, { heading: local.length || cmd ? "Places and addresses" : undefined, items: cmd ? addresses.slice(0, 3) : addresses }],
-          local.length + addresses.length + cmdItems.length ? undefined : "No matches. Try adding a town or country.",
+          [{ heading: cmd ? "Do it" : undefined, items: cmdItems }, { heading: local.length ? "Places" : undefined, items: local.slice(0, 4) }, ...thingGroups(), { heading: local.length || cmd || things.length ? "Addresses" : undefined, items: cmd || things.length ? addresses.slice(0, 3) : addresses }],
+          local.length + addresses.length + cmdItems.length + things.length ? undefined : "No matches. Try adding a town or country.",
         );
       } catch (err) {
-        if ((err as Error).name !== "AbortError") render([{ items: [...cmdItems, ...local] }], cmd ? undefined : "Address search is unavailable right now.");
+        if ((err as Error).name !== "AbortError") render([{ items: [...cmdItems, ...local] }, ...thingGroups()], cmd || local.length || things.length ? undefined : "Address search is unavailable right now.");
       }
     }, 220);
   };

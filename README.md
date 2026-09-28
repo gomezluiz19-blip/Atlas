@@ -178,6 +178,11 @@ the internet. Tap a dot for the plant, port or airport.
 **The tools.** Grow, Flock, Build and live occupancy live under **My Place**; Plan, Present, Video and Teach
 under **Make**; Learn under **Look**. All of them are open to anyone:
 
+- **One front door.** The search box answers anything: a place (the ~11,900 places Atlas knows by name
+  answer the first keystroke and open their page), an address or coordinates, a question for the map, a
+  trip, or something to show or open, found in everyday words: "railways", "night lights", "homeowners",
+  "plan a trip", "record a film", "nile story". Empty, it offers questions to ask, places to go and things to
+  show.
 - **Every place has a page** with a permanent address: `#/p/nile`, and on the live site a real page at
   `p/nile/` for each of the ~11,900 places Atlas knows by name (built with its own title, description,
   structured data and a sitemap, so search engines and link previews see the place, then the app opens on it).

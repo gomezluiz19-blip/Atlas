@@ -24,7 +24,10 @@ import { waterTheme } from "./themes/water";
 import { formatElevation, formatLonLat, h } from "./ui/dom";
 import { icons } from "./ui/icons";
 import { describe as describeCriterion, looksLikeSearch, parseQuery, type Criterion } from "./answers/criteria";
-import { resolvePlace, slugOfPlace } from "./place/places";
+import { resolvePlace, searchPlaces, slugOfPlace, warmPlaces } from "./place/places";
+import { findThings, type Thing } from "./ui/frontDoor";
+import { buildThings } from "./ui/things";
+import { iconSvg } from "./ui/glyph";
 import { createLayersPanel } from "./ui/layers";
 import { createSearch, flyToPlace, geocode, type Command, type Place as SearchPlace, type SearchResult } from "./ui/search";
 import { createRobot } from "./ui/robotCard";
@@ -457,6 +460,9 @@ const answerCommand = (q: string): Command | null => {
   return { title: "Answer on the map", steps: parseQuery(q).criteria.map(describeCriterion), run: () => askMap(q) };
 };
 
+let things: Thing[] | null = null;
+const iconOfKind = (k: string) => (k === "peak" || k === "range" || k === "volcano" ? "mountain" as const : k === "water" || k === "sea" || k === "waterfall" ? "drop" as const : k === "city" || k === "capital" ? "building" as const : "target" as const);
+
 const asCommand = (q: string): Command | null => {
   const logged = logCommand(q);
   if (logged) return logged;
@@ -475,18 +481,33 @@ const asCommand = (q: string): Command | null => {
 $("search-slot").replaceWith(createSearch(globe, {
   command: asCommand,
   examples: [
-    "Where does rain go in downtown Chicago, and show the storm drains",
-    "Lithium mines in Chile",
-    "Railways and power plants near Munich",
-    "Earthquakes and tectonic plates in Japan",
     "Find flat, sunny land under 800 m near an airport, low flood risk",
+    "Where does rain go in downtown Chicago, and show the storm drains",
+    "Railways and power plants near Munich",
   ],
   onPick: pick,
-  local: (q) => [...siteMatches(q), ...searchLocal(feeds, q).map((m) => ({
+  local: (q) => [
+    // Places Atlas knows by name open their page.
+    ...searchPlaces(q, 4).map((r): SearchResult => ({ name: r.name, detail: r.detail, lon: r.lon, lat: r.lat, radius: r.radius, source: "local", icon: iconOfKind(r.kind), run: () => void openPlace(r.slug) })),
+    ...siteMatches(q), ...searchLocal(feeds, q).map((m) => ({
     name: m.name, detail: m.detail, lon: m.lon, lat: m.lat, source: "local" as const,
     radius: m.kind === "sea" || m.kind === "continent" ? 1_500_000 : m.kind === "range" || m.kind === "desert" || m.kind === "region" ? 400_000 : m.kind === "city" || m.kind === "capital" ? 15_000 : m.kind === "district" ? 3000 : 1200,
-    icon: m.kind === "peak" || m.kind === "range" ? "mountain" as const : m.kind === "water" || m.kind === "sea" ? "drop" as const : m.kind === "city" || m.kind === "capital" ? "building" as const : "target" as const,
+    icon: iconOfKind(m.kind),
   }))].filter((r, i, all) => all.findIndex((o) => o.name === r.name) === i).slice(0, 8),
+  things: (q) => {
+    things ??= buildThings(app, overlays, [...PLACE_TOOLS, ...MAKE_TOOLS, ...LOOK_TOOLS]);
+    const found = findThings(things, q, 6);
+    const as = (t: Thing): SearchResult => ({ name: t.title, detail: t.on?.() ? `On · ${t.detail}` : t.detail, lon: 0, lat: 0, radius: 0, source: "thing", svg: iconSvg(t.emoji, 18) ?? icons.sparkle, run: t.run });
+    return (["Show on the map", "Open", "Stories"] as const).map((g) => ({ heading: g, items: found.filter((t) => t.group === g).slice(0, 3).map(as) })).filter((g) => g.items.length);
+  },
+  frontDoor: () => {
+    const go = (name: string, slug: string, detail: string, emoji: string): SearchResult => ({ name, detail, lon: 0, lat: 0, radius: 0, source: "thing", svg: iconSvg(emoji, 18) ?? icons.target, run: () => void openPlace(slug) });
+    const show = (name: string, detail: string, emoji: string, run: () => void): SearchResult => ({ name, detail, lon: 0, lat: 0, radius: 0, source: "thing", svg: iconSvg(emoji, 18) ?? icons.sparkle, run });
+    return [
+      { heading: "Go to", items: [go("The Nile", "nile", "The longest river, source to sea", "🌊"), go("Mount Everest", "mount-everest", "The highest mountain", "🏔️"), go("Grand Canyon", "grand-canyon", "Two billion years of rock", "🏜️")] },
+      { heading: "Show", items: [show("Where people live", "Every town and city as a glow", "👥", () => app.actions.get("people:view")?.run("pop")), show("This week's earthquakes", "Live, worldwide", "〽️", () => void overlays.set("quakes", true)), show("The planet at night", "City lights from space", "🌃", () => void overlays.set("lights", true))] },
+    ];
+  },
   bias: () => (feeds.view.zoom > 4 ? { lat: feeds.view.lat, lon: feeds.view.lon } : null),
 }));
 
@@ -662,6 +683,8 @@ globe.viewer.camera.moveEnd.addEventListener(syncHash);
 const shared = parseHash(location.hash);
 // Opened from a place's own page (p/nile/), or a link to one (#/p/nile).
 const pageSlug = (window as { ATLAS_PAGE?: string }).ATLAS_PAGE;
+// Places by name answer the first keystroke.
+setTimeout(warmPlaces, 1500);
 document.querySelector(".seo-page")?.remove();
 const pageLinked = /^#\/p\//.test(location.hash) || (!!pageSlug && !location.hash);
 if (shared.camera) {
