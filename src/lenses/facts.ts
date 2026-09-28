@@ -36,3 +36,12 @@ export function factCard(f: Feature, compact = false): HTMLElement {
     f.blurb ? h("p", {}, f.blurb) : "",
     h("div", { class: "lens-fact-rows" }, ...f.facts.map(([k, v]) => h("span", {}, h("small", {}, k), v))));
 }
+
+/** A one-line summary that opens into the full card (for the place card, where space is tight). */
+export function factLine(f: Feature): HTMLElement {
+  const key = f.facts[0] ? `${f.facts[0][0].toLowerCase()} ${f.facts[0][1]}` : "";
+  const d = h("details", { class: "lens-fact-line" },
+    h("summary", {}, h("span", { class: "fact-i" }, "i"), h("strong", {}, f.name), key ? h("span", { class: "muted" }, ` · ${key}`) : ""),
+    factCard(f));
+  return d;
+}

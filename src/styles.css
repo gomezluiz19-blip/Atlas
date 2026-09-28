@@ -1521,3 +1521,9 @@ button.today-item:hover { background: var(--fill-strong); }
 .sow-row > span:last-child { display: flex; flex-direction: column; }
 .sow-row small { color: var(--secondary); font-size: 12px; }
 .sowing .link-btn { align-self: flex-start; margin-top: 4px; }
+.lens-fact-line { margin: 6px 0 8px; }
+.lens-fact-line > summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 6px; font-size: 13.5px; padding: 7px 10px; border-radius: 10px; background: var(--fill); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lens-fact-line > summary::-webkit-details-marker { display: none; }
+.lens-fact-line > summary .muted { overflow: hidden; text-overflow: ellipsis; }
+.lens-fact-line[open] > summary { margin-bottom: 6px; }
+.fact-i { flex: none; display: grid; place-items: center; width: 16px; height: 16px; border-radius: 50%; background: var(--accent); color: #fff; font-size: 11px; font-weight: 700; font-style: italic; font-family: Georgia, serif; }

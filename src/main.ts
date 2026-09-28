@@ -34,6 +34,7 @@ import { createModeBar, type Mode } from "./ui/modes";
 import { todayCard } from "./myplaces/todayUi";
 import { backupRow, keepStorage } from "./myplaces/backup";
 import { hasDemo, loadDemo, removeDemo } from "./myplaces/demo";
+import { planLog } from "./myplaces/logAny";
 import { createSpace } from "./space/panel";
 import { createLenses } from "./lenses/bar";
 import { LENSES } from "./lenses";
@@ -43,9 +44,6 @@ import { ndviAction, openGrow } from "./work/grow";
 import { loadPassport, savePassport, stamp } from "./work/passport";
 import { countryAt } from "./data/countries";
 import { plan } from "./robot/plan";
-import { parseLog } from "./work/flockLog";
-import { parseFieldLog } from "./work/growLog";
-import { parseSiteLog } from "./work/buildLog";
 import { describe } from "./robot/run";
 import { siteBrowser } from "./ui/sites";
 import { createCanvasTray } from "./ui/canvasTray";
@@ -161,6 +159,24 @@ const savedPlaceHere = () => {
   return [...all].sort((a, b) => Math.hypot(a.lon - p.lon, a.lat - p.lat) - Math.hypot(b.lon - p.lon, b.lat - p.lat))[0];
 };
 
+/** "What happened today?": one box for animals, fields and building sites. */
+function logBox(): HTMLElement {
+  const input = h("input", { class: "pro-url", placeholder: "What happened? \u201cDaisy had twins\u201d, \u201csprayed Top field\u201d", "aria-label": "Log what happened" }) as HTMLInputElement;
+  const hint = h("p", { class: "muted small flock-log-preview" }, "Log animals, fields or a building site in plain words.");
+  const commit = () => {
+    const plan = planLog(input.value);
+    if (!plan) { hint.textContent = "Couldn't tell what that's about. Name the animal, field or project."; hint.classList.add("warn"); return; }
+    void plan.run().then((r) => { app.toast(r ? `Logged in ${plan.tool}: ${r}` : "Couldn't log that.", 4000); input.value = ""; placeHub.ctx.home(); });
+  };
+  input.addEventListener("input", () => {
+    hint.classList.remove("warn");
+    const plan = input.value.trim() ? planLog(input.value) : null;
+    hint.textContent = plan ? `Will log in ${plan.tool}: ${plan.summary}` : input.value.trim() ? "…" : "Log animals, fields or a building site in plain words.";
+  });
+  input.addEventListener("keydown", (e) => { if (e.key === "Enter") commit(); });
+  return h("div", { class: "flock-log" }, h("div", { class: "build-log-form" }, input, h("button", { class: "pill-btn", onclick: commit }, "Log")), hint);
+}
+
 const placeHub = createWork(app, PLACE_TOOLS, {
   title: "My Place",
   intro: "Your home, farm, site or business: what matters there today, and the tools to run it.",
@@ -171,6 +187,7 @@ const placeHub = createWork(app, PLACE_TOOLS, {
         h("div", { class: "today-head" }, h("strong", {}, "Start with your place")),
         h("p", { class: "small" }, "Search for your address (or tap it on the map) and save it. Atlas then gives you a daily brief there: frost, heat, storms, and what's due for your animals, fields and projects."),
         h("button", { class: "pill-btn", onclick: () => { loadDemo(myStore); openMode("place"); app.toast("Hillside Farm is a demo: sheep, cattle, hens and three fields. Remove it any time from the bottom of My Place.", 7000); } }, "Or try a demo farm")),
+      main ? logBox() : "",
       h("h2", { class: "group-title" }, "Your places"),
       // The places-only export is covered by "Back up everything" below.
       ...myPlaces.listBody().filter((n) => !(n instanceof HTMLElement && n.classList.contains("mp-foot"))),
@@ -299,28 +316,10 @@ const robot = createRobot(app, {
   settings: () => aiSettings.open(),
 });
 $("ui").append(robot.el);
-/** "Daisy had twins", "sprayed Top field" or "Oak Street: slab poured" typed into the search box: a log line for Flock, Grow or Build. */
+/** "Daisy had twins", "sprayed Top field" or "Oak Street: slab poured" typed into the search box. */
 const flockLogCommand = (q: string): Command | null => {
-  const read = (key: string) => { try { return JSON.parse(localStorage.getItem(key) ?? "null"); } catch { return null; } };
-  const flock = read("atlas.work.flock.v1");
-  const animal = flock?.animals?.length ? parseLog(q, flock) : null;
-  if (animal) return {
-    title: `Log for Flock: ${animal.summary}`, steps: ["Saves it to the animal's record, with the date"],
-    run: () => void import("./work/flock").then((m) => { const r = m.logText(q); app.toast(r ? `Logged: ${r.summary}` : "Couldn't log that.", 4000); }),
-  };
-  const fields = read("atlas.work.fields.v1");
-  const field = Array.isArray(fields) && fields.length ? parseFieldLog(q, fields) : null;
-  if (field) return {
-    title: `Log for Grow: ${field.summary}`, steps: ["Adds it to the field's diary, with the date"],
-    run: () => void import("./work/grow").then((m) => { const r = m.logFieldText(q); app.toast(r ? `Logged: ${r.summary}` : "Couldn't log that.", 4000); }),
-  };
-  const builds = read("atlas.work.build.v1");
-  const site = Array.isArray(builds) && builds.length ? parseSiteLog(q, builds) : null;
-  if (site) return {
-    title: `Log for Build: ${site.summary}`, steps: [site.delivery ? "Adds it to the project's deliveries" : site.phase ? "Adds it to the site log and updates progress" : "Adds it to the project's site log, with the date"],
-    run: () => void import("./work/build").then((m) => { const r = m.logSiteText(q); app.toast(r ? `Logged: ${r.summary}` : "Couldn't log that.", 4000); }),
-  };
-  return null;
+  const plan = planLog(q);
+  return plan ? { title: `Log for ${plan.tool}: ${plan.summary}`, steps: [plan.saves], run: () => void plan.run().then((r) => app.toast(r ? `Logged: ${r}` : "Couldn't log that.", 4000)) } : null;
 };
 
 const asCommand = (q: string): Command | null => {
