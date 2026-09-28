@@ -219,8 +219,8 @@ The task robot opens these too: "Europe in 1914", "the Roman Empire in 100 AD", 
 "plant health in Iowa", "plan a field trip to the Science Museum", "my cattle", "construction site".
 
 **Works offline, installs as an app.** Add Atlas to a phone's home screen. The app, its bundled data and
-the map tiles you've looked at stay cached, so your place still shows in a field with no signal, and your
-records are on the device. **Back up everything** (in My Place) saves all your places, animals, fields,
+the terrain you've looked at stay cached, so Atlas opens in a field with no signal, with your records on the
+device (satellite imagery follows the browser's own cache until an imagery licence allows storing it). **Back up everything** (in My Place) saves all your places, animals, fields,
 projects, plans, decks and quizzes to one file to keep or to restore on another device.
 
 **Worth knowing.** Tap a notable feature and the place card says something true about it: about 290 rivers,
@@ -377,8 +377,10 @@ page at the same view.
 - The Today brief and Grow's harvest windows are estimates from the weather and typical crop values;
   plain-words logging understands common phrasings and shows what it will save, but not every way of
   saying things. Routine-care intervals are common practice, not veterinary advice.
-- Records stay in the browser until there's an account and sync: use Back up everything. Offline map
-  tiles are the ones you've already looked at (up to about 4,000).
+- Records stay in the browser until there's an account and sync: use Back up everything. Offline terrain
+  is what you've already looked at (up to about 4,000 tiles).
+- Several data sources are free for non-commercial use only; see [docs/data-licensing.md](docs/data-licensing.md)
+  for what each allows and what's needed before charging for Atlas.
 - Lenses: what a feature is gets guessed from its name and the ground, and can be wrong; the lens strip
   says what it assumed. Rock below mapped units in Slice and Block is drawn to typical depths where no
   column exists. Sea level floods everything below the line, including land protected by dykes or not
