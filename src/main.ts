@@ -36,6 +36,7 @@ import { briefFor, todayCard } from "./myplaces/todayUi";
 import { backupRow, keepStorage } from "./myplaces/backup";
 import { hasDemo, loadDemo, removeDemo } from "./myplaces/demo";
 import { planLog } from "./myplaces/logAny";
+import { describeDrafts, parseSteps } from "./work/journeyModel";
 import { createSpace } from "./space/panel";
 import { createLenses } from "./lenses/bar";
 import { LENSES } from "./lenses";
@@ -369,9 +370,22 @@ const logCommand = (q: string): Command | null => {
   return plan ? { title: `Log for ${plan.tool}: ${plan.summary}`, steps: [plan.saves], run: () => void plan.run().then((r) => app.toast(r ? `Logged: ${r}` : "Couldn't log that.", 4000)) } : null;
 };
 
+/** A trip typed into the search box: "fly to Manila, taxi to the Peninsula, stay 3 nights". */
+const tripCommand = (q: string): Command | null => {
+  const d = parseSteps(q);
+  if (d.length < 2 || !d.some((x) => x.kind === "move" || x.kind === "stay")) return null;
+  return { title: "Plan this trip", steps: [describeDrafts(d)], run: () => {
+    closePanels(makeHub.panel);
+    makeHub.ctx.open();
+    void import("./work/planUi").then((m) => m.tripFromText(makeHub.ctx, q)).catch(() => app.toast("Couldn't load the planner. Check the connection and try again.", 5000));
+  } };
+};
+
 const asCommand = (q: string): Command | null => {
   const logged = logCommand(q);
   if (logged) return logged;
+  const trip = tripCommand(q);
+  if (trip) return trip;
   const p = plan(q);
   // With Claude connected, anything that reads as a request or question goes to it.
   if (aiOn() && looksLikeAsk(q)) return { title: "Ask Atlas AI", steps: [p.steps.length ? describe(p).join(" → ") : "Claude will work out the steps"], run: () => void robot.ask(q.trim(), p.steps.length ? p : null) };

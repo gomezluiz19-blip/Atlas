@@ -6,11 +6,12 @@ import { forecast } from "../data/openmeteo";
 import { elementPoint, overpass } from "../data/overpass";
 import { stats } from "../themes/common";
 import { h } from "../ui/dom";
-import { flyToPlace, geocode } from "../ui/search";
 import { fmtDist, metres } from "./geo";
 import type { WorkCtx } from "./hub";
 import { WorkLayer } from "./layer";
-import { CHECKLIST, GRADES, tripNumbers, type FieldTrip, type Stop } from "./tripModel";
+import { copyJourney, frameJourney, journeyEditor, journeyFeatures, journeyText } from "./journey";
+import { timeline, type Spot } from "./journeyModel";
+import { CHECKLIST, GRADES, groupNumbers, tripJourney, type FieldTrip } from "./tripModel";
 import { ListStore, download, newId } from "./store";
 
 const store = new ListStore<FieldTrip>("atlas.work.trips.v1");
@@ -20,12 +21,14 @@ const fmtDay = (iso: string) => new Date(iso + "T12:00:00Z").toLocaleDateString(
 
 function draw(app: App, t: FieldTrip) {
   layer ??= new WorkLayer(app, "work:trip", "Field trip", "#ff9f0a");
-  const pts = [t.school, t.dest].filter(Boolean) as Stop[];
-  layer.set([
-    ...(pts.length === 2 ? [{ id: "route", kind: "line" as const, pts: pts.map((p) => [p.lon, p.lat] as [number, number]), color: "#ff9f0a", dashed: true }] : []),
-    ...pts.map((p, i) => ({ id: `p${i}`, kind: "point" as const, pts: [[p.lon, p.lat] as [number, number]], color: i ? "#ff375f" : "#0a84ff", label: `${i ? "🎒" : "🏫"} ${p.name}` })),
-  ], `Field trip · ${t.title}`);
+  layer.set(journeyFeatures(tripJourney(t), "School"), `Field trip · ${t.title}`);
 }
+
+/** The main place the class is going: the longest stop. */
+const mainStop = (t: FieldTrip): Spot | null => {
+  const stays = tripJourney(t).steps.filter((s) => s.kind === "stay");
+  return stays.sort((a, b) => (b.kind === "stay" ? b.hours ?? 0 : 0) - (a.kind === "stay" ? a.hours ?? 0 : 0))[0]?.place ?? t.dest;
+};
 
 export function openTrips(ctx: WorkCtx, back: () => void) {
   ctx.show("Field trips", back,
@@ -33,13 +36,14 @@ export function openTrips(ctx: WorkCtx, back: () => void) {
     h("div", { class: "chips wrap" }, h("button", { class: "chip", onclick: () => {
       const d = new Date(Date.now() + 14 * 86_400_000).toISOString().slice(0, 10);
       const t: FieldTrip = { id: newId(), title: "Class field trip", school: null, dest: null, date: d, depart: "08:30", hours: 3, students: 28, grade: "35", ratio: 8, seats: 50, busPerKm: 3, fee: 0, notes: "", checklist: CHECKLIST.map((text) => ({ text, done: false })) };
+      t.journey = { id: t.id, name: t.title, start: d, time: "08:30", origin: null, steps: [], created: Date.now() };
       store.save(t);
       openTrip(ctx, t.id, back);
     } }, "+ New field trip")),
     store.all().length ? h("div", { class: "list" }, ...store.all().map((t) =>
       h("button", { class: "list-row", onclick: () => openTrip(ctx, t.id, back) },
         h("span", { class: "work-badge", style: "background:#ff9f0a" }, "🎒"),
-        h("span", { class: "list-text" }, h("span", { class: "list-title" }, t.title), h("span", { class: "list-sub" }, `${t.dest?.name ?? "No destination yet"} · ${fmtDay(t.date)}`)),
+        h("span", { class: "list-text" }, h("span", { class: "list-title" }, t.title), h("span", { class: "list-sub" }, `${mainStop(t)?.name ?? "No destination yet"} · ${fmtDay(t.date)}`)),
         h("span", { class: "chev", html: "&rsaquo;" })))) : "",
   );
 }
@@ -48,32 +52,16 @@ function openTrip(ctx: WorkCtx, id: string, back: () => void) {
   const t = store.get(id);
   if (!t) return openTrips(ctx, back);
   const { app } = ctx;
-  const save = () => store.save(t);
+  const j = (t.journey = tripJourney(t));
+  // The school, the main stop, the date and the start time follow the steps.
+  const sync = () => { t.school = j.origin; t.dest = mainStop(t); t.date = j.start; t.depart = j.time; j.name = t.title; };
+  const save = () => { if (j.name !== t.title && /^class field trip$/i.test(t.title)) t.title = j.name; sync(); store.save(t); };
   const again = () => openTrip(ctx, id, back);
+  sync();
   draw(app, t);
-  const n = tripNumbers(t);
-
-  const placeField = (which: "school" | "dest", label: string) => {
-    const input = h("input", { value: t[which]?.name ?? "", placeholder: which === "school" ? "Your school's name or address" : "Museum, park, farm, city…" }) as HTMLInputElement;
-    const find = async () => {
-      if (!input.value.trim()) return;
-      const [r] = await geocode(input.value, t.school && which === "dest" ? { lat: t.school.lat, lon: t.school.lon } : null).catch(() => []);
-      if (!r) { app.toast("Couldn't find that. Try adding the town, or tap it on the map.", 5000); return; }
-      t[which] = { name: input.value.trim().split(",")[0], lon: r.lon, lat: r.lat };
-      save();
-      again();
-      void flyToPlace(app.globe, { name: r.name, lon: r.lon, lat: r.lat, radius: 1500 });
-    };
-    input.addEventListener("keydown", (e) => { if (e.key === "Enter") void find(); });
-    return h("div", { class: "mp-field" }, h("span", {}, label),
-      h("div", { class: "pro-url-row" }, input,
-        h("button", { class: "pill-btn", onclick: () => void find() }, "Find"),
-        h("button", { class: "pill-btn", title: "Tap it on the map", onclick: () => {
-          ctx.hide();
-          app.pickOnce(`Tap the ${which === "school" ? "school" : "destination"}`, (p) => { ctx.unhide(); t[which] = { name: input.value.trim() || (which === "school" ? "School" : "Destination"), lon: p.lon, lat: p.lat }; save(); again(); }, () => ctx.unhide());
-        } }, "Tap")));
-  };
-  const num = (label: string, key: "students" | "hours" | "seats" | "busPerKm" | "fee" | "ratio", step = 1) =>
+  const tl = timeline(j);
+  const n = groupNumbers(t, tl);
+  const num = (label: string, key: "students" | "seats" | "busPerKm" | "fee" | "ratio", step = 1) =>
     h("label", { class: "mp-field" }, h("span", {}, label), h("input", { type: "number", min: 0, step, value: t[key], onchange: (e: Event) => { t[key] = Number((e.target as HTMLInputElement).value) || 0; save(); again(); } }));
 
   const extra = h("div", { class: "work-analysis" });
@@ -103,7 +91,8 @@ function openTrip(ctx: WorkCtx, id: string, back: () => void) {
 <style>body{font:16px/1.6 Georgia,serif;max-width:700px;margin:40px auto;padding:0 20px;color:#111}h1{font:700 26px -apple-system,system-ui,sans-serif}.box{border:1px solid #999;border-radius:8px;padding:12px 16px}.line{border-bottom:1px solid #333;height:28px;margin:6px 0 14px}.cut{border-top:2px dashed #999;margin:28px 0;text-align:center;color:#999;font-size:12px}@media print{button{display:none}}</style>
 <button onclick="print()">Print</button>
 <h1>${esc(t.title)}</h1>
-<div class="box"><p><b>Where:</b> ${esc(t.dest?.name ?? "")}<br><b>When:</b> ${fmtDay(t.date)}, leaving school at ${n.times.leave} and back by about ${n.times.back}<br><b>Travel:</b> by coach, about ${Math.round(n.km)} km each way<br><b>Cost:</b> ${n.perStudent > 0 ? `$${n.perStudent.toFixed(2)} per student` : "free"}</p>
+<div class="box"><p><b>Where:</b> ${esc(t.dest?.name ?? "")}<br><b>When:</b> ${fmtDay(t.date)}, leaving school at ${n.leave} and back by about ${n.back}<br><b>Travel:</b> ${n.busKm ? `by coach, about ${Math.round(n.busKm)} km in all` : "on foot and by public transport"}<br><b>Cost:</b> ${n.perStudent > 0 ? `$${n.perStudent.toFixed(2)} per student` : "free"}</p>
+<p><b>The day:</b></p><ul>${journeyText(j, true).split("\n").slice(2).map((l) => `<li>${esc(l.trim())}</li>`).join("")}</ul>
 ${t.notes ? `<p>${esc(t.notes)}</p>` : ""}<p>Please bring: packed lunch, water, weather-appropriate clothes and comfortable shoes.</p></div>
 <div class="cut">✂ return this part to school</div>
 <p>I give permission for my child to go on the trip to <b>${esc(t.dest?.name ?? "")}</b> on <b>${fmtDay(t.date)}</b>.</p>
@@ -112,24 +101,24 @@ ${t.notes ? `<p>${esc(t.notes)}</p>` : ""}<p>Please bring: packed lunch, water, 
 
   ctx.show("Field trip", () => openTrips(ctx, back),
     h("input", { class: "mp-name", value: t.title, "aria-label": "Trip name", onchange: (e: Event) => { t.title = (e.target as HTMLInputElement).value || t.title; save(); } }),
-    placeField("school", "From (school)"), placeField("dest", "To (destination)"),
-    h("div", { class: "build-fields" },
-      h("label", { class: "mp-field" }, h("span", {}, "Date"), h("input", { type: "date", value: t.date, onchange: (e: Event) => { t.date = (e.target as HTMLInputElement).value || t.date; save(); again(); } })),
-      h("label", { class: "mp-field" }, h("span", {}, "Leave school"), h("input", { type: "time", value: t.depart, onchange: (e: Event) => { t.depart = (e.target as HTMLInputElement).value || t.depart; save(); again(); } })),
-      num("Hours there", "hours", 0.5)),
+    h("h3", { class: "lens-sub" }, "The day, step by step"),
+    j.steps.length ? h("div", { class: "jr-actions" },
+      h("button", { class: "pill-btn", onclick: () => frameJourney(app, j) }, "Show the day"),
+      h("button", { class: "pill-btn", onclick: () => void copyJourney(app, j, true) }, "Copy the timetable")) : "",
+    journeyEditor({ ctx, journey: j, short: true, originLabel: "School", save: () => { save(); draw(app, t); }, rerender: again }),
+    h("h3", { class: "lens-sub" }, "The group"),
     h("div", { class: "build-fields" },
       num("Students", "students"),
       h("label", { class: "mp-field" }, h("span", {}, "Grade"), h("select", { onchange: (e: Event) => { t.grade = (e.target as HTMLSelectElement).value; t.ratio = GRADES.find((g) => g.id === t.grade)!.ratio; save(); again(); } }, ...GRADES.map((g) => h("option", { value: g.id, selected: g.id === t.grade }, g.label)))),
       num("Students per adult", "ratio")),
     h("div", { class: "build-fields" }, num("Seats per bus", "seats"), num("Bus $/km", "busPerKm", 0.1), num("Entry $/student", "fee", 0.5)),
-    t.school && t.dest ? stats(
-      ["Distance", `about ${Math.round(n.km)} km by road each way`, "1.3 × the straight line; check the real route"],
-      ["Bus ride", `about ${Math.floor(n.busMin / 60) ? `${Math.floor(n.busMin / 60)} h ` : ""}${n.busMin % 60} min`],
-      ["Timetable", `leave ${n.times.leave} · arrive ${n.times.arrive} · leave ${n.times.leaveVenue} · back ${n.times.back}`],
+    j.steps.length ? stats(
+      ["The day", `leave ${n.leave} · back about ${n.back}`],
+      n.busKm ? ["By bus", `about ${Math.round(n.busKm)} km in all`, "1.3 × the straight line; check the real route"] : null,
       ["Adults", `${n.adults} (1 per ${t.ratio} students)`, "Typical guidance; follow your school's and the venue's rules"],
-      ["Buses", `${n.buses} × ${t.seats} seats`],
+      n.buses ? ["Buses", `${n.buses} × ${t.seats} seats`] : null,
       ["Cost", `$${Math.round(n.total).toLocaleString()} · $${n.perStudent.toFixed(2)} per student`],
-    ) : h("p", { class: "muted small" }, "Add the school and the destination to see the timetable and costs."),
+    ) : h("p", { class: "muted small" }, "Add the day's steps to see the timetable and costs."),
     n.long ? h("p", { class: "pro-warn" }, "That's a long day (over 10 hours). Consider an earlier start, a closer destination or less time there.") : "",
     extra,
     h("section", { class: "group" }, h("h2", { class: "group-title" }, "Checklist"),

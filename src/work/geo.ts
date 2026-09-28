@@ -75,4 +75,4 @@ export function crossings(path: LonLat[], lines: { xy: ArrayLike<number>; bbox: 
 
 export const fmtDist = (m: number) => (m >= 10_000 ? `${Math.round(m / 1000).toLocaleString()} km` : m >= 1000 ? `${(m / 1000).toFixed(1)} km` : `${Math.round(m)} m`);
 export const fmtArea = (m2: number) => (m2 >= 1e6 ? `${(m2 / 1e6).toFixed(m2 >= 1e8 ? 0 : 2)} km²` : m2 >= 1e4 ? `${(m2 / 1e4).toFixed(1)} ha` : `${Math.round(m2).toLocaleString()} m²`);
-export const fmtHours = (h: number) => (h < 1 ? `${Math.max(1, Math.round(h * 60))} min` : `${Math.floor(h)} h ${Math.round((h % 1) * 60)} min`);
+export const fmtHours = (h: number) => { if (h < 1) return `${Math.max(1, Math.round(h * 60))} min`; const m = Math.round(h * 60), hh = Math.floor(m / 60), mm = m % 60; return mm ? `${hh} h ${mm} min` : `${hh} h`; };

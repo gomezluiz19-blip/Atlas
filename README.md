@@ -163,8 +163,11 @@ the internet. Tap a dot for the plant, port or airport.
 **The tools.** Grow, Flock, Build and live occupancy live under **My Place**; Plan, Present, Video and Teach
 under **Make**; Learn under **Look**. All of them are open to anyone:
 
-- **Plan** trips (stops in order, distances, travel times, the weather at each stop), events (venue, reach
-  rings at 15/30/60 minutes, the nearest airport, rail and port, parking), business sites (candidates
+- **Plan** trips told step by step, the way you'd say them: "fly to Manila, taxi to the Peninsula, stay 3
+  nights, train to Baguio". Each leg travels its own way (fly, train, drive, taxi, bus, ferry, walk, bike) with
+  times and distances; stays hold their own stops by day; the trip plays back on the globe, names itself and
+  copies as a text itinerary. Typing a trip into the search box starts one. Events (venue, reach rings at
+  15/30/60 minutes on foot, by bike, bus or car, the nearest airport, rail and port, parking), business sites (candidates
   compared side by side on transport and power), policy zones (area, and the power plants, rail, roads, ports,
   airports and mines inside) and infrastructure (proposed routes with length, an elevation profile, climb,
   steepest grade, and the rivers, railways and highways they cross). Everything is drawn on the map, with
@@ -210,8 +213,8 @@ under **Make**; Learn under **Look**. All of them are open to anyone:
   students as a link (the quiz travels in the URL); students send back a result code and the gradebook shows
   scores and the questions to revisit. *Games*: Where in the world? and Time traveller. *World Summit*: a
   turn-based international relations simulation where teams lead real countries over several lessons, with
-  events, alliances, trade and sanctions drawn on the globe and a debrief. *Field trips*: timetable, adults
-  and buses, cost per student, the forecast, the nearest hospital, a checklist and a printable permission slip.
+  events, alliances, trade and sanctions drawn on the globe and a debrief. *Field trips*: the day step by step
+  ("bus to the museum, stay 3 hours, walk to the park, bus back to school"), timetable, adults and buses, cost per student, the forecast, the nearest hospital, a checklist and a printable permission slip.
 
 - **Learn** is for students: a daily challenge with a streak, Flight School (steer a plane over the globe to
   named countries, seeing which country you're over as you go), Flag Match, Where in the world? and Time

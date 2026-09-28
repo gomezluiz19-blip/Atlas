@@ -1549,3 +1549,63 @@ button.today-item:hover { background: var(--fill-strong); }
 @keyframes panel-in { from { opacity: 0; transform: translateY(-6px) scale(0.985); } to { opacity: 1; transform: none; } }
 .popover:not([hidden]), .lens-panel:not([hidden]) { animation: panel-in 0.18s ease-out; }
 @media (prefers-reduced-motion: reduce) { .popover:not([hidden]), .lens-panel:not([hidden]) { animation: none; } }
+
+/* Journeys: a trip as a timeline of steps */
+.journey { display: flex; flex-direction: column; gap: 12px; }
+.jr-summary { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 10px; font-size: 13px; color: var(--secondary); }
+.jr-summary strong { font-size: 17px; color: var(--label); }
+.jr-mode-count { padding: 2px 8px; border-radius: 999px; background: color-mix(in srgb, var(--c) 16%, transparent); color: var(--label); font-weight: 600; }
+.jr-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.jr-list { position: relative; display: flex; flex-direction: column; gap: 6px; }
+.jr-list::before { content: ""; position: absolute; left: 19px; top: 20px; bottom: 20px; width: 2px; background: var(--separator); border-radius: 2px; }
+.jr-step { position: relative; display: flex; gap: 10px; align-items: flex-start; padding: 8px 10px 8px 0; border-radius: 14px; transition: background 0.2s; }
+.jr-step.open, .jr-step.playing { background: var(--fill); }
+.jr-step.playing .jr-icon { transform: scale(1.12); box-shadow: 0 0 0 4px color-mix(in srgb, var(--c) 35%, transparent); }
+.jr-icon { flex: none; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; border: 0; font-size: 19px; background: color-mix(in srgb, var(--c) 22%, var(--material-strong)); box-shadow: inset 0 0 0 2px var(--c); z-index: 1; cursor: default; transition: transform 0.2s, box-shadow 0.2s; }
+button.jr-icon { cursor: pointer; }
+button.jr-icon:hover { transform: scale(1.06); }
+.jr-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; padding-top: 2px; }
+.jr-move .jr-body { cursor: pointer; }
+.jr-title { font-size: 15px; line-height: 1.3; display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 4px; }
+.jr-title b { font-weight: 650; }
+.jr-sub, .jr-weather { font-size: 12.5px; color: var(--secondary); }
+.jr-weather:empty { display: none; }
+.jr-note { font-size: 12.5px; color: var(--label); background: var(--fill); padding: 4px 8px; border-radius: 8px; align-self: flex-start; }
+.jr-inline { flex: 1; min-width: 140px; font: inherit; font-weight: 600; border: 0; border-bottom: 1px dashed var(--separator); background: transparent; color: var(--label); padding: 2px 0; }
+.jr-inline:focus { outline: none; border-bottom-color: var(--accent); }
+.jr-when { display: flex; gap: 6px; flex-wrap: wrap; }
+.jr-when input, .jr-fields input, .jr-fields select, .jr-day { font: inherit; font-size: 13px; padding: 4px 8px; border-radius: 8px; border: 1px solid var(--separator); background: var(--material); color: var(--label); }
+.jr-edit { display: flex; flex-direction: column; gap: 8px; margin-top: 6px; }
+.jr-modes { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
+.jr-mode { display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 6px 2px; border-radius: 10px; border: 0; background: var(--material); color: var(--label); cursor: pointer; font: inherit; }
+.jr-mode span { font-size: 18px; }
+.jr-mode small { font-size: 11px; color: var(--secondary); }
+.jr-mode.on { background: color-mix(in srgb, var(--c) 25%, var(--material)); box-shadow: inset 0 0 0 2px var(--c); }
+.jr-fields { display: flex; gap: 8px; flex-wrap: wrap; }
+.jr-fields label { display: flex; flex-direction: column; gap: 2px; font-size: 12px; color: var(--secondary); }
+.jr-fields label.grow { flex: 1; min-width: 140px; }
+.jr-tools { display: flex; flex-wrap: wrap; gap: 4px 12px; }
+.jr-stepper { display: flex; align-items: center; gap: 6px; font-size: 13px; }
+.jr-stepper .icon-btn { width: 28px; height: 28px; border-radius: 50%; background: var(--material); font-size: 16px; }
+.jr-days { display: flex; flex-direction: column; gap: 6px; }
+.jr-days:empty { display: none; }
+.jr-day-block { display: flex; flex-direction: column; gap: 2px; }
+.jr-day-label { font-size: 11.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em; color: var(--secondary); }
+.jr-visit { display: flex; align-items: center; gap: 6px; }
+.jr-visit-name { flex: 1; min-width: 0; text-align: left; border: 0; background: none; padding: 2px 0; font: inherit; font-size: 14px; color: var(--label); cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.jr-visit-name:hover { color: var(--accent); }
+.jr-day { padding: 2px 6px; font-size: 12px; }
+.jr-add-stop .jr-inline { font-weight: 400; font-size: 13.5px; width: 100%; }
+.jr-compose { display: flex; flex-direction: column; gap: 8px; padding: 12px; border-radius: 16px; background: var(--material); box-shadow: inset 0 0 0 1px var(--separator); }
+.jr-quick { display: flex; flex-wrap: wrap; gap: 6px; }
+.jr-input-row { display: flex; gap: 6px; }
+.jr-input { flex: 1; min-width: 0; font: inherit; font-size: 15px; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--separator); background: var(--material-strong); color: var(--label); }
+.jr-input:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+.jr-inserting { font-size: 12.5px; color: var(--secondary); display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.jr-preview { display: flex; flex-direction: column; gap: 6px; }
+.jr-prev { display: flex; flex-direction: column; gap: 3px; font-size: 14px; padding: 6px 8px; border-radius: 10px; background: var(--material-strong); animation: panel-in 0.18s ease-out; }
+.jr-prev.bad { color: var(--red, #ff453a); }
+.jr-alts { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; font-size: 12px; color: var(--secondary); }
+.chip.small { font-size: 12px; padding: 3px 8px; }
+.jr-prev-actions { display: flex; gap: 10px; align-items: center; }
+@media (prefers-reduced-motion: reduce) { .jr-step, .jr-icon, .jr-prev { transition: none; animation: none; } }
