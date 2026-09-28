@@ -35,18 +35,11 @@ import { todayCard } from "./myplaces/todayUi";
 import { createSpace } from "./space/panel";
 import { createLenses } from "./lenses/bar";
 import { LENSES } from "./lenses";
-import { openPlans } from "./work/planUi";
 import { borders, openPresent, showYear } from "./work/present";
 import { YEARS, yearLabel } from "./data/history";
-import { openVideo } from "./work/video";
 import { ndviAction, openGrow } from "./work/grow";
-import { openBuild } from "./work/build";
-import { openFlock } from "./work/flock";
-import { openTeach } from "./work/teach";
-import { openLearn } from "./work/learn";
 import { loadPassport, savePassport, stamp } from "./work/passport";
 import { countryAt } from "./data/countries";
-import { openQuizLink } from "./work/quiz";
 import { plan } from "./robot/plan";
 import { describe } from "./robot/run";
 import { siteBrowser } from "./ui/sites";
@@ -56,6 +49,17 @@ import { MINES } from "./content/minerals";
 import { LINKS } from "./content/links";
 
 const $ = (id: string) => document.getElementById(id)!;
+
+// Tools that aren't needed to show the globe load when first opened.
+const lazy = (load: () => Promise<(ctx: WorkCtx) => void>) => (ctx: WorkCtx) => {
+  load().then((open) => open(ctx)).catch(() => app.toast("Couldn't load that tool. Check the connection and try again.", 5000));
+};
+const openPlans = lazy(() => import("./work/planUi").then((m) => m.openPlans));
+const openVideo = lazy(() => import("./work/video").then((m) => m.openVideo));
+const openBuild = lazy(() => import("./work/build").then((m) => m.openBuild));
+const openFlock = lazy(() => import("./work/flock").then((m) => m.openFlock));
+const openTeach = lazy(() => import("./work/teach").then((m) => m.openTeach));
+const openLearn = lazy(() => import("./work/learn").then((m) => m.openLearn));
 
 const globe = new Globe($("globe"), $("credits"));
 const app = new App(globe, $("ui"));
@@ -237,7 +241,7 @@ for (const [t, { hub, open }] of Object.entries(HUB_OF))
   app.actions.set(`work:${t}`, { label: `${hub === placeHub ? "My Place" : hub === makeHub ? "Make" : "Look"} › ${t}`, run: () => { hub.ctx.open(); open(hub.ctx); } });
 // A student opening a quiz link from their teacher.
 const quizLink = /^#quiz=([\w-]+)/.exec(location.hash);
-if (quizLink) void openQuizLink(app, quizLink[1]);
+if (quizLink) void import("./work/quiz").then((m) => m.openQuizLink(app, quizLink[1]));
 for (const y of YEARS)
   app.actions.set(`work:borders:${y}`, { label: `Borders in ${yearLabel(y)}`, run: () => void showYear(app, y).catch(() => app.toast("Couldn't load the historical borders. Check the connection.", 5000)), isOn: () => borders(app).year === y });
 
