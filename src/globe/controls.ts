@@ -73,6 +73,23 @@ export function createMapControls(viewer: Viewer): HTMLElement {
     const t = groundAt(viewer, e.position);
     if (t) glide(viewer, t, 0.45, 0.45);
   }, ScreenSpaceEventType.LEFT_DOUBLE_CLICK);
+
+  // Stay clear of a panel open on the right (desktop; phones hide the controls instead).
+  let queued = false;
+  const dodge = () => { if (queued) return; queued = true; requestAnimationFrame(() => {
+    queued = false;
+    const ui = el.parentElement;
+    if (!ui || innerWidth <= 820) { el.style.right = ""; return; }
+    const mine = el.getBoundingClientRect();
+    let edge = innerWidth;
+    for (const p of ui.querySelectorAll<HTMLElement>(".popover:not([hidden]), .lens-panel:not([hidden])")) {
+      const r = p.getBoundingClientRect();
+      if (r.width && r.left > innerWidth / 2 && r.bottom > mine.top - 8) edge = Math.min(edge, r.left);
+    }
+    el.style.right = edge < innerWidth ? `${innerWidth - edge + 12}px` : "";
+  }); };
+  queueMicrotask(() => { if (el.parentElement) new MutationObserver(dodge).observe(el.parentElement, { subtree: true, attributes: true, attributeFilter: ["hidden"] }); });
+  addEventListener("resize", dodge);
   return el;
 }
 

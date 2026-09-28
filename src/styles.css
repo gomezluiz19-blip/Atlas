@@ -1529,7 +1529,7 @@ button.today-item:hover { background: var(--fill-strong); }
 .fact-i { flex: none; display: grid; place-items: center; width: 16px; height: 16px; border-radius: 50%; background: var(--accent); color: #fff; font-size: 11px; font-weight: 700; font-style: italic; font-family: Georgia, serif; }
 
 /* Map controls: compass and zoom */
-.map-controls { position: absolute; right: var(--gutter); bottom: calc(var(--gutter) + 72px); display: flex; flex-direction: column; gap: 8px; align-items: center; z-index: 12; }
+.map-controls { position: absolute; right: var(--gutter); transition: right 0.2s ease-out; bottom: calc(var(--gutter) + 72px); display: flex; flex-direction: column; gap: 8px; align-items: center; z-index: 12; }
 .map-zoom { display: flex; flex-direction: column; border-radius: 12px; overflow: hidden; background: var(--material); -webkit-backdrop-filter: saturate(180%) blur(24px); backdrop-filter: saturate(180%) blur(24px); box-shadow: var(--shadow); }
 .map-zoom .map-ctl { border-radius: 0; box-shadow: none; background: transparent; }
 .map-zoom .map-ctl + .map-ctl { border-top: 1px solid var(--separator); }
