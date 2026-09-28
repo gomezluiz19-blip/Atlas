@@ -21,6 +21,8 @@ export interface TodayInputs {
   builds: BuildProject[];
   /** Growth stage, harvest window and water need per field (optional). */
   seasons?: FieldSeason[];
+  /** Disease and pest weather: dates of Hutton periods (blight) and flystrike weather. */
+  risks?: { hutton: string[]; flystrike: string[] };
 }
 
 const dayName = (iso: string, today: string) => {
@@ -64,6 +66,15 @@ export function todayItems(x: TodayInputs): TodayItem[] {
     const d = w[0];
     out.push({ icon: "🌤️", title: `A good day for outside work: ${Math.round(d.tmin)}–${Math.round(d.tmax)} °C`, detail: d.rain > 0 ? `Light rain (${d.rain.toFixed(1)} mm).` : "Dry, with light wind.", urgency: "fyi" });
   }
+
+  // Disease and pest weather.
+  const soonDates = (ds: string[]) => ds.filter((d) => d >= addDays(x.today, -1) && d <= addDays(x.today, 4));
+  const blightCrops = x.fields.filter((f) => f.crop === "potato" || f.crop === "tomato");
+  const hutton = soonDates(x.risks?.hutton ?? []);
+  if (blightCrops.length && hutton.length) out.push({ icon: "🍂", title: `Blight weather ${dayName(hutton[0], x.today)} (a Hutton period)`, detail: `Warm, humid days favour late blight: protect ${blightCrops.map((f) => f.name).slice(0, 3).join(", ")}, and check leaves for brown patches.`, urgency: hutton[0] <= addDays(x.today, 1) ? "now" : "soon", tool: "grow" });
+  const sheep = x.flock?.animals.some((a) => a.species === "sheep" && !/sold|deceased/i.test(a.status ?? ""));
+  const fly = soonDates(x.risks?.flystrike ?? []);
+  if (sheep && fly.length >= 2) out.push({ icon: "🪰", title: "Flystrike weather", detail: "Warm and humid: check the sheep daily, especially dirty back ends, and consider a preventive treatment.", urgency: "soon", tool: "flock" });
 
   // Animals: births, vaccinations and rechecks. Three or more births of one kind become one line.
   if (x.flock) {

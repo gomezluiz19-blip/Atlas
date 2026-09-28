@@ -71,3 +71,14 @@ describe("grouped births", () => {
     expect(items.find((i) => /sheep/.test(i.title))!.title).toBe("5 sheep due to give birth in the next two weeks");
   });
 });
+
+describe("disease weather in the brief", () => {
+  it("warns about blight for potatoes and flystrike for sheep", () => {
+    const flock = { org: "farm", name: "", paddocks: [], animals: [{ id: "s", species: "sheep", name: "", status: "Active", weights: [], health: [] }] } as never;
+    const items = todayItems({ ...base, weather: null, flock, fields: [{ name: "Veg patch", crop: "potato", planted: "2026-04-01" }], risks: { hutton: ["2026-05-11"], flystrike: ["2026-05-10", "2026-05-11"] } });
+    expect(items.find((i) => i.icon === "🍂")!.title).toBe("Blight weather tomorrow (a Hutton period)");
+    expect(items.some((i) => i.title === "Flystrike weather")).toBe(true);
+    // No potatoes or tomatoes: no blight line.
+    expect(todayItems({ ...base, weather: null, risks: { hutton: ["2026-05-11"], flystrike: [] } }).some((i) => i.icon === "🍂")).toBe(false);
+  });
+});

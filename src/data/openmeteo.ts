@@ -101,3 +101,12 @@ export async function climateDays(lon: number, lat: number, years = 10): Promise
   );
   return r.daily.time.map((date, i) => ({ date, tmin: r.daily.temperature_2m_min[i], tmax: r.daily.temperature_2m_max[i], rain: r.daily.precipitation_sum[i] }));
 }
+
+/** Hourly temperature and humidity from two days ago to four days ahead (for disease-risk rules). */
+export async function hourlyHumid(lon: number, lat: number): Promise<{ time: string; t: number; rh: number }[]> {
+  const r = await getJson<{ hourly: { time: string[]; temperature_2m: number[]; relative_humidity_2m: number[] } }>(
+    "Open-Meteo",
+    `https://api.open-meteo.com/v1/forecast?${ll(lon, lat)}&hourly=temperature_2m,relative_humidity_2m&past_days=2&forecast_days=5&timezone=auto`,
+  );
+  return r.hourly.time.map((time, i) => ({ time, t: r.hourly.temperature_2m[i], rh: r.hourly.relative_humidity_2m[i] }));
+}
