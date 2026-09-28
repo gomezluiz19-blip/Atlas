@@ -59,7 +59,7 @@ export function createMapControls(viewer: Viewer): HTMLElement {
   });
 
   // Keyboard: + and - zoom (outside text boxes).
-  addEventListener("keydown", (e) => {
+  addEventListener("keydown", (e: KeyboardEvent) => {
     const t = e.target as HTMLElement | null;
     if (e.metaKey || e.ctrlKey || e.altKey || (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.tagName === "SELECT" || t.isContentEditable))) return;
     if (e.key === "+" || e.key === "=") zoom(0.5);
