@@ -61,3 +61,13 @@ describe("backups", () => {
     expect(() => readBackup('{"hello":1}')).toThrow();
   });
 });
+
+describe("grouped births", () => {
+  it("rolls three or more births of one species into one line", () => {
+    const ewes = Array.from({ length: 5 }, (_, i) => ({ id: `s${i}`, species: "sheep", name: "", tag: String(300 + i), status: "Active", bred: `2025-12-${String(18 + i).padStart(2, "0")}`, weights: [], health: [] }));
+    const flock = { org: "farm", name: "", paddocks: [], animals: [...ewes, { id: "c", species: "cattle", name: "Daisy", status: "Active", bred: "2025-08-05", weights: [], health: [] }] } as never;
+    const items = todayItems({ ...base, weather: null, flock });
+    expect(items.filter((i) => /sheep/.test(i.title))).toHaveLength(1);
+    expect(items.find((i) => /sheep/.test(i.title))!.title).toBe("5 sheep due to give birth in the next two weeks");
+  });
+});

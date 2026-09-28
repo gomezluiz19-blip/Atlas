@@ -33,6 +33,7 @@ import { createWork, type WorkCtx, type WorkTool } from "./work/hub";
 import { createModeBar, type Mode } from "./ui/modes";
 import { todayCard } from "./myplaces/todayUi";
 import { backupRow, keepStorage } from "./myplaces/backup";
+import { hasDemo, loadDemo, removeDemo } from "./myplaces/demo";
 import { createSpace } from "./space/panel";
 import { createLenses } from "./lenses/bar";
 import { LENSES } from "./lenses";
@@ -167,14 +168,18 @@ const placeHub = createWork(app, PLACE_TOOLS, {
     return [
       main ? todayCard(main, (t) => PLACE_TOOLS.find((x) => x.id === t)?.open(placeHub.ctx)) : h("div", { class: "today-card first" },
         h("div", { class: "today-head" }, h("strong", {}, "Start with your place")),
-        h("p", { class: "small" }, "Search for your address (or tap it on the map) and save it. Atlas then gives you a daily brief there: frost, heat, storms, and what's due for your animals, fields and projects.")),
+        h("p", { class: "small" }, "Search for your address (or tap it on the map) and save it. Atlas then gives you a daily brief there: frost, heat, storms, and what's due for your animals, fields and projects."),
+        h("button", { class: "pill-btn", onclick: () => { loadDemo(myStore); openMode("place"); app.toast("Hillside Farm is a demo: sheep, cattle, hens and three fields. Remove it any time from the bottom of My Place.", 7000); } }, "Or try a demo farm")),
       h("h2", { class: "group-title" }, "Your places"),
       // The places-only export is covered by "Back up everything" below.
       ...myPlaces.listBody().filter((n) => !(n instanceof HTMLElement && n.classList.contains("mp-foot"))),
       h("h2", { class: "group-title" }, "Run your place"),
     ];
   },
-  bottom: () => [backupRow((m) => app.toast(m, 5000))],
+  bottom: () => [
+    backupRow((m) => app.toast(m, 5000)),
+    hasDemo(myStore) ? h("button", { class: "link-btn danger", onclick: () => { removeDemo(myStore); myScene.clear(); app.canvas.drop("myplace"); openMode("place"); app.toast("Demo farm removed.", 3000); } }, "Remove the demo farm") : "",
+  ],
 });
 keepStorage();
 const makeHub = createWork(app, MAKE_TOOLS, {

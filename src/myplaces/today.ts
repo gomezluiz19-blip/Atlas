@@ -65,9 +65,19 @@ export function todayItems(x: TodayInputs): TodayItem[] {
     out.push({ icon: "🌤️", title: `A good day for outside work: ${Math.round(d.tmin)}–${Math.round(d.tmax)} °C`, detail: d.rain > 0 ? `Light rain (${d.rain.toFixed(1)} mm).` : "Dry, with light wind.", urgency: "fyi" });
   }
 
-  // Animals: births, vaccinations and rechecks.
+  // Animals: births, vaccinations and rechecks. Three or more births of one kind become one line.
   if (x.flock) {
-    for (const d of dueList(x.flock.animals, x.today, 14).slice(0, 5)) {
+    const due = dueList(x.flock.animals, x.today, 14);
+    const births = new Map<string, typeof due>();
+    for (const d of due) if (d.kind === "birth") { const k = d.animal.species; if (!births.has(k)) births.set(k, []); births.get(k)!.push(d); }
+    const grouped = new Set<string>();
+    for (const [sp, list] of births) {
+      if (list.length < 3) continue;
+      grouped.add(sp);
+      const first = list[0], late = list.filter((d) => d.overdue).length, info = speciesById(sp);
+      out.push({ icon: info.emoji, title: `${list.length} ${info.label.toLowerCase()} due to give birth in the next two weeks`, detail: late ? `${late} overdue; keep a close eye on them.` : `The first is due ${dayName(first.date, x.today)}.`, urgency: late || first.date <= addDays(x.today, 2) ? "now" : "soon", tool: "flock" });
+    }
+    for (const d of due.filter((d) => !(d.kind === "birth" && grouped.has(d.animal.species))).slice(0, 5)) {
       const name = d.animal.name || d.animal.tag || speciesById(d.animal.species).label;
       const soon = d.date <= addDays(x.today, 2);
       out.push({ icon: d.kind === "birth" ? speciesById(d.animal.species).emoji : "💉",
