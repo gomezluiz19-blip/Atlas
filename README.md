@@ -70,7 +70,8 @@ of Greenland", "subway map of Tokyo", "ocean currents in the Atlantic", "where w
 heat, heavy rain or gales in the next four days (with what to do about them for crops, animals or a
 building site), animals due to give birth or due a vaccination (overdue first), fields ready to harvest or
 within two weeks of it, how much to irrigate this week (mm and litres for the field), projects running
-behind, and seedlings just planted. Tap an item to open the tool it came from.
+behind, seedlings just planted, and disease weather: blight (Hutton periods) for potatoes and tomatoes and
+flystrike for sheep. Tap an item to open the tool it came from, or log what happened in the box beneath.
 
 **About this place.** The moment a place is saved, Atlas reports what it knows about the ground: its height,
 slope and the way it faces (the sunny or shady side), the rock below from the geologic map, the average last
@@ -222,8 +223,9 @@ the map tiles you've looked at stay cached, so your place still shows in a field
 records are on the device. **Back up everything** (in My Place) saves all your places, animals, fields,
 projects, plans, decks and quizzes to one file to keep or to restore on another device.
 
-**Worth knowing.** Tap a notable feature and the place card says something true about it: about 230 rivers,
-peaks, volcanoes, impact craters, ocean trenches, forests and metro systems, with their key figures (a
+**Worth knowing.** Tap a notable feature and the place card says something true about it: about 290 rivers,
+lakes, waterfalls, canyons, deserts, peaks, volcanoes, impact craters, ocean trenches, forests and metro
+systems, with their key figures (a
 river's length, flow and where it ends; a peak's height and first ascent; a crater's size and age). The
 map's labels come from Natural Earth's detailed (10 m) data: seas, bays, straits, islands, ranges, deserts,
 ice fields and salt flats, then about 7,800 towns, lakes and reservoirs as you zoom in, and detailed rivers
@@ -239,7 +241,8 @@ Saturn's rings, the asteroid belt, time controls and facts.
 **Atlas AI.** The search box's task robot can be backed by Claude: it understands any request or
 question, acts on the globe through Atlas's own tools, and answers briefly. Connect a key or a proxy
 under About › Atlas AI; see [docs/ai-proxy.md](docs/ai-proxy.md). Without it, the rule-based planner
-still handles requests.
+still handles requests. With it, Atlas AI can also read today's brief for your place ("what do I need to do
+today?") and log free-form sentences as records ("Daisy and Bramble both calved yesterday").
 
 Keyboard: `1`–`9` switch themes, `/` searches, `Esc` cancels a line or closes a chart.
 
