@@ -13,7 +13,7 @@ import { drawOnMap } from "./draw";
 import { areaM2, fmtArea, pathLength, type LonLat } from "./geo";
 import type { WorkCtx } from "./hub";
 import { WorkLayer } from "./layer";
-import { CROPS, cropById, litres, mergeDays, season, type Season } from "./growModel";
+import { CROP_GROUPS, CROPS, cropById, litres, mergeDays, season, type Season } from "./growModel";
 import { ListStore, download, newId } from "./store";
 
 interface Field {
@@ -28,7 +28,7 @@ interface Field {
 
 const store = new ListStore<Field>("atlas.work.fields.v1");
 let layer: WorkLayer | null = null;
-const CROP_COLOR: Record<string, string> = { maize: "#ffd60a", rice: "#64d2ff", wheat: "#e0b050", beans: "#ff9f0a", soybean: "#a8e05f", tomato: "#ff453a", potato: "#bf8a5a", coffee: "#b0703c", cacao: "#8e5a3c", banana: "#30d158" };
+const CROP_COLOR: Record<string, string> = { maize: "#ffd60a", rice: "#64d2ff", wheat: "#e0b050", beans: "#ff9f0a", soybean: "#a8e05f", tomato: "#ff453a", potato: "#bf8a5a", coffee: "#b0703c", cacao: "#8e5a3c", banana: "#30d158", ...Object.fromEntries(CROPS.filter((c) => c.color).map((c) => [c.id, c.color!])) };
 const today = () => {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
@@ -154,7 +154,7 @@ export function openField(ctx: WorkCtx, id: string) {
     h("input", { class: "mp-name", value: f.name, "aria-label": "Field name", onchange: (e: Event) => { f.name = (e.target as HTMLInputElement).value || f.name; save(); drawFields(app); } }),
     h("label", { class: "mp-field" }, h("span", {}, "Crop"),
       h("select", { onchange: (e: Event) => { f.crop = (e.target as HTMLSelectElement).value; save(); again(); } },
-        ...CROPS.map((c) => h("option", { value: c.id, selected: c.id === f.crop }, c.label)))),
+        ...CROP_GROUPS.map((g) => h("optgroup", { label: g }, ...CROPS.filter((c) => c.group === g).map((c) => h("option", { value: c.id, selected: c.id === f.crop }, c.label)))))),
     h("label", { class: "mp-field" }, h("span", {}, crop.perennial && crop.id !== "banana" ? "Flowering date" : "Planting date"),
       h("input", { type: "date", value: f.planted, max: today(), onchange: (e: Event) => { const v = (e.target as HTMLInputElement).value; if (v) { f.planted = v; save(); again(); } } })),
     body,

@@ -38,6 +38,7 @@ export interface Animal {
   species: string;
   name: string;
   tag?: string;
+  breed?: string;
   sex?: "F" | "M";
   born?: string;
   status: string;

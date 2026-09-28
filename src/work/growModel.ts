@@ -20,20 +20,66 @@ export interface Crop {
   stages: string[];
   perennial?: boolean;
   note?: string;
+  /** For grouping the crop list. */
+  group?: CropGroup;
+  /** Field colour on the map. */
+  color?: string;
 }
+
+export type CropGroup = "Grains" | "Pulses and oilseeds" | "Vegetables" | "Fruit" | "Fibre, sugar and roots" | "Grass and hay" | "Tree crops";
+export const CROP_GROUPS: CropGroup[] = ["Grains", "Pulses and oilseeds", "Vegetables", "Fruit", "Fibre, sugar and roots", "Grass and hay", "Tree crops"];
 
 
 export const CROPS: Crop[] = [
-  { id: "maize", label: "Maize (corn)", base: 10, cap: 30, gdd: [1400, 1600], kc: [0.3, 1.2, 0.6], days: 125, stages: ["Emerging", "Growing leaves", "Tasselling and silking", "Filling the kernels", "Drying down", "Ready to harvest"] },
-  { id: "rice", label: "Rice", base: 10, cap: 30, gdd: [1700, 2000], kc: [1.05, 1.2, 0.9], days: 130, stages: ["Seedling", "Tillering", "Heading and flowering", "Filling the grain", "Ripening", "Ready to harvest"] },
-  { id: "wheat", label: "Wheat (spring)", base: 0, cap: 30, gdd: [1500, 2000], kc: [0.3, 1.15, 0.3], days: 120, stages: ["Emerging", "Tillering", "Heading and flowering", "Filling the grain", "Ripening", "Ready to harvest"] },
-  { id: "beans", label: "Beans", base: 10, cap: 30, gdd: [1000, 1200], kc: [0.4, 1.15, 0.35], days: 95, stages: ["Emerging", "Growing leaves", "Flowering", "Filling the pods", "Drying down", "Ready to harvest"] },
-  { id: "soybean", label: "Soybeans", base: 10, cap: 30, gdd: [1300, 1500], kc: [0.4, 1.15, 0.5], days: 120, stages: ["Emerging", "Growing leaves", "Flowering", "Filling the pods", "Maturing", "Ready to harvest"] },
-  { id: "tomato", label: "Tomatoes", base: 10, cap: 30, gdd: [1200, 1400], kc: [0.6, 1.15, 0.8], days: 110, stages: ["Establishing", "Growing", "Flowering", "Fruit setting", "Ripening", "Picking"] },
-  { id: "potato", label: "Potatoes", base: 7, cap: 30, gdd: [1300, 1600], kc: [0.5, 1.15, 0.75], days: 115, stages: ["Sprouting", "Growing leaves", "Tubers forming", "Tubers bulking", "Maturing", "Ready to lift"] },
-  { id: "coffee", label: "Coffee", base: null, kc: [0.9, 0.95, 0.95], days: 270, perennial: true, stages: ["Flowering", "Pinhead fruit", "Cherries growing", "Cherries ripening", "Harvest"], note: "About 8–9 months from flowering to ripe cherries (arabica)." },
-  { id: "cacao", label: "Cacao", base: null, kc: [1.0, 1.05, 1.05], days: 165, perennial: true, stages: ["Flowering", "Young pods", "Pods growing", "Pods ripening", "Harvest"], note: "About 5–6 months from pollination to ripe pods." },
-  { id: "banana", label: "Bananas and plantains", base: null, kc: [0.5, 1.1, 1.0], days: 300, perennial: true, stages: ["Planting", "Growing", "Flowering (shooting)", "Bunch filling", "Harvest"], note: "About 9–12 months from planting to the first bunch, then ratoons follow." },
+  { id: "maize", group: "Grains", label: "Maize (corn)", base: 10, cap: 30, gdd: [1400, 1600], kc: [0.3, 1.2, 0.6], days: 125, stages: ["Emerging", "Growing leaves", "Tasselling and silking", "Filling the kernels", "Drying down", "Ready to harvest"] },
+  { id: "rice", group: "Grains", label: "Rice", base: 10, cap: 30, gdd: [1700, 2000], kc: [1.05, 1.2, 0.9], days: 130, stages: ["Seedling", "Tillering", "Heading and flowering", "Filling the grain", "Ripening", "Ready to harvest"] },
+  { id: "wheat", group: "Grains", label: "Wheat (spring)", base: 0, cap: 30, gdd: [1500, 2000], kc: [0.3, 1.15, 0.3], days: 120, stages: ["Emerging", "Tillering", "Heading and flowering", "Filling the grain", "Ripening", "Ready to harvest"] },
+  { id: "beans", group: "Pulses and oilseeds", label: "Beans", base: 10, cap: 30, gdd: [1000, 1200], kc: [0.4, 1.15, 0.35], days: 95, stages: ["Emerging", "Growing leaves", "Flowering", "Filling the pods", "Drying down", "Ready to harvest"] },
+  { id: "soybean", group: "Pulses and oilseeds", label: "Soybeans", base: 10, cap: 30, gdd: [1300, 1500], kc: [0.4, 1.15, 0.5], days: 120, stages: ["Emerging", "Growing leaves", "Flowering", "Filling the pods", "Maturing", "Ready to harvest"] },
+  { id: "tomato", group: "Vegetables", label: "Tomatoes", base: 10, cap: 30, gdd: [1200, 1400], kc: [0.6, 1.15, 0.8], days: 110, stages: ["Establishing", "Growing", "Flowering", "Fruit setting", "Ripening", "Picking"] },
+  { id: "potato", group: "Vegetables", label: "Potatoes", base: 7, cap: 30, gdd: [1300, 1600], kc: [0.5, 1.15, 0.75], days: 115, stages: ["Sprouting", "Growing leaves", "Tubers forming", "Tubers bulking", "Maturing", "Ready to lift"] },
+  { id: "coffee", group: "Tree crops", label: "Coffee", base: null, kc: [0.9, 0.95, 0.95], days: 270, perennial: true, stages: ["Flowering", "Pinhead fruit", "Cherries growing", "Cherries ripening", "Harvest"], note: "About 8–9 months from flowering to ripe cherries (arabica)." },
+  { id: "cacao", group: "Tree crops", label: "Cacao", base: null, kc: [1.0, 1.05, 1.05], days: 165, perennial: true, stages: ["Flowering", "Young pods", "Pods growing", "Pods ripening", "Harvest"], note: "About 5–6 months from pollination to ripe pods." },
+  { id: "banana", group: "Tree crops", label: "Bananas and plantains", base: null, kc: [0.5, 1.1, 1.0], days: 300, perennial: true, stages: ["Planting", "Growing", "Flowering (shooting)", "Bunch filling", "Harvest"], note: "About 9–12 months from planting to the first bunch, then ratoons follow." },
+
+  // Grains
+  { id: "wheat-winter", label: "Wheat (winter)", group: "Grains", color: "#d9b25a", base: 0, cap: 30, gdd: [2000, 2500], kc: [0.4, 1.15, 0.3], days: 280, stages: ["Emerging", "Tillering and overwintering", "Stem extension", "Heading and flowering", "Filling the grain", "Ready to harvest"], note: "Sown in autumn; development pauses in the cold and picks up in spring." },
+  { id: "barley", label: "Barley (spring)", group: "Grains", color: "#e8c872", base: 0, cap: 30, gdd: [1300, 1700], kc: [0.3, 1.15, 0.25], days: 110, stages: ["Emerging", "Tillering", "Heading", "Filling the grain", "Ripening", "Ready to harvest"] },
+  { id: "oats", label: "Oats", group: "Grains", color: "#efd9a0", base: 0, cap: 30, gdd: [1300, 1600], kc: [0.3, 1.15, 0.25], days: 110, stages: ["Emerging", "Tillering", "Heading", "Filling the grain", "Ripening", "Ready to harvest"] },
+  { id: "sorghum", label: "Sorghum", group: "Grains", color: "#c9743c", base: 10, cap: 32, gdd: [1400, 1800], kc: [0.3, 1.0, 0.55], days: 120, stages: ["Emerging", "Growing leaves", "Booting and flowering", "Filling the grain", "Maturing", "Ready to harvest"] },
+  { id: "millet", label: "Millet", group: "Grains", color: "#d6a24e", base: 10, cap: 32, gdd: [1100, 1400], kc: [0.3, 1.0, 0.3], days: 95, stages: ["Emerging", "Tillering", "Heading", "Filling the grain", "Ripening", "Ready to harvest"] },
+  // Pulses and oilseeds
+  { id: "peas", label: "Peas", group: "Pulses and oilseeds", color: "#7fc97f", base: 4, cap: 30, gdd: [1100, 1350], kc: [0.5, 1.15, 1.1], days: 85, stages: ["Emerging", "Growing vines", "Flowering", "Filling the pods", "Pods ready", "Picking"] },
+  { id: "lentils", label: "Lentils", group: "Pulses and oilseeds", color: "#b5a15a", base: 4, cap: 30, gdd: [1300, 1600], kc: [0.4, 1.1, 0.3], days: 110, stages: ["Emerging", "Branching", "Flowering", "Filling the pods", "Drying down", "Ready to harvest"] },
+  { id: "chickpeas", label: "Chickpeas", group: "Pulses and oilseeds", color: "#d8c17a", base: 5, cap: 30, gdd: [1400, 1700], kc: [0.4, 1.0, 0.35], days: 115, stages: ["Emerging", "Branching", "Flowering", "Filling the pods", "Drying down", "Ready to harvest"] },
+  { id: "peanut", label: "Peanuts (groundnuts)", group: "Pulses and oilseeds", color: "#c49a6c", base: 10, cap: 32, gdd: [1600, 1900], kc: [0.4, 1.15, 0.6], days: 135, stages: ["Emerging", "Growing leaves", "Flowering and pegging", "Pods filling", "Maturing", "Ready to lift"] },
+  { id: "sunflower", label: "Sunflowers", group: "Pulses and oilseeds", color: "#ffcc00", base: 7, cap: 32, gdd: [1400, 1700], kc: [0.35, 1.0, 0.35], days: 125, stages: ["Emerging", "Growing leaves", "Budding and flowering", "Filling the seed", "Drying down", "Ready to harvest"] },
+  { id: "canola", label: "Canola (oilseed rape, spring)", group: "Pulses and oilseeds", color: "#f4e04d", base: 5, cap: 30, gdd: [1100, 1400], kc: [0.35, 1.0, 0.35], days: 100, stages: ["Emerging", "Rosette", "Bolting and flowering", "Pods filling", "Ripening", "Ready to swath"] },
+  // Vegetables
+  { id: "lettuce", label: "Lettuce", group: "Vegetables", color: "#9be564", base: 4, cap: 27, gdd: [800, 1000], kc: [0.7, 1.0, 0.95], days: 65, stages: ["Establishing", "Leaves growing", "Heading", "Ready to cut", "Picking"] },
+  { id: "carrot", label: "Carrots", group: "Vegetables", color: "#ff8c1a", base: 4, cap: 30, gdd: [1000, 1300], kc: [0.7, 1.05, 0.95], days: 100, stages: ["Emerging", "Leaves growing", "Roots thickening", "Roots bulking", "Ready to lift"] },
+  { id: "onion", label: "Onions", group: "Vegetables", color: "#d9a066", base: 6, cap: 30, gdd: [1400, 1800], kc: [0.7, 1.05, 0.75], days: 140, stages: ["Emerging", "Leaves growing", "Bulbing", "Bulbs swelling", "Tops falling", "Ready to lift"] },
+  { id: "cabbage", label: "Cabbage and brassicas", group: "Vegetables", color: "#7db46c", base: 4, cap: 27, gdd: [1000, 1300], kc: [0.7, 1.05, 0.95], days: 100, stages: ["Establishing", "Leaves growing", "Heading", "Heads firming", "Ready to cut"] },
+  { id: "pepper", label: "Peppers and chillies", group: "Vegetables", color: "#e8403a", base: 10, cap: 32, gdd: [1000, 1300], kc: [0.6, 1.05, 0.9], days: 110, stages: ["Establishing", "Growing", "Flowering", "Fruit setting", "Ripening", "Picking"] },
+  { id: "cucumber", label: "Cucumbers", group: "Vegetables", color: "#4caf50", base: 10, cap: 32, gdd: [700, 900], kc: [0.6, 1.0, 0.75], days: 70, stages: ["Establishing", "Vines growing", "Flowering", "Fruit setting", "Picking"] },
+  { id: "squash", label: "Squash and pumpkins", group: "Vegetables", color: "#f4a236", base: 10, cap: 32, gdd: [900, 1300], kc: [0.5, 1.0, 0.8], days: 100, stages: ["Establishing", "Vines growing", "Flowering", "Fruit swelling", "Curing", "Ready to harvest"] },
+  { id: "garlic", label: "Garlic (autumn planted)", group: "Vegetables", color: "#efe6d2", base: null, kc: [0.7, 1.0, 0.7], days: 240, stages: ["Rooting", "Overwintering", "Leaves growing", "Bulbing", "Ready to lift"], note: "Planted in autumn; lift when a third of the leaves have browned." },
+  { id: "sweetcorn", label: "Sweetcorn", group: "Vegetables", color: "#ffe066", base: 10, cap: 30, gdd: [1100, 1350], kc: [0.3, 1.15, 1.05], days: 85, stages: ["Emerging", "Growing leaves", "Tasselling and silking", "Cobs filling", "Milky stage", "Picking"] },
+  // Fruit
+  { id: "strawberry", label: "Strawberries", group: "Fruit", color: "#ff3b5c", base: null, kc: [0.4, 0.85, 0.75], days: 45, perennial: true, stages: ["Flowering", "Fruit setting", "Fruit swelling", "Ripening", "Picking"], note: "About 4–6 weeks from flower to ripe berry." },
+  { id: "watermelon", label: "Melons and watermelons", group: "Fruit", color: "#ff6f69", base: 10, cap: 34, gdd: [1200, 1500], kc: [0.4, 1.0, 0.75], days: 90, stages: ["Establishing", "Vines growing", "Flowering", "Fruit swelling", "Ripening", "Ready to pick"] },
+  { id: "grape", label: "Grapes (from budburst)", group: "Fruit", color: "#8e44ad", base: 10, cap: 30, gdd: [1100, 1700], kc: [0.3, 0.7, 0.45], days: 180, stages: ["Budburst", "Shoots growing", "Flowering and fruit set", "Berries growing (veraison)", "Ripening", "Harvest"], note: "Heat from budburst: under ~1,390 GDD suits early varieties; over ~1,670 suits late, warm-climate ones." },
+  { id: "apple", label: "Apples (from blossom)", group: "Fruit", color: "#e74c3c", base: null, kc: [0.5, 0.95, 0.7], days: 150, perennial: true, stages: ["Blossom", "Fruit set", "Fruit growing", "Colouring", "Harvest"], note: "About 100–180 days from full bloom to harvest, depending on the variety." },
+  { id: "citrus", label: "Citrus (from flowering)", group: "Fruit", color: "#ffa500", base: null, kc: [0.7, 0.65, 0.7], days: 270, perennial: true, stages: ["Flowering", "Fruit set", "Fruit growing", "Colour break", "Harvest"], note: "Oranges take 7–12 months from flower to ripe fruit." },
+  { id: "olive", label: "Olives (from flowering)", group: "Fruit", color: "#6b8e23", base: null, kc: [0.65, 0.7, 0.7], days: 180, perennial: true, stages: ["Flowering", "Fruit set", "Pit hardening", "Fruit colouring", "Harvest"] },
+  // Fibre, sugar and roots
+  { id: "cotton", label: "Cotton", group: "Fibre, sugar and roots", color: "#f5f5f5", base: 15.6, cap: 32, gdd: [1200, 1500], kc: [0.35, 1.15, 0.7], days: 170, stages: ["Emerging", "Squaring", "Flowering", "Bolls filling", "Bolls opening", "Ready to pick"] },
+  { id: "sugarcane", label: "Sugarcane", group: "Fibre, sugar and roots", color: "#9acd32", base: null, kc: [0.4, 1.25, 0.75], days: 365, perennial: true, stages: ["Germinating", "Tillering", "Grand growth", "Ripening", "Harvest"] },
+  { id: "sweetpotato", label: "Sweet potatoes", group: "Fibre, sugar and roots", color: "#c0603a", base: 10, cap: 32, gdd: [1500, 1900], kc: [0.5, 1.15, 0.65], days: 130, stages: ["Establishing", "Vines growing", "Roots forming", "Roots bulking", "Maturing", "Ready to lift"] },
+  { id: "cassava", label: "Cassava", group: "Fibre, sugar and roots", color: "#b08d57", base: null, kc: [0.3, 0.8, 0.3], days: 300, stages: ["Establishing", "Canopy growing", "Roots bulking", "Maturing", "Ready to lift"], note: "Harvested from 8 to 18 months; roots can stay in the ground until needed." },
+  // Grass and hay
+  { id: "hay", label: "Grass for hay or silage (per cut)", group: "Grass and hay", color: "#56b870", base: 5, cap: 28, gdd: [500, 750], kc: [0.9, 1.0, 0.95], days: 45, stages: ["Regrowing", "Leafy", "Stems lengthening", "Heading", "Ready to cut"], note: "Count from the last cut or the start of spring growth. Cut for silage at heading; later for bulk hay." },
+  { id: "alfalfa", label: "Alfalfa (lucerne, per cut)", group: "Grass and hay", color: "#6fbf73", base: 5, cap: 30, gdd: [400, 600], kc: [0.4, 0.95, 0.9], days: 35, stages: ["Regrowing", "Vegetative", "Budding", "Early flower", "Ready to cut"], note: "Cut at early bloom (about one flower in ten) for the best balance of yield and quality." },
 ];
 
 export const cropById = (id: string) => CROPS.find((c) => c.id === id) ?? CROPS[0];
