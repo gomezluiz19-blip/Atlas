@@ -21,6 +21,7 @@ export function createLenses(app: App, lenses: Lens[]) {
   let subject: Subject | null = null;
   let active: Lens | null = null;
   let job = 0, showAll = false;
+  let pending: Promise<void> = Promise.resolve();
 
   const close = () => {
     for (const f of cleanups.splice(0)) { try { f(); } catch { /* keep closing */ } }
@@ -65,7 +66,8 @@ export function createLenses(app: App, lenses: Lens[]) {
         list.length > shown.length ? h("button", { class: "lens-chip more", onclick: () => { showAll = true; render(); } }, `+${list.length - shown.length}`) : ""));
   };
 
-  const update = async (p: Place | null) => {
+  const update = (p: Place | null) => (pending = identifyPlace(p));
+  const identifyPlace = async (p: Place | null) => {
     const my = ++job;
     close();
     showAll = false;
@@ -86,6 +88,8 @@ export function createLenses(app: App, lenses: Lens[]) {
     get subject() { return subject; },
     /** Opens a lens by id on the current subject (for the task robot and links). */
     openById(id: string) { const l = lenses.find((x) => x.id === id); if (l && subject) void open(l); return !!(l && subject); },
+    /** Waits for the current place to be identified, then opens a lens (false if it can't). */
+    async openWhenReady(id: string) { await pending; return this.openById(id); },
     /** Opens a lens on a given subject. */
     openOn(id: string, s: Subject) { const l = lenses.find((x) => x.id === id); if (l) { subject = s; void open(l, s); } },
   };

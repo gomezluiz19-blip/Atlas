@@ -366,7 +366,7 @@ const lenses = createLenses(app, LENSES);
 app.sheet.el.querySelector(".share-menu")!.after(lenses.strip);
 $("ui").append(lenses.panel);
 app.onName = (p) => lenses.rename(p);
-for (const l of LENSES) app.actions.set(`lens:${l.id}`, { label: l.label, run: () => { if (!lenses.openById(l.id)) app.toast("Tap a place first, then choose a lens.", 4000); } });
+for (const l of LENSES) app.actions.set(`lens:${l.id}`, { label: l.label, run: () => void lenses.openWhenReady(l.id).then((ok) => { if (!ok) app.toast("Tap a place first, then choose a lens.", 4000); }) });
 app.onPlace = (p) => {
   void lenses.update(p);
   syncHash();

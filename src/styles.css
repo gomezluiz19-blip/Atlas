@@ -1396,3 +1396,21 @@ button.lens-layer:hover, .lens-layer.on { background: var(--fill); }
   .lens-panel { left: var(--gutter); right: var(--gutter); width: auto; top: auto; bottom: 90px; max-height: 55vh; }
   .lens-controls label { grid-template-columns: 90px 1fr 56px; }
 }
+.lens-row { display: flex; gap: 12px; align-items: center; }
+.lens-row p { font-size: 13.5px; }
+.lens-chart { max-width: 100%; }
+.lens-bar { display: flex; height: 14px; border-radius: 7px; overflow: hidden; background: var(--fill); }
+.lens-bar span { height: 100%; }
+.lens-level-row { display: flex; justify-content: center; }
+.lens-level { font-size: 22px; font-variant-numeric: tabular-nums; }
+.lens-panel input[type=range] { width: 100%; }
+.lens-species { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 6px; }
+.lens-sp { display: flex; gap: 8px; align-items: center; padding: 6px; border-radius: 10px; background: var(--material); font-size: 12.5px; }
+.lens-sp img, .lens-sp > span:first-child { width: 36px; height: 36px; border-radius: 8px; object-fit: cover; flex: none; display: grid; place-items: center; }
+.lens-sp > span:last-child { display: flex; flex-direction: column; min-width: 0; }
+.lens-sp small { color: var(--secondary); }
+.swipe-bar { position: absolute; z-index: 30; top: 0; bottom: 0; width: 44px; margin-left: -22px; cursor: ew-resize; touch-action: none; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.swipe-bar i { position: absolute; top: 0; bottom: 0; left: 21px; width: 3px; background: #fff; box-shadow: 0 0 8px rgba(0,0,0,0.5); }
+.swipe-bar span { position: absolute; top: 45%; padding: 4px 10px; border-radius: 999px; background: rgba(12,16,24,0.8); color: #fff; font-weight: 700; font-size: 13px; white-space: nowrap; }
+.swipe-then { right: 30px; }
+.swipe-now { left: 30px; }

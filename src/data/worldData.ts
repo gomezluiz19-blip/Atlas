@@ -25,12 +25,12 @@ export interface Plates {
   boundaries: [string, string, number[][]][];
 }
 
-const base = new URL("./data/", document.baseURI).href;
+const base = () => new URL("./data/", document.baseURI).href;
 const cache = new Map<string, Promise<unknown>>();
 function load<T>(file: string): Promise<T> {
   let p = cache.get(file);
   if (!p) {
-    p = fetch(base + file).then((r) => {
+    p = fetch(base() + file).then((r) => {
       if (!r.ok) throw new Error(`Couldn't load ${file}`);
       return r.json();
     });

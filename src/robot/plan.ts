@@ -41,6 +41,17 @@ const RULES: Rule[] = [
   // Space
   { re: /\b(solar system|planets?|saturn|jupiter|neptune|uranus|mercury|venus)\b/, step: layer("space:solar", "Open the solar system") },
   { re: /\b(iss|international space station|space station|satellites?|starlink|rocket launch(es)?|launch(es)?|rockets?|outer space|space view|orbit(s|ing)?)\b/, step: layer("space:open", "Open Space: satellites, the ISS and launches") },
+  // Lenses: looks at the selected feature itself (a mountain, sea, river, city…)
+  { re: /\b(slice (through|open|into|up)?|splice|cut (it |this )?(open|through)|what('s| is) (inside|under(neath)?|beneath) (it|this|the (mountain|volcano|canyon|ground)))\b/, step: layer("lens:slice", "Slice it open to see the rock layers") },
+  { re: /\b(block (diagram|model|view)|3d block|cut ?out|diorama|explod(e|ed) view|lift (it|this) out|x.?ray)\b/, step: layer("lens:block", "Lift it out as a 3D block") },
+  { re: /\b(anatomy|tree ?line|snow ?line|bands of life|how (steep|big is the crater|deep is the crater)|crater (depth|size|shape))\b/, step: layer("lens:anatomy", "Show its anatomy: summit, slopes and zones") },
+  { re: /\b(drain (the )?(sea|ocean|lake)s?|sea.?levels? (rise|rises|rising|fall|falls|drop)|(rising|falling) seas?|ice.?age (coast(line)?s?|sea level)|doggerland|if (all )?the ice (caps? )?melted|flood the (world|coast))\b/, step: layer("lens:sealevel", "Move the sea level") },
+  { re: /\b(sea ?floor|ocean floor|sea ?bed|bathymetry|how deep is (the|this)|deepest point|underwater (landscape|mountains))\b/, step: layer("lens:seafloor", "Show the sea floor") },
+  { re: /\b(trace (the |this )?(river|stream|flow)|follow (the |this )?river|(source|start) of (the |this )?river|river from source|ocean currents?|sea currents?|gulf stream|currents)\b/, step: layer("lens:trace", "Trace the flow") },
+  { re: /\b(then and now|before and after|how (it|this|the city) (has )?changed|(old|past) (satellite )?imagery|deep time|millions of years ago|pangaea|continental drift|where (was|were) (it|this|the continents))\b/, step: layer("lens:rewind", "Rewind time") },
+  { re: /\b(subway|metro|underground|tube map|light rail|tram lines?|transit (map|lines?|network|system))\b/, step: layer("lens:transit", "Map the metro lines") },
+  { re: /\b(forest (cover|types?)|leaf types?|evergreen|deciduous|conifers?|how much (forest|woodland)|woodlands?)\b/, step: layer("lens:forest", "Look at the forest") },
+  { re: /\b(true size|real size|actual size|how big is|compare (the )?size|size (of|compared)|drop (it|this) on|as big as)\b/, step: layer("lens:size", "Compare its true size") },
   // Work mode
   { re: /\b(plan (a |my |the |our )?(trip|route|journey|holiday|vacation|event|party|wedding|conference)|trip planner|itinerary)\b/, step: layer("work:plan", "Open Plan (Work)") },
   { re: /\b((make|create|start|build) (a |my )?(presentation|slides?|slideshow|slide deck)|presentation|slideshow)\b/, step: layer("work:present", "Open Present (Work)") },
