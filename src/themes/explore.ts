@@ -20,6 +20,7 @@ import { siteBrowser } from "../ui/sites";
 import { SITES, type Site } from "../content/sites";
 import { action, asyncBlock, hero, note, section, stats } from "./common";
 import { acrossLayers, nearbyPages, pageHead, placesLike } from "../place/page";
+import { throughTime } from "../time/placeTime";
 
 const INSIGHT_ICON: Record<Insight["icon"], string> = {
   aurora: icons.sparkle, sun: icons.sun, moon: icons.moon, plates: icons.plates, quake: icons.activity, heritage: icons.heritage, globe: icons.globe,
@@ -197,6 +198,7 @@ export function exploreTheme(app: App, feeds: Feeds, overlays: Overlays, openSit
       })
       .catch(() => text.replaceChildren(h("p", { class: "muted" }, n?.description ?? "Couldn't load a summary.")));
     acrossLayers(app, place, body);
+    throughTime(app, place, body);
     nearbyAndThemes(place, body, n?.id);
   };
 
@@ -222,6 +224,7 @@ export function exploreTheme(app: App, feeds: Feeds, overlays: Overlays, openSit
   /** A plain spot on the map: quick facts from every theme, insights and what's nearby. */
   const placeCard = (place: Place, body: HTMLElement) => {
     acrossLayers(app, place, body);
+    throughTime(app, place, body);
     asyncBlock(app, body, "Looking for things worth knowing…", async () => {
       const list = await insightsFor(place.lon, place.lat, 60, feeds.notable);
       return list.length ? [section("Worth knowing here", ...list.slice(0, 4).map(insightCard))] : [];

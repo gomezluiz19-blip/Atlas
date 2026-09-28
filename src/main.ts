@@ -27,6 +27,8 @@ import { describe as describeCriterion, looksLikeSearch, parseQuery, type Criter
 import { resolvePlace, searchPlaces, slugOfPlace, warmPlaces } from "./place/places";
 import { findThings, type Thing } from "./ui/frontDoor";
 import { buildThings } from "./ui/things";
+import { TimeBar } from "./time/bar";
+import { yearName } from "./time/model";
 import { iconSvg } from "./ui/glyph";
 import { createLayersPanel } from "./ui/layers";
 import { createSearch, flyToPlace, geocode, type Command, type Place as SearchPlace, type SearchResult } from "./ui/search";
@@ -498,7 +500,13 @@ $("search-slot").replaceWith(createSearch(globe, {
     things ??= buildThings(app, overlays, [...PLACE_TOOLS, ...MAKE_TOOLS, ...LOOK_TOOLS]);
     const found = findThings(things, q, 6);
     const as = (t: Thing): SearchResult => ({ name: t.title, detail: t.on?.() ? `On · ${t.detail}` : t.detail, lon: 0, lat: 0, radius: 0, source: "thing", svg: iconSvg(t.emoji, 18) ?? icons.sparkle, run: t.run });
-    return (["Show on the map", "Open", "Stories"] as const).map((g) => ({ heading: g, items: found.filter((t) => t.group === g).slice(0, 3).map(as) })).filter((g) => g.items.length);
+    // A year ("1914", "500 BC", "the world in 2050") goes there in time.
+    const y = /^(?:(?:the )?world in |in |year )?(\d{1,4})\s*(bc|bce|ad)?$/i.exec(q.trim());
+    const year = y ? Number(y[1]) * (/^bc/i.test(y[2] ?? "") ? -1 : 1) : NaN;
+    const time: SearchResult[] = Number.isFinite(year) && year >= -3000 && year <= 2100 && (Math.abs(year) >= 100 || y![2])
+      ? [{ name: `Go to ${yearName(year)}`, detail: year < 2000 ? "The world's borders at the time" : year < new Date().getUTCFullYear() ? "The Earth from space that year" : "Projections for places", lon: 0, lat: 0, radius: 0, source: "thing", svg: iconSvg("⏳", 18) ?? icons.sparkle, run: () => timeBar.goToYear(year) }]
+      : [];
+    return [{ heading: "Time", items: time }, ...(["Show on the map", "Open", "Stories"] as const).map((g) => ({ heading: g, items: found.filter((t) => t.group === g).slice(0, 3).map(as) }))].filter((g) => g.items.length);
   },
   frontDoor: () => {
     const go = (name: string, slug: string, detail: string, emoji: string): SearchResult => ({ name, detail, lon: 0, lat: 0, radius: 0, source: "thing", svg: iconSvg(emoji, 18) ?? icons.target, run: () => void openPlace(slug) });
@@ -594,6 +602,15 @@ globe.onApply = () => {
 };
 layersBtn.addEventListener("click", () => { const open = layers.hidden; for (const c of [placeHub.ctx, makeHub.ctx, lookHub.ctx]) c.close(); myPlaces.close(); pro.close(); space.close(); toggleLayers(open); });
 globe.viewer.scene.canvas.addEventListener("pointerdown", () => toggleLayers(false));
+
+// Time: one slider from the ancient world to 2100 (borders of the time, the view from space, projections).
+const timeBar = new TimeBar(app);
+$("ui").append(timeBar.el);
+const timeBtn = h("button", { id: "time-btn", class: "round-btn", "aria-label": "Time: see the globe in another year", html: iconSvg("⏳", 20) ?? "" });
+timeBtn.addEventListener("click", () => (timeBar.el.hidden ? timeBar.open() : timeBar.close()));
+layersBtn.before(timeBtn);
+app.actions.set("time:open", { label: "Time travel", run: () => timeBar.open() });
+app.actions.set("time:go", { label: "Go to a year", run: (y) => { if (y && Number.isFinite(Number(y))) timeBar.goToYear(Number(y)); } });
 
 // About / data sources.
 const about = $("about-btn");

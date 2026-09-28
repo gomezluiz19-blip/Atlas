@@ -178,6 +178,14 @@ the internet. Tap a dot for the plant, port or airport.
 **The tools.** Grow, Flock, Build and live occupancy live under **My Place**; Plan, Present, Video and Teach
 under **Make**; Learn under **Look**. All of them are open to anyone:
 
+- **Time.** One slider (the hourglass, top right, or type a year: "1914", "500 BC") runs from the ancient
+  world to 2100. Before 2000 the globe draws the borders of the time; from 2000 it shows NASA's satellite
+  picture of a summer day that year (MODIS, 250 m); then today; then projections. Play runs through history.
+  Every place page has **Through time**: its yearly temperatures since 1950 as warming stripes, how much
+  warmer the last ten years were than the 1950s, a climate model's change by the 2050s (CMIP6
+  EC-Earth3P-HR via Open-Meteo), who governed it across the centuries ("Poland-Lithuania → Tsardom of
+  Muscovy → Russian Empire → USSR → Ukraine"), each year opening the map of the time, and one tap to see
+  it from space in past years.
 - **One front door.** The search box answers anything: a place (the ~11,900 places Atlas knows by name
   answer the first keystroke and open their page), an address or coordinates, a question for the map, a
   trip, or something to show or open, found in everyday words: "railways", "night lights", "homeowners",
