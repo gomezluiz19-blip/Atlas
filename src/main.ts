@@ -284,6 +284,15 @@ function openMode(m: Mode) {
 const modes = createModeBar(openMode);
 app.actions.set("mode:place", { label: "My Place", run: () => openMode("place") });
 app.actions.set("mode:make", { label: "Make", run: () => openMode("make") });
+app.actions.set("myplace:report", {
+  label: "About your place",
+  run: () => {
+    const p = savedPlaceHere();
+    if (!p) { openMode("place"); app.toast("Save your place first: the report and sowing calendar come from its own weather.", 6000); return; }
+    myPlaces.open(p.id);
+    setTimeout(() => myPlaces.panel.querySelector(".report")?.scrollIntoView({ behavior: "smooth", block: "start" }), 400);
+  },
+});
 $("layers-btn").parentElement!.before(modes.el);
 // The switch follows whichever panel is showing.
 const syncMode = () => {
@@ -354,13 +363,13 @@ const robot = createRobot(app, {
 });
 $("ui").append(robot.el);
 /** "Daisy had twins", "sprayed Top field" or "Oak Street: slab poured" typed into the search box. */
-const flockLogCommand = (q: string): Command | null => {
+const logCommand = (q: string): Command | null => {
   const plan = planLog(q);
   return plan ? { title: `Log for ${plan.tool}: ${plan.summary}`, steps: [plan.saves], run: () => void plan.run().then((r) => app.toast(r ? `Logged: ${r}` : "Couldn't log that.", 4000)) } : null;
 };
 
 const asCommand = (q: string): Command | null => {
-  const logged = flockLogCommand(q);
+  const logged = logCommand(q);
   if (logged) return logged;
   const p = plan(q);
   // With Claude connected, anything that reads as a request or question goes to it.
