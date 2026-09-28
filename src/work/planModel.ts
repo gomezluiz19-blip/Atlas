@@ -26,6 +26,8 @@ export interface Plan {
   mode?: TravelMode;
   attendees?: number;
   notes?: string;
+  /** Events: the day, step by step (a journey starting at the venue). */
+  program?: import("./journeyModel").Journey;
 }
 
 export const PLAN_TYPES: Record<PlanType, { label: string; color: string; about: string; add: { kind: PlanItem["kind"]; label: string; name: string }[] }> = {

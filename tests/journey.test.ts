@@ -73,3 +73,13 @@ describe("timeline", () => {
     expect(guessMode(0.8)).toBe("walk");
   });
 });
+
+describe("an event's day", () => {
+  it("reads named parts of the day with their lengths", () => {
+    const d = parseSteps("Welcome drinks for 45 minutes, talks for 2 hours, walk to Manam, dinner for 2 hours");
+    expect(d.map((x) => x.kind)).toEqual(["stay", "stay", "move", "stay"]);
+    expect(d[0]).toMatchObject({ label: "Welcome drinks", hours: 0.75 });
+    expect(d[1]).toMatchObject({ label: "Talks", hours: 2 });
+    expect(d[2]).toMatchObject({ mode: "walk", query: "Manam" });
+  });
+});

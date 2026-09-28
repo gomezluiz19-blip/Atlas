@@ -25,7 +25,7 @@ export interface JourneyHost {
   rerender(): void;
   /** Short outings (field trips): stays in hours, ground travel only. */
   short?: boolean;
-  /** What the start is called ("Home", "School"). */
+  /** What the start is called ("Home", "School", "Venue"). */
   originLabel?: string;
 }
 
@@ -66,6 +66,9 @@ export function arc(a: LonLat, b: LonLat, n = 48): LonLat[][] {
   return parts;
 }
 
+const ORIGIN_EMOJI: Record<string, string> = { School: "🏫", Venue: "🎪", Home: "🏠" };
+const originEmoji = (label = "Home") => ORIGIN_EMOJI[label] ?? "🏠";
+
 export function journeyFeatures(j: Journey, originLabel = "Home"): WorkFeature[] {
   const t = timeline(j), out: WorkFeature[] = [];
   const pt = (s: Spot): LonLat => [s.lon, s.lat];
@@ -75,7 +78,7 @@ export function journeyFeatures(j: Journey, originLabel = "Home"): WorkFeature[]
     const lines = r.step.mode === "fly" || r.km > 300 ? arc(pt(r.from), pt(r.step.to)) : [[pt(r.from), pt(r.step.to)]];
     lines.forEach((pts, i) => out.push({ id: `${r.step.id}-${i}`, kind: "line", pts, color: m.color, dashed: r.step.mode === "fly" || r.step.mode === "ferry" }));
   }
-  if (j.origin) out.push({ id: "origin", kind: "point", pts: [pt(j.origin)], color: "#8e8e93", label: `${originLabel === "School" ? "🏫" : "🏠"} ${j.origin.name}` });
+  if (j.origin) out.push({ id: "origin", kind: "point", pts: [pt(j.origin)], color: "#8e8e93", label: `${originEmoji(originLabel)} ${j.origin.name}` });
   for (const s of j.steps) {
     if (s.kind === "stay") {
       out.push({ id: s.id, kind: "point", pts: [pt(s.place)], color: "#ff375f", label: `${s.nights ? "🛏️" : "📍"} ${s.place.name}` });
@@ -172,8 +175,8 @@ async function resolve(j: Journey, drafts: Draft[], insertAt: number, short: boo
       let place = here, alts: SearchResult[] = [];
       if (d.query) { alts = await find(d.query, here); place = alts[0] ? toSpot(alts[0], d.query) : null; }
       if (!place) { out.push({ label: d.query ? `Couldn't find “${d.query}”` : "Say where: “stay 3 nights in Manila”", alts, pick: -1, draft: d }); continue; }
-      const step: StayStep = { id: newId(), kind: "stay", place, visits: [], ...(d.hours || short ? { hours: d.hours ?? (d.nights ?? 2) } : { nights: d.nights ?? 1 }) };
-      out.push({ step, label: `${step.nights ? "🛏️" : "📍"} ${step.nights ? plural(step.nights, "night") : `${step.hours} h`} at ${place.name}`, alts, pick: 0, draft: d });
+      const step: StayStep = { id: newId(), kind: "stay", place, visits: [], label: d.label, ...(d.hours || short ? { hours: d.hours ?? (d.nights ?? 2) } : { nights: d.nights ?? 1 }) };
+      out.push({ step, label: d.label ? `🗓️ ${d.label} · ${fmtHours(step.hours ?? 1)}` : `${step.nights ? "🛏️" : "📍"} ${step.nights ? plural(step.nights, "night") : fmtHours(step.hours ?? 1)} at ${place.name}`, alts, pick: 0, draft: d });
       here = place; lastStay = step;
     } else {
       const alts = await find(d.query, lastStay?.place ?? here);
@@ -252,9 +255,9 @@ export function journeyEditor(host: JourneyHost): HTMLElement {
   startInput.addEventListener("keydown", (e) => { if (e.key === "Enter") void findStart(); });
   startInput.addEventListener("change", () => { if (startInput.value.trim() !== (j.origin?.name ?? "")) void findStart(); });
   const start = h("div", { class: "jr-step jr-start", style: "--c:#8e8e93" },
-    h("span", { class: "jr-icon" }, host.originLabel === "School" ? "🏫" : "🏠"),
+    h("span", { class: "jr-icon" }, originEmoji(host.originLabel)),
     h("div", { class: "jr-body" },
-      h("div", { class: "jr-title" }, host.short ? "Leave from " : "Start from ", startInput),
+      h("div", { class: "jr-title" }, host.originLabel === "Venue" ? "Start at " : host.short ? "Leave from " : "Start from ", startInput),
       h("div", { class: "jr-when" },
         h("input", { type: "date", value: j.start, "aria-label": "Start date", onchange: (e: Event) => { j.start = (e.target as HTMLInputElement).value || j.start; change(); } }),
         h("input", { type: "time", value: j.time, "aria-label": "Start time", onchange: (e: Event) => { j.time = (e.target as HTMLInputElement).value || j.time; change(); } }))));
@@ -324,7 +327,9 @@ export function journeyEditor(host: JourneyHost): HTMLElement {
     return h("div", { class: `jr-step jr-stay${open ? " open" : ""}`, style: "--c:#ff375f", "data-i": i },
       h("span", { class: "jr-icon" }, long ? "🛏️" : "📍"),
       h("div", { class: "jr-body" },
-        h("div", { class: "jr-title" }, long ? `${plural(s.nights!, "night")} at ` : `${fmtHours(s.hours ?? 1)} at `, h("b", {}, s.place.name)),
+        !long && s.label
+          ? h("div", { class: "jr-title" }, h("b", {}, s.label), ` · ${fmtHours(s.hours ?? 1)}`, h("span", { class: "jr-at" }, ` at ${s.place.name}`))
+          : h("div", { class: "jr-title" }, long ? `${plural(s.nights!, "night")} at ` : `${fmtHours(s.hours ?? 1)} at `, h("b", {}, s.place.name)),
         h("div", { class: "jr-sub" }, long ? `${dayFmt(r.days[0])} – ${dayFmt(r.days[r.days.length - 1])} · check out ${timeOf(r.end)}` : `${timeOf(r.start)} – ${timeOf(r.end)}`),
         weather,
         h("div", { class: "jr-stepper" },
@@ -347,7 +352,7 @@ export function journeyEditor(host: JourneyHost): HTMLElement {
   cards.push(start, ...steps);
 
   // The composer: say what's next, see it, add it.
-  const input = h("input", { class: "jr-input", placeholder: j.steps.length ? (host.short ? "Walk to the park, lunch for 1 hour, bus back to school" : "Train to Baguio, stay 2 nights…") : host.short ? "Bus to the Science Museum, stay 3 hours, bus back to school" : "Fly to Manila, taxi to the Peninsula, stay 3 nights", "aria-label": "Add steps in plain words" }) as HTMLInputElement;
+  const input = h("input", { class: "jr-input", placeholder: host.originLabel === "Venue" ? "Doors and drinks for an hour, talks for 2 hours, walk to dinner" : j.steps.length ? (host.short ? "Walk to the park, lunch for 1 hour, bus back to school" : "Train to Baguio, stay 2 nights…") : host.short ? "Bus to the Science Museum, stay 3 hours, bus back to school" : "Fly to Manila, taxi to the Peninsula, stay 3 nights", "aria-label": "Add steps in plain words" }) as HTMLInputElement;
   const preview = h("div", { class: "jr-preview", hidden: true });
   let pending: Resolved[] = [];
   const showPreview = () => {
@@ -401,7 +406,9 @@ export function journeyEditor(host: JourneyHost): HTMLElement {
   const composer = h("div", { class: "jr-compose" },
     ui.insertAt >= 0 && ui.insertAt < j.steps.length ? h("div", { class: "jr-inserting" }, `Adding after step ${ui.insertAt}`, h("button", { class: "link-btn", onclick: () => { ui.insertAt = -1; host.rerender(); } }, "Add at the end instead")) : "",
     h("div", { class: "jr-quick" },
-      ...(host.short
+      ...(host.originLabel === "Venue"
+        ? [quick("🗓️ Part of the day", "Talks for 1 hour"), quick("🚶 Walk", "Walk to "), quick("🚕 Taxi", "Taxi to "), quick("🚌 Bus", "Bus to "), quick("📍 Stop", "Visit ")]
+        : host.short
         ? [quick("🚌 Bus", "Bus to "), quick("🚶 Walk", "Walk to "), quick("🚆 Train", "Train to "), quick("📍 Stop", "Visit "), quick("⏱️ Stay", "Stay 2 hours"), j.origin ? quick("🏫 Back", "Bus back to school") : ""]
         : [quick("✈️ Fly", "Fly to "), quick("🚆 Train", "Train to "), quick("🚗 Drive", "Drive to "), quick("🚕 Taxi", "Taxi to "), quick("🚌 Bus", "Bus to "), quick("⛴️ Ferry", "Ferry to "), quick("🛏️ Stay", here ? `Stay 3 nights` : "Stay 3 nights in "), quick("📍 Stop", "Visit "), j.origin && j.steps.length ? quick("🏠 Home", "Fly home") : ""])),
     h("div", { class: "jr-input-row" }, input, h("button", { class: "pill-btn", onclick: () => void understand() }, "Add")),

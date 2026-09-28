@@ -92,6 +92,7 @@ function features(p: Plan, extra: import("./layer").WorkFeature[] = []) {
   return [
     ...(p.type === "trip" && pts.length > 1 ? [{ id: "route", kind: "line" as const, pts: pts.map((s) => s.pts[0]), color, dashed: p.mode === "fly" }] : []),
     ...extra,
+    ...(p.type === "event" && p.program?.steps.length ? journeyFeatures(p.program, "Venue").filter((f) => f.id !== "origin") : []),
     ...p.items.filter((i) => i.kind !== "point").map((i) => ({ id: i.id, kind: i.kind, pts: i.pts, color, label: i.name, fill: 0.22 })),
     ...pts.map((i, k) => ({ id: i.id, kind: "point" as const, pts: i.pts, color, label: p.type === "trip" ? `${k + 1}. ${i.name}` : p.type === "business" ? `${letter(k)} · ${i.name}` : i.name })),
   ];
@@ -144,6 +145,18 @@ export function openPlan(ctx: WorkCtx, id: string) {
   const save = (patch: Partial<Plan> = {}) => { Object.assign(p, patch); store.save(p); };
   const redraw = (extra: import("./layer").WorkFeature[] = []) => layer!.set(features(p, extra), `Plan · ${p.name}`);
   const analysis = h("div", { class: "work-analysis" });
+  // Events: the day's programme, starting at the venue.
+  let program: HTMLElement | string = "";
+  if (p.type === "event") {
+    const venue = p.items.find((i) => i.kind === "point");
+    const spot = venue ? { name: venue.name, lon: venue.pts[0][0], lat: venue.pts[0][1] } : null;
+    const j = (p.program ??= { id: `${p.id}-day`, name: p.name, start: new Date(Date.now() + 14 * 86_400_000).toISOString().slice(0, 10), time: "18:00", origin: spot, steps: [], created: Date.now() });
+    if (spot && (!j.origin || j.origin.name === spot.name || !j.steps.length)) j.origin = spot;
+    program = h("section", { class: "group" }, h("h2", { class: "group-title" }, "The day, step by step"),
+      h("p", { class: "muted small" }, "“Doors and drinks for an hour, talks for 2 hours, walk to dinner at Manam, dinner for 2 hours.” Each part gets its times; walks and rides between places are timed too."),
+      journeyEditor({ ctx, journey: j, short: true, originLabel: "Venue", save: () => { save(); redraw(); }, rerender: () => openPlan(ctx, p.id) }),
+      j.steps.length ? h("button", { class: "link-btn", onclick: () => void copyJourney(ctx.app, j, true) }, "Copy the running order") : "");
+  }
 
   const addItem = async (kind: PlanItem["kind"], name: string) => {
     ctx.hide();
@@ -187,6 +200,7 @@ export function openPlan(ctx: WorkCtx, id: string) {
       h("input", { type: "number", min: 0, value: p.attendees ?? "", onchange: (e: Event) => { save({ attendees: parseInt((e.target as HTMLInputElement).value, 10) || undefined }); openPlan(ctx, p.id); } })) : "",
     h("div", { class: "chips wrap" }, ...cfg.add.map((a) => h("button", { class: "chip", onclick: () => void addItem(a.kind, a.name) }, `+ ${a.label}`))),
     p.items.length ? h("div", { class: "list" }, ...p.items.map(itemRow)) : h("p", { class: "muted small" }, "Nothing placed yet."),
+    program,
     analysis,
     h("section", { class: "group" }, h("h2", { class: "group-title" }, "Notes"),
       h("textarea", { class: "mp-notes", rows: 3, placeholder: "Ideas, contacts, budget…", onchange: (e: Event) => save({ notes: (e.target as HTMLTextAreaElement).value }) }, p.notes ?? "")),

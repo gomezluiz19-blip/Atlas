@@ -11,7 +11,7 @@ export interface Spot { name: string; detail?: string; lon: number; lat: number 
 export interface Visit { id: string; name: string; spot?: Spot; /** Day of the stay, from 0. */ day: number; time?: string; note?: string }
 
 export interface MoveStep { id: string; kind: "move"; mode: Mode; to: Spot; /** Leave at HH:MM (otherwise as soon as the last step ends). */ at?: string; note?: string }
-export interface StayStep { id: string; kind: "stay"; place: Spot; /** Nights, or hours for a short stop. */ nights?: number; hours?: number; visits: Visit[]; note?: string }
+export interface StayStep { id: string; kind: "stay"; place: Spot; /** Nights, or hours for a short stop. */ nights?: number; hours?: number; visits: Visit[]; note?: string; /** What happens (an event's "Talks", "Lunch"). */ label?: string }
 export type Step = MoveStep | StayStep;
 
 export interface Journey {
@@ -117,11 +117,13 @@ export function whereAfter(j: Journey, n: number): Spot | null {
 export type Draft =
   | { kind: "origin"; query: string; date?: string }
   | { kind: "move"; mode: Mode | null; query: string; home?: boolean; at?: string }
-  | { kind: "stay"; query?: string; nights?: number; hours?: number }
+  | { kind: "stay"; query?: string; nights?: number; hours?: number; label?: string }
   | { kind: "visit"; query: string; day?: number; hours?: number };
 
 const NUM: Record<string, number> = { a: 1, an: 1, one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10, eleven: 11, twelve: 12, fourteen: 14, "a couple of": 2, "a few": 3, couple: 2, few: 3, half: 0.5 };
 const num = (s: string) => (NUM[s.toLowerCase()] ?? parseFloat(s));
+/** The same number words, without a capture group (for splitting). */
+const NUMX = "(?:\\d+(?:\\.\\d+)?|an?|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|fourteen|a couple of|a few|couple|few|half)";
 const NUMW = "(\\d+(?:\\.\\d+)?|an?|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|fourteen|a couple of|a few|couple|few|half)";
 
 const MODE_WORDS: [RegExp, Mode][] = [
@@ -170,8 +172,8 @@ export function parseDate(s: string, today = new Date().toISOString().slice(0, 1
 
 /** Splits a line into steps: "fly to Manila, taxi to the Peninsula then stay 3 nights". */
 export function parseSteps(text: string): Draft[] {
-  const starts = `(?:${MODE_ALT}|stay|spend|sleep|visit|see|stop|explore|tour|lunch|dinner|breakfast|back|return|head|go|then|and then|from|start|leave|\\d+|${NUMW})`;
-  const parts = text.split(new RegExp(`\\s*(?:\\bthen\\b|;|\\n|,\\s*(?=${starts}\\b)|\\band\\s+(?=(?:${MODE_ALT}|stay|visit|see|explore)\\b))\\s*`, "i")).map((p) => p?.trim()).filter(Boolean) as string[];
+  const starts = `(?:${MODE_ALT}|stay|spend|sleep|visit|see|stop|explore|tour|lunch|dinner|breakfast|back|return|head|go|then|and then|from|start|leave|\\d+|${NUMX})`;
+  const parts = text.split(new RegExp(`\\s*(?:\\bthen\\b|;|\\n|,\\s*(?=${starts}\\b)|,\\s*(?=[^,]*\\bfor\\s+${NUMX}\\s*(?:hours?|hrs?|h|minutes?|mins?)\\b)|\\band\\s+(?=(?:${MODE_ALT}|stay|visit|see|explore)\\b))\\s*`, "i")).map((p) => p?.trim()).filter(Boolean) as string[];
   const out: Draft[] = [];
   for (const raw of parts) {
     const p = raw.replace(/^(?:and\s+|then\s+|next,?\s+|after that,?\s+)/i, "").trim();
@@ -190,6 +192,12 @@ export function parseSteps(text: string): Draft[] {
     if ((m = p.match(new RegExp(`^(?:stay|sleep|check in)\\s+(?:at|in)\\s+(.+?)(?:\\s+for\\s+${NUMW}\\s*(nights?|days?|hours?|hrs?|h))?$`, "i")))) {
       const n = m[2] ? num(m[2]) : 1, unit = (m[3] ?? "night").toLowerCase();
       out.push({ kind: "stay", query: clean(m[1]), ...(unit.startsWith("h") ? { hours: n } : { nights: Math.max(1, Math.round(n)) }) });
+      continue;
+    }
+    // A part of the day: "talks for 2 hours", "welcome drinks for 45 minutes", "lunch for an hour at the park".
+    if ((m = p.match(new RegExp(`^(?!stay|spend|sleep|visit|see)(.+?)\\s+for\\s+${NUMW}\\s*(hours?|hrs?|h|minutes?|mins?)(?:\\s+(?:at|in)\\s+(.+))?$`, "i")))) {
+      const n = num(m[2]), hours = /^m/i.test(m[3]) ? n / 60 : n;
+      out.push({ kind: "stay", label: m[1].replace(/^(?:then\s+)/i, "").replace(/^\w/, (c) => c.toUpperCase()), hours, query: m[4] ? clean(m[4]) : undefined });
       continue;
     }
     // Visits: "visit Intramuros", "see the rice terraces on day 2", "lunch at X".
