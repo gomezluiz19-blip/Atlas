@@ -12,6 +12,8 @@ import { demLayer } from "./demLayer";
 import { SEA_ZONES, seaZone, type SeaZone } from "./landforms";
 import { offset } from "./slice";
 import type { Lens, Subject } from "./types";
+import { featureFor } from "../content/features";
+import { factCard, factsFor } from "./facts";
 
 const rgb = (c: [number, number, number]) => `rgb(${c.join(",")})`;
 
@@ -54,7 +56,9 @@ export const seafloorLens: Lens = {
     const zones = Object.keys(SEA_ZONES) as SeaZone[];
     const avg = v.reduce((t, x) => t + Math.min(0, x), 0) / (sea || 1);
     host.title("Seafloor", s.name);
+    const trench = featureFor({ lon: s.lon, lat: s.lat, kinds: ["deep"], withinKm: Math.max(600, R / 1000 * 1.5) });
     host.body.replaceChildren(
+      trench && trench !== factsFor(s) ? factCard(trench) : "",
       h("div", { class: "lens-stats" }, stat(`${Math.round(-v[deep]).toLocaleString()} m`, "Deepest point nearby"), stat(`${Math.round(-avg).toLocaleString()} m`, "Average depth"), stat(`${Math.round((sea / v.length) * 100)}%`, `Sea within ${formatDistance(R)}`)),
       h("h3", { class: "lens-sub" }, "Profile, west to east"),
       lines([{ values: prof, color: "#2f6aa3" }], { yLabel: (x) => `${Math.round(x)} m`, xLabels: ["W", `E · ${formatDistance(2 * R)}`], fill: true }),

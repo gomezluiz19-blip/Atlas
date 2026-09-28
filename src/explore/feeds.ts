@@ -5,7 +5,8 @@ import type { Viewer } from "cesium";
 import { KIND_INFO } from "../analysis/placeKinds";
 import { overpass } from "../data/overpass";
 import { notablePlaces, type Notable } from "../data/wikidata";
-import { riverLines, worldLabels, type RiverLine, type WorldLabel } from "../data/worldData";
+import { FEATURES } from "../content/features";
+import { detailLabels, riverLines, riversIn, worldLabels, type RiverLine, type WorldLabel } from "../data/worldData";
 import type { LabelLayer, MapLabel } from "../globe/labels";
 import { currentView, type ViewInfo } from "./view";
 
@@ -25,6 +26,9 @@ export class Feeds {
     return this.world;
   }
   private rivers: RiverLine[] = [];
+  /** Detailed rivers for the area in view (zoomed in). */
+  private detailRivers: RiverLine[] = [];
+  private riverBox = "";
   private timer = 0;
   private job = 0;
   private listeners = new Set<() => void>();
@@ -32,9 +36,20 @@ export class Feeds {
   constructor(private viewer: Viewer, private labels: LabelLayer) {
     this.view = currentView(viewer);
     void Promise.all([worldLabels(), riverLines()]).then(([w, r]) => {
-      this.world = w;
+      // Impact craters, ocean trenches and great forests from the bundled facts, as labels too.
+      const have = new Set(w.map((l) => l.name));
+      const extra: WorldLabel[] = FEATURES.filter((x) => (x.kind === "crater" || x.kind === "deep" || x.kind === "forest" || x.kind === "waterfall" || x.kind === "canyon") && !have.has(x.name)).map((x) => ({
+        name: x.name, lon: x.lon, lat: x.lat,
+        kind: x.kind === "deep" ? "sea" : x.kind === "waterfall" ? "waterfall" : "nature",
+        minZoom: x.kind === "deep" ? 3 : x.kind === "forest" || x.kind === "canyon" ? 4.5 : x.kind === "waterfall" ? 6 : /about (\d{2,})/.test(x.facts[0][1]) ? 4.5 : 7,
+        rank: x.kind === "deep" ? 150 : 120,
+        detail: x.kind === "deep" ? "ocean trench" : x.kind === "crater" ? "impact crater" : x.kind === "waterfall" ? "waterfall" : x.kind === "canyon" ? "canyon" : "forest",
+      }));
+      this.world = [...w, ...extra];
       this.rivers = r;
       this.refreshWorld();
+      // Towns, lakes and parks for closer zooms (and offline search), once the globe has settled.
+      setTimeout(() => void detailLabels().then((d) => { this.world = [...this.world, ...d]; this.refreshWorld(); }).catch(() => {}), 3000);
     });
     viewer.camera.moveEnd.addEventListener(() => this.schedule());
   }
@@ -83,7 +98,7 @@ export class Feeds {
     const rivers: MapLabel[] = [];
     if (z >= 3.5 && z < 11) {
       const best = new Map<string, { lon: number; lat: number; d: number; rank: number }>();
-      for (const r of this.rivers) {
+      for (const r of z >= 6 && this.detailRivers.length ? [...this.rivers, ...this.detailRivers] : this.rivers) {
         if (r.minZoom > z + 0.8) continue;
         for (let i = 0; i < r.pts.length; i += 2) {
           const lon = r.pts[i], lat = r.pts[i + 1];
@@ -96,6 +111,15 @@ export class Feeds {
       for (const [name, p] of best) rivers.push({ id: `r:${name}`, name, lon: p.lon, lat: p.lat, kind: "water", rank: p.rank, data: { source: "river" } satisfies LabelData });
     }
     this.labels.set("rivers", rivers);
+    // Zoomed in: fetch the detailed rivers for this area, then relabel.
+    if (z >= 6 && z < 11) {
+      const [w, s, e, n] = v.bbox;
+      const key = [w, s, e, n].map((x) => Math.floor(x / 15)).join(",");
+      if (key !== this.riverBox) {
+        this.riverBox = key;
+        void riversIn(w, s, e, n, 6).then((lines) => { if (this.riverBox === key) { this.detailRivers = lines; this.refreshWorld(); } });
+      }
+    }
   }
 
   private async refreshLocal() {

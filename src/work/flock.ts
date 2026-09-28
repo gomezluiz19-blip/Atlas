@@ -15,6 +15,63 @@ import type { WorkCtx } from "./hub";
 import { WorkLayer } from "./layer";
 import { ORGS, SPECIES, age, counts, dueDate, dueList, gain, grazing, speciesById, thi, type Animal, type Flock, type HealthEvent, type Org } from "./flockModel";
 import { download, newId } from "./store";
+import { CARE, breedsFor, findBreed } from "./breeds";
+import { applyLog, parseLog, type LogEntry } from "./flockLog";
+
+/** Logs one plain-words line ("Daisy had twins") to the records; null if it couldn't be read. */
+export function logText(text: string): LogEntry | null {
+  flock = load() ?? flock;
+  if (!flock) return null;
+  const e = parseLog(text, flock);
+  if (!e) return null;
+  applyLog(flock, e, newId);
+  save();
+  return e;
+}
+
+type SpeechCtor = new () => { lang: string; interimResults: boolean; onresult: ((ev: { results: ArrayLike<ArrayLike<{ transcript: string }>> }) => void) | null; onerror: (() => void) | null; onend: (() => void) | null; start(): void; stop(): void };
+
+/** "Say or type what happened": the log bar at the top of Flock. */
+function logBar(ctx: WorkCtx): HTMLElement {
+  const input = h("input", { class: "pro-url", placeholder: "Say or type what happened: \u201cDaisy had twins\u201d", "aria-label": "Log what happened" }) as HTMLInputElement;
+  const preview = h("p", { class: "muted small flock-log-preview" }, "Try: \u201cweighed 101 at 590 kg\u201d, \u201cwormed all the sheep\u201d, \u201cBramble is lame\u201d.");
+  const commit = () => {
+    const e = logText(input.value);
+    if (!e) { preview.textContent = "Couldn't tell which animal or what happened. Use a name or tag number."; preview.classList.add("warn"); return; }
+    ctx.app.toast(`Logged: ${e.summary}`, 4000);
+    openFlock(ctx);
+  };
+  input.addEventListener("input", () => {
+    preview.classList.remove("warn");
+    const e = flock && input.value.trim() ? parseLog(input.value, flock) : null;
+    preview.textContent = e ? `Will log: ${e.summary}` : input.value.trim() ? "…" : preview.textContent;
+  });
+  input.addEventListener("keydown", (e) => { if (e.key === "Enter") commit(); });
+  const Speech = ((window as unknown as { SpeechRecognition?: SpeechCtor; webkitSpeechRecognition?: SpeechCtor }).SpeechRecognition ?? (window as unknown as { webkitSpeechRecognition?: SpeechCtor }).webkitSpeechRecognition);
+  const mic: HTMLElement | "" = Speech ? h("button", { class: "pill-btn flock-mic", title: "Speak", "aria-label": "Speak", onclick: () => {
+    const btn = mic as HTMLElement;
+    const r = new Speech();
+    r.lang = navigator.language || "en-GB";
+    r.interimResults = false;
+    btn.classList.add("on");
+    preview.textContent = "Listening…";
+    r.onresult = (ev) => { input.value = ev.results[0][0].transcript; input.dispatchEvent(new Event("input")); };
+    r.onerror = () => { preview.textContent = "Didn't catch that. Try again, or type it."; };
+    r.onend = () => btn.classList.remove("on");
+    r.start();
+  } }, "🎙") : "";
+  return h("div", { class: "flock-log" }, h("div", { class: "build-log-form" }, input, mic, h("button", { class: "pill-btn", onclick: commit }, "Log")), preview);
+}
+
+/** A text box that suggests the breeds of a species (any other text is fine too). */
+function breedInput(species: () => string, value = "", onChange?: (v: string) => void): HTMLElement {
+  const id = `breeds-${newId()}`;
+  const list = h("datalist", { id });
+  const fill = () => list.replaceChildren(...breedsFor(species()).map((b) => h("option", { value: b.name }, `${b.use} · ${b.origin}`)));
+  fill();
+  const input = h("input", { value, placeholder: "Breed (optional)", list: id, "aria-label": "Breed", onfocus: fill, onchange: (e: Event) => onChange?.((e.target as HTMLInputElement).value.trim()) });
+  return h("span", { class: "breed-input" }, input, list);
+}
 
 const KEY = "atlas.work.flock.v1";
 function load(): Flock | null {
@@ -132,6 +189,8 @@ function parade(): HTMLElement {
 }
 
 export function openFlock(ctx: WorkCtx) {
+  // Pick up anything logged from the search box since this was last open.
+  flock = load() ?? flock;
   if (!flock) return setup(ctx);
   const f = flock;
   drawFlock(ctx.app);
@@ -169,6 +228,7 @@ export function openFlock(ctx: WorkCtx) {
 
   ctx.show(f.name, ctx.home,
     parade(),
+    f.animals.length ? logBar(ctx) : "",
     h("div", { class: "flock-counts" }, ...counts(f.animals).map((c) => h("span", { class: "chip" }, `${speciesById(c.species).emoji} ${c.n}`)),
       h("span", { class: "muted small" }, `${f.animals.length} animal${f.animals.length === 1 ? "" : "s"} · ${ORGS[f.org].label}`)),
     heat,
@@ -237,6 +297,8 @@ function addAnimals(ctx: WorkCtx, n: number) {
   if (f.animals.length) sp.value = counts(f.animals)[0].species;
   const name = h("input", { placeholder: n > 1 ? "Name prefix (optional)" : "Name" }) as HTMLInputElement;
   const tag = h("input", { placeholder: n > 1 ? "First tag number, e.g. 101" : "Tag or ID (optional)" }) as HTMLInputElement;
+  const breedBox = breedInput(() => sp.value);
+  const breed = breedBox.querySelector("input") as HTMLInputElement;
   const count = h("input", { type: "number", min: 1, max: 500, value: n }) as HTMLInputElement;
   const sex = h("select", {}, h("option", { value: "" }, "Unknown"), h("option", { value: "F" }, "Female"), h("option", { value: "M" }, "Male")) as HTMLSelectElement;
   const born = h("input", { type: "date", max: today() }) as HTMLInputElement;
@@ -244,7 +306,7 @@ function addAnimals(ctx: WorkCtx, n: number) {
   const pad = h("select", {}, h("option", { value: "" }, "None"), ...f.paddocks.map((p) => h("option", { value: p.id }, p.name))) as HTMLSelectElement;
   const field = (l: string, el: HTMLElement) => h("label", { class: "mp-field" }, h("span", {}, l), el);
   ctx.show(n > 1 ? "Add a group" : "Add an animal", () => openFlock(ctx),
-    field("Species", sp), n > 1 ? field("How many", count) : "", field(n > 1 ? "Name prefix" : "Name", name), field("Tag", tag), field("Sex", sex), field("Born (or best guess)", born), field("Status", status),
+    field("Species", sp), field("Breed", breedBox), n > 1 ? field("How many", count) : "", field(n > 1 ? "Name prefix" : "Name", name), field("Tag", tag), field("Sex", sex), field("Born (or best guess)", born), field("Status", status),
     f.paddocks.length ? field(f.org === "farm" ? "Paddock" : "Enclosure", pad) : "",
     h("div", { class: "pro-actions" }, h("button", { class: "primary-btn", onclick: () => {
       const k = n > 1 ? Math.max(1, Math.min(500, Number(count.value) || 1)) : 1;
@@ -253,6 +315,7 @@ function addAnimals(ctx: WorkCtx, n: number) {
         f.animals.push({
           id: newId(), species: sp.value, name: k > 1 ? (name.value ? `${name.value} ${i + 1}` : "") : name.value.trim(),
           tag: k > 1 && Number.isFinite(start) ? String(start + i) : tag.value.trim() || undefined,
+          breed: breed.value.trim() || undefined,
           sex: (sex.value || undefined) as Animal["sex"], born: born.value || undefined, status: status.value, paddock: pad.value || undefined, weights: [], health: [],
         });
       save();
@@ -304,7 +367,7 @@ function openPaddock(ctx: WorkCtx, id: string) {
   );
 }
 
-function openAnimal(ctx: WorkCtx, id: string) {
+export function openAnimal(ctx: WorkCtx, id: string) {
   const f = flock!, a = f.animals.find((x) => x.id === id);
   if (!a) return openFlock(ctx);
   const sp = speciesById(a.species);
@@ -312,6 +375,8 @@ function openAnimal(ctx: WorkCtx, id: string) {
   const set = (patch: Partial<Animal>) => { Object.assign(a, patch); save(); };
   const w = [...a.weights].sort((x, y) => x.date.localeCompare(y.date));
   const g = gain(a.weights);
+  const breedCard = findBreed(a.species, a.breed);
+  const matureKg = breedCard?.kg ?? sp.kg;
   const kg = h("input", { type: "number", min: 0, step: 0.1, placeholder: "kg", class: "build-crew" }) as HTMLInputElement;
   const kgDate = h("input", { type: "date", value: today(), class: "work-date" }) as HTMLInputElement;
   const ev = { kind: h("select", {}, h("option", { value: "vaccination" }, "Vaccination"), h("option", { value: "treatment" }, "Treatment"), h("option", { value: "checkup" }, "Check-up"), h("option", { value: "note" }, "Note")) as HTMLSelectElement,
@@ -337,13 +402,15 @@ function openAnimal(ctx: WorkCtx, id: string) {
       h("button", { class: "flock-photo", title: "Add a photo", onclick: () => photoIn.click() }, a.photo ? h("img", { src: a.photo, alt: label(a) }) : h("span", { class: "flock-bob" }, sp.emoji)), photoIn,
       h("div", {},
         h("input", { class: "mp-name", value: a.name, placeholder: "Name", "aria-label": "Name", onchange: (e: Event) => set({ name: (e.target as HTMLInputElement).value }) }),
-        h("span", { class: "muted small" }, [sp.label, a.sex === "F" ? "Female" : a.sex === "M" ? "Male" : "", age(a.born, today())].filter(Boolean).join(" · ")))),
+        h("span", { class: "muted small" }, [a.breed || sp.label, a.sex === "F" ? "Female" : a.sex === "M" ? "Male" : "", age(a.born, today())].filter(Boolean).join(" · ")))),
+    breedCard ? h("p", { class: "breed-card small" }, h("strong", {}, breedCard.name), ` · ${breedCard.use} · from ${breedCard.origin} · adult females about ${breedCard.kg} kg`, breedCard.note ? `. ${breedCard.note}` : "") : "",
     h("div", { class: "build-fields" },
       h("label", { class: "mp-field" }, h("span", {}, "Status"), h("select", { onchange: (e: Event) => { set({ status: (e.target as HTMLSelectElement).value }); drawFlock(ctx.app); } }, ...ORGS[f.org].statuses.map((s) => h("option", { value: s, selected: s === a.status }, s)))),
       h("label", { class: "mp-field" }, h("span", {}, "Tag"), h("input", { value: a.tag ?? "", onchange: (e: Event) => set({ tag: (e.target as HTMLInputElement).value || undefined }) })),
+      h("label", { class: "mp-field" }, h("span", {}, "Breed"), breedInput(() => a.species, a.breed ?? "", (v) => { set({ breed: v || undefined }); again(); })),
       h("label", { class: "mp-field" }, h("span", {}, "Born"), h("input", { type: "date", value: a.born ?? "", max: today(), onchange: (e: Event) => set({ born: (e.target as HTMLInputElement).value || undefined }) }))),
     h("section", { class: "group" }, h("h2", { class: "group-title" }, "Weight"),
-      w.length ? stats(["Latest", `${w[w.length - 1].kg} kg (${fmtDate(w[w.length - 1].date)})`], g.last !== undefined ? ["Daily gain, last period", `${(g.last * 1000).toFixed(0)} g/day`] : null, g.overall !== undefined ? ["Daily gain, overall", `${(g.overall * 1000).toFixed(0)} g/day`] : null) : "",
+      w.length ? stats(["Latest", `${w[w.length - 1].kg} kg (${fmtDate(w[w.length - 1].date)})`], ["Of a typical adult", `${Math.round((w[w.length - 1].kg / matureKg) * 100)}% (${matureKg} kg${breedCard ? `, ${breedCard.name}` : ""})`], g.last !== undefined ? ["Daily gain, last period", `${(g.last * 1000).toFixed(0)} g/day`] : null, g.overall !== undefined ? ["Daily gain, overall", `${(g.overall * 1000).toFixed(0)} g/day`] : null) : "",
       w.length > 1 ? inlineChart({ x: w.map((x) => Date.parse(x.date)), y: w.map((x) => x.kg) }, { xLabel: "Date", yLabel: "kg", xFormat: (v) => new Date(v).toLocaleDateString(undefined, { day: "numeric", month: "short" }), yFormat: (v) => `${v.toFixed(0)} kg` }, 130) : "",
       h("div", { class: "build-log-form" }, kgDate, kg, h("button", { class: "pill-btn", onclick: () => { const v = Number(kg.value); if (v > 0) { a.weights.push({ date: kgDate.value || today(), kg: v }); save(); again(); } } }, "Add weight"))),
     h("section", { class: "group" }, h("h2", { class: "group-title" }, "Health"),
@@ -354,6 +421,12 @@ function openAnimal(ctx: WorkCtx, id: string) {
         save();
         again();
       } }, "Add")),
+      (CARE[a.species] ?? []).length ? h("div", { class: "care-chips" }, h("span", { class: "muted small" }, "Routine care, one tap (next due in brackets):"),
+        ...(CARE[a.species] ?? []).map((c) => h("button", { class: "chip", title: "Typical interval; follow your vet's advice", onclick: () => {
+          a.health.unshift({ id: newId(), date: today(), kind: c.kind, text: c.text, due: addDays(c.every) });
+          save();
+          again();
+        } }, `${c.text} (${c.every >= 365 ? `${Math.round(c.every / 365)} yr` : c.every >= 28 ? `${Math.round(c.every / 30)} mo` : `${c.every} d`})`))) : "",
       ...a.health.map((e) => h("div", { class: "work-check" + (e.done ? " done" : "") },
         e.due ? h("input", { type: "checkbox", checked: !!e.done, title: "Follow-up done", onchange: () => { e.done = !e.done; save(); again(); } }) : h("span", { class: "flock-kind" }, "•"),
         h("span", {}, `${e.text}${e.due ? ` · next due ${fmtDate(e.due)}` : ""}`), h("span", { class: "muted small" }, `${e.kind} · ${fmtDate(e.date)}`)))),
@@ -371,10 +444,10 @@ function openAnimal(ctx: WorkCtx, id: string) {
 function exportCsv() {
   const f = flock!;
   const q = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
-  const rows = [["name", "tag", "species", "sex", "born", "status", "paddock", "latest_kg", "bred", "due", "notes"],
+  const rows = [["name", "tag", "species", "breed", "sex", "born", "status", "paddock", "latest_kg", "bred", "due", "notes"],
     ...f.animals.map((a) => {
       const w = [...a.weights].sort((x, y) => x.date.localeCompare(y.date)).pop();
-      return [a.name, a.tag, speciesById(a.species).label, a.sex, a.born, a.status, f.paddocks.find((p) => p.id === a.paddock)?.name, w?.kg, a.bred, a.bred ? dueDate(a.species, a.bred) : "", a.notes];
+      return [a.name, a.tag, speciesById(a.species).label, a.breed, a.sex, a.born, a.status, f.paddocks.find((p) => p.id === a.paddock)?.name, w?.kg, a.bred, a.bred ? dueDate(a.species, a.bred) : "", a.notes];
     })];
   download(`${f.name}.csv`, rows.map((r) => r.map(q).join(",")).join("\n"), "text/csv");
 }

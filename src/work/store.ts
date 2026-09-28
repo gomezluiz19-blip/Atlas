@@ -3,8 +3,13 @@ export class ListStore<T extends { id: string }> {
   private items: T[] = [];
 
   constructor(private key: string) {
+    this.reload();
+  }
+
+  /** Re-reads the saved list (after something else changed it). */
+  reload() {
     try {
-      const v = JSON.parse(localStorage.getItem(key) ?? "[]");
+      const v = JSON.parse(localStorage.getItem(this.key) ?? "[]");
       this.items = Array.isArray(v) ? v : [];
     } catch {
       this.items = [];

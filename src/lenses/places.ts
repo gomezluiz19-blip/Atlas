@@ -9,6 +9,8 @@ import { bar, stat } from "./charts";
 import { areaContaining, forestsAround, transitAround, type Ring } from "./osm";
 import { chain } from "./trace";
 import type { Lens, Subject } from "./types";
+import { featureFor } from "../content/features";
+import { factCard, factsFor } from "./facts";
 
 const LEAF: Record<string, { label: string; color: string }> = {
   broadleaved: { label: "Broadleaf (oak, beech, maple…)", color: "#7cc84a" },
@@ -147,7 +149,9 @@ export const transitLens: Lens = {
     // Interchanges: stations near two or more lines.
     const near = (st: { lon: number; lat: number }, l: typeof net.lines[0]) => l.pieces.some((p) => p.some(([x, y]) => Math.abs(x - st.lon) < 0.0025 && Math.abs(y - st.lat) < 0.0018 && haversine(x, y, st.lon, st.lat) < 180));
     const hubs = net.stations.slice(0, 400).map((st) => ({ st, n: net.lines.filter((l) => near(st, l)).length })).filter((x) => x.n >= 2).sort((a, b) => b.n - a.n).slice(0, 6);
+    const system = featureFor({ lon: s.lon, lat: s.lat, kinds: ["metro"], withinKm: 40 });
     host.body.replaceChildren(
+      system && system !== factsFor(s) ? factCard(system, true) : "",
       h("div", { class: "lens-stats" }, stat(String(net.lines.length), "Lines"), stat(String(net.stations.length), "Stations"), stat(`${Math.round(km / 2)} km`, "Of line (roughly)")),
       h("div", { class: "chips wrap" },
         h("button", { class: "chip", onclick: (e: Event) => { setUnder(!under); (e.currentTarget as HTMLElement).classList.toggle("on", under); } }, "Underground view"),

@@ -184,7 +184,7 @@ export function createSearch(globe: Globe, opts: SearchOptions = {}): HTMLElemen
   const input = h("input", {
     id: "search-input",
     type: "search",
-    placeholder: "Search, or ask: “storm drains in Chicago”",
+    placeholder: matchMedia("(max-width: 520px)").matches ? "Search places, or ask anything" : "Search, or ask: “storm drains in Chicago”",
     "aria-label": "Search places, addresses, coordinates or map links",
     autocomplete: "off",
     autocapitalize: "off",

@@ -13,8 +13,10 @@ import { drawOnMap } from "./draw";
 import { areaM2, fmtArea, pathLength, type LonLat } from "./geo";
 import type { WorkCtx } from "./hub";
 import { WorkLayer } from "./layer";
-import { CROPS, cropById, litres, mergeDays, season, type Season } from "./growModel";
+import { CROP_GROUPS, CROPS, cropById, litres, mergeDays, season, type Season } from "./growModel";
 import { ListStore, download, newId } from "./store";
+import { parseFieldLog, type FieldLogEntry } from "./growLog";
+import { watchFor, type Watch } from "./cropWatch";
 
 interface Field {
   id: string;
@@ -28,7 +30,7 @@ interface Field {
 
 const store = new ListStore<Field>("atlas.work.fields.v1");
 let layer: WorkLayer | null = null;
-const CROP_COLOR: Record<string, string> = { maize: "#ffd60a", rice: "#64d2ff", wheat: "#e0b050", beans: "#ff9f0a", soybean: "#a8e05f", tomato: "#ff453a", potato: "#bf8a5a", coffee: "#b0703c", cacao: "#8e5a3c", banana: "#30d158" };
+const CROP_COLOR: Record<string, string> = { maize: "#ffd60a", rice: "#64d2ff", wheat: "#e0b050", beans: "#ff9f0a", soybean: "#a8e05f", tomato: "#ff453a", potato: "#bf8a5a", coffee: "#b0703c", cacao: "#8e5a3c", banana: "#30d158", ...Object.fromEntries(CROPS.filter((c) => c.color).map((c) => [c.id, c.color!])) };
 const today = () => {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
@@ -65,8 +67,21 @@ export const ndviAction = (app: App) => ({ label: "Plant health (NDVI)", run: ()
 
 // ---- Screens -------------------------------------------------------------------------------
 
+/** Writes one plain-words line ("sprayed Top field with glyphosate") to a field's diary; null if unclear. */
+export function logFieldText(text: string): FieldLogEntry | null {
+  store.reload();
+  const e = parseFieldLog(text, store.all());
+  if (!e) return null;
+  const f = store.get(e.field.id)!;
+  f.diary.unshift({ date: today(), text: e.text });
+  if (e.patch) Object.assign(f, e.patch);
+  store.save(f);
+  return e;
+}
+
 export function openGrow(ctx: WorkCtx) {
   const { app } = ctx;
+  store.reload();
   drawFields(app);
   const addField = async () => {
     ctx.hide();
@@ -94,6 +109,17 @@ export function openGrow(ctx: WorkCtx) {
   );
 }
 
+/** Pests and diseases to look out for at this stage, and next. */
+function watchSection(cropId: string, stage: number, stages: number): HTMLElement | string {
+  const { now, next } = watchFor(cropId, stage, stages);
+  if (!now.length && !next.length) return "";
+  const row = (x: Watch) => h("div", { class: "sow-row" }, h("span", {}, "🔎"), h("span", {}, h("strong", {}, x.name), h("small", {}, x.sign)));
+  return h("section", { class: "group" }, h("h2", { class: "group-title" }, "Watch for"),
+    ...now.map(row),
+    next.length ? h("p", { class: "muted small" }, `Coming up: ${next.map((x) => x.name.toLowerCase()).join("; ")}.`) : "",
+    h("p", { class: "muted small" }, "Common problems at this stage; your local adviser knows what's about this year."));
+}
+
 function seasonView(f: Field, s: Season, m2: number): (Node | string)[] {
   const crop = cropById(f.crop);
   const pct = Math.min(100, Math.round(s.f * 100));
@@ -111,6 +137,7 @@ function seasonView(f: Field, s: Season, m2: number): (Node | string)[] {
     s.harvest && crop.gdd && Date.parse(s.harvest[0]) - Date.now() > 45 * 86_400_000 && s.f > 0.5
       ? h("p", { class: "muted small" }, "Growth is slowing as the weather cools, so this is a long projection. In cool climates crops are often harvested before the full target, or a shorter variety is used.")
       : "",
+    watchSection(f.crop, s.stage.index, crop.stages.length),
     h("section", { class: "group" }, h("h2", { class: "group-title" }, "Water"),
       stats(
         ["Crop used, last 7 days", `${s.used7.toFixed(0)} mm`, `Reference evapotranspiration × crop coefficient (Kc ${s.kc.toFixed(2)}, FAO-56)`],
@@ -120,7 +147,7 @@ function seasonView(f: Field, s: Season, m2: number): (Node | string)[] {
       ),
       s.irrigate7 > 0.5
         ? h("div", { class: "grow-irrigate need" }, h("strong", {}, `Irrigate about ${s.irrigate7.toFixed(0)} mm this week.`), h("span", {}, ` That's ${n0(litres(s.irrigate7, m2))} litres for this field (${n0(s.irrigate7 * 10)} m³ per hectare), before losses in the system.`))
-        : h("div", { class: "grow-irrigate" }, h("strong", {}, "No irrigation needed this week."), h("span", {}, " Rain is expected to cover what the crop uses."))),
+        : h("div", { class: "grow-irrigate" }, h("strong", {}, "No irrigation needed this week."), h("span", {}, !crop.perennial && s.f >= 0.85 ? " The crop is ripening: let it dry down." : " Rain is expected to cover what the crop uses."))),
     s.frost.length || s.heat.length
       ? h("section", { class: "group" }, h("h2", { class: "group-title" }, "Watch out"),
           ...s.frost.map((x) => h("p", { class: "pro-warn" }, `${x.tmin <= 0 ? "Frost" : "Possible frost"} ${fmtDate(x.date)}: down to ${x.tmin.toFixed(0)} °C. Cover young plants or irrigate the evening before.`)),
@@ -154,7 +181,7 @@ export function openField(ctx: WorkCtx, id: string) {
     h("input", { class: "mp-name", value: f.name, "aria-label": "Field name", onchange: (e: Event) => { f.name = (e.target as HTMLInputElement).value || f.name; save(); drawFields(app); } }),
     h("label", { class: "mp-field" }, h("span", {}, "Crop"),
       h("select", { onchange: (e: Event) => { f.crop = (e.target as HTMLSelectElement).value; save(); again(); } },
-        ...CROPS.map((c) => h("option", { value: c.id, selected: c.id === f.crop }, c.label)))),
+        ...CROP_GROUPS.map((g) => h("optgroup", { label: g }, ...CROPS.filter((c) => c.group === g).map((c) => h("option", { value: c.id, selected: c.id === f.crop }, c.label)))))),
     h("label", { class: "mp-field" }, h("span", {}, crop.perennial && crop.id !== "banana" ? "Flowering date" : "Planting date"),
       h("input", { type: "date", value: f.planted, max: today(), onchange: (e: Event) => { const v = (e.target as HTMLInputElement).value; if (v) { f.planted = v; save(); again(); } } })),
     body,

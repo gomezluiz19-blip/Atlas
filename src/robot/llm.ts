@@ -57,13 +57,15 @@ function tools(app: App): Tool[] {
     { name: "add_layers", description: `Switch on world map layers. Available: ${layers.map((l) => `${l} (${app.actions.get(l)!.label})`).join("; ")}.`, input_schema: { type: "object", properties: { layers: { type: "array", items: { type: "string", enum: layers } } }, required: ["layers"] } },
     { name: "open_view", description: `Open a theme's view about the selected place (fly_to first). Views: ${app.themes.map((t) => `${t.id} (${t.label}): ${t.subtabs.map((s) => `${s.id} = ${s.label}`).join(", ")}`).join(" | ")}.`, input_schema: { type: "object", properties: { view: { type: "string", enum: views } }, required: ["view"] } },
     { name: "show_borders", description: `Show the world's political borders in a past year (maps exist for ${yearLabel(YEARS[0])} to ${yearLabel(YEARS[YEARS.length - 1])}; the nearest map is used). Use a negative year for BC. Pass null to hide them.`, input_schema: { type: "object", properties: { year: { type: ["integer", "null"] } }, required: ["year"] } },
-    { name: "open_tool", description: "Open one of Atlas's tools: plan (trips, events, sites, zones, routes), present (slides), video (record the globe), grow (fields and crops), build (construction projects), flock (animals), teach (lessons, quizzes, field trips), learn (games for students, places to learn), space (satellites, ISS, launches), solar (the solar system view).", input_schema: { type: "object", properties: { tool: { type: "string", enum: [...WORK_TOOLS, "space", "solar"] } }, required: ["tool"] } },
+    { name: "open_tool", description: "Open one of Atlas's tools: plan (trips, events, sites, zones, routes), present (slides), video (record the globe), grow (fields and crops), build (construction projects), flock (animals), teach (lessons, quizzes, field trips), learn (games for students, places to learn), space (satellites, ISS, launches), solar (the solar system view), myplace (the person's saved places and today's brief there: frost, heat, storms, animals and tasks due).", input_schema: { type: "object", properties: { tool: { type: "string", enum: [...WORK_TOOLS, "space", "solar", "myplace"] } }, required: ["tool"] } },
+    { name: "today_brief", description: "Read today's brief for the person's own saved place (home, farm or site): weather to act on, animals due, fields to harvest or irrigate, projects behind. Use it for questions like 'what do I need to do today?' or 'anything due on the farm?'.", input_schema: { type: "object", properties: {} } },
+    { name: "log_record", description: "Record something that happened at the person's place, as ONE plain sentence per call that names the animal (by name or tag), field or building project, e.g. 'Daisy had twins', 'weighed 101 at 590 kg', 'wormed all the sheep with Cydectin', 'sprayed Top field with fungicide', 'Oak Street: poured the slab, 14 crew'. Split a sentence about several animals into several calls.", input_schema: { type: "object", properties: { line: { type: "string" } }, required: ["line"] } },
     { name: "open_lens", description: `Look at the selected feature (fly_to it first) through a lens. Lenses: ${lenses.map((l) => `${l.id} = ${l.label}: ${l.blurb}`).join(" | ")}.`, input_schema: { type: "object", properties: { lens: { type: "string", enum: lenses.map((l) => l.id) } }, required: ["lens"] } },
   ];
 }
 
 const SYSTEM = `You are the assistant inside Atlas, a 3D globe with real satellite imagery and terrain. People type requests in its search box.
-Act by calling tools: fly to places, switch on layers, open views, look at a feature through a lens, show historical borders, open tools. Chain several calls for multi-part requests (place first, then layers, then a view).
+Act by calling tools: fly to places, switch on layers, open views, look at a feature through a lens, show historical borders, open tools, read the brief for the person's own place, and log what happened there. Chain several calls for multi-part requests (place first, then layers, then a view).
 Then reply in at most three short sentences: what you showed and one interesting, accurate fact. Plain text, no markdown, no lists.
 Only use the layers, views and tools listed. If something isn't available, say so briefly and show the closest thing that is.
 Never invent data. If you aren't sure of a fact, don't state it. Keep it friendly and suitable for all ages.`;
@@ -95,6 +97,10 @@ export interface AiDeps {
   resolver: Resolver;
   showBorders(year: number | null): Promise<void>;
   openTool(tool: string): void;
+  /** Today's brief for the person's main saved place, as text (empty when none is saved). */
+  brief?(): Promise<string>;
+  /** Logs one plain-words line to Flock, Grow or Build; returns what was saved, or null. */
+  logLine?(line: string): Promise<string | null>;
 }
 
 /** Runs a request through Claude, reporting each action as a step. Returns Claude's answer. */
@@ -149,6 +155,8 @@ function describeUse(app: App, u: Extract<Block, { type: "tool_use" }>): string 
     }
     case "show_borders": return i.year === null ? "Hide historical borders" : `Show the borders in ${yearLabel(nearestYear(Number(i.year)))}`;
     case "open_tool": return `Open ${String(i.tool)}`;
+    case "today_brief": return "Read today's brief";
+    case "log_record": return `Log: ${String(i.line)}`;
     case "open_lens": return `Look through the ${LENSES.find((l) => l.id === i.lens)?.label ?? String(i.lens)} lens`;
     default: return u.name;
   }
@@ -194,6 +202,16 @@ async function runTool(app: App, deps: AiDeps, u: Extract<Block, { type: "tool_u
     case "open_tool":
       deps.openTool(String(i.tool));
       return `Opened ${i.tool}.`;
+    case "today_brief": {
+      const text = deps.brief ? await deps.brief() : "";
+      return text || "No place is saved yet. The person can save one in My Place (top right).";
+    }
+    case "log_record": {
+      if (!deps.logLine) throw new Error("Logging isn't available.");
+      const r = await deps.logLine(String(i.line));
+      if (!r) throw new Error(`Couldn't tell which animal, field or project "${i.line}" is about. Ask the person to name it.`);
+      return `Saved: ${r}`;
+    }
     case "open_lens": {
       const a = app.actions.get(`lens:${String(i.lens)}`);
       if (!a) throw new Error("No such lens.");

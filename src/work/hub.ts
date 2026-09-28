@@ -27,9 +27,22 @@ export interface WorkTool {
   open(ctx: WorkCtx): void;
 }
 
-export function createWork(app: App, tools: WorkTool[]) {
-  const button = h("button", { id: "work-btn", class: "round-btn", "aria-label": "Work", title: "Work: plan, present, record, grow", "aria-expanded": "false", html: icons.briefcase }) as HTMLButtonElement;
-  const panel = h("div", { class: "popover work-panel", hidden: true, role: "dialog", "aria-label": "Work" });
+export interface HubOptions {
+  /** The hub's name, shown on its home screen. */
+  title?: string;
+  intro?: string;
+  /** Extra content above the tools on the home screen (rebuilt each time). */
+  top?: () => (Node | string)[];
+  /** Extra content below the tools. */
+  bottom?: () => (Node | string)[];
+  /** Called whenever the panel closes. */
+  onClose?: () => void;
+}
+
+export function createWork(app: App, tools: WorkTool[], opts: HubOptions = {}) {
+  const title = opts.title ?? "Work";
+  const button = h("button", { id: `${title.toLowerCase().replace(/\W+/g, "-")}-btn`, class: "round-btn", "aria-label": title, title, "aria-expanded": "false", html: icons.briefcase }) as HTMLButtonElement;
+  const panel = h("div", { class: "popover work-panel", hidden: true, role: "dialog", "aria-label": title });
 
   const ctx: WorkCtx = {
     app,
@@ -43,12 +56,14 @@ export function createWork(app: App, tools: WorkTool[]) {
       panel.scrollTop = 0;
     },
     home() {
-      ctx.show("Work", null,
-        h("p", { class: "mp-intro" }, "Put the map to work: plan a trip or a new road, present a place's story, record a video, or look after a field."),
+      ctx.show(title, null,
+        h("p", { class: "mp-intro" }, opts.intro ?? "Put the map to work: plan a trip or a new road, present a place's story, record a video, or look after a field."),
+        ...(opts.top?.() ?? []),
         h("div", { class: "work-tools" }, ...tools.map((t) =>
           h("button", { class: "work-tool", style: `--c:${t.color}`, onclick: () => t.open(ctx) },
             h("span", { class: "work-tool-icon", html: t.icon }),
-            h("span", { class: "work-tool-text" }, h("strong", {}, t.label), h("span", {}, t.about))))));
+            h("span", { class: "work-tool-text" }, h("strong", {}, t.label), h("span", {}, t.about))))),
+        ...(opts.bottom?.() ?? []));
     },
     hide() { panel.classList.add("tucked"); },
     unhide() { panel.classList.remove("tucked"); },
@@ -59,8 +74,10 @@ export function createWork(app: App, tools: WorkTool[]) {
       button.dispatchEvent(new Event("work:opened"));
     },
     close() {
+      const was = !panel.hidden;
       panel.hidden = true;
       button.setAttribute("aria-expanded", "false");
+      if (was) opts.onClose?.();
     },
   };
   button.addEventListener("click", () => {
