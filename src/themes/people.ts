@@ -7,11 +7,13 @@ import type { ImageryLayer } from "cesium";
 import type { App, Subtab, Theme } from "../app";
 import { countryAt, countryShapes } from "../data/countries";
 import { colorFor, iso3, peopleNear, populationPoints, usTract, viewValues, VIEWS, type View } from "../data/people";
+import { EVENT_SOURCES, eventsNear, festivalsNear, inPeriod, type EventItem, type EventKind, type When } from "../data/events";
 import { vectorLayer } from "../globe/vectorLayer";
 import { h } from "../ui/dom";
 import { icons } from "../ui/icons";
 import { asyncBlock, hero, note, section, stats } from "./common";
-import { iconFor } from "../ui/glyph";
+import { iconFor, labelled } from "../ui/glyph";
+import { flyToPlace } from "../ui/search";
 
 const fmtPeople = (n: number) => (n >= 1e9 ? `${(n / 1e9).toFixed(1)} billion` : n >= 1e6 ? `${(n / 1e6).toFixed(n >= 1e7 ? 0 : 1)} million` : n >= 1e4 ? `${Math.round(n / 1e3).toLocaleString()},000` : Math.round(n).toLocaleString());
 const byId = (id: string) => VIEWS.find((v) => v.id === id)!;
@@ -115,11 +117,83 @@ export function peopleTheme(app: App): Theme {
   };
 
   const connected: Subtab = {
-    id: "connected", label: "Connected",
+    id: "connected", label: "Online",
     render({ app, place, body }) {
       asyncBlock(app, body, "Reading connection figures…", async () => {
         const figs = await countryFigures(place.lon, place.lat, ["mobile", "online", "power", "income"]);
         return [section(figs.country ? `${figs.country}, connected` : "Connected", ...figs.rows.map((r) => compare(r.v, r.value, r.world))), note("World Bank (ITU and IEA data), latest year available. Over 100 mobile subscriptions per 100 people means many have more than one.")];
+      });
+    },
+  };
+
+  // ---- What's on ----------------------------------------------------------------------------
+  const KIND: Record<EventKind, [string, string]> = {
+    music: ["🎵", "Music"], sports: ["🏅", "Sports"], arts: ["🎭", "Arts and theatre"], family: ["👶", "Family"], food: ["🍽️", "Food and drink"],
+    talks: ["🎤", "Talks and classes"], festival: ["🎉", "Festivals"], other: ["🎟️", "Other"],
+  };
+  const PERIODS: [When, string][] = [["today", "Today"], ["weekend", "This weekend"], ["week", "This week"], ["month", "Next 30 days"]];
+  const evState: { when: When; kind: EventKind | null } = { when: "week", kind: null };
+  const clearPins = () => app.labels?.set("people:events", []);
+  const localToday = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; };
+  const dayTitle = (iso: string) => { const t = localToday(); const tomorrow = new Date(Date.parse(t + "T12:00:00Z") + 86_400_000).toISOString().slice(0, 10); return iso === t ? "Today" : iso === tomorrow ? "Tomorrow" : new Date(iso + "T12:00:00Z").toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "short" }); };
+  const kmFrom = (e: EventItem, lon: number, lat: number) => (e.lon === undefined || e.lat === undefined ? null : Math.hypot((e.lon - lon) * 111 * Math.cos((lat * Math.PI) / 180), (e.lat - lat) * 111));
+
+  const events: Subtab = {
+    id: "events", label: "Events",
+    leave() { clearPins(); },
+    render({ app, place, body }) {
+      const sources = EVENT_SOURCES();
+      const list = h("div", { class: "ev-list" });
+      const filters = h("div", { class: "ev-filters" });
+      let all: EventItem[] = [];
+      const draw = () => {
+        const today = localToday();
+        const inTime = all.filter((e) => inPeriod(e.date, evState.when, today));
+        const kinds = [...new Set(inTime.map((e) => e.kind))];
+        const shown = inTime.filter((e) => !evState.kind || e.kind === evState.kind);
+        const chip = (label: string, on: boolean, act: () => void) => h("button", { class: `chip${on ? " on" : ""}`, "aria-pressed": String(on), onclick: () => { act(); draw(); } }, ...labelled(label, 14));
+        filters.replaceChildren(
+          h("div", { class: "chips wrap" }, ...PERIODS.map(([w, l]) => chip(l, evState.when === w, () => (evState.when = w)))),
+          kinds.length > 1 ? h("div", { class: "chips wrap" }, chip("All", !evState.kind, () => (evState.kind = null)), ...kinds.map((k) => chip(`${KIND[k][0]} ${KIND[k][1]}`, evState.kind === k, () => (evState.kind = evState.kind === k ? null : k)))) : "");
+        const byDay = new Map<string, EventItem[]>();
+        for (const e of shown.slice(0, 80)) { if (!byDay.has(e.date)) byDay.set(e.date, []); byDay.get(e.date)!.push(e); }
+        list.replaceChildren(...(byDay.size ? [...byDay].map(([d, es]) => h("section", { class: "ev-day" }, h("h3", { class: "ev-day-title" }, dayTitle(d)),
+          ...es.map((e) => {
+            const km = kmFrom(e, place.lon, place.lat);
+            return h("div", { class: "ev-row" },
+              e.image ? h("img", { class: "ev-img", src: e.image, alt: "", loading: "lazy" }) : h("span", { class: "ev-img ev-icon" }, iconFor(KIND[e.kind][0], 20)),
+              h("button", { class: "ev-text", onclick: () => { if (e.lon !== undefined && e.lat !== undefined) void flyToPlace(app.globe, { name: e.venue ?? e.name, lon: e.lon, lat: e.lat, radius: 400 }); } },
+                h("strong", {}, e.name),
+                h("small", {}, [e.time, e.venue, km !== null ? `${km < 10 ? km.toFixed(1) : Math.round(km)} km` : ""].filter(Boolean).join(" · ")),
+                h("small", { class: "ev-meta" }, [e.price, e.source].filter(Boolean).join(" · "))),
+              e.url ? h("a", { class: "pill-btn ev-go", href: e.url, target: "_blank", rel: "noopener" }, "Tickets") : "");
+          }))) : [h("p", { class: "muted small" }, all.length ? "Nothing in that window. Try a longer one." : "No listings found near here.")]));
+        // The venues on the map.
+        app.labels?.set("people:events", shown.filter((e) => e.lon !== undefined).slice(0, 40).map((e) => ({ id: `ev:${e.id}`, name: e.name, lon: e.lon!, lat: e.lat!, kind: "culture" as const, rank: 400, sub: e.time, data: { source: "feature", notable: { description: `${dayTitle(e.date)}${e.venue ? ` at ${e.venue}` : ""}` } } })));
+      };
+
+      if (sources.length) {
+        const holder = h("div", {}, h("div", { class: "loading" }, h("div", { class: "spinner" }), "Finding what's on…"));
+        body.append(section("What's on nearby", filters, holder));
+        void eventsNear(place.lon, place.lat, 25).then(({ items, failed }) => {
+          all = items;
+          holder.replaceChildren(list, failed.length ? note(`Couldn't reach ${failed.join(" and ")} just now.`) : "", note(`Within 25 km. Listings from ${sources.join(", ")}.`));
+          draw();
+        }).catch(() => holder.replaceChildren(h("p", { class: "error" }, "Couldn't load events. Check the connection and try again.")));
+      } else {
+        body.append(section("What's on nearby", h("div", { class: "ev-empty" },
+          h("strong", {}, "Live listings aren't connected yet"),
+          h("span", {}, "Concerts, games, shows and talks near any place appear here once an event service is connected: Ticketmaster or SeatGeek (search by location), or Eventbrite (one organisation's events). Setup: docs/events.md."))));
+      }
+      asyncBlock(app, body, "Looking for festivals…", async () => {
+        const fests = await festivalsNear(place.lon, place.lat).catch(() => []);
+        if (!fests.length) return [];
+        return [section("Festivals and annual events here",
+          h("div", { class: "list" }, ...fests.slice(0, 12).map((f) => h("button", { class: "list-row", onclick: () => void flyToPlace(app.globe, { name: f.name, lon: f.lon, lat: f.lat, radius: 1500 }) },
+            h("span", { class: "story-mini-emoji" }, iconFor("🎉", 18)),
+            h("span", { class: "list-text" }, h("span", { class: "list-title" }, f.name), h("span", { class: "list-sub" }, [f.about, f.when ? `usually in ${f.when}` : ""].filter(Boolean).join(" · "))),
+            f.url ? h("a", { class: "link-btn", href: f.url, target: "_blank", rel: "noopener", onclick: (e: Event) => e.stopPropagation() }, "Website") : ""))),
+          note("From Wikidata: festivals, fairs, parades, carnivals and races held within about 30 km."))];
       });
     },
   };
@@ -140,7 +214,7 @@ export function peopleTheme(app: App): Theme {
     icon: icons.people,
     color: "#ff9f0a",
     intro: "Where people live, and how: homes, health, phones and more.",
-    subtabs: [here, homes, health, connected],
+    subtabs: [here, homes, health, connected, events],
     enter() { if (current !== "pop") void showView(current); },
     leave() { job++; if (layer) { app.globe.viewer.imageryLayers.remove(layer, true); layer = null; } app.looks?.setLegend(null); },
     renderEmpty(_app, body) {
