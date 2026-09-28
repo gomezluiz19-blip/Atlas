@@ -72,6 +72,24 @@ building site), animals due to give birth or due a vaccination (overdue first), 
 within two weeks of it, how much to irrigate this week (mm and litres for the field), projects running
 behind, and seedlings just planted. Tap an item to open the tool it came from.
 
+**About this place.** The moment a place is saved, Atlas reports what it knows about the ground: its height,
+slope and the way it faces (the sunny or shady side), the rock below from the geologic map, the average last
+spring and first autumn frost and frost-free days from ten years of daily weather, the yearly growing heat
+and the crops it suits, rain, and the nearest main river, with one tap to see where the rain goes, slice the
+ground, compare then and now, or lift it out in 3D. A **sowing calendar** worked out from those frost dates
+says what to sow indoors, plant out or sow outdoors in the next six weeks (and the whole year) for about 30
+garden crops and autumn jobs like garlic and overwintering broad beans.
+
+**Log it in plain words.** Type or say what happened and Atlas files it: *"Daisy had twins"* or *"wormed all
+the sheep with Cydectin"* (Flock), *"sprayed Top field with fungicide"* or *"planted Barn plot with winter
+wheat"* (Grow's field diary, which also sets the crop and planting date), *"Oak Street: poured the level 2
+slab, 14 crew, structure 60%"* or *"Oak Street delivery of steel on Friday"* (Build's site log, progress and
+deliveries). It shows what it will save first, and the search box accepts the same lines.
+
+**Try a demo farm.** With nothing saved yet, My Place offers Hillside Farm, a demo smallholding with sheep
+(six about to lamb), cattle, hens, paddocks and three fields, all dated from today, so the brief and the tools
+are alive at once. One tap removes it.
+
 **My Place.** The My Place mode (top right) keeps the places you care about: home, a family hotel, a farm.
 Save a spot you tapped or searched for, or start from where you are. Each place gets a dashboard:
 a **3D view** of the buildings around it (OpenStreetMap footprints extruded to their mapped height or
