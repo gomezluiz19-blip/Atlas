@@ -17,6 +17,8 @@ export interface ChartOptions {
   /** Show the vertical exaggeration (only meaningful when both axes are metres). */
   showExaggeration?: boolean;
   annotations?: { index: number; label: string }[];
+  /** An extra dashed line drawn over the data (e.g. a trend). */
+  overlay?: { x: number[]; y: number[] };
   onHover?: (index: number | null) => void;
 }
 
@@ -35,7 +37,7 @@ export function niceTicks(min: number, max: number, count: number): number[] {
   const mag = 10 ** Math.floor(Math.log10(raw));
   const step = [1, 2, 2.5, 5, 10].map((m) => m * mag).find((st) => st >= raw) ?? 10 * mag;
   const ticks: number[] = [];
-  for (let v = Math.ceil(min / step) * step; v <= max + step * 1e-9; v += step) ticks.push(Math.round(v / step) * step);
+  for (let v = Math.ceil(min / step) * step; v <= max + step * 1e-9; v += step) ticks.push(Math.round(v / step) * step || 0);
   return ticks;
 }
 
@@ -99,6 +101,13 @@ export class Chart {
     for (let i = 0; i < n; i++) line += `${i ? "L" : "M"}${sx(data.x[i]).toFixed(1)},${sy(data.y[i]).toFixed(1)}`;
     const area = `${line}L${sx(data.x[n - 1])},${M.top + ph}L${sx(data.x[0])},${M.top + ph}Z`;
     this.svg.append(s("path", { d: area, class: "chart-area" }), s("path", { d: line, class: "chart-line" }));
+
+    if (opts.overlay && opts.overlay.x.length > 1) {
+      const o = opts.overlay;
+      let d = "";
+      o.x.forEach((xv, i) => (d += `${i ? "L" : "M"}${sx(xv).toFixed(1)},${sy(o.y[i]).toFixed(1)}`));
+      this.svg.append(s("path", { d, class: "chart-overlay" }));
+    }
 
     if (data.flag) {
       const g = s("g", { class: "chart-flag" });

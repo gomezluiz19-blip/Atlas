@@ -16,6 +16,7 @@ export class WatershedTool implements Tool {
   icon = icons.watershed;
   shortcut = "w";
   hint = "Outline all the land that drains through a point";
+  keepsOnMap = true;
 
   private app!: App;
   private ds!: CustomDataSource;
@@ -26,6 +27,8 @@ export class WatershedTool implements Tool {
   activate(app: App) {
     this.app = app;
     this.ds ??= layer(app.globe.viewer, "watershed");
+    this.ds.show = true;
+    if (this.overlay) this.overlay.show = true;
     if (this.result) this.showResults(this.result);
     else
       app.panel.show(
@@ -35,7 +38,11 @@ export class WatershedTool implements Tool {
       );
   }
 
-  deactivate() {}
+  deactivate() {
+    this.ds.show = false;
+    if (this.overlay) this.overlay.show = false;
+    this.app.drawer.hide();
+  }
 
   onCancel() {
     this.job++;

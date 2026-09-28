@@ -13,9 +13,19 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "cesium": "^1.145.0"
+    "@tensorflow-models/coco-ssd": "^2.2.3",
+    "@tensorflow/tfjs-backend-cpu": "^4.22.0",
+    "@tensorflow/tfjs-backend-webgl": "^4.22.0",
+    "@tensorflow/tfjs-converter": "^4.22.0",
+    "@tensorflow/tfjs-core": "^4.22.0",
+    "cesium": "^1.145.0",
+    "satellite.js": "^6.0.2",
+    "topojson-client": "^3.1.0",
+    "world-atlas": "^2.0.2"
   },
   "devDependencies": {
+    "@types/geojson": "^7946.0.16",
+    "@types/topojson-client": "^3.1.5",
     "typescript": "~5.9",
     "vite": "^8.3.1",
     "vitest": "^5.0.1"

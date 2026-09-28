@@ -37,6 +37,10 @@ export class CrossSectionTool implements Tool {
   private section: Section | null = null;
   private busy = 0;
 
+  wantsClicks() {
+    return this.start !== null;
+  }
+
   activate(app: App) {
     this.app = app;
     this.ds ??= layer(app.globe.viewer, "cross-section");
@@ -48,6 +52,8 @@ export class CrossSectionTool implements Tool {
   deactivate() {
     this.start = null;
     this.ds.entities.removeById("rubber");
+    this.ds.show = false;
+    this.app.drawer.hide();
   }
 
   onCancel() {
@@ -59,8 +65,8 @@ export class CrossSectionTool implements Tool {
   private showIntro() {
     this.app.panel.show(
       "Cross-section",
-      h("p", {}, "Click two points on either side of a feature — a gorge, a volcano, a fault scarp — to slice through the terrain."),
-      h("p", { class: "muted" }, "Tip: tilt the view (right-drag or Ctrl-drag) to see the landscape in 3D. Press Esc to cancel a line."),
+      h("p", {}, "Slice through the land to see its shape: how deep a canyon is, how steep a mountain."),
+      h("p", { class: "muted" }, "Tip: tilt the view (right-drag or Ctrl-drag) to see the landscape in 3D."),
     );
   }
 
@@ -85,7 +91,7 @@ export class CrossSectionTool implements Tool {
           material: Color.fromCssColorString(LINE).withAlpha(0.8),
         },
       });
-      this.app.panel.show("Cross-section", h("p", {}, "Now click the end point (B)."));
+      this.app.panel.show("Cross-section", h("div", { class: "prompt" }, h("strong", {}, "Tap where the slice should end."), h("span", {}, "The line starts at your place and runs to the point you tap. Tip: go straight across a valley or peak.")));
       return;
     }
     const a = this.start;
@@ -129,7 +135,7 @@ export class CrossSectionTool implements Tool {
 
   private showResults(sec: Section) {
     const { stats } = sec;
-    const inc = stats.incision;
+    const inc = stats.incision && stats.incision.depth >= 5 ? stats.incision : null; // ignore dips too small to be a valley
     const grid = h(
       "div",
       { class: "stats" },
@@ -154,7 +160,7 @@ export class CrossSectionTool implements Tool {
             `The lowest point sits ${formatElevation(inc.depth)} below the lower rim, and the rims are ${formatDistance(inc.rimWidth)} apart.`,
           ),
         )
-      : h("p", { class: "muted" }, "No valley along this line: the lowest point is at one end.");
+      : h("p", { class: "muted" }, "No valley along this line: the ground mostly rises or falls from one end to the other.");
 
     const csv = h(
       "button",
@@ -167,7 +173,7 @@ export class CrossSectionTool implements Tool {
       depth,
       grid,
       h("p", { class: "fineprint" }, `Elevation data resolved to ~${Math.round(sec.cellSize)} m. Hover over the chart to find each spot on the globe.`),
-      h("div", { class: "row" }, csv),
+      h("div", { class: "row" }, h("button", { class: "btn", onclick: () => this.app.restartLine(this) }, "New slice"), csv),
     );
 
     const annotations = [{ index: stats.lowestIndex, label: `Floor ${formatElevation(stats.minElevation)}` }];

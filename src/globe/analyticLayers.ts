@@ -143,5 +143,7 @@ class AnalyticImageryProvider extends UrlTemplateImageryProvider {
 }
 
 export function createAnalyticLayer(kind: AnalyticKind): ImageryLayer {
-  return new ImageryLayer(new AnalyticImageryProvider(kind));
+  // Relief shading helps read landforms but muddies street-level satellite
+  // imagery, so it fades out once you're down among the buildings.
+  return new ImageryLayer(new AnalyticImageryProvider(kind), kind === "hillshade" ? { maximumTerrainLevel: 13 } : {});
 }

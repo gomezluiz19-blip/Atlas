@@ -9,9 +9,45 @@ import {
   PolylineDashMaterialProperty,
   PolylineGlowMaterialProperty,
   VerticalOrigin,
+  JulianDate,
   type Entity,
   type Viewer,
 } from "cesium";
+
+const R_EARTH = 6_371_000;
+
+/**
+ * Markers that ignore the depth test (so hills don't hide them) would also show
+ * through the Earth. This hides a data source's entities once they are over the
+ * horizon, rechecking whenever the camera moves.
+ */
+export function cullBehindHorizon(viewer: Viewer, ds: CustomDataSource) {
+  const cache = new WeakMap<Entity, Cartesian3>();
+  const unit = new Cartesian3();
+  const update = () => {
+    if (!ds.show) return;
+    const cam = viewer.camera.positionWC;
+    const camDist = Cartesian3.magnitude(cam);
+    // A surface point is visible when its angle from the camera's nadir is within the horizon.
+    const limit = R_EARTH / camDist - 0.002;
+    const cx = cam.x / camDist, cy = cam.y / camDist, cz = cam.z / camDist;
+    for (const e of ds.entities.values) {
+      let p = cache.get(e);
+      if (!p) {
+        const pos = e.position?.getValue(JulianDate.now());
+        if (!pos) continue;
+        p = Cartesian3.normalize(pos, new Cartesian3());
+        cache.set(e, p);
+      }
+      Cartesian3.clone(p, unit);
+      const visible = unit.x * cx + unit.y * cy + unit.z * cz > limit;
+      if (e.show !== visible) e.show = visible;
+    }
+  };
+  viewer.camera.changed.addEventListener(update);
+  ds.entities.collectionChanged.addEventListener(() => queueMicrotask(update));
+  update();
+}
 
 export function layer(viewer: Viewer, name: string): CustomDataSource {
   const ds = new CustomDataSource(name);
@@ -64,6 +100,21 @@ export function marker(ds: CustomDataSource, lon: number, lat: number, opts: { c
           disableDepthTestDistance: Number.POSITIVE_INFINITY,
         }
       : undefined,
+  });
+}
+
+/** A clamped billboard marker from an image (e.g. a taxon icon marker). */
+export function iconMarker(ds: CustomDataSource, lon: number, lat: number, image: string, size = 30): Entity {
+  return ds.entities.add({
+    position: Cartesian3.fromDegrees(lon, lat),
+    billboard: {
+      image,
+      width: size,
+      height: size,
+      heightReference: HeightReference.CLAMP_TO_GROUND,
+      disableDepthTestDistance: Number.POSITIVE_INFINITY,
+      verticalOrigin: VerticalOrigin.CENTER,
+    },
   });
 }
 

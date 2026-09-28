@@ -1,24 +1,165 @@
 # Atlas
 
-**An intuitive, in-depth 3D Earth for people who study it.**
+**Tap anywhere on Earth and learn about it.**
 
-Atlas aims to do for GIS what Canva did for graphic design: make the common
-terrain questions answerable in one click, without a semester of training, while
-staying scientifically honest. The first audience is university students in the
-earth sciences (geology, geomorphology, hydrology, environmental science).
+Atlas aims to do for GIS what Canva did for graphic design: make questions about any place on Earth
+answerable in a tap, for anyone, while staying honest about the data. It starts simple (one card, eight
+themes) and goes deep when you want it to: rock sections, watersheds, life zones, climate trends.
 
-## What it does today
+## How it works for you
 
-| Tool | Ask it… | You get |
+**Explore (the default).** Just move the map. Atlas labels what's worth knowing as you go: seas, mountain
+ranges and cities when zoomed out; rivers, landmarks, stadiums, parks and museums when zoomed in (the Hudson,
+the Empire State Building and Madison Square Garden in Manhattan; the Thames, Big Ben and Wembley in London).
+Places are ranked by how many Wikipedia language editions write about them. The card follows the map with
+"Worth knowing here": whether you're in the northern-lights zone (with tonight's live chance and Kp), midnight
+sun and daylight, nearby plate boundaries, this week's earthquakes, World Heritage sites. One-touch toggles
+show labels, the live aurora forecast, earthquakes, plate boundaries, night lights, rain radar and wildlife
+records. Tap a label for its photo and summary; tap the ground for a quick glance across every theme.
+
+Filter what's in view by category (landmarks, nature, water, sport, culture, transport); the map's labels
+follow the filter, and each label carries a small glyph for its kind (stadium, bridge, volcano, museum…).
+
+**One map, many lenses.** The themes aren't separate dashboards; they're lenses on one shared map, the
+canvas. What you put on it stays as you move between them: follow the rain in Water, then open Built and the
+path is still there, next to the city's roads and rail. Layers you switch on (railways, earthquakes, the
+geologic map) stay on everywhere. Results about the chosen place stay while you look at it through other
+themes, and clear when you pick a new place. A theme's own suggested layers show in that theme. The
+"On the map" tray lists everything that's drawn: pin something to keep it everywhere, or take it off.
+Every view ends with **Connected** links: the next questions people ask about that place in other themes
+("How water moves through the city here", "Power for the mines"), and layers you can add without leaving.
+
+**My Places.** The house button (top right) keeps the places you care about: home, a family hotel, a farm.
+Save a spot you tapped or searched for, or start from where you are. Each place gets a dashboard:
+a **3D view** of the buildings around it (OpenStreetMap footprints extruded to their mapped height or
+number of floors, yours in orange, with an orbit), **energy** (solar panels, battery, generator: expected
+solar output month by month from five years of sunshine at that exact spot, share of your use covered,
+hours of battery backup), **water** (source, tank, daily use: rain the roof could collect, using the
+building's own footprint, and how long the tank lasts, with links to where rain from there flows and the
+pipes and drains around it), and **cameras & security** (cameras placed with two taps, their field of view
+drawn on the ground, optional links to live feeds, plus gates, alarms, lights and sensors). Everything is
+stored only in the browser, with export and import. The task robot knows your places too: *"weather at my
+hotel"*. When you open Atlas it flies to your place.
+
+**Atlas Pro: live operations.** For a saved building, *Live operations* connects its bookings (a demo
+feed, a reservations export from any CRM or booking system, or a live link polled every 30 seconds) and
+shows how full the place is: the building in 3D split into floors coloured by occupancy, the share of rooms
+taken and guests in the building, today's arrivals, departures and rooms being cleaned, every room by floor,
+and the next 14 nights, with a slider to watch the building fill up. Spanish column names work. Guest
+names are never read, and the data stays in the browser. Ask the robot *"how full is my hotel"*.
+**Camera analytics:** connect the cameras placed in My Places (a snapshot or video link, this device's
+camera, or a recorded video file) and Atlas counts people, vehicles and bikes on the device with a small
+TensorFlow.js model, draws what it sees on the picture and as dots on the map inside that camera's view,
+counts entries and exits across a line you draw, and keeps an hour of history. Video never leaves the
+browser, and it never identifies anyone. How to
+connect a CRM or booking system is in [docs/pro-connectors.md](docs/pro-connectors.md).
+
+**Ask it to do things.** The search box also takes requests: *"Where does rain go in downtown Chicago,
+and show the storm drains and railways"*, *"Lithium mines in Chile"*, *"Earthquakes and tectonic plates in
+Japan"*. A small task robot (rules, not a language model; it runs in the browser) works out the place, the views
+and the layers, shows the plan as you type, and on Enter carries it out step by step with a live checklist.
+Because the themes share one map, the results pile up together. Anything it didn't understand is shown, not
+guessed. Vocabulary and rules are in `src/robot/plan.ts`.
+
+**Satellite first.** Everything draws over satellite imagery, which is the default. Zoom in and street and place
+names appear, relief shading fades away, and you can see which street a canal or culvert runs under.
+
+**Search anything.** The search bar takes place names and street addresses (Photon, with Nominatim as a
+fallback), and whatever you paste: decimal or degrees-minutes-seconds coordinates, Google, Apple, Bing and
+OpenStreetMap links, `geo:` URIs and plus codes. Press `/` to focus it. Every view has a shareable URL, and
+the place card's share menu copies coordinates, the name or a link, or opens the spot in Google or Apple Maps.
+
+**Places to start.** Every theme opens with hand-picked collections (canyons and volcanoes, deltas and
+waterfalls, climate records, the oldest and largest trees, great migrations, megaprojects, country
+curiosities, aurora spots), about a hundred places in all, each with a one-line reason to look.
+
+Then pick a theme from the tab bar; each theme's subtabs describe the chosen place:
+
+| Theme | Subtabs | What you learn |
 | --- | --- | --- |
-| **Explore** | "What's here?" | Coordinates, elevation, slope and aspect of any point |
-| **Cross-section** | "How deep is this gorge?" | Elevation profile, depth below the rims, rim-to-rim width, slopes, CSV export |
-| **Water flow** | "Where does rain falling here go?" | The downhill flow path (even hundreds of km to the sea), a river long profile, CSV export |
-| **Watershed** | "What land drains through this point?" | Basin outline and stream network, area, relief, mean slope, hypsometric integral and curve |
-| **Layers** | "Show me the landforms" | Relief shading, elevation colours, slope map, contour lines, vertical exaggeration, seafloor |
+| **Land** | Overview · Profile · Rocks | Elevation, slope, landform and bedrock; a slice through the land; the rock layers below (and a sliced, time-lapse rock section) |
+| **Minerals** | Here · Mines nearby · Commodities | The bedrock here, the minerals in it and what rocks like it can hold; the nearest landmark mines; where the country ranks in world mining; every mapped mine and quarry nearby; 20 commodities (copper, lithium, cobalt, rare earths, gold, uranium, potash…) with uses, ores, geology and top producers |
+| **Water** | Overview · Nearby · City water · Rain path · Watershed | The nearest rivers and lakes, springs and wells; how water moves through the city (drains, buried streams in culverts, stormwater basins, canals, water works, sewage treatment); where rain falling here flows; the land that drains to here |
+| **Climate** | Now · Climate · Change | Current weather and 7-day forecast with live rain radar; the climate type and a monthly climograph; warming since 1950 |
+| **Plants** | Species · Life zones · At risk | What grows here, with photos and icons (conifer, palm, cactus, orchid, lily, vine, fern, moss, mushroom, kelp…); where each species lives by elevation; threatened plants |
+| **Animals** | Species · Life zones · At risk | The same for birds, mammals, reptiles, insects and more, each with its own icon on the card and the map (62 in all, from owls and penguins to seals, jellyfish and coral) |
+| **Built** | Overview · Transport · Energy · Internet · Water | How a place connects: nearest airport, seaport, main railway, highway and shipping lane; power plants and the power mix around it and nationally; undersea cable landings; and everything OpenStreetMap maps nearby |
+| **Countries** | Overview · People · Economy · Environment | Flag, capital, languages and neighbours; population, income, forests and emissions over time |
 
-Plus place search, curated field sites (Grand Canyon, Yarlung Tsangpo, Mount St. Helens, Þingvellir…),
-and keyboard shortcuts: `E` explore · `S` cross-section · `F` water flow · `W` watershed · `L` layers · `Esc` cancel.
+**Minerals, worldwide.** With no place chosen, Minerals is a commodity explorer: pick copper or lithium
+to see what it's for, which minerals it's mined from, how it forms, who produces it, and its landmark mines
+on the globe (about 60, from Escondida and Grasberg to Kiruna, Cigar Lake and Jwaneng). There's a guide to
+30-odd common minerals, and a switch for the bedrock geology map.
+
+**Infrastructure, worldwide.** Built opens on the world's networks, each a switch: railways (with every
+track from OpenRailwayMap when zoomed in), highways and ferries, shipping lanes, a thousand ports, major
+airports, 35,000 power plants coloured by fuel and sized by capacity, and the undersea cables that carry
+the internet. Tap a dot for the plant, port or airport.
+
+**Work.** The briefcase button puts the map to work, for anyone:
+
+- **Plan** trips (stops in order, distances, travel times, the weather at each stop), events (venue, reach
+  rings at 15/30/60 minutes, the nearest airport, rail and port, parking), business sites (candidates
+  compared side by side on transport and power), policy zones (area, and the power plants, rail, roads, ports,
+  airports and mines inside) and infrastructure (proposed routes with length, an elevation profile, climb,
+  steepest grade, and the rivers, railways and highways they cross). Everything is drawn on the map, with
+  notes, a checklist and an export.
+- **Present** turns places into slides: frame a view, add a caption, borders from any of 54 moments in
+  history (123,000 BC to 2010), and any map layers. Play it full screen, one slide at a time or as a flying
+  tour that circles each place. Topic templates (the Roman Empire, World War I, the age of exploration) and a
+  *Borders through time* slider help with school projects. Decks save to a file to share.
+- **Video** records the globe (widescreen, square or vertical) with a title, a live caption, narration from
+  the microphone and/or a music file, and the map credits in the corner. It can record a presentation as a
+  tour, and a clean view hides every control for streaming with OBS, Zoom or Meet.
+- **Grow** follows fields drawn on the satellite map: the crop's growth stage from growing degree days, a
+  harvest window, what the crop used (FAO-56 ET₀ × Kc) against the rain, how much to irrigate this week in
+  mm and litres for the field, frost and heat in the week ahead, a field diary, and plant health from space
+  (MODIS NDVI). Maize, rice, wheat, beans, soybeans, tomatoes, potatoes, coffee, cacao and bananas.
+
+- **Build** models a construction project on the real site: draw the footprint, choose the use and storeys,
+  and a 3D model rises with the schedule (framed floors, closed-in floors, the floor going up, a tower crane).
+  Scrub a timeline or play a time-lapse of the plan; record each phase's progress to see planned against
+  actual, days behind and the forecast finish; get floor area and a rough cost; and see which of the next ten
+  days rain, wind (cranes) or frost (concrete) will stop work. **Worksite management is a Pro feature**
+  (open to try): a daily log with photos and crew counts, issues pinned on the site, deliveries, and a
+  daily report to send.
+- **Flock** is for anyone caring for animals: farms and ranches, vet practices, rescue centres and adoption
+  agencies. Records for each animal (tag, photo, weights and daily gain, vaccinations and treatments with
+  follow-ups, breeding and due dates), a "due in the next 30 days" list, paddocks drawn on the satellite map
+  with stocking rate and how long the grass lasts, heat stress (THI) from the weather, a CSV export, an
+  adoption listing to share, and your animals ambling around their paddocks on the globe.
+- **Teach** gathers a teacher's tools. *Lessons*: slides on the globe with classroom mode (big text, a pen
+  to draw on the globe, presenter notes, a timer) and lesson starters (continents and oceans, volcanoes and
+  earthquakes, ancient civilisations, rivers). *Quizzes and tests*: multiple choice, true or false and "find
+  it on the map" questions, hosted on the class screen with teams, a timer and a scoreboard, or sent to
+  students as a link (the quiz travels in the URL); students send back a result code and the gradebook shows
+  scores and the questions to revisit. *Games*: Where in the world? and Time traveller. *World Summit*: a
+  turn-based international relations simulation where teams lead real countries over several lessons, with
+  events, alliances, trade and sanctions drawn on the globe and a debrief. *Field trips*: timetable, adults
+  and buses, cost per student, the forecast, the nearest hospital, a checklist and a printable permission slip.
+
+- **Learn** is for students: a daily challenge with a streak, Flight School (steer a plane over the globe to
+  named countries, seeing which country you're over as you go), Flag Match, Where in the world? and Time
+  traveller, taking a teacher's quiz from a link, a passport of country stamps and badges, and Places to
+  learn: museums, libraries, science centres, zoos, planetariums, gardens and historic sites nearby from
+  OpenStreetMap (free entry marked where recorded), plus famous museums that are free or cheaper for students.
+
+The task robot opens these too: "Europe in 1914", "the Roman Empire in 100 AD", "plan a trip to Lisbon",
+"plant health in Iowa", "plan a field trip to the Science Museum", "my cattle", "construction site".
+
+**Space.** The Saturn button shows satellites computed live from CelesTrak's orbital elements (space
+stations, the brightest, science, weather, GPS, geostationary and Starlink), the ISS with its orbit and a
+"ride along" camera, when the ISS will pass over your place, rocket launches with countdowns from Launch
+Library 2 (a rocket in flight gets an illustrative climb, labelled as such), tonight's Moon and planets,
+and a solar system view: a zoom out from Earth to every planet in its real position for any date, with
+Saturn's rings, the asteroid belt, time controls and facts.
+
+**Atlas AI.** The search box's task robot can be backed by Claude: it understands any request or
+question, acts on the globe through Atlas's own tools, and answers briefly. Connect a key or a proxy
+under About › Atlas AI; see [docs/ai-proxy.md](docs/ai-proxy.md). Without it, the rule-based planner
+still handles requests.
+
+Keyboard: `1`–`9` switch themes, `/` searches, `Esc` cancels a line or closes a chart.
 
 ## Run it
 
@@ -45,28 +186,82 @@ These keys end up in the public page, so restrict them to your site's domain in 
 
 - **Elevation:** [Terrain Tiles on AWS](https://registry.opendata.aws/terrain-tiles/) (Mapzen/Tilezen),
   which blends SRTM, USGS 3DEP, ETOPO1 bathymetry, GMTED and others. About 30 m resolution in most places.
-- **Imagery:** Esri World Imagery (check Esri's terms before commercial use), with Natural Earth II as an offline fallback.
-- **Search:** OpenStreetMap Nominatim (light, interactive use only, per its usage policy).
+- **Imagery:** Esri World Imagery (check Esri's terms before commercial use). If its tiles keep failing, Atlas
+  switches in [Sentinel-2 cloudless](https://s2maps.eu) by EOX; Natural Earth II is the offline fallback.
+- **Geology:** [Macrostrat](https://macrostrat.org) stratigraphic columns, bedrock maps and map tiles (CC-BY 4.0).
+- **Life:** [iNaturalist](https://www.inaturalist.org) research-grade observations; [GBIF](https://www.gbif.org) occurrence-density tiles.
+- **Mines and infrastructure near you:** OpenStreetMap via the [Overpass API](https://overpass-api.de) (ODbL).
+- **World networks:** Natural Earth railways, roads, ports and airports; shipping lanes from
+  [Benden (2022)](https://github.com/newzealandpaul/Shipping-Lanes) (CC BY 4.0); the
+  [WRI Global Power Plant Database](https://github.com/wri/global-power-plant-database) (CC BY 4.0);
+  [OpenRailwayMap](https://www.openrailwaymap.org) detail tiles (CC-BY-SA); undersea cables from
+  [TeleGeography's Submarine Cable Map](https://www.submarinecablemap.com) (CC BY-NC-SA 3.0, loaded live).
+  Rebuilt with `scripts/build-infra.mjs`.
+- **Commodities:** production shares from USGS Mineral Commodity Summaries 2024 (uranium: World Nuclear
+  Association; coal: Energy Institute; diamonds: Kimberley Process), rounded; landmark mines and the
+  mineral guide hand-compiled in `src/content/minerals.ts`.
+- **Weather and climate:** [Open-Meteo](https://open-meteo.com) forecasts and ERA5 history (CC-BY 4.0); [RainViewer](https://www.rainviewer.com) radar.
+- **Countries:** Natural Earth borders via [world-atlas](https://github.com/topojson/world-atlas), [REST Countries](https://restcountries.com), [World Bank](https://data.worldbank.org) indicators.
+- **Earth at night:** NASA Black Marble via GIBS.
+- **Labels:** Natural Earth (world scale, bundled in `public/data`, rebuilt with `scripts/build-geodata.mjs`),
+  [Wikidata](https://www.wikidata.org) and Wikipedia (notable places and summaries), OpenStreetMap (rivers).
+- **Aurora and geomagnetic activity:** NOAA Space Weather Prediction Center (OVATION, Kp). **Earthquakes:** USGS.
+  **Plate boundaries:** Bird (2003) PB2002 via [fraxen/tectonicplates](https://github.com/fraxen/tectonicplates).
+- **Street and place names over imagery:** Esri World Transportation and World Boundaries and Places reference layers.
+- **Historical borders:** [historical-basemaps](https://github.com/aourednik/historical-basemaps) by A. Ourednik
+  and contributors (GPL-3.0), loaded live when used. Borders before about 1800 are approximate.
+- **Grow:** daily temperature, rain and FAO-56 reference evapotranspiration from Open-Meteo; NDVI from NASA
+  GIBS (MODIS Terra, 8-day). Crop coefficients from FAO-56; degree-day targets are typical values.
+- **Satellites:** element sets from [CelesTrak](https://celestrak.org), propagated with SGP4
+  ([satellite.js](https://github.com/shashwatak/satellite-js)). **Launches:** [The Space Devs](https://thespacedevs.com)
+  Launch Library 2. **Planets:** JPL approximate Keplerian elements (Standish).
+- **Places to learn:** OpenStreetMap via Overpass; the list of free and discounted museums is hand-compiled
+  (prices change; check before going).
+- **My Places:** building footprints and heights from OpenStreetMap; sunshine and rainfall from ERA5 via Open-Meteo.
+- **Search and place names:** [Photon](https://photon.komoot.io) (by komoot) and OpenStreetMap Nominatim
+  (light, interactive use only, per its usage policy).
 
 ## How it works
 
 ```
 src/
-  main.ts              wiring: globe, tools, search, layers, status bar
-  app.ts               tool routing, results panel, chart drawer
-  data/                Web Mercator math; Terrarium elevation tiles (fetch, decode, cache, sample)
+  main.ts              wiring: globe, themes, search, map-style and about popovers, Connected links
+  canvas.ts            the shared canvas: what's on the map, across themes and places
+  robot/               the task robot: plan.ts turns a request into steps, run.ts carries them out
+  myplaces/            My Places: store (saved in the browser), scene (3D buildings, devices), estimates (solar, rain), panel
+  pro/                 Atlas Pro: model (bookings → rooms, floors, forecast), sources (demo, CSV, live link), panel,
+                       vision/ (on-device camera analytics: detection, tracking, line counts, map positions)
+  app.ts               place selection, place card, theme tab bar and subtabs, hosting tools inside subtabs
+  themes/              one file per theme (explore, land, minerals, water, climate, life, built, countries)
+  explore/             view tracking, label feeds and the "worth knowing" insights engine
+  data/                Web Mercator math; elevation tiles; API clients; location parsing (links, DMS, plus codes)
   analysis/            pure, tested algorithms
     profile.ts         profile statistics, incision depth
+    geosection.ts      layer-cake subsurface model fitted to mapped outcrops (elevation + apparent dip)
+    commodities.ts     mine commodity groups and status
+    infrastructure.ts  infrastructure categories, lengths, plant capacity
+    climate.ts         monthly normals, Köppen–Geiger climate type, warming trend
+    insights.ts        magnetic latitude and aurora zones, daylight and sun position, distance to plate boundaries
+    cityWater.ts       sorts a city's water system into channels, buried streams, drains, basins, supply and wastewater
+    placeKinds.ts      sorts Wikidata places into kinds (landmark, sport, bridge, volcano, museum…) and categories
     hydrology.ts       Priority-Flood+ε depression filling, D8 routing, flow accumulation, watersheds
     water.ts           multi-window flow tracing and adaptive watershed delineation
     hydrology.worker   runs the flow model off the main thread
-  globe/               Cesium viewer, keyless terrain provider, analytical imagery layers, drawing helpers
-  tools/               one file per tool
-  ui/                  chart, search, layers panel, DOM helpers
+  globe/               Cesium viewer, keyless terrain provider, analytical and network tile layers, drawing helpers
+  tools/               the analyses the themes host (profile, rock section, rain path, species, …)
+  content/sites.ts     curated places to start, per theme
+  content/minerals.ts  commodities, landmark mines, mineral guide, rock → mineral links
+  content/links.ts     how the themes connect: next questions and layers for every view
+  ui/                  chart, search, layers panel, taxon icons, label glyphs, DOM helpers
 legacy/                the original single-file prototype
 ```
 
 Every analysis reads the same elevation tiles that draw the 3D terrain, so what you see is what is measured.
+
+Rendering is built to recover on its own. Tile and API requests retry with backoff. A terrain tile that
+can't be fetched is filled from a coarser one rather than left as a hole. Failing satellite tiles bring in
+backup imagery. Cesium's render loop is restarted after an error, and a lost WebGL context reloads the
+page at the same view.
 
 ## Honest limits
 
@@ -74,13 +269,26 @@ Every analysis reads the same elevation tiles that draw the 3D terrain, so what 
   Reaches that cross closed hollows (lakes, closed basins, DEM artefacts) are drawn dashed.
 - Elevation models smooth out narrow features. Slot canyons and cliffs narrower than a few cells look shallower than they are.
 - Watersheds larger than the biggest analysis window (~470 km across) are flagged as truncated.
+- Rock sections assume planar layers of constant thickness, fitted to the bedrock map. That suits flat-lying
+  sequences like the Grand Canyon and misses folds, faults and layers that pinch out. Macrostrat columns are
+  densest in North America.
+- Species, mines and infrastructure show what people have recorded or mapped, which is never complete.
+- Grow's degree-day targets and crop coefficients are typical values; varieties, soils and management differ,
+  and the irrigation figure ignores soil storage and system losses. NDVI pixels are about 250 m.
+- Build's cost rates and schedule durations are typical first estimates, not a quantity surveyor's figures.
+- Flock's grazing estimate ignores regrowth; gestation lengths are species averages.
+- Quizzes, results and games are kept in each browser; nothing is sent to a server, so results travel as codes or files.
+- Plan's travel times use straight-line distance with a detour factor, not a road network.
 
 ## Roadmap
 
 1. **Groundwater:** aquifer maps (WHYMAP, USGS principal aquifers), live well levels (USGS NWIS), GRACE water-storage anomalies,
    each labelled with how certain it is.
 2. **Live Earth:** earthquakes (USGS), active fires (NASA FIRMS), weather and precipitation radar, river gauges.
-3. **Geology:** bedrock and fault maps (Macrostrat), with a click-to-see stratigraphic column.
+3. **Geology:** faults and folds in sections; multiple columns along a section; borehole data.
 4. **Time:** swipe and compare satellite imagery across years (Landsat/Sentinel-2).
 5. **3D cut-away:** slice the terrain open along a cross-section and view it from the side.
-6. **Projects:** save and share views, annotations and results; templates such as "Field site report".
+6. **Campuses and standard places:** map a whole campus into My Places (e.g. a university), and with a
+   connected CRM or student system reserve rooms, book appointments and office hours, request services and see
+   how busy each area is; then templates for schools, hospitals and similar places.
+7. **Projects:** save and share views, annotations and results; templates such as "Field site report".

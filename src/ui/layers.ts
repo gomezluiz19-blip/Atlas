@@ -1,9 +1,11 @@
 // The Layers popover: base map, analytical overlays with legends, terrain settings.
-import { contourInterval, LAND_RAMP, SEA_RAMP, SLOPE_RAMP, type AnalyticKind, type Ramp } from "../globe/analyticLayers";
-import type { Globe } from "../globe/viewer";
+import { contourInterval, LAND_RAMP, SEA_RAMP, SLOPE_RAMP, type Ramp } from "../globe/analyticLayers";
+import type { Globe, OverlayKind } from "../globe/viewer";
 import { h } from "./dom";
 
-const OVERLAYS: { kind: AnalyticKind; label: string; about: string }[] = [
+const OVERLAYS: { kind: OverlayKind; label: string; about: string }[] = [
+  { kind: "geology", label: "Geologic map", about: "Bedrock at the surface, coloured by rock unit and age (Macrostrat)." },
+  { kind: "species", label: "Species records", about: "Where plants and animals have been recorded; brighter means more records (GBIF)." },
   { kind: "hillshade", label: "Relief shading", about: "Shadows from a sun in the north-west bring out landforms." },
   { kind: "elevation", label: "Elevation colours", about: "Height above sea level, and depth below it." },
   { kind: "slope", label: "Slope", about: "Steepness of the ground in degrees." },
@@ -19,7 +21,9 @@ function gradientBar(ramp: Ramp, labels: string[]): HTMLElement {
   );
 }
 
-function legendFor(kind: AnalyticKind, globe: Globe): HTMLElement | null {
+function legendFor(kind: OverlayKind, globe: Globe): HTMLElement | null {
+  if (kind === "geology") return h("div", { class: "legend-note" }, "Each colour is a mapped rock unit; colours come from the source maps and broadly follow rock age. Click with Rock column for the details.");
+  if (kind === "species") return h("div", { class: "legend-note" }, "Record density, not abundance: it also reflects where people look.");
   if (kind === "elevation")
     return h(
       "div",
@@ -94,6 +98,10 @@ export function createLayersPanel(globe: Globe): HTMLElement {
     return h("div", { class: "layer" }, h("label", { class: "layer-row", title: about }, check, h("span", {}, label)), details);
   });
 
+  const streets = h("label", { class: "layer-row", title: "Road names, highway shields and place names over the imagery, once you zoom in" },
+    h("input", { type: "checkbox", checked: s.streets, onchange: (e: Event) => { s.streets = (e.target as HTMLInputElement).checked; apply(); } }),
+    h("span", {}, "Street and place names"));
+
   const veValue = h("span", { class: "value" }, `${s.exaggeration}×`);
   const ve = h("input", {
     type: "range",
@@ -137,6 +145,7 @@ export function createLayersPanel(globe: Globe): HTMLElement {
     { class: "popover layers-panel", hidden: true },
     h("h3", { class: "panel-sub" }, "Base map"),
     base,
+    streets,
     photoreal,
     h("h3", { class: "panel-sub" }, "Analysis layers"),
     ...overlays,

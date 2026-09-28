@@ -18,9 +18,14 @@ export function createTerrariumTerrain(): CustomHeightmapTerrainProvider {
     credit: "Elevation: Terrain Tiles on AWS (Mapzen/Tilezen: SRTM, 3DEP, ETOPO1, GMTED and others)",
     callback: async (x, y, level) => {
       // Past the deepest published zoom, upsample a sub-window of the parent tile.
-      const src = Math.min(level, MAX_ELEVATION_ZOOM);
+      // If a tile can't be fetched, fall back to coarser ancestors so the
+      // globe never shows a hole (ancestors are usually cached already).
+      let src = Math.min(level, MAX_ELEVATION_ZOOM);
+      let tile: Float32Array | null = null;
+      for (; src >= 0 && !tile; src--) tile = await elevation.tile(src, x >> (level - src), y >> (level - src)).catch(() => null);
+      src++;
+      if (!tile) return new Float32Array(SAMPLES * SAMPLES);
       const shift = level - src;
-      const tile = await elevation.tile(src, x >> shift, y >> shift);
       const span = TILE_SIZE / 2 ** shift;
       const ox = (x - ((x >> shift) << shift)) * span;
       const oy = (y - ((y >> shift) << shift)) * span;
