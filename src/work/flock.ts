@@ -367,7 +367,7 @@ function openPaddock(ctx: WorkCtx, id: string) {
   );
 }
 
-function openAnimal(ctx: WorkCtx, id: string) {
+export function openAnimal(ctx: WorkCtx, id: string) {
   const f = flock!, a = f.animals.find((x) => x.id === id);
   if (!a) return openFlock(ctx);
   const sp = speciesById(a.species);

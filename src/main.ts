@@ -159,6 +159,16 @@ const savedPlaceHere = () => {
   return [...all].sort((a, b) => Math.hypot(a.lon - p.lon, a.lat - p.lat) - Math.hypot(b.lon - p.lon, b.lat - p.lat))[0];
 };
 
+/** A brief item opens the animal, field or project it's about (or the tool). */
+function openBriefItem(tool: "flock" | "grow" | "build", ref?: string) {
+  const ctx = placeHub.ctx;
+  const fail = () => app.toast("Couldn't load that tool. Check the connection and try again.", 5000);
+  if (!ref) { PLACE_TOOLS.find((x) => x.id === tool)?.open(ctx); return; }
+  if (tool === "flock") void import("./work/flock").then((m) => { m.openFlock(ctx); m.openAnimal(ctx, ref); }).catch(fail);
+  else if (tool === "grow") void import("./work/grow").then((m) => { m.openGrow(ctx); m.openField(ctx, ref); }).catch(fail);
+  else void import("./work/build").then((m) => { m.openBuild(ctx); m.openProject(ctx, ref); }).catch(fail);
+}
+
 /** First run: find your address and go straight to saving it. */
 function addressBox(): HTMLElement {
   const input = h("input", { class: "pro-url", placeholder: "Your address or farm name", "aria-label": "Your address", autocomplete: "street-address" }) as HTMLInputElement;
@@ -202,7 +212,7 @@ const placeHub = createWork(app, PLACE_TOOLS, {
   top: () => {
     const main = savedPlaceHere();
     return [
-      main ? todayCard(main, (t) => PLACE_TOOLS.find((x) => x.id === t)?.open(placeHub.ctx)) : h("div", { class: "today-card first" },
+      main ? todayCard(main, openBriefItem) : h("div", { class: "today-card first" },
         h("div", { class: "today-head" }, h("strong", {}, "Start with your place")),
         h("p", { class: "small" }, "Type your address, or tap your place on the map, and save it. Atlas then gives you a daily brief there: frost, heat, storms, and what's due for your animals, fields and projects."),
         addressBox(),

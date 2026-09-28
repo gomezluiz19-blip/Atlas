@@ -16,7 +16,7 @@ async function seasonsFor(fields: FieldLite[], place: MyPlace, today: string): P
   const out = await Promise.allSettled(near.map(async ({ f, lon, lat }) => {
     const w = await farmWeather(lon, lat, f.planted);
     const s = season(cropById(f.crop), f.planted, mergeDays(w.older, w.recent), today);
-    return { name: f.name, stage: s.stage.name, harvest: s.harvest, irrigate7: s.irrigate7, m2: areaM2(f.pts!), frost: s.frost.length > 0 } satisfies FieldSeason;
+    return { id: f.id, name: f.name, stage: s.stage.name, harvest: s.harvest, irrigate7: s.irrigate7, m2: areaM2(f.pts!), frost: s.frost.length > 0 } satisfies FieldSeason;
   }));
   return out.flatMap((r) => (r.status === "fulfilled" ? [r.value] : []));
 }
@@ -44,7 +44,7 @@ export async function briefFor(place: MyPlace): Promise<TodayItem[]> {
   return todayItems({ today: localDate(), weather: days, ...records, seasons, risks });
 }
 
-export function todayCard(place: MyPlace, openTool: (t: NonNullable<TodayItem["tool"]>) => void): HTMLElement {
+export function todayCard(place: MyPlace, openTool: (t: NonNullable<TodayItem["tool"]>, ref?: string) => void): HTMLElement {
   const body = h("div", { class: "today-list" }, h("p", { class: "muted small" }, "Checking the forecast and your records…"));
   const when = new Date().toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "long" });
   const card = h("section", { class: "today-card" },
@@ -58,7 +58,7 @@ export function todayCard(place: MyPlace, openTool: (t: NonNullable<TodayItem["t
   void Promise.all([weather.catch(() => null), seasons, risksFor(place, records)]).then(([days, seasons, risks]) => {
     const items = todayItems({ today: localDate(), weather: days, ...records, seasons, risks });
     const rows = items.slice(0, 6).map((it) =>
-      h(it.tool ? "button" : "div", { class: `today-item ${it.urgency}`, ...(it.tool ? { onclick: () => openTool(it.tool!) } : {}) },
+      h(it.tool ? "button" : "div", { class: `today-item ${it.urgency}`, ...(it.tool ? { onclick: () => openTool(it.tool!, it.ref) } : {}) },
         h("span", { class: "today-icon" }, it.icon),
         h("span", { class: "today-text" }, h("strong", {}, it.title), h("span", {}, it.detail))));
     body.replaceChildren(
