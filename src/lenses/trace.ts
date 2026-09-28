@@ -5,7 +5,7 @@ import { traceFlow, type FlowTrace } from "../analysis/water";
 import { countryAt } from "../data/countries";
 import { elevation } from "../data/elevation";
 import { haversine } from "../data/mercator";
-import { riverLines } from "../data/worldData";
+import { riverLines, riversIn } from "../data/worldData";
 import { formatDistance, h } from "../ui/dom";
 import { lines, stat } from "./charts";
 import { offset } from "./slice";
@@ -72,7 +72,10 @@ export function flyAlong(host: LensHost, path: Pt[], seconds: number, height: nu
 }
 
 async function traceRiver(host: LensHost, s: Subject, ds: CustomDataSource): Promise<boolean> {
-  const rivers = await riverLines();
+  // World-scale rivers are complete end to end; detailed ones add the smaller rivers nearby.
+  const [world, near] = await Promise.all([riverLines(), riversIn(s.lon - 1, s.lat - 1, s.lon + 1, s.lat + 1, 4).catch(() => [])]);
+  const worldNames = new Set(world.map((r) => r.name));
+  const rivers = [...world, ...near.filter((r) => !worldNames.has(r.name))];
   const p: Pt = [s.lon, s.lat];
   let bestName = "", best = Infinity;
   for (const r of rivers) {
