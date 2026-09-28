@@ -89,3 +89,15 @@ export async function siteWeather(lon: number, lat: number): Promise<SiteDay[]> 
   const d = r.daily;
   return d.time.map((date, i) => ({ date, rain: d.precipitation_sum?.[i] ?? 0, rainChance: d.precipitation_probability_max?.[i] ?? null, windMax: d.wind_speed_10m_max?.[i] ?? 0, gustMax: d.wind_gusts_10m_max?.[i] ?? 0, tmin: d.temperature_2m_min?.[i] ?? 10, tmax: d.temperature_2m_max?.[i] ?? 20 }));
 }
+
+/** Daily minimum and maximum temperature and rain for the last `years` full years (ERA5). */
+export async function climateDays(lon: number, lat: number, years = 10): Promise<{ date: string; tmin: number | null; tmax: number | null; rain: number | null }[]> {
+  const y = new Date().getUTCFullYear() - 1;
+  const r = await getJson<{ daily: { time: string[]; temperature_2m_min: (number | null)[]; temperature_2m_max: (number | null)[]; precipitation_sum: (number | null)[] } }>(
+    "Open-Meteo",
+    `https://archive-api.open-meteo.com/v1/archive?${ll(lon, lat)}&start_date=${y - years + 1}-01-01&end_date=${y}-12-31&daily=temperature_2m_min,temperature_2m_max,precipitation_sum&timezone=auto`,
+    undefined,
+    45_000,
+  );
+  return r.daily.time.map((date, i) => ({ date, tmin: r.daily.temperature_2m_min[i], tmax: r.daily.temperature_2m_max[i], rain: r.daily.precipitation_sum[i] }));
+}

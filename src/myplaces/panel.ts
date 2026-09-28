@@ -6,6 +6,7 @@ import type { App } from "../app";
 import { reverseGeocode } from "../data/geocode";
 import { h } from "../ui/dom";
 import { icons } from "../ui/icons";
+import { placeReport } from "./report";
 import { roofHarvestLitres, solarByMonth, sunAndRain, type SunAndRain } from "./estimates";
 import { footprintM2, type PlaceScene } from "./scene";
 import { blankPlace, DEVICES, KIND_LABEL, newId, type Device, type DeviceType, type MyPlace, type PlaceKind, type PlaceStore } from "./store";
@@ -271,6 +272,7 @@ export function createMyPlaces(app: App, store: PlaceStore, scene: PlaceScene, o
         h("button", { class: "pill-btn", onclick: () => { ui.close(); app.select({ lon: p.lon, lat: p.lat, height: 0 }, { title: p.name, context: p.address ?? KIND_LABEL[p.kind] }); } }, "Explore it in the themes"),
         opts.onPro ? h("button", { class: "pill-btn pro-btn", onclick: () => opts.onPro!(p.id) }, h("span", { class: "pro-badge" }, "PRO"), "Live operations") : ""),
       buildingInfo,
+      placeReport(app, p),
 
       h("section", { class: "group" }, h("h2", { class: "group-title" }, "Energy"),
         h("div", { class: "mp-fields" },
