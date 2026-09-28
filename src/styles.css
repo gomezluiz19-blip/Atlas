@@ -1527,3 +1527,25 @@ button.today-item:hover { background: var(--fill-strong); }
 .lens-fact-line > summary .muted { overflow: hidden; text-overflow: ellipsis; }
 .lens-fact-line[open] > summary { margin-bottom: 6px; }
 .fact-i { flex: none; display: grid; place-items: center; width: 16px; height: 16px; border-radius: 50%; background: var(--accent); color: #fff; font-size: 11px; font-weight: 700; font-style: italic; font-family: Georgia, serif; }
+
+/* Map controls: compass and zoom */
+.map-controls { position: absolute; right: var(--gutter); bottom: calc(var(--gutter) + 72px); display: flex; flex-direction: column; gap: 8px; align-items: center; z-index: 12; }
+.map-zoom { display: flex; flex-direction: column; border-radius: 12px; overflow: hidden; background: var(--material); -webkit-backdrop-filter: saturate(180%) blur(24px); backdrop-filter: saturate(180%) blur(24px); box-shadow: var(--shadow); }
+.map-zoom .map-ctl { border-radius: 0; box-shadow: none; background: transparent; }
+.map-zoom .map-ctl + .map-ctl { border-top: 1px solid var(--separator); }
+.map-ctl { display: grid; place-items: center; width: 40px; height: 40px; border: 0; cursor: pointer; color: var(--label); border-radius: 50%; background: var(--material); -webkit-backdrop-filter: saturate(180%) blur(24px); backdrop-filter: saturate(180%) blur(24px); box-shadow: var(--shadow); }
+.map-ctl:hover { background: var(--fill-strong); }
+.compass { transition: opacity 0.25s; }
+.compass.idle { opacity: 0.55; }
+.compass-needle { display: grid; place-items: center; transition: transform 0.08s linear; }
+@media (max-width: 820px) {
+  .map-controls { top: calc(var(--gutter) + var(--bar) + 8px + env(safe-area-inset-top, 0px)); bottom: auto; }
+  .map-zoom { display: none; }
+  .compass.idle { opacity: 0; pointer-events: none; }
+  body[data-panel="open"] .map-controls { display: none; }
+}
+
+/* Panels ease in rather than pop */
+@keyframes panel-in { from { opacity: 0; transform: translateY(-6px) scale(0.985); } to { opacity: 1; transform: none; } }
+.popover:not([hidden]), .lens-panel:not([hidden]) { animation: panel-in 0.18s ease-out; }
+@media (prefers-reduced-motion: reduce) { .popover:not([hidden]), .lens-panel:not([hidden]) { animation: none; } }

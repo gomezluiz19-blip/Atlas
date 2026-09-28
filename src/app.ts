@@ -180,6 +180,8 @@ export class App {
   /** The map's label layer, when present. */
   labels?: import("./globe/labels").LabelLayer;
 
+  private handleClick: (pos: Cartesian2) => void = () => {};
+
   constructor(readonly globe: Globe, root: HTMLElement) {
     this.tabbar = h("nav", { class: "tabbar", role: "tablist", "aria-label": "Themes" });
     root.append(this.sheet.el, this.drawer.el, this.tabbar, this.toastEl);
@@ -187,7 +189,20 @@ export class App {
     this.sheet.share.addEventListener("click", () => this.toggleShare());
 
     const handler = new ScreenSpaceEventHandler(globe.viewer.scene.canvas);
+    // A tap selects after a short pause, so a double-click (zoom in) doesn't also select.
+    let pendingClick = 0;
+    handler.setInputAction(() => clearTimeout(pendingClick), ScreenSpaceEventType.LEFT_DOUBLE_CLICK);
     handler.setInputAction((e: { position: Cartesian2 }) => {
+      const tool = this.interaction;
+      if (!tool?.wantsClicks?.()) {
+        clearTimeout(pendingClick);
+        const at = Cartesian2.clone(e.position);
+        pendingClick = window.setTimeout(() => this.handleClick(at), 230);
+        return;
+      }
+      this.handleClick(e.position);
+    }, ScreenSpaceEventType.LEFT_CLICK);
+    const clickHandler = (e: { position: Cartesian2 }) => {
       const tool = this.interaction;
       if (!tool?.wantsClicks?.()) {
         const f = pickFeature(globe.viewer.scene.pick(e.position));
@@ -204,7 +219,8 @@ export class App {
         return;
       }
       this.select(p);
-    }, ScreenSpaceEventType.LEFT_CLICK);
+    };
+    this.handleClick = (pos: Cartesian2) => clickHandler({ position: pos });
     // Picking the ground under the pointer is costly: skip it while dragging the map
     // (unless a drawing tool needs it) and update the coordinate readout ~12 times a second.
     let frame = 0, dragging = false, lastPick = 0;

@@ -2,7 +2,8 @@ import "./styles.css";
 // Cesium loads its web workers and assets relative to this URL.
 (window as unknown as { CESIUM_BASE_URL: string }).CESIUM_BASE_URL = new URL("./cesium/", document.baseURI).href;
 
-import { Cartesian2, Cartesian3, Math as CesiumMath } from "cesium";
+import { Cartesian2, Cartesian3, EasingFunction, Math as CesiumMath } from "cesium";
+import { createMapControls, homeRegion } from "./globe/controls";
 import { App, type Theme } from "./app";
 import { Globe, type OverlayKind } from "./globe/viewer";
 import { Feeds, searchLocal } from "./explore/feeds";
@@ -432,6 +433,9 @@ app.connections = (themeId, subtabId) => {
   return rows.length ? h("section", { class: "group connected" }, h("h2", { class: "group-title" }, "Connected"), h("div", { class: "list" }, ...rows)) : null;
 };
 
+// Zoom buttons, a compass and double-click zoom.
+$("ui").append(createMapControls(globe.viewer));
+
 // Everything on the map, from every theme.
 $("ui").append(createCanvasTray(app));
 
@@ -496,7 +500,7 @@ const aboutPanel = h("div", { class: "popover about", hidden: true },
     h("li", {}, "Aurora and geomagnetic activity: NOAA Space Weather Prediction Center. Earthquakes: USGS. Plates: Bird (2003)."),
     h("li", {}, "Place names: OpenStreetMap Nominatim.")),
   h("p", { class: "fineprint" }, "Every dataset is a record of what's been measured or mapped. None of them is complete, so treat gaps as unknowns, not absences."),
-  h("p", { class: "fineprint" }, "Keyboard: 1–9 switch themes · / searches · Esc cancels a line or closes a chart."));
+  h("p", { class: "fineprint" }, "Keyboard: 1–9 switch themes · / searches · + and − zoom · Esc cancels a line or closes a chart. Double-click to zoom in on a spot."));
 $("ui").append(aboutPanel);
 about.addEventListener("click", () => (aboutPanel.hidden = !aboutPanel.hidden));
 
@@ -559,7 +563,13 @@ if (shared.camera) {
     orientation: { heading: CesiumMath.toRadians(c.heading), pitch: CesiumMath.toRadians(c.pitch), roll: 0 },
   });
 } else {
-  globe.viewer.camera.setView({ destination: Cartesian3.fromDegrees(-40, 25, 17_000_000) });
+  // Open on the user's own side of the planet (from the time zone), then settle in.
+  const home = homeRegion(), cam = globe.viewer.camera;
+  cam.setView({ destination: Cartesian3.fromDegrees(home.lon - 25, home.lat * 0.6, 22_000_000) });
+  const start = Cartesian3.clone(cam.positionWC);
+  // Skipped if the person has already moved the map or searched, or when Atlas flies to their saved place.
+  if (!myStore.all().length)
+    setTimeout(() => { if (Cartesian3.equalsEpsilon(cam.positionWC, start, 0, 1)) cam.flyTo({ destination: Cartesian3.fromDegrees(home.lon, home.lat * 0.8, 13_000_000), duration: 2.2, easingFunction: EasingFunction.QUADRATIC_IN_OUT }); }, 600);
 }
 if (shared.theme) app.setTheme(shared.theme);
 if (shared.place) app.select({ lon: shared.place.lon, lat: shared.place.lat, height: 0 });
