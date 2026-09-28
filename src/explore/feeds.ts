@@ -38,12 +38,12 @@ export class Feeds {
     void Promise.all([worldLabels(), riverLines()]).then(([w, r]) => {
       // Impact craters, ocean trenches and great forests from the bundled facts, as labels too.
       const have = new Set(w.map((l) => l.name));
-      const extra: WorldLabel[] = FEATURES.filter((x) => (x.kind === "crater" || x.kind === "deep" || x.kind === "forest") && !have.has(x.name)).map((x) => ({
+      const extra: WorldLabel[] = FEATURES.filter((x) => (x.kind === "crater" || x.kind === "deep" || x.kind === "forest" || x.kind === "waterfall" || x.kind === "canyon") && !have.has(x.name)).map((x) => ({
         name: x.name, lon: x.lon, lat: x.lat,
-        kind: x.kind === "deep" ? "sea" : "nature",
-        minZoom: x.kind === "deep" ? 3 : x.kind === "forest" ? 4.5 : /about (\d{2,})/.test(x.facts[0][1]) ? 4.5 : 7,
+        kind: x.kind === "deep" ? "sea" : x.kind === "waterfall" ? "waterfall" : "nature",
+        minZoom: x.kind === "deep" ? 3 : x.kind === "forest" || x.kind === "canyon" ? 4.5 : x.kind === "waterfall" ? 6 : /about (\d{2,})/.test(x.facts[0][1]) ? 4.5 : 7,
         rank: x.kind === "deep" ? 150 : 120,
-        detail: x.kind === "deep" ? "ocean trench" : x.kind === "crater" ? "impact crater" : "forest",
+        detail: x.kind === "deep" ? "ocean trench" : x.kind === "crater" ? "impact crater" : x.kind === "waterfall" ? "waterfall" : x.kind === "canyon" ? "canyon" : "forest",
       }));
       this.world = [...w, ...extra];
       this.rivers = r;

@@ -4,7 +4,7 @@
 // sources differ (river lengths especially); coordinates mark the feature (for
 // rivers, roughly the middle of the main stem).
 
-export type FeatureKind = "river" | "peak" | "volcano" | "crater" | "deep" | "forest" | "metro";
+export type FeatureKind = "river" | "peak" | "volcano" | "crater" | "deep" | "forest" | "metro" | "lake" | "waterfall" | "canyon" | "desert";
 
 export interface Feature {
   name: string;
@@ -32,6 +32,14 @@ const deep = (name: string, lat: number, lon: number, m: number, ocean: string, 
   f("deep", name, lat, lon, [["Deepest point", `about ${m.toLocaleString()} m`], ["Ocean", ocean]], blurb, aka);
 const forest = (name: string, lat: number, lon: number, area: string, type: string, blurb: string, aka?: string[]) =>
   f("forest", name, lat, lon, [["Area", area], ["Type", type]], blurb, aka);
+const lake = (name: string, lat: number, lon: number, area: string, depth: string, blurb: string, aka?: string[]) =>
+  f("lake", name, lat, lon, [["Area", area], ["Deepest", depth]], blurb, aka);
+const fall = (name: string, lat: number, lon: number, drop: string, width: string | null, blurb: string, aka?: string[]) =>
+  f("waterfall", name, lat, lon, [["Height", drop], ...(width ? [["Width", width] as [string, string]] : [])], blurb, aka);
+const canyon = (name: string, lat: number, lon: number, depth: string, length: string | null, blurb: string, aka?: string[]) =>
+  f("canyon", name, lat, lon, [["Depth", depth], ...(length ? [["Length", length] as [string, string]] : [])], blurb, aka);
+const desert = (name: string, lat: number, lon: number, area: string, type: string, blurb: string, aka?: string[]) =>
+  f("desert", name, lat, lon, [["Area", area], ["Type", type]], blurb, aka);
 const metro = (name: string, city: string, lat: number, lon: number, opened: number, blurb: string, aka?: string[]) =>
   f("metro", name, lat, lon, [["City", city], ["Opened", String(opened)]], blurb, aka);
 
@@ -233,6 +241,72 @@ export const FEATURES: Feature[] = [
   forest("Borneo lowland rainforest", 1.0, 114.5, "about 427,000 km² (ecoregion)", "tropical rainforest", "Among the richest forests in tree species; home to orangutans."),
   forest("Ardennes", 50.0, 5.5, "about 11,000 km²", "mixed forest", "Rolling forested hills across Belgium, Luxembourg and France."),
   forest("Fontainebleau Forest", 48.4, 2.65, "about 250 km²", "mixed forest on sandstone", "A royal hunting forest, now famous for bouldering."),
+
+  // ---- Lakes -----------------------------------------------------------------------------------
+  lake("Caspian Sea", 41.7, 50.6, "about 371,000 km²", "about 1,025 m", "The largest lake on Earth by area; salty, and about 28 m below sea level.", ["Caspian"]),
+  lake("Lake Superior", 47.7, -87.5, "about 82,100 km²", "about 406 m", "The largest freshwater lake by area; holds about 10% of the world's surface fresh water.", ["Superior"]),
+  lake("Lake Victoria", -1.0, 33.0, "about 68,800 km²", "about 84 m", "Africa's largest lake and the main source of the White Nile.", ["Victoria Nyanza"]),
+  lake("Lake Huron", 44.8, -82.4, "about 59,600 km²", "about 229 m", "Joined to Lake Michigan by the Straits of Mackinac: hydrologically one lake.", ["Huron"]),
+  lake("Lake Michigan", 44.0, -87.0, "about 58,000 km²", "about 281 m", "The largest lake entirely within one country.", ["Michigan"]),
+  lake("Lake Tanganyika", -6.5, 29.8, "about 32,900 km²", "about 1,470 m", "The world's longest freshwater lake and second deepest, in the East African Rift.", ["Tanganyika"]),
+  lake("Lake Baikal", 53.5, 108.2, "about 31,500 km²", "about 1,642 m", "The deepest and oldest lake (25 million years); holds about a fifth of the world's unfrozen fresh surface water.", ["Baikal"]),
+  lake("Great Bear Lake", 66.0, -121.0, "about 31,000 km²", "about 446 m", "The largest lake entirely in Canada, on the Arctic Circle."),
+  lake("Lake Malawi", -12.0, 34.5, "about 29,600 km²", "about 706 m", "Home to more fish species than any other lake, most of them cichlids found nowhere else.", ["Lake Nyasa"]),
+  lake("Great Slave Lake", 61.7, -114.0, "about 27,200 km²", "about 614 m", "The deepest lake in North America.", ["Great Slave"]),
+  lake("Lake Erie", 42.2, -81.2, "about 25,700 km²", "about 64 m", "The shallowest and warmest of the Great Lakes; it drains over Niagara Falls.", ["Erie"]),
+  lake("Lake Ontario", 43.7, -77.9, "about 18,960 km²", "about 244 m", "The last of the Great Lakes, draining to the St. Lawrence.", ["Ontario"]),
+  lake("Lake Ladoga", 60.8, 31.5, "about 17,700 km²", "about 230 m", "Europe's largest lake; the frozen 'Road of Life' supplied besieged Leningrad across it.", ["Ladoga"]),
+  lake("Lake Balkhash", 46.5, 74.5, "about 16,400 km²", "about 26 m", "Fresh in its western half and salty in its eastern half."),
+  lake("Lake Titicaca", -15.9, -69.4, "about 8,370 km²", "about 281 m", "The largest lake in South America and one of the highest large lakes, at 3,812 m.", ["Titicaca"]),
+  lake("Dead Sea", 31.5, 35.5, "about 605 km² (shrinking)", "about 300 m", "Its shore, about 430 m below sea level, is the lowest land on Earth; the water is about ten times saltier than the sea."),
+  lake("Great Salt Lake", 41.1, -112.5, "about 2,500–8,500 km² (varies)", "about 10 m", "The largest salt lake in the Western Hemisphere, left from ancient Lake Bonneville."),
+  lake("Loch Ness", 57.3, -4.45, "about 56 km²", "about 227 m", "Holds more water than all the lakes of England and Wales together.", ["Ness"]),
+  lake("Lake Geneva", 46.45, 6.5, "about 580 km²", "about 310 m", "Shared by Switzerland and France; the Rhône flows in and out.", ["Lac Léman", "Léman"]),
+  lake("Lake Tahoe", 39.1, -120.04, "about 490 km²", "about 501 m", "So clear that a white disc stays visible about 20 m down."),
+  lake("Crater Lake", 42.94, -122.1, "about 53 km²", "about 594 m", "Fills the caldera of Mount Mazama, which collapsed about 7,700 years ago: the deepest lake in the United States."),
+  lake("Aral Sea", 45.0, 60.0, "about a tenth of its 1960 size", "about 40 m (north basin)", "Once the fourth-largest lake; river water diverted for cotton shrank it to remnants."),
+
+  // ---- Waterfalls ------------------------------------------------------------------------------
+  fall("Angel Falls", 5.967, -62.535, "979 m (807 m unbroken)", null, "The world's tallest uninterrupted waterfall, falling from the table mountain Auyán-tepui.", ["Kerepakupai Merú", "Salto Ángel"]),
+  fall("Victoria Falls", -17.925, 25.857, "about 108 m", "about 1.7 km", "The largest sheet of falling water; its spray, 'the smoke that thunders', is visible 50 km away.", ["Mosi-oa-Tunya"]),
+  fall("Iguazu Falls", -25.695, -54.437, "up to 82 m", "about 2.7 km", "About 275 separate falls on the border of Argentina and Brazil; the Devil's Throat is the biggest.", ["Iguaçu", "Iguazú"]),
+  fall("Niagara Falls", 43.08, -79.074, "about 51 m", "about 1.2 km (three falls)", "The falls have cut back about 11 km since the last ice age; much of the flow is diverted for power.", ["Niagara", "Horseshoe Falls"]),
+  fall("Tugela Falls", -28.752, 28.894, "about 948 m (five drops)", null, "One of the world's tallest waterfalls, in the Drakensberg."),
+  fall("Kaieteur Falls", 5.175, -59.48, "about 226 m single drop", "about 110 m", "One of the most powerful single-drop falls."),
+  fall("Yosemite Falls", 37.757, -119.597, "739 m (three sections)", null, "Among the tallest in North America; it slows to a trickle by late summer."),
+  fall("Gullfoss", 64.327, -20.121, "32 m (two steps)", null, "Iceland's 'golden falls', saved from a hydro scheme by a local woman's campaign."),
+  fall("Rhine Falls", 47.678, 8.615, "23 m", "150 m", "Europe's largest waterfall by flow.", ["Rheinfall"]),
+  fall("Dettifoss", 65.815, -16.385, "44 m", "100 m", "Among Europe's most powerful waterfalls, fed by glacial meltwater."),
+  fall("Khone Phapheng Falls", 13.95, 105.93, "about 21 m", "about 10.8 km (the whole cataract)", "The widest waterfall system in the world, on the Mekong: the reason ships can't sail up it.", ["Khone Falls"]),
+  fall("Plitvice Lakes", 44.88, 15.62, "up to 78 m", null, "Sixteen terraced lakes joined by waterfalls over travertine dams that keep growing."),
+  fall("Seljalandsfoss", 63.616, -19.989, "60 m", null, "You can walk behind the curtain of water."),
+
+  // ---- Canyons ---------------------------------------------------------------------------------
+  canyon("Grand Canyon", 36.1, -112.1, "up to about 1,860 m", "about 446 km", "The Colorado River cut it through nearly two billion years of rock layers in about 5–6 million years.", ["Grand Canyon National Park"]),
+  canyon("Yarlung Tsangpo Grand Canyon", 29.7, 94.9, "up to about 6,000 m", "about 500 km", "Often called the deepest canyon on Earth, where the Brahmaputra bends around the Himalaya.", ["Yarlung Tsangpo Canyon"]),
+  canyon("Colca Canyon", -15.6, -71.9, "about 3,270 m", "about 70 km", "Twice as deep as the Grand Canyon; Andean condors ride the updrafts.", ["Colca"]),
+  canyon("Cotahuasi Canyon", -15.2, -72.9, "about 3,535 m", null, "One of the deepest canyons in the world, in southern Peru."),
+  canyon("Fish River Canyon", -27.6, 17.6, "up to about 550 m", "about 160 km", "Africa's largest canyon, in the Namibian desert."),
+  canyon("Copper Canyon", 27.5, -107.8, "up to about 1,880 m", null, "A network of six canyons in Mexico's Sierra Madre, larger in total than the Grand Canyon.", ["Barrancas del Cobre"]),
+  canyon("Verdon Gorge", 43.75, 6.35, "up to about 700 m", "about 25 km", "Turquoise water between limestone walls: Europe's grand canyon.", ["Gorges du Verdon"]),
+  canyon("Tara River Canyon", 43.2, 19.1, "up to about 1,300 m", "about 80 km", "Europe's deepest canyon, in Montenegro."),
+  canyon("Blyde River Canyon", -24.58, 30.82, "about 750 m", "about 26 km", "One of the largest green canyons: its slopes are covered in subtropical forest."),
+  canyon("Antelope Canyon", 36.86, -111.374, "about 40 m", null, "A slot canyon carved by flash floods; midday light beams down into it."),
+  canyon("Vikos Gorge", 39.95, 20.72, "about 1,000 m", "about 20 km", "Among the deepest gorges relative to its width."),
+
+  // ---- Deserts ---------------------------------------------------------------------------------
+  desert("Sahara", 23.0, 12.0, "about 9.2 million km²", "hot desert", "The largest hot desert, about the size of the United States; it was green savanna 6,000 years ago."),
+  desert("Arabian Desert", 22.0, 48.0, "about 2.3 million km²", "hot desert", "Includes the Rub' al Khali, the largest continuous sand sea.", ["Rub' al Khali", "Empty Quarter"]),
+  desert("Gobi Desert", 42.6, 103.5, "about 1.3 million km²", "cold desert", "Mostly bare rock, not sand; famous for dinosaur fossils and eggs.", ["Gobi"]),
+  desert("Kalahari Desert", -23.0, 22.0, "about 900,000 km²", "semi-arid savanna", "Enough rain for grass and trees, so it's home to lions, meerkats and the San people.", ["Kalahari"]),
+  desert("Atacama Desert", -24.5, -69.25, "about 105,000 km²", "cold coastal desert", "The driest non-polar place on Earth; some weather stations have never recorded rain.", ["Atacama"]),
+  desert("Namib Desert", -24.0, 15.0, "about 81,000 km²", "coastal fog desert", "Perhaps the oldest desert, 55 million years; beetles drink the fog.", ["Namib"]),
+  desert("Great Victoria Desert", -29.0, 127.5, "about 348,000 km²", "hot desert", "Australia's largest desert."),
+  desert("Mojave Desert", 35.0, -116.0, "about 124,000 km²", "hot desert", "Includes Death Valley, where 56.7 °C was recorded in 1913.", ["Mojave"]),
+  desert("Sonoran Desert", 32.0, -112.5, "about 260,000 km²", "hot desert", "The only home of the giant saguaro cactus.", ["Sonoran"]),
+  desert("Taklamakan Desert", 38.9, 83.0, "about 337,000 km²", "cold sand desert", "Crossed by the Silk Road around its edges; dunes shift up to 50 m a year.", ["Taklamakan"]),
+  desert("Thar Desert", 27.0, 71.0, "about 200,000 km²", "hot desert", "One of the most densely populated deserts in the world.", ["Great Indian Desert"]),
+  desert("Antarctic Desert", -80.0, 30.0, "about 14 million km²", "polar desert", "The largest desert of all: very little snow falls, it just never melts.", ["Antarctica"]),
 
   // ---- Metro systems ---------------------------------------------------------------------------
   metro("London Underground", "London", 51.507, -0.128, 1863, "The world's first underground railway; 'the Tube' carries millions a day.", ["The Tube", "Tube"]),

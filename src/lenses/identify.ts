@@ -83,7 +83,7 @@ export async function identify(place: Place, radiusHint?: number): Promise<Subje
   const text = `${place.name?.title ?? ""} ${place.name?.context ?? ""}`;
   // A feature Atlas knows by name settles it (Vredefort is a crater even though it's worn flat).
   const known = featureFor({ name, lon: place.lon, lat: place.lat });
-  const KNOWN: Record<string, SubjectKind> = { crater: "crater", volcano: "volcano", peak: "peak", deep: "sea", forest: "forest", river: "river", metro: "city" };
+  const KNOWN: Record<string, SubjectKind> = { crater: "crater", volcano: "volcano", peak: "peak", deep: "sea", forest: "forest", river: "river", metro: "city", lake: "lake", waterfall: "river", canyon: "canyon", desert: "desert" };
   const hinted = (known ? KNOWN[known.kind] : null) ?? kindFromHint(f.kind, text);
   // Probe at two scales: ~6 km for summits and bowls, ~40 km for ranges and seas.
   const probeAt = async (radiusM: number) => {

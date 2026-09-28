@@ -9,17 +9,17 @@ const FOR: Partial<Record<SubjectKind, { kinds: FeatureKind[]; km: number }>> = 
   volcano: { kinds: ["volcano", "peak"], km: 20 },
   range: { kinds: ["peak", "volcano"], km: 0 },
   crater: { kinds: ["crater", "volcano"], km: 25 },
-  river: { kinds: ["river"], km: 0 },
+  river: { kinds: ["river", "waterfall"], km: 0 },
   sea: { kinds: ["deep"], km: 400 },
   coast: { kinds: ["deep"], km: 0 },
   forest: { kinds: ["forest"], km: 60 },
   city: { kinds: ["metro"], km: 30 },
-  lake: { kinds: ["crater", "volcano", "river"], km: 5 },
-  land: { kinds: ["crater", "peak", "volcano", "forest"], km: 5 },
-  canyon: { kinds: ["river"], km: 0 },
+  lake: { kinds: ["lake", "waterfall", "crater", "volcano"], km: 20 },
+  land: { kinds: ["crater", "peak", "volcano", "forest", "waterfall", "canyon"], km: 5 },
+  canyon: { kinds: ["canyon", "river"], km: 40 },
   island: { kinds: ["volcano"], km: 25 },
   glacier: { kinds: ["peak", "volcano"], km: 15 },
-  desert: { kinds: ["crater"], km: 15 },
+  desert: { kinds: ["desert", "crater"], km: 0 },
 };
 
 export function factsFor(s: Subject): Feature | undefined {

@@ -159,6 +159,25 @@ const savedPlaceHere = () => {
   return [...all].sort((a, b) => Math.hypot(a.lon - p.lon, a.lat - p.lat) - Math.hypot(b.lon - p.lon, b.lat - p.lat))[0];
 };
 
+/** First run: find your address and go straight to saving it. */
+function addressBox(): HTMLElement {
+  const input = h("input", { class: "pro-url", placeholder: "Your address or farm name", "aria-label": "Your address", autocomplete: "street-address" }) as HTMLInputElement;
+  const note = h("p", { class: "muted small" });
+  const find = async () => {
+    const q = input.value.trim();
+    if (!q) return;
+    note.textContent = "Looking…";
+    const [r] = await geocode(q, feeds.view.zoom > 4 ? { lat: feeds.view.lat, lon: feeds.view.lon } : null).catch(() => []);
+    if (!r) { note.textContent = "Couldn't find that. Try adding the town, or tap the place on the map."; return; }
+    note.textContent = "";
+    void flyToPlace(globe, { ...r, radius: 600 });
+    app.select({ lon: r.lon, lat: r.lat, height: 0 }, { title: r.name, context: r.detail ?? "" });
+    myPlaces.add(r.lon, r.lat, r.name);
+  };
+  input.addEventListener("keydown", (e) => { if (e.key === "Enter") void find(); });
+  return h("div", {}, h("div", { class: "build-log-form" }, input, h("button", { class: "primary-btn", onclick: () => void find() }, "Find")), note);
+}
+
 /** "What happened today?": one box for animals, fields and building sites. */
 function logBox(): HTMLElement {
   const input = h("input", { class: "pro-url", placeholder: "What happened? \u201cDaisy had twins\u201d, \u201csprayed Top field\u201d", "aria-label": "Log what happened" }) as HTMLInputElement;
@@ -185,7 +204,8 @@ const placeHub = createWork(app, PLACE_TOOLS, {
     return [
       main ? todayCard(main, (t) => PLACE_TOOLS.find((x) => x.id === t)?.open(placeHub.ctx)) : h("div", { class: "today-card first" },
         h("div", { class: "today-head" }, h("strong", {}, "Start with your place")),
-        h("p", { class: "small" }, "Search for your address (or tap it on the map) and save it. Atlas then gives you a daily brief there: frost, heat, storms, and what's due for your animals, fields and projects."),
+        h("p", { class: "small" }, "Type your address, or tap your place on the map, and save it. Atlas then gives you a daily brief there: frost, heat, storms, and what's due for your animals, fields and projects."),
+        addressBox(),
         h("button", { class: "pill-btn", onclick: () => { loadDemo(myStore); openMode("place"); app.toast("Hillside Farm is a demo: sheep, cattle, hens and three fields. Remove it any time from the bottom of My Place.", 7000); } }, "Or try a demo farm")),
       main ? logBox() : "",
       h("h2", { class: "group-title" }, "Your places"),

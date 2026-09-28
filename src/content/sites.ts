@@ -305,3 +305,7 @@ SITES.land.push({ title: "Impact craters", sites: fromFeatures("land", "crater",
 SITES.water.push({ title: "Ocean deeps", sites: fromFeatures("water", "deep", () => 400_000) });
 SITES.plants.push({ title: "Great forests", sites: fromFeatures("plants", "forest", () => 60_000) });
 SITES.built.push({ title: "Metro systems", sites: fromFeatures("built", "metro", () => 20_000) });
+SITES.water.push({ title: "Great lakes of the world", sites: fromFeatures("water", "lake", () => 80_000) });
+SITES.water.push({ title: "Great waterfalls", sites: fromFeatures("water", "waterfall", () => 3000) });
+SITES.land.push({ title: "Canyons of the world", sites: fromFeatures("land", "canyon", () => 30_000) });
+SITES.land.push({ title: "Deserts", sites: fromFeatures("land", "desert", () => 900_000) });
