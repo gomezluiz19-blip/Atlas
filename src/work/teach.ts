@@ -10,6 +10,7 @@ import { overhead, type Slide } from "./presentModel";
 import { openQuizzes } from "./quiz";
 import { openSims } from "./sim";
 import { newId } from "./store";
+import { iconFor } from "../ui/glyph";
 
 /** Lesson starters by subject, ready to teach or adapt. */
 const LESSONS: { subject: string; name: string; grade: string; slides: Omit<Slide, "id">[] }[] = [
@@ -57,7 +58,7 @@ export function openTeach(ctx: WorkCtx) {
   const home = () => openTeach(ctx);
   const tile = (title: string, about: string, color: string, icon: string, go: () => void) =>
     h("button", { class: "work-tool", style: `--c:${color}`, onclick: go },
-      h("span", { class: "work-tool-icon teach-emoji" }, icon),
+      h("span", { class: "work-tool-icon teach-emoji" }, iconFor(icon, 20)),
       h("span", { class: "work-tool-text" }, h("strong", {}, title), h("span", {}, about)));
   ctx.show("Teach", ctx.home,
     h("p", { class: "mp-intro" }, "Teach with the whole planet: lessons with a pen and notes, quizzes and tests, games, a world politics simulation, and field trips."),

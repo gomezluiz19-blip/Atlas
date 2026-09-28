@@ -12,6 +12,7 @@ import { vectorLayer } from "./vectorLayer";
 import { canvasLayer } from "./networkLayer";
 import { populationPoints, type PopPoint } from "../data/people";
 import type { Globe } from "./viewer";
+import { iconFor } from "../ui/glyph";
 
 interface Tint { brightness?: number; saturation?: number; contrast?: number; gamma?: number; hue?: number }
 interface LookLayer { layer: ImageryLayer; alpha: number; /** Lit side / night side only (with lighting on). */ day?: number; night?: number }
@@ -286,7 +287,7 @@ export class Looks {
     if (c) {
       this.legend.hidden = false;
       this.legend.replaceChildren(
-        h("span", { class: "look-emoji", "aria-hidden": "true" }, c.emoji),
+        h("span", { class: "look-emoji", "aria-hidden": "true" }, iconFor(c.emoji, 17)),
         h("span", { class: "look-text" }, h("strong", {}, c.name), h("span", { class: "look-ramp" }, h("small", {}, c.from), h("i", { style: `background:linear-gradient(90deg,${c.stops.join(",")})` }), h("small", {}, c.to))));
       return;
     }
@@ -295,13 +296,13 @@ export class Looks {
     const on = this.current === look;
     this.legend.hidden = false;
     this.legend.replaceChildren(
-      h("span", { class: "look-emoji", "aria-hidden": "true" }, on ? look.emoji : "🛰️"),
+      h("span", { class: "look-emoji", "aria-hidden": "true" }, iconFor(on ? look.emoji : "🛰️", 17)),
       h("span", { class: "look-text" },
         h("strong", {}, on ? look.name : "Satellite"),
         on && look.legend ? h("span", { class: "look-ramp" },
           h("small", {}, look.legend.from),
           h("i", { style: `background:linear-gradient(90deg,${look.legend.stops.join(",")})` }),
           h("small", {}, look.legend.to)) : h("small", { class: "look-about" }, on ? look.about : "The plain photo of the planet")),
-      h("button", { class: "look-switch", title: on ? look.about : `Back to the ${look.name.toLowerCase()} view`, onclick: () => this.toggle() }, on ? "Satellite" : `${look.emoji} ${look.name}`));
+      h("button", { class: "look-switch", title: on ? look.about : `Back to the ${look.name.toLowerCase()} view`, onclick: () => this.toggle() }, on ? "Satellite" : look.name));
   }
 }

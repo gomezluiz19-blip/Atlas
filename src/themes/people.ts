@@ -11,6 +11,7 @@ import { vectorLayer } from "../globe/vectorLayer";
 import { h } from "../ui/dom";
 import { icons } from "../ui/icons";
 import { asyncBlock, hero, note, section, stats } from "./common";
+import { iconFor } from "../ui/glyph";
 
 const fmtPeople = (n: number) => (n >= 1e9 ? `${(n / 1e9).toFixed(1)} billion` : n >= 1e6 ? `${(n / 1e6).toFixed(n >= 1e7 ? 0 : 1)} million` : n >= 1e4 ? `${Math.round(n / 1e3).toLocaleString()},000` : Math.round(n).toLocaleString());
 const byId = (id: string) => VIEWS.find((v) => v.id === id)!;
@@ -20,7 +21,7 @@ function compare(v: View, value: number | undefined, world: number | undefined):
   const [lo, hi] = v.range ?? [0, 100];
   const at = (x: number) => `${Math.max(0, Math.min(100, ((x - lo) / (hi - lo)) * 100)).toFixed(1)}%`;
   return h("div", { class: "pp-row" },
-    h("span", { class: "pp-label" }, `${v.emoji} ${v.label}`),
+    h("span", { class: "pp-label" }, iconFor(v.emoji, 15), ` ${v.label}`),
     h("span", { class: "pp-value" }, value === undefined ? "—" : v.unit(value)),
     h("span", { class: "pp-bar" },
       value !== undefined ? h("i", { style: `width:${at(value)};background:${colorFor(v, value, lo, hi)}` }) : "",
@@ -126,7 +127,7 @@ export function peopleTheme(app: App): Theme {
   const viewPicker = () => {
     const groups = ["People", "Homes", "Health", "Connected", "Money"] as const;
     const btn = (id: string, emoji: string, label: string) =>
-      h("button", { class: `pp-view${current === id ? " on" : ""}`, "aria-pressed": String(current === id), onclick: () => { void showView(id); app.render(); } }, h("span", {}, emoji), h("small", {}, label));
+      h("button", { class: `pp-view${current === id ? " on" : ""}`, "aria-pressed": String(current === id), onclick: () => { void showView(id); app.render(); } }, iconFor(emoji, 19), h("small", {}, label));
     return section("See the world by",
       h("div", { class: "pp-views" }, btn("pop", "✨", "Where people live")),
       ...groups.map((g) => h("div", { class: "pp-group" }, h("span", { class: "pp-group-label" }, g), h("div", { class: "pp-views" }, ...VIEWS.filter((v) => v.group === g).map((v) => btn(v.id, v.emoji, v.label))))),

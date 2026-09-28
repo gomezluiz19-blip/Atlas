@@ -6,6 +6,7 @@ import { cropById, mergeDays, season } from "../work/growModel";
 import { h } from "../ui/dom";
 import type { MyPlace } from "./store";
 import { localRecords, todayItems, type FieldLite, type FieldSeason, type TodayItem } from "./today";
+import { iconFor } from "../ui/glyph";
 
 /** Each field's season (up to four fields, near this place), for the brief. */
 async function seasonsFor(fields: FieldLite[], place: MyPlace, today: string): Promise<FieldSeason[]> {
@@ -59,7 +60,7 @@ export function todayCard(place: MyPlace, openTool: (t: NonNullable<TodayItem["t
     const items = todayItems({ today: localDate(), weather: days, ...records, seasons, risks });
     const rows = items.slice(0, 6).map((it) =>
       h(it.tool ? "button" : "div", { class: `today-item ${it.urgency}`, ...(it.tool ? { onclick: () => openTool(it.tool!, it.ref) } : {}) },
-        h("span", { class: "today-icon" }, it.icon),
+        h("span", { class: "today-icon" }, iconFor(it.icon, 18)),
         h("span", { class: "today-text" }, h("strong", {}, it.title), h("span", {}, it.detail))));
     body.replaceChildren(
       ...(rows.length ? rows : [h("p", { class: "muted small" }, "Nothing pressing today.")]),

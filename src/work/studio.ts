@@ -12,6 +12,7 @@ import { decks, orbit, play } from "./present";
 import { ListStore, newId } from "./store";
 import { clock, SHAPES, type Shape } from "./videoModel";
 import { cleanView, fileName, getMusic, Recording, setMusic, settings } from "./video";
+import { iconFor, labelled } from "../ui/glyph";
 
 interface Shot { id: string; name: string; caption: string; pos: [number, number, number]; heading: number; pitch: number; roll: number; secs: number; thumb?: string }
 const shots = new ListStore<Shot>("atlas.studio.shots.v1");
@@ -124,13 +125,13 @@ export function openStudio(ctx: WorkCtx) {
   const lookChips = h("div", { class: "st-looks" });
   const renderLooks = () => lookChips.replaceChildren(
     ...[{ id: null as string | null, emoji: "🛰️", name: "Satellite" }, ...Object.values(LOOKS).map((l) => ({ id: l.id as string | null, emoji: l.emoji, name: l.name }))].map((l) =>
-      h("button", { class: `st-look${look === l.id ? " on" : ""}`, onclick: () => { look = l.id; app.looks?.preview(l.id); renderLooks(); } }, h("span", {}, l.emoji), h("small", {}, l.name))));
+      h("button", { class: `st-look${look === l.id ? " on" : ""}`, onclick: () => { look = l.id; app.looks?.preview(l.id); renderLooks(); } }, iconFor(l.emoji, 20), h("small", {}, l.name))));
   const move = (label: string, emoji: string, fn: () => (() => void) | void) => h("button", { class: "st-move", onclick: (e: Event) => {
     const btn = e.currentTarget as HTMLElement;
     if (stopMove) { stopMove(); stopMove = null; document.querySelectorAll(".st-move.on").forEach((b) => b.classList.remove("on")); if (btn.classList.contains("was")) { btn.classList.remove("was"); return; } }
     const stop = fn();
     if (stop) { stopMove = stop; btn.classList.add("on", "was"); }
-  } }, h("span", {}, emoji), h("small", {}, label));
+  } }, iconFor(emoji, 20), h("small", {}, label));
   const target = () => groundAt(viewer);
   const moves = h("div", { class: "st-moves" },
     move("Circle", "🔄", () => orbit(app, 45)),
@@ -170,12 +171,12 @@ export function openStudio(ctx: WorkCtx) {
       app.toast("No microphone (permission was refused or there isn't one).", 4000);
     }
   };
-  const micBtn = h("button", { class: `st-toggle${settings.mic ? " on" : ""}`, title: "Narrate with the microphone", onclick: () => { settings.mic = !settings.mic; micBtn.classList.toggle("on", settings.mic); void listen(settings.mic); } }, "🎙️ Mic", meter);
+  const micBtn = h("button", { class: `st-toggle${settings.mic ? " on" : ""}`, title: "Narrate with the microphone", onclick: () => { settings.mic = !settings.mic; micBtn.classList.toggle("on", settings.mic); void listen(settings.mic); } }, ...labelled("🎙️ Mic", 15), meter);
   const musicName = h("small", {}, getMusic()?.name ?? "");
   const musicIn = h("input", { type: "file", accept: "audio/*", hidden: true, onchange: (e: Event) => { const f = (e.target as HTMLInputElement).files?.[0] ?? null; setMusic(f); musicName.textContent = f?.name ?? ""; musicBtn.classList.toggle("on", !!f); } }) as HTMLInputElement;
-  const musicBtn = h("button", { class: `st-toggle${getMusic() ? " on" : ""}`, title: "Add music or a voice-over file", onclick: () => musicIn.click() }, "🎵 Music ", musicName);
+  const musicBtn = h("button", { class: `st-toggle${getMusic() ? " on" : ""}`, title: "Add music or a voice-over file", onclick: () => musicIn.click() }, ...labelled("🎵 Music ", 15), musicName);
   const toggle = (label: string, key: "names" | "credits", title: string) => {
-    const b = h("button", { class: `st-toggle${settings[key] ? " on" : ""}`, title, onclick: () => { settings[key] = !settings[key]; b.classList.toggle("on", settings[key]); if (key === "names") app.labels?.setVisible(settings.names); } }, label);
+    const b = h("button", { class: `st-toggle${settings[key] ? " on" : ""}`, title, onclick: () => { settings[key] = !settings[key]; b.classList.toggle("on", settings[key]); if (key === "names") app.labels?.setVisible(settings.names); } }, ...labelled(label, 15));
     return b;
   };
   const recBtn = h("button", { class: "st-record", "aria-label": "Record", onclick: () => void (rec ? stopRec() : startRec()) }, h("i", {}), h("span", {}, "Record"));
@@ -255,7 +256,7 @@ export function openStudio(ctx: WorkCtx) {
 
   const root = h("div", { class: "studio-root", role: "dialog", "aria-label": "Video studio" },
     h("header", { class: "st-head" },
-      h("strong", { class: "st-brand" }, "🎬 Studio"), titleIn, shapeBtns,
+      h("strong", { class: "st-brand" }, ...labelled("🎬 Studio", 18)), titleIn, shapeBtns,
       h("button", { class: "pill-btn", title: "Hide everything but the globe, for streaming", onclick: () => { exit(); cleanView(app); } }, "Stream view"),
       h("button", { class: "primary-btn", onclick: exit }, "Done")),
     h("aside", { class: "st-left" },

@@ -11,6 +11,7 @@ import type { Deck } from "../work/presentModel";
 import { newId } from "../work/store";
 import { isMine, library, liked, markLiked, remember } from "./library";
 import { creditLine, LEVELS, packStory, remixOf, storyFromDeck, TOPICS, type Query, type Story, type StoryCard, type StoryRef } from "./model";
+import { iconFor, labelled } from "../ui/glyph";
 
 // ---- What a deck needs to be a story (kept beside the deck) ------------------------------------
 
@@ -38,7 +39,7 @@ async function shareLink(s: Story): Promise<string> {
 function card(s: StoryCard, open: () => void): HTMLElement {
   const emoji = TOPIC_EMOJI[s.tags[0]] ?? "🌍";
   return h("button", { class: "story-card", onclick: open },
-    h("span", { class: "story-cover" }, s.cover ? h("img", { src: s.cover, alt: "", loading: "lazy" }) : h("span", { class: "story-cover-emoji" }, emoji),
+    h("span", { class: "story-cover" }, s.cover ? h("img", { src: s.cover, alt: "", loading: "lazy" }) : h("span", { class: "story-cover-emoji" }, iconFor(emoji, 30)),
       s.featured ? h("span", { class: "story-badge" }, "Featured") : s.lineage.length ? h("span", { class: "story-badge remix" }, "Remix") : ""),
     h("span", { class: "story-card-body" },
       h("strong", {}, s.title),
@@ -69,7 +70,7 @@ export function openLibrary(ctx: WorkCtx, back: (() => void) | null = ctx.home) 
   };
   let timer = 0;
   const q = h("input", { class: "story-search", type: "search", value: state.text ?? "", placeholder: "Search stories: the Nile, volcanoes, the Romans…", "aria-label": "Search stories", oninput: (e: Event) => { state.text = (e.target as HTMLInputElement).value; clearTimeout(timer); timer = window.setTimeout(() => void refresh(), 250); } });
-  const chip = (label: string, on: boolean, act: () => void) => h("button", { class: `chip${on ? " on" : ""}`, "aria-pressed": String(on), onclick: () => { act(); openLibrary(ctx, back); } }, label);
+  const chip = (label: string, on: boolean, act: () => void) => h("button", { class: `chip${on ? " on" : ""}`, "aria-pressed": String(on), onclick: () => { act(); openLibrary(ctx, back); } }, ...labelled(label, 14));
   const mineDecks = decks();
 
   ctx.show("Stories", back,
@@ -99,7 +100,7 @@ function openMine(ctx: WorkCtx) {
     h("div", { class: "list" }, ...decks().map((d) => {
       const m = deckMeta(d.id);
       return h("button", { class: "list-row", onclick: () => openDeck(ctx, d.id) },
-        d.slides[0]?.thumb ? h("img", { class: "present-mini", src: d.slides[0].thumb, alt: "" }) : h("span", { class: "story-mini-emoji" }, TOPIC_EMOJI[m.tags[0]] ?? "🌍"),
+        d.slides[0]?.thumb ? h("img", { class: "present-mini", src: d.slides[0].thumb, alt: "" }) : h("span", { class: "story-mini-emoji" }, iconFor(TOPIC_EMOJI[m.tags[0]] ?? "🌍", 18)),
         h("span", { class: "list-text" }, h("span", { class: "list-title" }, d.name), h("span", { class: "list-sub" }, [plural(d.slides.length, "place"), m.storyId ? "Published" : "Draft", m.lineage.length ? "Remix" : ""].filter(Boolean).join(" · "))),
         h("span", { class: "chev", html: "&rsaquo;" }));
     })));
@@ -140,16 +141,16 @@ export async function openStory(ctx: WorkCtx, idOrStory: string | Story, back: (
 
   ctx.show("Story", back,
     h("div", { class: "story-hero" },
-      s.slides.find((x) => x.thumb)?.thumb ? h("img", { src: s.slides.find((x) => x.thumb)!.thumb!, alt: "" }) : h("span", { class: "story-cover-emoji big" }, TOPIC_EMOJI[s.tags[0]] ?? "🌍"),
+      s.slides.find((x) => x.thumb)?.thumb ? h("img", { src: s.slides.find((x) => x.thumb)!.thumb!, alt: "" }) : h("span", { class: "story-cover-emoji big" }, iconFor(TOPIC_EMOJI[s.tags[0]] ?? "🌍", 40)),
       h("div", {}, h("h2", { class: "story-title" }, s.title), h("p", { class: "story-by" }, `by ${s.author.name}`, s.level ? ` · ${s.level}` : "", ` · ${plural(s.slides.length, "place")}`))),
     s.summary ? h("p", { class: "story-summary" }, s.summary) : "",
-    s.tags.length ? h("div", { class: "chips wrap" }, ...s.tags.map((t) => h("span", { class: "chip static" }, `${TOPIC_EMOJI[t] ?? ""} ${t}`))) : "",
+    s.tags.length ? h("div", { class: "chips wrap" }, ...s.tags.map((t) => h("span", { class: "chip static" }, ...labelled(`${TOPIC_EMOJI[t] ?? ""} ${t}`, 13)))) : "",
     credit ? h("p", { class: "story-credit" }, "⑂ ", ...s.lineage.flatMap((r, i) => [i ? ", from " : "Remixed from ", h("button", { class: "link-btn", onclick: () => void openStory(ctx, r.id, back) }, `“${r.title}”`), ` by ${r.author}`])) : "",
     h("div", { class: "story-actions" },
       h("button", { class: "primary-btn", onclick: () => run("tour") }, "▶ Play"),
       h("button", { class: "pill-btn", onclick: () => run("slides") }, "Step through"),
       h("button", { class: "pill-btn", title: "Bigger text, a pen to draw on the globe, notes and a timer", onclick: () => run("teach") }, "Teach with it"),
-      h("button", { class: "pill-btn", title: "Your own copy to change; it credits this story", onclick: remix }, "⑂ Remix"),
+      h("button", { class: "pill-btn", title: "Your own copy to change; it credits this story", onclick: remix }, ...labelled("⑂ Remix", 15)),
       likeBtn,
       h("button", { class: "pill-btn", onclick: async () => app.toast((await copyText(await shareLink(s))) ? "Link copied. Anyone with it can open, play and remix this story." : "Couldn't copy the link.", 4000) }, "Share link")),
     s.stats.uses || s.stats.remixes || s.stats.likes ? h("p", { class: "muted small" }, [s.stats.uses ? `Used ${plural(s.stats.uses, "time")}` : "", s.stats.remixes ? `remixed ${plural(s.stats.remixes, "time")}` : "", s.stats.likes ? `${plural(s.stats.likes, "like")}` : ""].filter(Boolean).join(" · ") + ".") : "",
@@ -157,7 +158,7 @@ export async function openStory(ctx: WorkCtx, idOrStory: string | Story, back: (
       h("ol", { class: "story-places" }, ...s.slides.map((x) => h("li", {}, h("button", { class: "story-place", onclick: () => void flyToView(app, x.camera) }, h("strong", {}, x.title || "Untitled"), x.text ? h("span", {}, x.text) : ""))))),
     s.links.length ? h("section", { class: "group" }, h("h2", { class: "group-title" }, "Continues with"),
       h("div", { class: "list" }, ...s.links.map((l) => h("button", { class: "list-row", onclick: () => void openStory(ctx, l.id, back) },
-        h("span", { class: "story-mini-emoji" }, "→"), h("span", { class: "list-text" }, h("span", { class: "list-title" }, l.title), h("span", { class: "list-sub" }, `by ${l.author}`)), h("span", { class: "chev", html: "&rsaquo;" }))))) : "",
+        h("span", { class: "story-mini-emoji" }, iconFor("📖", 18)), h("span", { class: "list-text" }, h("span", { class: "list-title" }, l.title), h("span", { class: "list-sub" }, `by ${l.author}`)), h("span", { class: "chev", html: "&rsaquo;" }))))) : "",
     lib.kind === "shared" && !s.featured && !s.id.startsWith("local:") && !isMine(s.id)
       ? h("button", { class: "link-btn danger story-report", onclick: () => { if (confirm("Report this story as inappropriate? It's hidden after a few reports until someone reviews it.")) { lib.count(s.id, "report"); app.toast("Thanks. Reported for review.", 3000); } } }, "Report") : "");
   void flyToView(app, s.slides[0].camera, 2);
@@ -175,7 +176,7 @@ export function publishSection(ctx: WorkCtx, d: Deck, again: () => void): HTMLEl
   const summary = h("textarea", { class: "mp-notes", rows: 2, placeholder: "One or two sentences: what will people learn?", "aria-label": "Summary", onchange: (e: Event) => { m.summary = (e.target as HTMLTextAreaElement).value; save(); } }, m.summary);
   const topics = h("div", { class: "chips wrap" }, ...TOPICS.map((t) => {
     const on = m.tags.includes(t);
-    return h("button", { class: `chip${on ? " on" : ""}`, "aria-pressed": String(on), onclick: () => { m.tags = on ? m.tags.filter((x) => x !== t) : [...m.tags, t].slice(0, 4); save(); again(); } }, `${TOPIC_EMOJI[t]} ${t}`);
+    return h("button", { class: `chip${on ? " on" : ""}`, "aria-pressed": String(on), onclick: () => { m.tags = on ? m.tags.filter((x) => x !== t) : [...m.tags, t].slice(0, 4); save(); again(); } }, ...labelled(`${TOPIC_EMOJI[t]} ${t}`, 14));
   }));
   const level = h("select", { "aria-label": "Who it's for", onchange: (e: Event) => { m.level = (e.target as HTMLSelectElement).value || undefined; save(); } },
     h("option", { value: "" }, "Who it's for…"), ...LEVELS.map((l) => h("option", { value: l, selected: m.level === l }, l)));
