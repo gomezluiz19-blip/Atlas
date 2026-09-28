@@ -512,6 +512,10 @@ else if (!shared.camera && myStore.all().length) {
   }, 1200);
 }
 
+// Offline: the app, bundled data and the map tiles you've seen keep working without a connection.
+if (import.meta.env.PROD && "serviceWorker" in navigator)
+  addEventListener("load", () => void navigator.serviceWorker.register("./sw.js").catch(() => {}));
+
 // Handy for debugging from the browser console during development.
 if (import.meta.env.DEV) {
   Object.assign(window, { atlas: { app, globe, labels, overlays, feeds } });

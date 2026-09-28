@@ -1,0 +1,13 @@
+{
+  "name": "Atlas",
+  "short_name": "Atlas",
+  "description": "The whole Earth, and your own corner of it: your place's daily brief, lenses on any feature, and maps to make things with.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#0a84ff",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}
