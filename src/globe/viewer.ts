@@ -84,7 +84,9 @@ export class Globe {
     });
     const { scene } = this.viewer;
     scene.globe.depthTestAgainstTerrain = true;
-    scene.globe.maximumScreenSpaceError = 1.5;
+    // 2 (Cesium's default) streams fewer, coarser-but-sharp-enough tiles than 1.5: faster to settle.
+    scene.globe.maximumScreenSpaceError = 2;
+    scene.globe.preloadSiblings = false;
     scene.globe.baseColor = Color.fromCssColorString("#0b1d33");
     scene.globe.showGroundAtmosphere = true;
     scene.screenSpaceCameraController.enableCollisionDetection = true;

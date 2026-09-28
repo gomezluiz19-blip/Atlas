@@ -27,17 +27,65 @@ export const FIELD_SITES: Place[] = [
   { name: "Lake Natron", detail: "Tanzania · East African Rift", lon: 36.0, lat: -2.4, radius: 30000 },
 ];
 
-export async function flyToPlace(globe: Globe, place: Place) {
-  let ground = 0;
-  try {
-    [ground] = await elevation.sample([[place.lon, place.lat]], 10);
-  } catch {
-    /* fly anyway */
+/**
+ * The part of the map not covered by panels, in canvas pixels: the place
+ * card on the left (or along the bottom on phones), panels on the right,
+ * the top bar and the tab bar.
+ */
+export function freeArea(canvas: HTMLCanvasElement): { left: number; right: number; top: number; bottom: number } {
+  const c = canvas.getBoundingClientRect();
+  const pad = { left: 0, right: 0, top: 0, bottom: 0 };
+  const shown = (el: Element) => { const r = el.getBoundingClientRect(); return r.width > 0 && r.height > 0 && getComputedStyle(el).visibility !== "hidden" ? r : null; };
+  for (const el of document.querySelectorAll("#ui .sheet, #ui .popover:not([hidden]), #ui .lens-panel:not([hidden]), #ui .topbar, #ui .tabbar")) {
+    const r = shown(el);
+    if (!r) continue;
+    const wide = r.width > c.width * 0.6, tall = r.height > c.height * 0.45;
+    if (tall && !wide && r.left - c.left < c.width * 0.25) pad.left = Math.max(pad.left, r.right - c.left);
+    else if (tall && !wide && c.right - r.right < c.width * 0.25) pad.right = Math.max(pad.right, c.right - r.left);
+    else if (r.top - c.top < c.height * 0.2 && r.height < c.height * 0.2) pad.top = Math.max(pad.top, r.bottom - c.top);
+    else if (c.bottom - r.bottom < c.height * 0.25) pad.bottom = Math.max(pad.bottom, c.bottom - r.top);
   }
-  const centre = Cartesian3.fromDegrees(place.lon, place.lat, Math.max(0, ground) * globe.state.exaggeration);
-  globe.viewer.camera.flyToBoundingSphere(new BoundingSphere(centre, place.radius), {
-    offset: new HeadingPitchRange(0, CesiumMath.toRadians(-32), place.radius * 2.6),
-    duration: 2.5,
+  // If panels leave almost nothing (under a fifth of the map), frame the whole map instead.
+  if (c.width - pad.left - pad.right < c.width / 5) pad.left = pad.right = 0;
+  if (c.height - pad.top - pad.bottom < c.height / 5) pad.top = pad.bottom = 0;
+  return pad;
+}
+
+/**
+ * Flies to a place the way a map app would: straight down and north up,
+ * with the place filling the part of the map you can see. Small things (a
+ * building, a landmark) get a gentle 3D tilt. Starts at once; the flight is
+ * shorter for short hops.
+ */
+export async function flyToPlace(globe: Globe, place: Place) {
+  const viewer = globe.viewer, camera = viewer.camera, canvas = viewer.canvas;
+  // Ground height: whatever arrives quickly (it matters for mountains), else sea level.
+  const ground = await Promise.race([
+    elevation.sample([[place.lon, place.lat]], 10).then((v) => Math.max(0, v[0] ?? 0)).catch(() => 0),
+    new Promise<number>((r) => setTimeout(() => r(0), 120)),
+  ]);
+  const cw = canvas.clientWidth || innerWidth, ch = canvas.clientHeight || innerHeight;
+  const pad = freeArea(canvas);
+  const fw = Math.max(1, cw - pad.left - pad.right), fh = Math.max(1, ch - pad.top - pad.bottom);
+  const frustum = camera.frustum as { fov?: number };
+  const fov = frustum.fov ?? CesiumMath.toRadians(60);
+  // The place's diameter (with a margin) fits the smaller side of the free area.
+  const mpp = (2.3 * place.radius) / Math.min(fw, fh);
+  const height = Math.max(180, (mpp * Math.max(cw, ch)) / (2 * Math.tan(fov / 2)));
+  // Shift the view so the place sits in the middle of the free area, not under a panel.
+  const mppAtHeight = (2 * height * Math.tan(fov / 2)) / Math.max(cw, ch);
+  const dx = (pad.left - pad.right) / 2 * mppAtHeight, dy = (pad.top - pad.bottom) / 2 * mppAtHeight;
+  const cosLat = Math.max(0.05, Math.cos(CesiumMath.toRadians(place.lat)));
+  const lon = place.lon - dx / (111_320 * cosLat), lat = place.lat + dy / 110_540;
+  const small = place.radius < 1500;
+  const pitch = small ? CesiumMath.toRadians(-52) : CesiumMath.toRadians(-89.5);
+  // Tilted views shift sideways only (north-south shifts don't map simply onto a tilted view).
+  const target = Cartesian3.fromDegrees(lon, small ? place.lat : lat, ground * globe.state.exaggeration);
+  const distance = Cartesian3.distance(camera.positionWC, target);
+  camera.cancelFlight();
+  camera.flyToBoundingSphere(new BoundingSphere(target, 1), {
+    offset: new HeadingPitchRange(0, pitch, small ? height * 1.15 : height),
+    duration: Math.min(2.2, Math.max(0.9, 0.5 + Math.log10(1 + distance / 1000) * 0.4)),
   });
 }
 
