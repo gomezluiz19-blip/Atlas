@@ -34,6 +34,33 @@ function sowingView(lastSpring: number | null, firstAutumn: number | null): HTML
     h("p", { class: "muted small" }, "Rules of thumb, in weeks from your average last frost; a cold spring or a sheltered spot shifts them."));
 }
 
+const esc = (t: string) => t.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!);
+
+/** A clean one-page version of the report to print or save as a PDF, with a link back to Atlas. */
+function printReport(p: MyPlace, el: HTMLElement) {
+  const rows = [...el.querySelectorAll(".report-row")].map((r) => {
+    const label = r.querySelector(".report-label")?.textContent ?? "", value = r.querySelector(".report-value");
+    const main = value?.firstChild?.textContent ?? "", sub = value?.querySelector("small")?.textContent ?? "";
+    return `<tr><th>${esc(label)}</th><td><b>${esc(main)}</b>${sub ? `<br><span>${esc(sub)}</span>` : ""}</td></tr>`;
+  }).join("");
+  const sow = [...el.querySelectorAll(".sowing > div:first-of-type .sow-row")].map((r) => `<li>${esc(r.textContent?.replace(/\s+/g, " ").trim() ?? "")}</li>`).join("");
+  const link = `${location.origin}${location.pathname}`;
+  const w = window.open("", "_blank");
+  if (!w) { alert("Allow pop-ups for Atlas to print the report."); return; }
+  w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${esc(p.name)} · About this place</title><style>
+body{font:14px/1.45 -apple-system,system-ui,sans-serif;color:#1d1d1f;max-width:720px;margin:32px auto;padding:0 20px}
+h1{font-size:26px;margin:0}p.sub{color:#6e6e73;margin:4px 0 20px}table{width:100%;border-collapse:collapse}
+th{text-align:left;color:#6e6e73;font-weight:500;width:150px;vertical-align:top;padding:9px 0;border-bottom:1px solid #e5e5ea}
+td{padding:9px 0;border-bottom:1px solid #e5e5ea}td span{color:#6e6e73;font-size:13px}h2{font-size:17px;margin:24px 0 6px}
+ul{padding-left:18px}li{margin:3px 0}footer{margin-top:28px;color:#6e6e73;font-size:12px}a{color:#0071e3}
+@media print{body{margin:0}a{color:inherit}}</style></head><body>
+<h1>${esc(p.name)}</h1><p class="sub">${esc([p.address, `${p.lat.toFixed(4)}, ${p.lon.toFixed(4)}`, new Date().toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" })].filter(Boolean).join(" · "))}</p>
+<table>${rows}</table>${sow ? `<h2>Sowing and planting in the next six weeks</h2><ul>${sow}</ul>` : ""}
+<footer>Made with Atlas: <a href="${esc(link)}">${esc(link)}</a>. Weather: ERA5 via Open-Meteo (CC BY 4.0). Geology: Macrostrat (CC BY 4.0). Terrain: Terrain Tiles on AWS. Estimates, not a survey.</footer>
+<script>setTimeout(()=>print(),400)</script></body></html>`);
+  w.document.close();
+}
+
 /** The report for a saved place (built once per place, then reused). */
 export function placeReport(app: App, p: MyPlace): HTMLElement {
   const key = `${p.id}:${p.lon.toFixed(5)},${p.lat.toFixed(5)}`;
@@ -54,7 +81,8 @@ export function placeReport(app: App, p: MyPlace): HTMLElement {
       h("button", { class: "chip", onclick: go("lens:slice") }, "🔪 Slice the ground"),
       h("button", { class: "chip", onclick: go("lens:rewind") }, "⏪ Then and now"),
       h("button", { class: "chip", onclick: go("lens:block") }, "🧊 Lift it out in 3D")),
-    h("p", { class: "muted small" }, "Weather from ten years of ERA5 records; rock from Macrostrat's geologic maps; heights from the global terrain model."));
+    h("p", { class: "muted small" }, "Weather from ten years of ERA5 records; rock from Macrostrat's geologic maps; heights from the global terrain model."),
+    h("button", { class: "pill-btn", onclick: () => printReport(p, el) }, "Print or save as PDF"));
   made.set(key, el);
 
   // Ground: slope and aspect from a 3×3 grid, 30 m apart.
