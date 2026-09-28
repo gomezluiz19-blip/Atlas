@@ -4,6 +4,7 @@ import "./styles.css";
 
 import { Cartesian2, Cartesian3, EasingFunction, Math as CesiumMath } from "cesium";
 import { createMapControls, homeRegion } from "./globe/controls";
+import { Looks } from "./globe/looks";
 import { App, type Theme } from "./app";
 import { Globe, type OverlayKind } from "./globe/viewer";
 import { Feeds, searchLocal } from "./explore/feeds";
@@ -38,6 +39,7 @@ import { hasDemo, loadDemo, removeDemo } from "./myplaces/demo";
 import { planLog } from "./myplaces/logAny";
 import { describeDrafts, parseSteps } from "./work/journeyModel";
 import { createSpace } from "./space/panel";
+import { spaceTheme } from "./space/theme";
 import { createLenses } from "./lenses/bar";
 import { LENSES } from "./lenses";
 import { borders, openPresent, showYear } from "./work/present";
@@ -107,8 +109,17 @@ const openSite = (s: Site) => {
 };
 
 app.addTheme(exploreTheme(app, feeds, overlays, openSite));
-app.addTheme(landTheme(app));
-app.addTheme(mineralsTheme(app));
+// Earth: the ground, the rocks and the minerals in them, in one place.
+{
+  const land = landTheme(app), minerals = mineralsTheme(app);
+  app.addTheme({
+    ...land, label: "Earth", icon: icons.globe, intro: "Mountains, volcanoes, canyons, the rock beneath them and the minerals in it.",
+    subtabs: [...land.subtabs, ...minerals.subtabs.map((t) => (t.id === "here" ? { ...t, label: "Minerals" } : t.id === "mines" ? { ...t, label: "Mines" } : t))],
+    enter: (a) => { land.enter?.(a); minerals.enter?.(a); },
+    leave: (a) => { land.leave?.(a); minerals.leave?.(a); },
+  });
+  app.aliases.set("minerals", "land");
+}
 app.addTheme(waterTheme(app));
 app.addTheme(climateTheme(overlays));
 app.addTheme(plantsTheme());
@@ -252,6 +263,7 @@ const pro = createPro(app, myStore, myScene, (id) => { myPlaces.open(id); myPlac
 $("ui").append(pro.panel);
 // Space: satellites, the ISS, launches and the solar system.
 const space = createSpace(app);
+app.addTheme(spaceTheme(space));
 $("ui").append(space.panel, placeHub.panel, makeHub.panel, lookHub.panel);
 space.button.addEventListener("space:opened", () => closePanels(space.panel));
 for (const hub of [placeHub, makeHub, lookHub]) hub.button.addEventListener("work:opened", () => closePanels(hub.panel));
@@ -565,7 +577,10 @@ app.onPlace = (p) => {
       if (earned.length) app.toast(`🛂 New passport stamp: ${c.name}`, 3000);
     }).catch(() => {});
 };
-app.onTheme = syncHash;
+// Each theme sees the planet its own way (relief, depths, clouds, greenness, night lights…).
+const looks = new Looks(globe, $("ui"));
+looks.set(app.theme.id);
+app.onTheme = (id) => { looks.set(id); syncHash(); };
 globe.viewer.camera.moveEnd.addEventListener(syncHash);
 
 // Opening view: a shared link's view, or the whole planet.

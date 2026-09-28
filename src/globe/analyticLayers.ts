@@ -4,7 +4,7 @@ import { ImageryLayer, UrlTemplateImageryProvider } from "cesium";
 import { MAX_ELEVATION_ZOOM, elevation } from "../data/elevation";
 import { TILE_SIZE, metersPerPixel, pixelToLonLat } from "../data/mercator";
 
-export type AnalyticKind = "hillshade" | "elevation" | "slope" | "contours";
+export type AnalyticKind = "hillshade" | "elevation" | "slope" | "contours" | "depth";
 
 type RGB = [number, number, number];
 const hex = (h: string): RGB => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16)) as RGB;
@@ -23,6 +23,8 @@ export const LAND_RAMP: Ramp = {
   stops: ["#1a3a5e", "#1d5a61", "#3c6e57", "#687b44", "#978735", "#c6924a", "#ec9f78", "#f9bfb6", "#fde4ef"],
 };
 export const SEA_RAMP: Ramp = { min: -7000, max: 0, stops: ["#081a3a", "#123a6b", "#2f6aa3", "#7fb2d9"] };
+/** The water view: shallows glow turquoise, the deep ocean goes to ink. */
+export const DEPTH_RAMP: Ramp = { min: -8000, max: 0, stops: ["#020617", "#06224f", "#0b4f8a", "#1487c2", "#2fc1d8", "#8ff0e6"] };
 export const SLOPE_RAMP: Ramp = {
   min: 0,
   max: 60,
@@ -42,6 +44,7 @@ function rampLookup(ramp: Ramp): (v: number) => RGB {
 const landColor = rampLookup(LAND_RAMP);
 const seaColor = rampLookup(SEA_RAMP);
 const slopeColor = rampLookup(SLOPE_RAMP);
+const depthColor = rampLookup(DEPTH_RAMP);
 
 /**
  * Contour interval in metres for a zoom level: roughly four pixels of ground
@@ -83,6 +86,10 @@ function render(kind: AnalyticKind, tile: Float32Array, x: number, y: number, z:
     for (let i = 0; i < TILE_SIZE; i++) {
       const o = (j * TILE_SIZE + i) * 4;
       const h = at(i, j);
+      if (kind === "depth") {
+        if (h < 0) { const c = depthColor(h); px[o] = c[0]; px[o + 1] = c[1]; px[o + 2] = c[2]; px[o + 3] = 255; }
+        continue;
+      }
       if (kind === "elevation") {
         const c = h >= 0 ? landColor(h) : seaColor(h);
         px[o] = c[0]; px[o + 1] = c[1]; px[o + 2] = c[2]; px[o + 3] = 255;

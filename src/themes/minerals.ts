@@ -98,7 +98,7 @@ function mineralChips(keys: string[]): HTMLElement {
 
 export function mineralsTheme(app: App): Theme {
   const minesTool = new MinesTool();
-  app.home("mines", "minerals", "mines");
+  app.home("mines", "land", "mines");
   let selected: string | null = null;
   let ds: CustomDataSource | null = null;
 
@@ -115,7 +115,7 @@ export function mineralsTheme(app: App): Theme {
   const openMine = (mn: Mine) => {
     void flyToPlace(app.globe, { name: mn.name, lon: mn.lon, lat: mn.lat, radius: mn.kind === "brine" || mn.kind === "placer" ? 15000 : 4000 });
     app.select({ lon: mn.lon, lat: mn.lat, height: 0 }, { title: mn.name, context: `${commodity(mn.goods[0])!.name} mine · ${mn.country}` }, { type: "mine", mine: mn } satisfies MineFeature);
-    if (app.theme.id !== "minerals") app.setTheme("minerals", "here");
+    if (app.theme.id !== "land") app.setTheme("land", "here");
   };
 
   /** Landmark mines on the globe, filtered to the selected commodity. */
@@ -153,7 +153,7 @@ export function mineralsTheme(app: App): Theme {
     // The canvas decides whether it's drawn (only in Minerals, unless pinned).
     ds.show = false;
     app.canvas.put({
-      id: "minerals:mines", label: c ? `${c.name} mines` : "Landmark mines", color: c?.color ?? "#c77c02", theme: "minerals", scope: "world", pinned: false,
+      id: "minerals:mines", label: c ? `${c.name} mines` : "Landmark mines", color: c?.color ?? "#c77c02", theme: "land", scope: "world", pinned: false,
       show: (v) => { if (ds) ds.show = v; },
       remove: () => { ds?.entities.removeAll(); },
     });
@@ -165,7 +165,7 @@ export function mineralsTheme(app: App): Theme {
     selected = id;
     drawMines();
     // Picking a commodity from another theme (e.g. a Connected link) should show its mines there too.
-    if (app.theme.id !== "minerals") app.canvas.setPinned("minerals:mines", true);
+    if (app.theme.id !== "land") app.canvas.setPinned("minerals:mines", true);
     if (!app.place) app.render();
   };
 

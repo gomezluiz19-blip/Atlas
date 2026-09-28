@@ -15,6 +15,8 @@ export interface VectorStyle {
   stroke: string;
   width: number;
   fill?: string;
+  /** A fill per shape (overrides `fill`). */
+  fillOf?: (shape: VectorShape) => string | null;
   /** Scale line width with zoom (thinner when zoomed out). */
   scaleWithZoom?: boolean;
 }
@@ -37,13 +39,14 @@ class VectorImageryProvider extends UrlTemplateImageryProvider {
     // Draw at 2x so lines stay crisp when Cesium stretches coarse tiles.
     const k = SIZE / TILE_SIZE;
     const ox = x * TILE_SIZE, oy = y * TILE_SIZE;
-    const { stroke, width, fill, scaleWithZoom } = this.style;
+    const { stroke, width, fill: fillAll, fillOf, scaleWithZoom } = this.style;
     ctx.lineJoin = ctx.lineCap = "round";
     ctx.strokeStyle = stroke;
     ctx.lineWidth = k * (scaleWithZoom ? Math.max(0.5, Math.min(width, width * (0.25 + level * 0.12))) : width);
     for (const shape of this.shapes) {
       const [w, s, e, nn] = shape.bbox;
       if (e < west - padLon || w > east + padLon || nn < south - padLat || s > north + padLat) continue;
+      const fill = fillOf ? fillOf(shape) : fillAll;
       ctx.beginPath();
       for (const poly of shape.polygons) {
         const ring = poly[0];

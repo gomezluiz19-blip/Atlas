@@ -22,7 +22,7 @@ import { createAnalyticLayer, type AnalyticKind } from "./analyticLayers";
 import { createTerrariumTerrain, terrainOptions } from "./terrain";
 
 export type BaseMap = "satellite" | "plain";
-export type OverlayKind = AnalyticKind | "geology" | "species";
+export type OverlayKind = Exclude<AnalyticKind, "depth"> | "geology" | "species";
 
 export interface LayerState {
   base: BaseMap;
@@ -126,7 +126,7 @@ export class Globe {
     );
     this.overlays.set("geology", geology);
     this.viewer.imageryLayers.add(geology);
-    for (const kind of ["hillshade", "elevation", "slope", "contours"] as AnalyticKind[]) {
+    for (const kind of ["hillshade", "elevation", "slope", "contours"] as const) {
       const layer = createAnalyticLayer(kind);
       this.overlays.set(kind, layer);
       this.viewer.imageryLayers.add(layer);
@@ -211,6 +211,19 @@ export class Globe {
     });
     // Cesium can't rebuild its GPU state in place; the URL keeps the view, so reload.
     canvas.addEventListener("webglcontextrestored", () => location.reload());
+  }
+
+  /** The satellite imagery and the fallbacks beneath it (all tinted together). */
+  baseLayers(): ImageryLayer[] {
+    const layers = this.viewer.imageryLayers, out: ImageryLayer[] = [];
+    for (let i = 0; i <= layers.indexOf(this.satellite); i++) out.push(layers.get(i));
+    return out;
+  }
+
+  /** Adds a layer just above the satellite imagery, under every overlay and label layer. */
+  addUnder(layer: ImageryLayer) {
+    const layers = this.viewer.imageryLayers;
+    layers.add(layer, layers.indexOf(this.satellite) + 1);
   }
 
   /** Pushes `state` onto the scene. Call after mutating state. */

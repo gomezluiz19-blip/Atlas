@@ -277,7 +277,11 @@ export class App {
     this.toolHome.set(toolId, [themeId, subtabId]);
   }
 
+  /** Old theme ids that now live inside another theme ("minerals" is part of Earth). */
+  readonly aliases = new Map<string, string>();
+
   setTheme(id: string, subtabId?: string) {
+    id = this.aliases.get(id) ?? id;
     const theme = this.themes.find((t) => t.id === id);
     if (!theme) return;
     if (theme !== this.theme) {
