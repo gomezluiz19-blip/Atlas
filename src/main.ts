@@ -43,6 +43,7 @@ import { loadPassport, savePassport, stamp } from "./work/passport";
 import { countryAt } from "./data/countries";
 import { plan } from "./robot/plan";
 import { parseLog } from "./work/flockLog";
+import { parseFieldLog } from "./work/growLog";
 import { describe } from "./robot/run";
 import { siteBrowser } from "./ui/sites";
 import { createCanvasTray } from "./ui/canvasTray";
@@ -292,18 +293,22 @@ const robot = createRobot(app, {
   settings: () => aiSettings.open(),
 });
 $("ui").append(robot.el);
-/** "Daisy had twins" typed into the search box: a log line for Flock. */
+/** "Daisy had twins" or "sprayed Top field" typed into the search box: a log line for Flock or Grow. */
 const flockLogCommand = (q: string): Command | null => {
-  let e: ReturnType<typeof parseLog> = null;
-  try {
-    const f = JSON.parse(localStorage.getItem("atlas.work.flock.v1") ?? "null");
-    if (f?.animals?.length) e = parseLog(q, f);
-  } catch { /* no records */ }
-  if (!e) return null;
-  return {
-    title: `Log for Flock: ${e.summary}`, steps: ["Saves it to the animal's record, with the date"],
+  const read = (key: string) => { try { return JSON.parse(localStorage.getItem(key) ?? "null"); } catch { return null; } };
+  const flock = read("atlas.work.flock.v1");
+  const animal = flock?.animals?.length ? parseLog(q, flock) : null;
+  if (animal) return {
+    title: `Log for Flock: ${animal.summary}`, steps: ["Saves it to the animal's record, with the date"],
     run: () => void import("./work/flock").then((m) => { const r = m.logText(q); app.toast(r ? `Logged: ${r.summary}` : "Couldn't log that.", 4000); }),
   };
+  const fields = read("atlas.work.fields.v1");
+  const field = Array.isArray(fields) && fields.length ? parseFieldLog(q, fields) : null;
+  if (field) return {
+    title: `Log for Grow: ${field.summary}`, steps: ["Adds it to the field's diary, with the date"],
+    run: () => void import("./work/grow").then((m) => { const r = m.logFieldText(q); app.toast(r ? `Logged: ${r.summary}` : "Couldn't log that.", 4000); }),
+  };
+  return null;
 };
 
 const asCommand = (q: string): Command | null => {

@@ -15,6 +15,7 @@ import type { WorkCtx } from "./hub";
 import { WorkLayer } from "./layer";
 import { CROP_GROUPS, CROPS, cropById, litres, mergeDays, season, type Season } from "./growModel";
 import { ListStore, download, newId } from "./store";
+import { parseFieldLog, type FieldLogEntry } from "./growLog";
 
 interface Field {
   id: string;
@@ -65,8 +66,21 @@ export const ndviAction = (app: App) => ({ label: "Plant health (NDVI)", run: ()
 
 // ---- Screens -------------------------------------------------------------------------------
 
+/** Writes one plain-words line ("sprayed Top field with glyphosate") to a field's diary; null if unclear. */
+export function logFieldText(text: string): FieldLogEntry | null {
+  store.reload();
+  const e = parseFieldLog(text, store.all());
+  if (!e) return null;
+  const f = store.get(e.field.id)!;
+  f.diary.unshift({ date: today(), text: e.text });
+  if (e.patch) Object.assign(f, e.patch);
+  store.save(f);
+  return e;
+}
+
 export function openGrow(ctx: WorkCtx) {
   const { app } = ctx;
+  store.reload();
   drawFields(app);
   const addField = async () => {
     ctx.hide();
