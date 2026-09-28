@@ -40,6 +40,7 @@ export const icons = {
   snow: svg('<path d="M7 14h10a4 4 0 0 0 .6-7.95A5.5 5.5 0 0 0 7 7.5 3.25 3.25 0 0 0 7 14z"/><path d="M8 17.5v.01M12 19v.01M16 17.5v.01M10 21v.01M14 21v.01"/>'),
   storm: svg('<path d="M7 14h10a4 4 0 0 0 .6-7.95A5.5 5.5 0 0 0 7 7.5 3.25 3.25 0 0 0 7 14z"/><path d="M12.5 15.5 10.5 19h3l-2 3.5"/>'),
   fog: svg('<path d="M4 9h16M3 13h18M5 17h14"/>'),
+  people: svg('<circle cx="9" cy="8" r="3.2"/><path d="M2.8 20c.5-3.6 3-5.8 6.2-5.8s5.7 2.2 6.2 5.8"/><circle cx="17" cy="9" r="2.6"/><path d="M16.4 14.3c2.6.2 4.4 2.1 4.8 5"/>'),
   paw: svg('<ellipse cx="12" cy="16" rx="4.5" ry="3.8"/><circle cx="6" cy="10.5" r="1.8"/><circle cx="18" cy="10.5" r="1.8"/><circle cx="9.3" cy="6.3" r="1.8"/><circle cx="14.7" cy="6.3" r="1.8"/>'),
   building: svg('<path d="M4 21V9l6-3v15M10 21V4l10 4v13M3 21h18"/><path d="M13.5 10h3M13.5 13.5h3M13.5 17h3M6.5 12h1M6.5 15.5h1"/>'),
   flag: svg('<path d="M5 21V4"/><path d="M5 4.5c4-2 7 2 14 0v9c-7 2-10-2-14 0"/>'),

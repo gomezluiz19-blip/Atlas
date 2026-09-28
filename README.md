@@ -149,6 +149,7 @@ Then pick a theme from the tab bar; each theme's subtabs describe the chosen pla
 | **Animals** | Species · Life zones · At risk | The same for birds, mammals, reptiles, insects and more, each with its own icon on the card and the map (62 in all, from owls and penguins to seals, jellyfish and coral) |
 | **Built** | Overview · Transport · Energy · Internet · Water | How a place connects: nearest airport, seaport, main railway, highway and shipping lane; power plants and the power mix around it and nationally; undersea cable landings; and everything OpenStreetMap maps nearby |
 | **Countries** | Overview · People · Economy · Environment | Flag, capital, languages and neighbours; population, income, forests and emissions over time |
+| **People** | Here · Homes · Health · Connected | How many people live around a place (7,300 towns and cities), and the country's figures next to the world's: crowdedness, growth, city dwellers, children and over-65s, births; homeowners and renters (US neighbourhoods from the Census Bureau's American Community Survey: own vs rent, rent, home value, income); life expectancy, child deaths, doctors, safe water; mobile phones, internet, electricity, income. The world view glows with every town and city, or colours countries by any of 16 views |
 | **Space** | Sky here | The globe with real day and night; satellites, the ISS, launches and the solar system; tonight's Moon and planets over the chosen place |
 
 **Each theme sees the planet its own way.** Earth in relief, Water by depth, Climate as yesterday's clouds
@@ -282,7 +283,7 @@ under About › Atlas AI; see [docs/ai-proxy.md](docs/ai-proxy.md). Without it, 
 still handles requests. With it, Atlas AI can also read today's brief for your place ("what do I need to do
 today?") and log free-form sentences as records ("Daisy and Bramble both calved yesterday").
 
-Keyboard: `1`–`9` switch themes, `/` searches, `Esc` cancels a line or closes a chart.
+Keyboard: `1`–`9` switch the first nine themes, `/` searches, `Esc` cancels a line or closes a chart.
 
 ## Run it
 

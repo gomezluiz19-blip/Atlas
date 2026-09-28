@@ -41,6 +41,7 @@ import { planLog } from "./myplaces/logAny";
 import { describeDrafts, parseSteps } from "./work/journeyModel";
 import { createSpace } from "./space/panel";
 import { spaceTheme } from "./space/theme";
+import { peopleTheme } from "./themes/people";
 import { createLenses } from "./lenses/bar";
 import { LENSES } from "./lenses";
 import { borders, openPresent, showYear } from "./work/present";
@@ -127,6 +128,7 @@ app.addTheme(climateTheme(overlays));
 app.addTheme(plantsTheme());
 app.addTheme(animalsTheme());
 app.addTheme(builtTheme(app, overlays, openSite));
+app.addTheme(peopleTheme(app));
 app.addTheme(countriesTheme());
 
 /** Curated sites whose name starts a word with the query. */
