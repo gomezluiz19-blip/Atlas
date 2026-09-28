@@ -2,6 +2,8 @@
 // textbook would use, grouped into short collections. Coordinates point at the
 // feature itself; `radius` (metres) frames it when flying there.
 
+import { FEATURES, type FeatureKind } from "./features";
+
 export interface Site {
   name: string;
   /** Where it is, briefly. */
@@ -208,6 +210,43 @@ export const SITES: Record<string, SiteCollection[]> = {
       ],
     },
     {
+      title: "Famous streets and squares",
+      sites: [
+        s("Champs-Élysées", "Paris", "From Concorde to the Arc de Triomphe, about 1.9 km", 48.8698, 2.3078, 1800),
+        s("Times Square", "New York", "Lit up day and night where Broadway meets Seventh Avenue", 40.758, -73.9855, 800),
+        s("Broadway", "New York", "Runs the length of Manhattan and beyond, cutting across the grid", 40.7831, -73.9712, 6000),
+        s("Fifth Avenue", "New York", "Shops, museums and Central Park's edge", 40.7744, -73.9656, 3500),
+        s("Wall Street", "New York", "Named for a 17th-century wall; the heart of finance", 40.7061, -74.0092, 600),
+        s("Lombard Street", "San Francisco", "The crooked street: eight hairpin bends in one block", 37.8021, -122.4187, 400),
+        s("Las Vegas Strip", "Nevada", "Six kilometres of resorts and neon", 36.1147, -115.1728, 4000),
+        s("Hollywood Walk of Fame", "Los Angeles", "Over 2,700 stars set in the pavement", 34.1016, -118.3267, 1500),
+        s("Route 66", "Oatman, Arizona", "The Mother Road from Chicago to Santa Monica", 35.0264, -114.3833, 5000),
+        s("Bourbon Street", "New Orleans", "The French Quarter's street of music", 29.9584, -90.0654, 800),
+        s("Avenida 9 de Julio", "Buenos Aires", "One of the widest avenues in the world", -34.6037, -58.3816, 1500),
+        s("Avenida Paulista", "São Paulo", "Business, culture and Sunday car-free days", -23.5614, -46.6559, 2000),
+        s("Oxford Street", "London", "Europe's busiest shopping street", 51.5152, -0.1419, 1500),
+        s("Abbey Road", "London", "The zebra crossing from the Beatles' album cover", 51.532, -0.1778, 300),
+        s("Trafalgar Square", "London", "Nelson's Column and the National Gallery", 51.508, -0.1281, 500),
+        s("Royal Mile", "Edinburgh", "From the castle down to Holyrood Palace", 55.9505, -3.1883, 1200),
+        s("La Rambla", "Barcelona", "A tree-lined promenade down to the sea", 41.3809, 2.1734, 1200),
+        s("Plaza Mayor", "Madrid", "A 17th-century arcaded square", 40.4155, -3.7074, 400),
+        s("Grand-Place", "Brussels", "Guildhalls around one of Europe's finest squares", 50.8467, 4.3525, 400),
+        s("Piazza San Marco", "Venice", "Napoleon's 'drawing room of Europe'", 45.4341, 12.3388, 500),
+        s("Unter den Linden", "Berlin", "From the Brandenburg Gate to Museum Island", 52.5169, 13.3889, 1500),
+        s("Strøget", "Copenhagen", "One of Europe's longest pedestrian streets", 55.6786, 12.5745, 1200),
+        s("Red Square", "Moscow", "The Kremlin, St Basil's and Lenin's tomb", 55.7539, 37.6208, 800),
+        s("Nevsky Prospekt", "Saint Petersburg", "The city's grand avenue", 59.9343, 30.3351, 2500),
+        s("İstiklal Avenue", "Istanbul", "A historic tram along a busy pedestrian street", 41.0339, 28.9779, 1200),
+        s("Jemaa el-Fnaa", "Marrakesh", "Storytellers, music and food stalls at night", 31.6258, -7.9891, 500),
+        s("Tiananmen Square", "Beijing", "One of the largest city squares", 39.9055, 116.3976, 1200),
+        s("Nanjing Road", "Shanghai", "China's famous shopping street", 31.2352, 121.4747, 1500),
+        s("Shibuya Crossing", "Tokyo", "Thousands cross at once when the lights change", 35.6595, 139.7005, 400),
+        s("Ginza", "Tokyo", "Chūō-dōri closes to cars on weekends", 35.6717, 139.765, 1000),
+        s("Khao San Road", "Bangkok", "The backpackers' street", 13.7589, 100.4974, 500),
+        s("Orchard Road", "Singapore", "A former fruit-orchard lane turned shopping boulevard", 1.3048, 103.8318, 1500),
+      ],
+    },
+    {
       title: "Mines",
       sites: [
         s("Bingham Canyon Mine", "Utah", "One of the largest human-made excavations", 40.523, -112.151, 5000),
@@ -246,3 +285,23 @@ export const SITES: Record<string, SiteCollection[]> = {
 export function sitesFor(themeId: string): SiteCollection[] {
   return SITES[themeId] ?? SITES.land;
 }
+
+// Collections drawn from the bundled feature facts.
+const short = (t: string) => {
+  const first = t.split(/(?<=\.)\s/)[0].replace(/\.$/, "");
+  if (first.length < 78) return first;
+  const cut = first.slice(0, 76);
+  return `${cut.slice(0, cut.lastIndexOf(" "))}…`;
+};
+const fromFeatures = (theme: string, kind: FeatureKind, radius: (facts: [string, string][]) => number): Site[] => {
+  const have = new Set(SITES[theme].flatMap((c) => c.sites.map((x) => x.name)));
+  return FEATURES.filter((x) => x.kind === kind && !have.has(x.name)).map((x) => ({ name: x.name, where: x.facts.find(([k]) => k === "City")?.[1] ?? x.facts[0][1], why: short(x.blurb || x.facts.map((f) => f[1]).join(" · ")), lon: x.lon, lat: x.lat, radius: radius(x.facts) }));
+};
+const craterSize = (facts: [string, string][]) => {
+  const v = facts[0][1], n = parseFloat(v.replace(/[^\d.]/g, "")) || 1;
+  return Math.max(2500, (v.includes(" m") && !v.includes("km") ? n / 1000 : n) * 1500);
+};
+SITES.land.push({ title: "Impact craters", sites: fromFeatures("land", "crater", craterSize) });
+SITES.water.push({ title: "Ocean deeps", sites: fromFeatures("water", "deep", () => 400_000) });
+SITES.plants.push({ title: "Great forests", sites: fromFeatures("plants", "forest", () => 60_000) });
+SITES.built.push({ title: "Metro systems", sites: fromFeatures("built", "metro", () => 20_000) });
