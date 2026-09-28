@@ -66,6 +66,12 @@ ground, and offers the lenses that suit it, best first. Each lens is designed on
 The task robot opens lenses too: "slice open Mount Rainier", "drain the ocean around Britain", "true size
 of Greenland", "subway map of Tokyo", "ocean currents in the Atlantic", "where was London during Pangaea".
 
+**Today at your place.** My Place opens on a daily brief for your main place, most urgent first: frost,
+heat, heavy rain or gales in the next four days (with what to do about them for crops, animals or a
+building site), animals due to give birth or due a vaccination (overdue first), fields ready to harvest or
+within two weeks of it, how much to irrigate this week (mm and litres for the field), projects running
+behind, and seedlings just planted. Tap an item to open the tool it came from.
+
 **My Place.** The My Place mode (top right) keeps the places you care about: home, a family hotel, a farm.
 Save a spot you tapped or searched for, or start from where you are. Each place gets a dashboard:
 a **3D view** of the buildings around it (OpenStreetMap footprints extruded to their mapped height or
@@ -152,7 +158,9 @@ under **Make**; Learn under **Look**. All of them are open to anyone:
 - **Grow** follows fields drawn on the satellite map: the crop's growth stage from growing degree days, a
   harvest window, what the crop used (FAO-56 ET₀ × Kc) against the rain, how much to irrigate this week in
   mm and litres for the field, frost and heat in the week ahead, a field diary, and plant health from space
-  (MODIS NDVI). Maize, rice, wheat, beans, soybeans, tomatoes, potatoes, coffee, cacao and bananas.
+  (MODIS NDVI). 42 crops in seven groups: grains (maize, rice, spring and winter wheat, barley, oats,
+  sorghum, millet), pulses and oilseeds, garden vegetables, fruit (including grapes and apples), cotton,
+  sugarcane and roots, grass for hay or silage and alfalfa per cut, and tree crops (coffee, cacao, bananas).
 
 - **Build** models a construction project on the real site: draw the footprint, choose the use and storeys,
   and a 3D model rises with the schedule (framed floors, closed-in floors, the floor going up, a tower crane).
@@ -161,6 +169,12 @@ under **Make**; Learn under **Look**. All of them are open to anyone:
   days rain, wind (cranes) or frost (concrete) will stop work. **Worksite management is a Pro feature**
   (open to try): a daily log with photos and crew counts, issues pinned on the site, deliveries, and a
   daily report to send.
+- **Flock** logs in plain words, typed or spoken: *"Daisy had twins"*, *"weighed 101 at 590 kg"*,
+  *"wormed all the sheep with Cydectin"*, *"Daisy was served"*, *"Bramble is lame"*. It shows what it will
+  record before saving (and the same lines work in the search box). A breed library of about 150 breeds
+  (cattle, sheep, goats, pigs, horses, alpacas, poultry, dogs, cats, rabbits) gives each animal a breed card
+  and compares its weight with a typical adult; routine care (boosters, worming by egg count, hoof trims,
+  shearing…) is one tap, with the next due date set.
 - **Flock** is for anyone caring for animals: farms and ranches, vet practices, rescue centres and adoption
   agencies. Records for each animal (tag, photo, weights and daily gain, vaccinations and treatments with
   follow-ups, breeding and due dates), a "due in the next 30 days" list, paddocks drawn on the satellite map
@@ -184,6 +198,18 @@ under **Make**; Learn under **Look**. All of them are open to anyone:
 
 The task robot opens these too: "Europe in 1914", "the Roman Empire in 100 AD", "plan a trip to Lisbon",
 "plant health in Iowa", "plan a field trip to the Science Museum", "my cattle", "construction site".
+
+**Works offline, installs as an app.** Add Atlas to a phone's home screen. The app, its bundled data and
+the map tiles you've looked at stay cached, so your place still shows in a field with no signal, and your
+records are on the device. **Back up everything** (in My Place) saves all your places, animals, fields,
+projects, plans, decks and quizzes to one file to keep or to restore on another device.
+
+**Worth knowing.** Tap a notable feature and the place card says something true about it: about 230 rivers,
+peaks, volcanoes, impact craters, ocean trenches, forests and metro systems, with their key figures (a
+river's length, flow and where it ends; a peak's height and first ascent; a crater's size and age). The
+map's labels come from Natural Earth's detailed (10 m) data: seas, bays, straits, islands, ranges, deserts,
+ice fields and salt flats, then about 7,800 towns, lakes and reservoirs as you zoom in, and detailed rivers
+for the area in view. The Built theme adds famous streets and squares and the world's metro systems.
 
 **Space** (from the Earth card in Look, or "satellites" in the search box) shows satellites computed live from CelesTrak's orbital elements (space
 stations, the brightest, science, weather, GPS, geostationary and Starlink), the ISS with its orbit and a
@@ -255,6 +281,12 @@ These keys end up in the public page, so restrict them to your site's domain in 
   Launch Library 2. **Planets:** JPL approximate Keplerian elements (Standish).
 - **Places to learn:** OpenStreetMap via Overpass; the list of free and discounted museums is hand-compiled
   (prices change; check before going).
+- **Gazetteer:** Natural Earth 10 m physical and cultural data (seas, regions, elevation points, lakes
+  with the Europe and North America supplements, rivers, glaciers, playas, populated places, US parks),
+  built with `scripts/build-geodata.mjs`; detailed rivers are tiled in 15° cells under `public/data/rivers/`.
+- **Feature facts, breeds, crops and care:** hand-compiled in `src/content/features.ts`, `src/work/breeds.ts`
+  and `src/work/growModel.ts` from commonly cited figures (FAO-56 crop coefficients; breed society weights);
+  sources differ, so they're rounded and marked "about".
 - **Lenses:** past imagery from [Esri World Imagery Wayback](https://livingatlas.arcgis.com/wayback/);
   plate reconstructions from the [GPlates Web Service](https://gws.gplates.org) (Merdith et al. 2021 model);
   forests, park and lake outlines and metro lines from OpenStreetMap; ocean currents are a hand-drawn schematic
@@ -321,6 +353,11 @@ page at the same view.
 - Build's cost rates and schedule durations are typical first estimates, not a quantity surveyor's figures.
 - Flock's grazing estimate ignores regrowth; gestation lengths are species averages.
 - Quizzes, results and games are kept in each browser; nothing is sent to a server, so results travel as codes or files.
+- The Today brief and Grow's harvest windows are estimates from the weather and typical crop values;
+  plain-words logging understands common phrasings and shows what it will save, but not every way of
+  saying things. Routine-care intervals are common practice, not veterinary advice.
+- Records stay in the browser until there's an account and sync: use Back up everything. Offline map
+  tiles are the ones you've already looked at (up to about 4,000).
 - Lenses: what a feature is gets guessed from its name and the ground, and can be wrong; the lens strip
   says what it assumed. Rock below mapped units in Slice and Block is drawn to typical depths where no
   column exists. Sea level floods everything below the line, including land protected by dykes or not
