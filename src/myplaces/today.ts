@@ -64,7 +64,7 @@ export function todayItems(x: TodayInputs): TodayItem[] {
   if (dry && (hasCrops || hasAnimals)) out.push({ icon: "☀️", title: "Dry days ahead", detail: hasCrops ? "No real rain for four days: check soil moisture and plan irrigation." : "Check water supply for the animals.", urgency: "fyi", tool: hasCrops ? "grow" : "flock" });
   if (w.length && !frost && !heat && !wet && !gale) {
     const d = w[0];
-    out.push({ icon: "🌤️", title: `A good day for outside work: ${Math.round(d.tmin)}–${Math.round(d.tmax)} °C`, detail: d.rain > 0 ? `Light rain (${d.rain.toFixed(1)} mm).` : "Dry, with light wind.", urgency: "fyi" });
+    out.push({ icon: "🌤️", title: `${d.rain >= 2.5 ? "Mostly fine for outside work" : "A good day for outside work"}: ${Math.round(d.tmin)}–${Math.round(d.tmax)} °C`, detail: d.rain >= 2.5 ? `Showers (about ${Math.round(d.rain)} mm) between dry spells.` : d.rain > 0 ? `Light rain (${d.rain.toFixed(1)} mm).` : "Dry, with light wind.", urgency: "fyi" });
   }
 
   // Disease and pest weather.
