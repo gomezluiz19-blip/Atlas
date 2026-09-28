@@ -1,7 +1,9 @@
 // OpenStreetMap features via the Overpass API (ODbL, © OpenStreetMap contributors).
+import { cacheKey, cached } from "./diskCache";
 import { getJson, ServiceError } from "./http";
 
-const ENDPOINTS = ["https://overpass-api.de/api/interpreter", "https://overpass.private.coffee/api/interpreter"];
+const ENDPOINTS = ["https://overpass-api.de/api/interpreter", "https://overpass.private.coffee/api/interpreter", "https://overpass.kumi.systems/api/interpreter"];
+const DAY = 86_400_000;
 
 export interface OsmElement {
   type: "node" | "way" | "relation";
@@ -13,8 +15,12 @@ export interface OsmElement {
   tags?: Record<string, string>;
 }
 
-/** Runs an Overpass QL query (JSON output), trying mirrors in turn. */
-export async function overpass(query: string): Promise<OsmElement[]> {
+/** Runs an Overpass QL query (JSON output), trying mirrors in turn; answers are kept for a week. */
+export function overpass(query: string): Promise<OsmElement[]> {
+  return cached(`osm:${cacheKey(query)}`, 7 * DAY, () => overpassLive(query));
+}
+
+async function overpassLive(query: string): Promise<OsmElement[]> {
   let last: unknown;
   for (const url of ENDPOINTS) {
     try {

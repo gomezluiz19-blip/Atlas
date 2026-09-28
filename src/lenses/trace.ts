@@ -7,7 +7,7 @@ import { elevation } from "../data/elevation";
 import { haversine } from "../data/mercator";
 import { riverLines, riversIn } from "../data/worldData";
 import { featureFor } from "../content/features";
-import { factCard } from "./facts";
+import { factCard, factsFor } from "./facts";
 import { formatDistance, h } from "../ui/dom";
 import { lines, stat } from "./charts";
 import { offset } from "./slice";
@@ -99,7 +99,7 @@ async function traceRiver(host: LensHost, s: Subject, ds: CustomDataSource): Pro
   const statsEl = h("div", { class: "lens-stats" }, stat(formatDistance(length), "Length of this stretch"), stat(`${Math.round(Math.max(...prof))} m`, "Highest point"), stat(`${Math.round(prof[prof.length - 1])} m`, "At the end"));
   const known = featureFor({ name: bestName, lon: s.lon, lat: s.lat, kinds: ["river"] });
   host.body.replaceChildren(
-    known ? factCard(known) : "",
+    known && known !== factsFor(s) ? factCard(known) : "",
     h("p", {}, h("strong", {}, `The ${bestName}`), " from its upper reaches to where it ends, as mapped at world scale."),
     statsEl,
     lines([{ values: prof, color: "#4fc3f7" }], { yLabel: (v) => `${Math.round(v)} m`, xLabels: ["source", "mouth"], fill: true }),
