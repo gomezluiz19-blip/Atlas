@@ -66,6 +66,7 @@ export function buildThings(app: App, overlays: Overlays, tools: WorkTool[]): Th
     out.push({ title: `${l.label} lens`, detail: l.blurb, emoji: l.icon, group: "Open", words: "lens look", run: act(`lens:${l.id}`) });
   for (const s of FEATURED)
     out.push({ title: s.title, detail: s.summary, emoji: "📖", group: "Stories", words: `story ${s.tags.join(" ")}`, run: act("story:open", s.id) });
+  out.push({ title: "Show me something amazing", detail: "Somewhere unexpected, and why it's worth seeing", emoji: "🎲", group: "Open", words: "surprise random wonder amazing beautiful inspire", run: act("surprise") });
   out.push({ title: "Time travel", detail: "The globe in any year: borders of the time, the view from space, projections", emoji: "⏳", group: "Open", words: "time history past then now future year years borders empires old", run: act("time:open") });
   return out;
 }

@@ -2,7 +2,7 @@ import "./styles.css";
 // Cesium loads its web workers and assets relative to this URL.
 (window as unknown as { CESIUM_BASE_URL: string }).CESIUM_BASE_URL = new URL("./cesium/", document.baseURI).href;
 
-import { Cartesian2, Cartesian3, EasingFunction, Math as CesiumMath } from "cesium";
+import { Cartesian2, Cartesian3, Math as CesiumMath } from "cesium";
 import { createMapControls, homeRegion } from "./globe/controls";
 import { Looks } from "./globe/looks";
 import { featureChips } from "./explore/featureLayers";
@@ -28,6 +28,11 @@ import { resolvePlace, searchPlaces, slugOfPlace, warmPlaces } from "./place/pla
 import { findThings, type Thing } from "./ui/frontDoor";
 import { buildThings } from "./ui/things";
 import { TimeBar } from "./time/bar";
+import { arrive, stopArriving } from "./delight/arrive";
+import { playIntro } from "./delight/intro";
+import { setSound, soundOn } from "./delight/sound";
+import { firstSentence, headline } from "./place/headline";
+import { measureAt } from "./place/measure";
 import { yearName } from "./time/model";
 import { iconSvg } from "./ui/glyph";
 import { createLayersPanel } from "./ui/layers";
@@ -342,11 +347,22 @@ for (const [t, { hub, open }] of Object.entries(HUB_OF))
 const openPlace = async (slug: string, theme?: string) => {
   const r = await resolvePlace(slug).catch(() => null);
   if (!r) { app.toast("Couldn't find that place. The link may be out of date.", 5000); return; }
-  void flyToPlace(globe, { name: r.name, lon: r.lon, lat: r.lat, radius: r.radius });
   app.setTheme(theme && app.themes.some((t) => t.id === theme) ? theme : "explore");
   app.select({ lon: r.lon, lat: r.lat, height: 0 }, r.name ? { title: r.name, context: r.context } : undefined, r.feature);
   if (app.place) app.place.slug = r.slug;
+  // Arrive: the camera comes in at an angle, the name is set over the map with the one fact worth knowing.
+  const what = r.what ?? KIND_WORDS[r.kind] ?? "";
+  const kicker = [what && what.charAt(0).toUpperCase() + what.slice(1), r.context && !r.context.includes(":") ? r.context : ""].filter(Boolean).join(" · ");
+  void arrive(app, {
+    name: r.name || "This spot", kicker, lon: r.lon, lat: r.lat, radius: r.radius,
+    fact: r.blurb ? firstSentence(r.blurb) : measureAt(r.lon, r.lat).then((m) => headline(m.v, r.kind)),
+  });
 };
+const KIND_WORDS: Partial<Record<string, string>> = {
+  city: "town or city", capital: "capital city", water: "lake or water", sea: "sea", island: "island", peak: "mountain", range: "mountain range",
+  desert: "desert", region: "region", continent: "continent", glacier: "glacier", nature: "natural feature", park: "park", waterfall: "waterfall", volcano: "volcano",
+};
+app.actions.set("surprise", { label: "Show me something amazing", run: () => void import("./delight/surprise").then((m) => m.surprise(app)) });
 app.actions.set("place:open", { label: "Open a place's page", run: (slug) => { if (slug) void openPlace(slug); } });
 app.actions.set("place:save", { label: "Save this place", run: () => {
   const p = app.place;
@@ -512,7 +528,7 @@ $("search-slot").replaceWith(createSearch(globe, {
     const go = (name: string, slug: string, detail: string, emoji: string): SearchResult => ({ name, detail, lon: 0, lat: 0, radius: 0, source: "thing", svg: iconSvg(emoji, 18) ?? icons.target, run: () => void openPlace(slug) });
     const show = (name: string, detail: string, emoji: string, run: () => void): SearchResult => ({ name, detail, lon: 0, lat: 0, radius: 0, source: "thing", svg: iconSvg(emoji, 18) ?? icons.sparkle, run });
     return [
-      { heading: "Go to", items: [go("The Nile", "nile", "The longest river, source to sea", "🌊"), go("Mount Everest", "mount-everest", "The highest mountain", "🏔️"), go("Grand Canyon", "grand-canyon", "Two billion years of rock", "🏜️")] },
+      { heading: "Go to", items: [{ name: "Show me something amazing", detail: "Somewhere unexpected, and why it's worth seeing", lon: 0, lat: 0, radius: 0, source: "thing", svg: iconSvg("🎲", 18) ?? icons.sparkle, run: () => app.actions.get("surprise")?.run() }, go("The Nile", "nile", "The longest river, source to sea", "🌊"), go("Mount Everest", "mount-everest", "The highest mountain", "🏔️"), go("Grand Canyon", "grand-canyon", "Two billion years of rock", "🏜️")] },
       { heading: "Show", items: [show("Where people live", "Every town and city as a glow", "👥", () => app.actions.get("people:view")?.run("pop")), show("This week's earthquakes", "Live, worldwide", "〽️", () => void overlays.set("quakes", true)), show("The planet at night", "City lights from space", "🌃", () => void overlays.set("lights", true))] },
     ];
   },
@@ -610,13 +626,20 @@ const timeBtn = h("button", { id: "time-btn", class: "round-btn", "aria-label": 
 timeBtn.addEventListener("click", () => (timeBar.el.hidden ? timeBar.open() : timeBar.close()));
 layersBtn.before(timeBtn);
 app.actions.set("time:open", { label: "Time travel", run: () => timeBar.open() });
-app.actions.set("time:go", { label: "Go to a year", run: (y) => { if (y && Number.isFinite(Number(y))) timeBar.goToYear(Number(y)); } });
+// "1914", or "1914@lon,lat" to light up whoever governed that place.
+app.actions.set("time:go", { label: "Go to a year", run: (arg) => {
+  const m = /^(-?\d+)(?:@(-?[\d.]+),(-?[\d.]+))?$/.exec(arg ?? "");
+  if (m) timeBar.goToYear(Number(m[1]), m[2] ? [Number(m[2]), Number(m[3])] : undefined);
+} });
 
 // About / data sources.
 const about = $("about-btn");
 about.innerHTML = icons.info;
+const soundBtn = h("button", { class: "pill-btn sound-toggle", "aria-pressed": String(soundOn()) }, soundOn() ? "Sounds on" : "Sounds off") as HTMLButtonElement;
+soundBtn.addEventListener("click", () => { const on = !soundOn(); setSound(on); soundBtn.textContent = on ? "Sounds on" : "Sounds off"; soundBtn.setAttribute("aria-pressed", String(on)); });
 const aboutPanel = h("div", { class: "popover about", hidden: true },
   h("h2", { class: "group-title" }, "About Atlas"),
+  h("div", { class: "about-row" }, h("span", { class: "muted small" }, "Soft sounds when you arrive somewhere (and taps on phones)."), soundBtn),
   h("p", {}, "Atlas does three things, switched at the top. My Place: your home, farm, site or business, with a daily brief and the tools to run it (Grow, Flock, Build, live occupancy). Look: the whole Earth and space; tap anything, then flip through the themes or look at it through a lens. Make: plans, presentations, videos and lessons made from the map."),
   h("p", {}, "You can also type a request into the search box, like \u201cstorm drains and railways in Chicago\u201d, and Atlas will plan the steps and do them."),
   h("button", { class: "pill-btn about-ai", onclick: () => { aboutPanel.hidden = true; aiSettings.open(); } }, aiOn() ? "Atlas AI: connected · settings" : "Connect Atlas AI (Claude)…"),
@@ -672,6 +695,8 @@ $("ui").append(lenses.panel);
 app.onName = (p) => lenses.rename(p);
 for (const l of LENSES) app.actions.set(`lens:${l.id}`, { label: l.label, run: () => void lenses.openWhenReady(l.id).then((ok) => { if (!ok) app.toast("Tap a place first, then choose a lens.", 4000); }) });
 app.onPlace = (p) => {
+  // A new place ends the slow circling around the last one.
+  stopArriving();
   void lenses.update(p);
   // Its page address, for the link in the URL.
   if (p && !p.slug) void slugOfPlace(p).then((s) => { if (app.place === p) { p.slug = s; syncHash(); } }).catch(() => {});
@@ -711,13 +736,17 @@ if (shared.camera) {
     orientation: { heading: CesiumMath.toRadians(c.heading), pitch: CesiumMath.toRadians(c.pitch), roll: 0 },
   });
 } else {
-  // Open on the user's own side of the planet (from the time zone), then settle in.
-  const home = homeRegion(), cam = globe.viewer.camera;
-  cam.setView({ destination: Cartesian3.fromDegrees(home.lon - 25, home.lat * 0.6, 22_000_000) });
-  const start = Cartesian3.clone(cam.positionWC);
-  // Skipped if the person has already moved the map or searched, or when Atlas flies to their saved place.
-  if (!myStore.all().length && !pageLinked)
-    setTimeout(() => { if (Cartesian3.equalsEpsilon(cam.positionWC, start, 0, 1)) cam.flyTo({ destination: Cartesian3.fromDegrees(home.lon, home.lat * 0.8, 13_000_000), duration: 2.2, easingFunction: EasingFunction.QUADRATIC_IN_OUT }); }, 600);
+  // Open on the user's own side of the planet (from the time zone).
+  const home = homeRegion();
+  globe.viewer.camera.setView({ destination: Cartesian3.fromDegrees(home.lon - 25, home.lat * 0.6, 22_000_000) });
+}
+// The opening: from black, the titles (first visit) or just the name, then the Earth in real sunlight
+// settling on the viewer's side of the planet. A link to a view or a place, or a saved place, sets its own view.
+{
+  let seen = false;
+  try { seen = localStorage.getItem("atlas.intro") === "1"; } catch { /* private mode */ }
+  const home = !shared.camera && !pageLinked && !myStore.all().length ? homeRegion() : null;
+  void playIntro(app, { home, full: !seen && !!home }).then(() => { try { localStorage.setItem("atlas.intro", "1"); } catch { /* private mode */ } });
 }
 if (pageLinked) { if (/^#\/p\//.test(location.hash)) placeHash(); else if (pageSlug) void openPlace(pageSlug); }
 if (shared.theme) app.setTheme(shared.theme);

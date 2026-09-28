@@ -63,7 +63,7 @@ export function throughTime(app: App, place: Place, body: HTMLElement) {
     const today = await countryAt(place.lon, place.lat).catch(() => null);
     rows.push({ year: now, name: today?.name ?? null });
     rulers.replaceChildren(h("ol", { class: "pt-timeline" }, ...rulerTimeline(rows).map((r) =>
-      h("li", {}, h("button", { class: "pt-when", title: "See the map of the time", onclick: () => go(r.from) }, r.from === r.to ? yearName(r.from) : `${yearName(r.from)}–${r.to === now ? "today" : yearName(r.to)}`),
+      h("li", {}, h("button", { class: "pt-when", title: "See the map of the time", onclick: () => app.actions.get("time:go")?.run(`${r.from}@${place.lon},${place.lat}`) }, r.from === r.to ? yearName(r.from) : `${yearName(r.from)}–${r.to === now ? "today" : yearName(r.to)}`),
         h("span", {}, r.name ?? "No state recorded")))),
       h("p", { class: "fineprint" }, "Historical borders: historical-basemaps (A. Ourednik et al.); before the modern era they're approximate. Tap a year to see the map of the time."));
   };

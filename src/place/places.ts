@@ -51,6 +51,9 @@ export interface Resolved {
   radius: number;
   kind: PlaceKind;
   feature?: LabelData;
+  /** A curated place's few sentences, and what it is ("river", "volcano"). */
+  blurb?: string;
+  what?: string;
 }
 
 const RADIUS: Partial<Record<PlaceKind, number>> = {
@@ -63,7 +66,7 @@ function fromEntry(ix: Index, slug: string, e: PlaceEntry): Resolved {
     const f = FEATURES[e.i], kind = FEATURE_KIND[f.kind];
     const world: WorldLabel = { name: f.name, lon: f.lon, lat: f.lat, kind, minZoom: 3, rank: 1000, detail: f.kind };
     const radius = f.kind === "river" ? 900_000 : f.kind === "desert" || f.kind === "forest" ? 700_000 : f.kind === "lake" || f.kind === "deep" ? 120_000 : f.kind === "metro" ? 25_000 : RADIUS[kind] ?? 10_000;
-    return { slug, name: f.name, context: f.facts.map(([k, v]) => `${k}: ${v}`)[0] ?? f.kind, lon: f.lon, lat: f.lat, radius, kind, feature: { source: f.kind === "river" ? "river" : "world", world } };
+    return { slug, name: f.name, context: f.facts.map(([k, v]) => `${k}: ${v}`)[0] ?? f.kind, lon: f.lon, lat: f.lat, radius, kind, feature: { source: f.kind === "river" ? "river" : "world", world }, blurb: f.blurb || undefined, what: f.kind };
   }
   const w = (e.source === "world" ? ix.world : ix.detail)[e.i];
   return { slug, name: w.name, context: w.detail && w.detail !== w.kind ? w.detail : "", lon: w.lon, lat: w.lat, radius: RADIUS[w.kind] ?? 6000, kind: w.kind, feature: { source: "world", world: w } };

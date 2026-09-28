@@ -178,6 +178,16 @@ the internet. Tap a dot for the plant, port or airport.
 **The tools.** Grow, Flock, Build and live occupancy live under **My Place**; Plan, Present, Video and Teach
 under **Make**; Learn under **Look**. All of them are open to anyone:
 
+- **Delight.** Atlas opens like a film: from black, a few words faded in and out ("Every place on Earth has a
+  story."), the name, then the Earth fades up in real sunlight with its night side dark, and a live line on
+  what's happening on the planet right now (the biggest recent earthquake, the aurora, the next launch), each
+  one tap from its place. After the first visit, just the name. Opening a place is an arrival: the camera comes
+  in at an angle, the name is set large over the map with the one fact worth knowing, and the view slowly
+  circles until you touch it; the page opens with a headline ("Stands 3,715 m above the sea") and reads its
+  layers live. **Show me something amazing** takes you somewhere unexpected and says why. Any page becomes a
+  picture **card** (1080 × 1350: the view, the name, the fact, the link) to share or save. The globe answers
+  too: in "Who governed here", each ruler's lands light up gold and are framed; the future end of the time
+  bar warms the planet's glow. Soft sounds on arrival are off by default (About › Sounds); phones get a tap.
 - **Time.** One slider (the hourglass, top right, or type a year: "1914", "500 BC") runs from the ancient
   world to 2100. Before 2000 the globe draws the borders of the time; from 2000 it shows NASA's satellite
   picture of a summer day that year (MODIS, 250 m); then today; then projections. Play runs through history.

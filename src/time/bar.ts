@@ -2,11 +2,12 @@
 // globe draws the borders of the time; from 2000 it shows NASA's satellite
 // picture of a day that year (MODIS, 250 m); then today; then projections,
 // which each place's page carries. Play runs through history.
-import { ImageryLayer, UrlTemplateImageryProvider } from "cesium";
+import { ImageryLayer, Rectangle, UrlTemplateImageryProvider } from "cesium";
+import { canvasLayer, tracePath } from "../globe/networkLayer";
 import type { App } from "../app";
 import { YEARS, nearestYear } from "../data/history";
 import { h } from "../ui/dom";
-import { dayFor, momentIndex, moments, type Moment } from "./model";
+import { dayFor, momentIndex, moments, polityShapeAt, type Moment } from "./model";
 
 const NOW = new Date().getUTCFullYear();
 
@@ -20,6 +21,10 @@ export class TimeBar {
   private playBtn: HTMLButtonElement;
   private imagery: ImageryLayer | null = null;
   private bordersOn = false;
+  /** A place whose ruler is lit up as the years change ("who governed here"). */
+  private focus: [number, number] | null = null;
+  private frameFocus = false;
+  private glow: ImageryLayer | null = null;
   private job = 0;
   private timer = 0;
   private playing = 0;
@@ -54,15 +59,18 @@ export class TimeBar {
 
   close() {
     this.stop();
+    this.focus = null;
     this.go(momentIndex(this.list, NOW));
     this.el.hidden = true;
     document.body.classList.remove("time-open");
   }
 
   /** Jumps to the stop nearest a year (opening the bar). */
-  goToYear(year: number) {
+  goToYear(year: number, focus?: [number, number]) {
     this.open();
     this.stop();
+    this.focus = focus ?? null;
+    this.frameFocus = !!focus;
     this.go(momentIndex(this.list, year));
   }
 
@@ -101,13 +109,25 @@ export class TimeBar {
       m.kind === "borders" ? `Borders of ${m.label}, on today's ground`
       : m.kind === "imagery" ? `From space, ${new Date(dayFor(m.year, lat) + "T12:00:00Z").toLocaleDateString(undefined, { day: "numeric", month: "long" })} ${m.year} · NASA MODIS`
       : m.kind === "now" ? "Now: today's globe"
-      : "Projections: each place's page shows how it changes";
+      : "Tinted warmer as a reminder; each place's page has its projection";
     this.el.dataset.kind = m.kind;
   }
 
   private async apply() {
     const my = ++this.job, m = this.current, { viewer } = this.app.globe;
     if (this.imagery) { viewer.imageryLayers.remove(this.imagery, true); this.imagery = null; }
+    if (this.glow) { viewer.imageryLayers.remove(this.glow, true); this.glow = null; }
+    // The future: the planet's glow turns from blue to amber, with a light warm veil, stronger further out
+    // (a reminder, not data; each place's page has its projection).
+    const warm = m.kind === "future" ? ({ 2030: 0.35, 2050: 0.55, 2070: 0.75, 2100: 1 }[m.year] ?? 0.5) : 0;
+    const sky = viewer.scene.skyAtmosphere, globe = viewer.scene.globe;
+    if (sky) { sky.hueShift = -0.5 * warm; sky.saturationShift = 0.25 * warm; sky.brightnessShift = 0.1 * warm; }
+    globe.atmosphereHueShift = -0.5 * warm;
+    globe.atmosphereSaturationShift = 0.2 * warm;
+    if (warm) {
+      this.imagery = canvasLayer((ctx) => { ctx.fillStyle = `rgba(255, 120, 40, ${0.05 + 0.08 * warm})`; ctx.fillRect(0, 0, 512, 512); }, { maximumLevel: 3, credit: "" });
+      this.app.globe.addUnder(this.imagery);
+    }
     if (m.kind === "imagery") {
       const lat = viewer.camera.positionCartographic.latitude * (180 / Math.PI);
       this.imagery = new ImageryLayer(new UrlTemplateImageryProvider({
@@ -121,9 +141,33 @@ export class TimeBar {
     if (my !== this.job) return;
     if (m.kind === "borders") {
       this.bordersOn = true;
-      await present.showYear(this.app, nearestYear(m.year)).catch(() => this.app.toast("Couldn't load the borders for that year. Check the connection.", 4000));
+      const list = await present.showYear(this.app, nearestYear(m.year)).catch(() => { this.app.toast("Couldn't load the borders for that year. Check the connection.", 4000); return []; });
       // One chip in "On the map" for the time, not one for the borders too.
       this.app.canvas.drop("work:borders");
+      if (my !== this.job) return;
+      // Who governed the place in focus: their lands lit up, and framed the first time.
+      const ruler = this.focus ? polityShapeAt(list, this.focus[0], this.focus[1]) : null;
+      if (ruler) {
+        this.glow = canvasLayer((ctx, t) => {
+          if (!t.touches(ruler.bbox, 20)) return;
+          ctx.beginPath();
+          for (const r of ruler.rings) tracePath(ctx, t, Float32Array.from(r.flat()));
+          ctx.fillStyle = "rgba(255, 214, 110, 0.28)";
+          ctx.fill("evenodd");
+          ctx.shadowColor = "rgba(255, 190, 60, 0.9)";
+          ctx.shadowBlur = 14;
+          ctx.lineWidth = 4;
+          ctx.strokeStyle = "#ffd36e";
+          ctx.stroke();
+        }, { maximumLevel: 10, credit: "" });
+        viewer.imageryLayers.add(this.glow);
+        this.sub.textContent = `${ruler.name} in ${m.label}`;
+        if (this.frameFocus) {
+          this.frameFocus = false;
+          const [w, s2, e, n] = ruler.bbox, pw = (e - w) * 0.25, ph = (n - s2) * 0.25;
+          viewer.camera.flyTo({ destination: Rectangle.fromDegrees(Math.max(-180, w - pw), Math.max(-89, s2 - ph), Math.min(180, e + pw), Math.min(89, n + ph)), duration: 2.2 });
+        }
+      }
     } else if (this.bordersOn) {
       this.bordersOn = false;
       await present.showYear(this.app, null);

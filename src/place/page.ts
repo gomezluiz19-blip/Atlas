@@ -4,13 +4,14 @@
 // figure opens its theme), places like it, stories that pass through, what's
 // nearby, and where every figure comes from.
 import type { App, Place } from "../app";
-import { MEASURES, compassName, type Group } from "../answers/criteria";
+import { MEASURES, compassName, type Group, type Needs } from "../answers/criteria";
 import { forecast } from "../data/openmeteo";
 import { weatherText } from "../analysis/climate";
 import { h } from "../ui/dom";
 import { iconFor, labelled } from "../ui/glyph";
 import { asyncBlock, section } from "../themes/common";
 import { likeThis, measureAt } from "./measure";
+import { headline } from "./headline";
 import { nearestNamed, slugOfPlace } from "./places";
 
 /** A place's page link: the prerendered page for named places, else an app link. */
@@ -50,9 +51,23 @@ const value = (key: string, v: number) => {
 export function pageHead(app: App, place: Place, placesLike: (title: string) => void): HTMLElement {
   const addr = h("span", { class: "pg-addr" }, "…");
   const copy = h("button", { class: "pg-btn", title: "Copy this page's link" }, ...labelled("🏷️ Copy link", 15));
+  // The one fact worth knowing first, from the layers measured here.
+  const head = h("p", { class: "pg-headline" });
+  let fact = "";
+  void measureAt(place.lon, place.lat).then((m) => {
+    fact = headline(m.v, (place.feature as { world?: { kind?: string } } | undefined)?.world?.kind) ?? "";
+    if (fact && head.isConnected) { head.textContent = fact; head.classList.add("on"); }
+  }).catch(() => {});
+  const card = h("button", { class: "pg-btn", title: "A picture card of this place to send" }, ...labelled("🎞️ Card", 15));
+  card.addEventListener("click", () => void import("../delight/card").then((m) => m.shareCard(app, {
+    title: place.name?.title ?? "A place on Earth", kicker: place.name?.context?.split(",").slice(-1)[0]?.trim(), fact: fact || undefined,
+    link: slug ? pageLink(slug) : app.shareLink?.() ?? location.href,
+  })));
   const row = h("div", { class: "pg-head" },
+    head,
     h("div", { class: "pg-kicker" }, h("span", { class: "pg-dot" }), "Atlas page ", addr),
     h("div", { class: "pg-actions" },
+      card,
       copy,
       h("button", { class: "pg-btn", onclick: () => placesLike(place.name?.title ?? "here") }, ...labelled("✨ Places like this", 15)),
       h("button", { class: "pg-btn", onclick: () => app.actions.get("place:save")?.run() }, ...labelled("📍 Save", 15))));
@@ -72,9 +87,21 @@ export function pageHead(app: App, place: Place, placesLike: (title: string) => 
 }
 
 /** The place across every layer at once: each tile opens the theme it came from. */
+const READING: [Needs, string][] = [["terrain", "Ground"], ["climate", "Climate"], ["places", "People"], ["infra", "Getting there"], ["water", "Water"], ["hazards", "Hazards"], ["country", "Country"]];
+
 export function acrossLayers(app: App, place: Place, body: HTMLElement) {
-  asyncBlock(app, body, "Reading every layer here…", async () => {
-    const [m, wx] = await Promise.all([measureAt(place.lon, place.lat), forecast(place.lon, place.lat).catch(() => null)]);
+  // The layers being read, ticking in live, until the page has them all.
+  const dots = new Map<Needs, HTMLElement>();
+  const reading = h("div", { class: "pg-reading", role: "status" },
+    h("span", { class: "pg-reading-title" }, "Reading every layer here"),
+    h("div", { class: "pg-reading-list" }, ...READING.map(([n, label]) => { const el = h("span", { class: "pg-reading-item" }, h("i"), label); dots.set(n, el); return el; })));
+  body.append(reading);
+  asyncBlock(app, body, "", async () => {
+    const [m, wx] = await Promise.all([
+      measureAt(place.lon, place.lat, (n, ok) => dots.get(n)?.classList.add(ok ? "done" : "failed")),
+      forecast(place.lon, place.lat).catch(() => null),
+    ]);
+    reading.remove();
     const now = wx ? weatherText(wx.current.weather_code) : null;
     const groups = TILES.map(({ group, keys }) => {
       const tiles = keys.filter((k) => Number.isFinite(m.v[k]) && !(m.sea && MEASURES[k].group !== "Water" && MEASURES[k].group !== "Climate"));

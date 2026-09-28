@@ -21,6 +21,7 @@ import { SITES, type Site } from "../content/sites";
 import { action, asyncBlock, hero, note, section, stats } from "./common";
 import { acrossLayers, nearbyPages, pageHead, placesLike } from "../place/page";
 import { throughTime } from "../time/placeTime";
+import { iconSvg } from "../ui/glyph";
 
 const INSIGHT_ICON: Record<Insight["icon"], string> = {
   aurora: icons.sparkle, sun: icons.sun, moon: icons.moon, plates: icons.plates, quake: icons.activity, heritage: icons.heritage, globe: icons.globe,
@@ -83,7 +84,8 @@ export function exploreTheme(app: App, feeds: Feeds, overlays: Overlays, openSit
     const go = (id: string) => () => app.actions.get(id)?.run();
     return h("div", { class: "look-further" },
       h("button", { class: "look-tile", onclick: () => app.setTheme("space") }, h("span", { class: "look-tile-icon", style: "--c:#5e5ce6", html: icons.saturn }), h("span", {}, h("strong", {}, "Space"), h("small", {}, "Satellites, the ISS, launches, planets"))),
-      h("button", { class: "look-tile", onclick: go("work:learn") }, h("span", { class: "look-tile-icon", style: "--c:#30d158", html: icons.book }), h("span", {}, h("strong", {}, "Learn"), h("small", {}, "Games, daily challenge, places to learn"))));
+      h("button", { class: "look-tile", onclick: go("work:learn") }, h("span", { class: "look-tile-icon", style: "--c:#30d158", html: icons.book }), h("span", {}, h("strong", {}, "Learn"), h("small", {}, "Games, daily challenge, places to learn"))),
+      h("button", { class: "look-tile surprise-tile", onclick: go("surprise") }, h("span", { class: "look-tile-icon", style: "--c:#ff9f0a", html: iconSvg("🎲", 18) ?? icons.sparkle }), h("span", {}, h("strong", {}, "Show me something amazing"), h("small", {}, "Somewhere unexpected, and why"))));
   };
   /** First visit: what Atlas is for, in three taps. */
   const welcome = (app: App) => {

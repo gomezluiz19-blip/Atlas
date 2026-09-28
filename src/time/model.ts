@@ -71,16 +71,19 @@ function inRing(x: number, y: number, ring: [number, number][]): boolean {
   return inside;
 }
 
-/** Who governed a point: the smallest state whose borders hold it (null: no state recorded there). */
-export function polityAt(polities: Shape[], lon: number, lat: number): string | null {
-  let best: Shape | null = null;
+/** The state whose borders hold a point: the smallest, if several do. */
+export function polityShapeAt<T extends Shape>(polities: T[], lon: number, lat: number): T | null {
+  let best: T | null = null;
   for (const p of polities) {
     const [w, s, e, n] = p.bbox;
     if (lon < w || lon > e || lat < s || lat > n) continue;
     if (p.rings.some((r) => inRing(lon, lat, r)) && (!best || p.area < best.area)) best = p;
   }
-  return best?.name ?? null;
+  return best;
 }
+
+/** Who governed a point (null: no state recorded there). */
+export const polityAt = (polities: Shape[], lon: number, lat: number): string | null => polityShapeAt(polities, lon, lat)?.name ?? null;
 
 /** Runs of the same ruler merged: 1800 Ottoman, 1880 Ottoman, 1914 Ottoman → one line from 1800. */
 export function rulerTimeline(list: { year: number; name: string | null }[]): { from: number; to: number; name: string | null }[] {
