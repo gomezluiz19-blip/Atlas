@@ -1515,3 +1515,9 @@ button.today-item:hover { background: var(--fill-strong); }
 .report-value { display: flex; flex-direction: column; font-weight: 600; }
 .report-value small { font-weight: 400; color: var(--secondary); font-size: 12px; }
 .report .chips { margin-top: 8px; }
+.sowing { margin-top: 10px; display: flex; flex-direction: column; gap: 4px; }
+.sow-row { display: flex; gap: 10px; align-items: flex-start; padding: 6px 2px; border-bottom: 1px solid var(--separator); font-size: 13.5px; }
+.sow-row > span:first-child { font-size: 18px; width: 22px; text-align: center; }
+.sow-row > span:last-child { display: flex; flex-direction: column; }
+.sow-row small { color: var(--secondary); font-size: 12px; }
+.sowing .link-btn { align-self: flex-start; margin-top: 4px; }

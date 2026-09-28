@@ -9,12 +9,29 @@ import { riversIn } from "../data/worldData";
 import { haversine } from "../data/mercator";
 import { h } from "../ui/dom";
 import { dayLabel, frostSeason, slopeAspect, yearly } from "./reportModel";
+import { sowingTasks, upcoming, type SowTask } from "./calendar";
 import type { MyPlace } from "./store";
 
 const made = new Map<string, HTMLElement>();
 
 function row(label: string, value: Node | string, sub?: string): HTMLElement {
   return h("div", { class: "report-row" }, h("span", { class: "report-label" }, label), h("span", { class: "report-value" }, value, sub ? h("small", {}, sub) : ""));
+}
+
+/** What to sow and plant out in the next six weeks, from this place's frost dates, and the whole year on request. */
+function sowingView(lastSpring: number | null, firstAutumn: number | null): HTMLElement | string {
+  const tasks = sowingTasks(lastSpring, firstAutumn);
+  if (!tasks.length) return "";
+  const now = new Date(), today = Math.round((Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()) - Date.UTC(now.getFullYear(), 0, 1)) / 86_400_000) + 1;
+  const soon = upcoming(tasks, today, 6);
+  const line = (t: SowTask, when: string) => h("div", { class: "sow-row" }, h("span", {}, t.emoji), h("span", {}, h("strong", {}, t.crop), h("small", {}, `${t.what} · ${when}${t.note ? ` · ${t.note}` : ""}`)));
+  const all = h("div", { class: "sow-all", hidden: true }, ...[...tasks].sort((a, b) => a.from - b.from).map((t) => line(t, `${dayLabel(t.from)} – ${dayLabel(t.to)}`)));
+  return h("section", { class: "sowing" },
+    h("h3", { class: "lens-sub" }, "Sowing and planting, from your frost dates"),
+    soon.length ? h("div", {}, ...soon.map((t) => line(t, t.now ? `now, until ${dayLabel(t.to)}` : `in ${t.inDays} days (${dayLabel(t.from)} – ${dayLabel(t.to)})`))) : h("p", { class: "muted small" }, "Nothing to sow in the next six weeks."),
+    h("button", { class: "link-btn", onclick: (e: Event) => { all.hidden = !all.hidden; (e.currentTarget as HTMLElement).textContent = all.hidden ? "The whole year" : "Hide the year"; } }, "The whole year"),
+    all,
+    h("p", { class: "muted small" }, "Rules of thumb, in weeks from your average last frost; a cold spring or a sheltered spot shifts them."));
 }
 
 /** The report for a saved place (built once per place, then reused). */
@@ -26,10 +43,12 @@ export function placeReport(app: App, p: MyPlace): HTMLElement {
   const rock = h("div", {}, row("Rock below", "…"));
   const season = h("div", {}, row("Frost", "…"));
   const water = h("div", {}, row("Nearest river", "…"));
+  const sowing = h("div", {});
   const go = (action: string) => () => { app.select({ lon: p.lon, lat: p.lat, height: 0 }, { title: p.name, context: "My place" }); setTimeout(() => app.actions.get(action)?.run(), 300); };
   const el = h("section", { class: "group report" },
     h("h2", { class: "group-title" }, "About this place"),
     h("div", { class: "report-rows" }, ground, rock, season, water),
+    sowing,
     h("div", { class: "chips wrap" },
       h("button", { class: "chip", onclick: go("lens:trace") }, "〰️ Where the rain goes"),
       h("button", { class: "chip", onclick: go("lens:slice") }, "🔪 Slice the ground"),
@@ -63,6 +82,7 @@ export function placeReport(app: App, p: MyPlace): HTMLElement {
     season.replaceChildren(frost,
       row("Growing heat", `${y.gdd.toLocaleString()} degree days a year (base 10 °C)`, y.gdd >= 2500 ? "Enough for maize, cotton and warm-season crops" : y.gdd >= 1400 ? "Suits maize, beans and most vegetables" : y.gdd >= 800 ? "Cool: suits wheat, barley, potatoes and brassicas" : "Short and cool: hardy crops and grass"),
       row("Rain", `${y.rain.toLocaleString()} mm a year`, y.hotDays ? `${y.hotDays} days a year above 30 °C` : undefined));
+    sowing.replaceChildren(sowingView(f.lastSpring, f.firstAutumn));
   }).catch(() => season.replaceChildren(row("Climate", "Couldn't reach the weather records")));
 
   void riversIn(p.lon - 0.6, p.lat - 0.4, p.lon + 0.6, p.lat + 0.4, 4).then((lines) => {
