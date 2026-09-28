@@ -28,6 +28,10 @@ interface Node {
   heightKnown: boolean;
   w: number;
   h: number;
+  /** What's on screen now, so unchanged labels cost no DOM writes. */
+  shown: boolean;
+  tx: number;
+  ty: number;
 }
 
 const POINT_KINDS = new Set<PlaceKind>([
@@ -41,6 +45,9 @@ export class LabelLayer {
   private nodes = new Map<string, Node>();
   private scratch = new Cartesian2();
   private dirty = true;
+  /** Nodes by rank, highest first (re-sorted only when the set changes). */
+  private sorted: Node[] = [];
+  private heightTry = 0;
   visible = true;
   maxLabels = 45;
   /** When set, notable places outside these kinds are hidden (world-scale names stay). */
@@ -89,7 +96,12 @@ export class LabelLayer {
       if (existing) { existing.label = l; continue; }
       this.nodes.set(l.id, this.createNode(l));
     }
+    this.sorted = [...this.nodes.values()].sort((a, b) => b.label.rank - a.label.rank);
     this.dirty = true;
+  }
+
+  private show(n: Node, on: boolean) {
+    if (n.shown !== on) { n.shown = on; n.el.hidden = !on; }
   }
 
   private createNode(l: MapLabel): Node {
@@ -122,7 +134,7 @@ export class LabelLayer {
     el.hidden = true;
     this.el.append(el);
     const pos = Cartesian3.fromDegrees(l.lon, l.lat, 0);
-    return { label: l, el, pos, normal: Cartesian3.normalize(pos, new Cartesian3()), heightKnown: false, w: 0, h: 0 };
+    return { label: l, el, pos, normal: Cartesian3.normalize(pos, new Cartesian3()), heightKnown: false, w: 0, h: 0, shown: false, tx: NaN, ty: NaN };
   }
 
   private update() {
@@ -135,41 +147,48 @@ export class LabelLayer {
     const W = canvas.clientWidth, H = canvas.clientHeight;
     const toCam = new Cartesian3();
     const placed: [number, number, number, number][] = [];
-    const nodes = [...this.nodes.values()].sort((a, b) => b.label.rank - a.label.rank);
+    // Ground heights: a few lookups a frame, not every label every frame.
+    const now = performance.now();
+    let heightBudget = now - this.heightTry > 250 ? 25 : 0;
+    if (heightBudget) this.heightTry = now;
     let shown = 0;
-    for (const n of nodes) {
-      if (!n.heightKnown) {
+    for (const n of this.sorted) {
+      if (!n.heightKnown && heightBudget > 0) {
+        heightBudget--;
         const hgt = scene.globe.getHeight(Cartographic.fromDegrees(n.label.lon, n.label.lat));
         if (hgt !== undefined) {
           Cartesian3.fromDegrees(n.label.lon, n.label.lat, Math.max(0, hgt) * ex, undefined, n.pos);
           n.heightKnown = true;
         }
       }
-      if (this.filter && (n.label.data as { source?: string } | undefined)?.source === "notable" && !this.filter.has(n.label.kind)) { n.el.hidden = true; continue; }
+      if (this.filter && (n.label.data as { source?: string } | undefined)?.source === "notable" && !this.filter.has(n.label.kind)) { this.show(n, false); continue; }
       // Behind the horizon?
       Cartesian3.subtract(cam, n.pos, toCam);
-      if (Cartesian3.dot(toCam, n.normal) < 0 || shown >= this.maxLabels) { n.el.hidden = true; continue; }
+      if (Cartesian3.dot(toCam, n.normal) < 0 || shown >= this.maxLabels) { this.show(n, false); continue; }
       const p = scene.cartesianToCanvasCoordinates(n.pos, this.scratch);
-      if (!p || p.x < -40 || p.y < -20 || p.x > W + 40 || p.y > H + 20) { n.el.hidden = true; continue; }
+      if (!p || p.x < -40 || p.y < -20 || p.x > W + 40 || p.y > H + 20) { this.show(n, false); continue; }
       if (!n.w) {
-        n.el.hidden = false;
+        this.show(n, true);
         n.w = n.el.offsetWidth;
         n.h = n.el.offsetHeight;
       }
       const pointy = n.el.classList.contains("pt");
       const x0 = pointy ? p.x - 6 : p.x - n.w / 2, y0 = p.y - n.h / 2;
       const box: [number, number, number, number] = [x0 - 3, y0 - 2, x0 + n.w + 3, y0 + n.h + 2];
-      if (placed.some((b) => box[0] < b[2] && box[2] > b[0] && box[1] < b[3] && box[3] > b[1])) { n.el.hidden = true; continue; }
+      if (placed.some((b) => box[0] < b[2] && box[2] > b[0] && box[1] < b[3] && box[3] > b[1])) { this.show(n, false); continue; }
       placed.push(box);
       shown++;
-      n.el.hidden = false;
-      n.el.style.transform = `translate(${Math.round(x0)}px, ${Math.round(y0)}px)`;
+      this.show(n, true);
+      const tx = Math.round(x0), ty = Math.round(y0);
+      if (tx !== n.tx || ty !== n.ty) { n.tx = tx; n.ty = ty; n.el.style.transform = `translate3d(${tx}px, ${ty}px, 0)`; }
     }
+    // Keep going until every label in view has its ground height.
+    if (this.sorted.some((n) => !n.heightKnown && n.shown)) this.dirty = true;
   }
 
   /** Labels currently drawn (for "in view" lists). */
   shownLabels(): MapLabel[] {
-    return [...this.nodes.values()].filter((n) => !n.el.hidden).map((n) => n.label).sort((a, b) => b.rank - a.rank);
+    return this.sorted.filter((n) => n.shown).map((n) => n.label);
   }
 
   refresh() {

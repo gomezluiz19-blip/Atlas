@@ -205,10 +205,18 @@ export class App {
       }
       this.select(p);
     }, ScreenSpaceEventType.LEFT_CLICK);
-    let frame = 0;
+    // Picking the ground under the pointer is costly: skip it while dragging the map
+    // (unless a drawing tool needs it) and update the coordinate readout ~12 times a second.
+    let frame = 0, dragging = false, lastPick = 0;
+    globe.viewer.canvas.addEventListener("pointerdown", () => (dragging = true));
+    window.addEventListener("pointerup", () => (dragging = false));
+    window.addEventListener("pointercancel", () => (dragging = false));
     handler.setInputAction((e: { endPosition: Cartesian2 }) => {
+      const wants = !!this.interaction?.onMove;
+      if (!wants && (dragging || performance.now() - lastPick < 80)) return;
       cancelAnimationFrame(frame);
       frame = requestAnimationFrame(() => {
+        lastPick = performance.now();
         const p = globe.pick(e.endPosition);
         this.interaction?.onMove?.(p);
         this.onPointer?.(p);
