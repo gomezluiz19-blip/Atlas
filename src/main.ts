@@ -23,7 +23,8 @@ import { animalsTheme, plantsTheme } from "./themes/life";
 import { waterTheme } from "./themes/water";
 import { formatElevation, formatLonLat, h } from "./ui/dom";
 import { icons } from "./ui/icons";
-import { describe as describeCriterion, looksLikeSearch, parseQuery } from "./answers/criteria";
+import { describe as describeCriterion, looksLikeSearch, parseQuery, type Criterion } from "./answers/criteria";
+import { resolvePlace, slugOfPlace } from "./place/places";
 import { createLayersPanel } from "./ui/layers";
 import { createSearch, flyToPlace, geocode, type Command, type Place as SearchPlace, type SearchResult } from "./ui/search";
 import { createRobot } from "./ui/robotCard";
@@ -332,6 +333,26 @@ for (const [hub, tools] of [[placeHub, PLACE_TOOLS], [makeHub, MAKE_TOOLS], [loo
   for (const t of tools) if (t.id !== "occupancy" && t.id !== "space") HUB_OF[t.id] = { hub, open: t.open };
 for (const [t, { hub, open }] of Object.entries(HUB_OF))
   app.actions.set(`work:${t}`, { label: `${hub === placeHub ? "My Place" : hub === makeHub ? "Make" : "Look"} › ${t}`, run: () => { hub.ctx.open(); open(hub.ctx); } });
+// Place pages: #/p/nile (or /p/nile/, which forwards here) opens the Nile's page.
+const openPlace = async (slug: string, theme?: string) => {
+  const r = await resolvePlace(slug).catch(() => null);
+  if (!r) { app.toast("Couldn't find that place. The link may be out of date.", 5000); return; }
+  void flyToPlace(globe, { name: r.name, lon: r.lon, lat: r.lat, radius: r.radius });
+  app.setTheme(theme && app.themes.some((t) => t.id === theme) ? theme : "explore");
+  app.select({ lon: r.lon, lat: r.lat, height: 0 }, r.name ? { title: r.name, context: r.context } : undefined, r.feature);
+  if (app.place) app.place.slug = r.slug;
+};
+app.actions.set("place:open", { label: "Open a place's page", run: (slug) => { if (slug) void openPlace(slug); } });
+app.actions.set("place:save", { label: "Save this place", run: () => {
+  const p = app.place;
+  if (!p) return;
+  myPlaces.add(p.lon, p.lat, p.name?.title);
+} });
+const placeHash = () => {
+  const m = /^#\/p\/([^/]+)(?:\/([a-z]+))?$/.exec(location.hash);
+  if (m && decodeURIComponent(m[1]) !== app.place?.slug) void openPlace(decodeURIComponent(m[1]), m[2]);
+};
+addEventListener("hashchange", placeHash);
 // A student opening a quiz link from their teacher.
 const quizLink = /^#quiz=([\w-]+)/.exec(location.hash);
 if (quizLink) void import("./work/quiz").then((m) => m.openQuizLink(app, quizLink[1]));
@@ -418,6 +439,19 @@ const askMap = (q?: string) => {
   void import("./answers/ui").then((m) => m.openAsk(lookHub.ctx, q)).catch(() => app.toast("Couldn't load that tool. Check the connection and try again.", 5000));
 };
 app.actions.set("answers:ask", { label: "Ask the map", run: (q) => askMap(q) });
+/** "Places like this": step back to see the region around the place, then answer. */
+app.actions.set("answers:preset", { label: "Places like this", run: (json) => {
+  if (!json) return;
+  const preset = JSON.parse(json) as { title: string; criteria: Criterion[]; exclude?: [number, number] };
+  const at = app.place;
+  const answer = () => {
+    closePanels(lookHub.panel);
+    lookHub.ctx.open();
+    void import("./answers/ui").then((m) => m.openAsk(lookHub.ctx, undefined, preset)).catch(() => app.toast("Couldn't load that tool. Check the connection and try again.", 5000));
+  };
+  if (!at) { answer(); return; }
+  globe.viewer.camera.flyTo({ destination: Cartesian3.fromDegrees(at.lon, at.lat, 1_400_000), duration: 1.6, complete: answer, cancel: answer });
+} });
 const answerCommand = (q: string): Command | null => {
   if (!looksLikeSearch(q)) return null;
   return { title: "Answer on the map", steps: parseQuery(q).criteria.map(describeCriterion), run: () => askMap(q) };
@@ -575,14 +609,19 @@ const cameraState = () => {
   const pos = c.positionCartographic;
   return { lat: CesiumMath.toDegrees(pos.latitude), lon: CesiumMath.toDegrees(pos.longitude), height: pos.height, heading: CesiumMath.toDegrees(c.heading), pitch: CesiumMath.toDegrees(c.pitch) };
 };
-const stateHash = () => formatHash({ place: app.place ?? undefined, theme: app.theme?.id !== "explore" ? app.theme?.id : undefined, camera: cameraState() });
+const stateHash = () => app.place?.slug && !app.place.slug.startsWith("@")
+  ? `#/p/${app.place.slug}${app.theme?.id !== "explore" ? `/${app.theme.id}` : ""}`
+  : formatHash({ place: app.place ?? undefined, theme: app.theme?.id !== "explore" ? app.theme?.id : undefined, camera: cameraState() });
 app.shareLink = () => `${location.origin}${location.pathname}${stateHash()}`;
 let hashTimer = 0;
 const syncHash = () => {
   clearTimeout(hashTimer);
   hashTimer = window.setTimeout(() => {
     try {
-      history.replaceState(null, "", stateHash() || location.pathname);
+      const next = stateHash();
+      // On a place's own page, its address is already the URL.
+      if (pageSlug && next === `#/p/${pageSlug}`) history.replaceState(null, "", location.pathname);
+      else history.replaceState(null, "", next || location.pathname);
     } catch {
       /* some embedded viewers forbid history changes */
     }
@@ -596,6 +635,8 @@ app.onName = (p) => lenses.rename(p);
 for (const l of LENSES) app.actions.set(`lens:${l.id}`, { label: l.label, run: () => void lenses.openWhenReady(l.id).then((ok) => { if (!ok) app.toast("Tap a place first, then choose a lens.", 4000); }) });
 app.onPlace = (p) => {
   void lenses.update(p);
+  // Its page address, for the link in the URL.
+  if (p && !p.slug) void slugOfPlace(p).then((s) => { if (app.place === p) { p.slug = s; syncHash(); } }).catch(() => {});
   // My Place's home lists "Save this spot": keep it in step with the selection.
   if (!placeHub.panel.hidden && placeHub.panel.querySelector(".today-card")) placeHub.ctx.home();
   syncHash();
@@ -619,6 +660,10 @@ globe.viewer.camera.moveEnd.addEventListener(syncHash);
 
 // Opening view: a shared link's view, or the whole planet.
 const shared = parseHash(location.hash);
+// Opened from a place's own page (p/nile/), or a link to one (#/p/nile).
+const pageSlug = (window as { ATLAS_PAGE?: string }).ATLAS_PAGE;
+document.querySelector(".seo-page")?.remove();
+const pageLinked = /^#\/p\//.test(location.hash) || (!!pageSlug && !location.hash);
 if (shared.camera) {
   const c = shared.camera;
   globe.viewer.camera.setView({
@@ -631,12 +676,13 @@ if (shared.camera) {
   cam.setView({ destination: Cartesian3.fromDegrees(home.lon - 25, home.lat * 0.6, 22_000_000) });
   const start = Cartesian3.clone(cam.positionWC);
   // Skipped if the person has already moved the map or searched, or when Atlas flies to their saved place.
-  if (!myStore.all().length)
+  if (!myStore.all().length && !pageLinked)
     setTimeout(() => { if (Cartesian3.equalsEpsilon(cam.positionWC, start, 0, 1)) cam.flyTo({ destination: Cartesian3.fromDegrees(home.lon, home.lat * 0.8, 13_000_000), duration: 2.2, easingFunction: EasingFunction.QUADRATIC_IN_OUT }); }, 600);
 }
+if (pageLinked) { if (/^#\/p\//.test(location.hash)) placeHash(); else if (pageSlug) void openPlace(pageSlug); }
 if (shared.theme) app.setTheme(shared.theme);
 if (shared.place) app.select({ lon: shared.place.lon, lat: shared.place.lat, height: 0 });
-else if (!shared.camera && myStore.all().length) {
+else if (!shared.camera && !pageLinked && myStore.all().length) {
   // Start where people are: fly in to their own place.
   const saved = myStore.all();
   const home = saved.find((p) => p.kind === "home") ?? saved[0];

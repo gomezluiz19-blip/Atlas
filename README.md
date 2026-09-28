@@ -178,6 +178,14 @@ the internet. Tap a dot for the plant, port or airport.
 **The tools.** Grow, Flock, Build and live occupancy live under **My Place**; Plan, Present, Video and Teach
 under **Make**; Learn under **Look**. All of them are open to anyone:
 
+- **Every place has a page** with a permanent address: `#/p/nile`, and on the live site a real page at
+  `p/nile/` for each of the ~11,900 places Atlas knows by name (built with its own title, description,
+  structured data and a sitemap, so search engines and link previews see the place, then the app opens on it).
+  Wikidata places (`#/p/eiffel-tower~q243`) and any spot (`#/p/@35.36,138.73`) have addresses too. A page shows
+  the place across every layer at once (height, slope, facing; climate; people; airports, rail, roads, ports;
+  the sea, rivers, flood risk; plate edges and volcanoes; country figures), each figure opening its theme, with
+  **Places like this** (its own figures as conditions, answered across the region), stories that pass through,
+  and pages nearby.
 - **Ask the map** (in Look, or typed into the search box) answers questions no single layer can: "flat,
   south-facing land under 800 m, near an airport, low flood risk". The sentence becomes conditions you can see
   and tune with sliders (height, slope, which way it faces, warmth, coldest month, frost, rain, sunshine, the

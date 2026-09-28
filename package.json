@@ -29,6 +29,7 @@
   },
   "devDependencies": {
     "@types/geojson": "^7946.0.16",
+    "@types/node": "^22.20.4",
     "@types/topojson-client": "^3.1.5",
     "typescript": "~5.9",
     "vite": "^8.3.1",

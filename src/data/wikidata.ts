@@ -59,6 +59,23 @@ LIMIT ${limit * 3}`;
   return groupRows(body.results.bindings).slice(0, limit);
 }
 
+/** One Wikidata place by its item id ("Q243"), or null if it has no coordinates. */
+export async function notableById(qid: string): Promise<Notable | null> {
+  if (!/^Q\d+$/.test(qid)) return null;
+  const query = `SELECT ?item ?itemLabel ?itemDescription ?coord ?sl ?typeLabel ?image ?article ?heritage WHERE {
+  VALUES ?item { wd:${qid} }
+  ?item wdt:P625 ?coord; wikibase:sitelinks ?sl.
+  OPTIONAL { ?item wdt:P31 ?type. }
+  OPTIONAL { ?item wdt:P18 ?image. }
+  OPTIONAL { ?article schema:about ?item; schema:isPartOf <https://en.wikipedia.org/>. }
+  BIND(EXISTS { ?item wdt:P1435 wd:Q9259 } AS ?heritage)
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "en,mul". }
+} LIMIT 40`;
+  const url = `https://query.wikidata.org/sparql?format=json&query=${encodeURIComponent(query)}`;
+  const body = await getJson<{ results: { bindings: Row[] } }>("Wikidata", url, { headers: { Accept: "application/sparql-results+json" } }, 20_000);
+  return groupRows(body.results.bindings)[0] ?? null;
+}
+
 export function groupRows(rows: Row[]): Notable[] {
   const byId = new Map<string, Notable>();
   for (const r of rows) {

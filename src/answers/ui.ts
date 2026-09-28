@@ -13,7 +13,7 @@ import { flyToPlace, freeArea } from "../ui/search";
 import type { WorkCtx } from "../work/hub";
 import { WorkLayer } from "../work/layer";
 import { MEASURES, describe, parseQuery, type Criterion, type Group, type Needs } from "./criteria";
-import { makeGrid, needsOf, pickBest, scoreArea, type Area, type Bbox, type Cell } from "./engine";
+import { kmBetween, makeGrid, needsOf, pickBest, scoreArea, type Area, type Bbox, type Cell } from "./engine";
 import { STEP_WORDS, gather } from "./layers";
 
 export const EXAMPLES = [
@@ -141,8 +141,12 @@ interface State {
   notYet: string[];
   area: Area | null;
   names: Map<string, string>;
+  /** "Places like this": the place itself isn't an answer. */
+  exclude?: [number, number];
 }
 const state: State = { query: "", criteria: [], notYet: [], area: null, names: new Map() };
+/** The best places, leaving out the one being compared with. */
+const bestOf = (area: Area) => pickBest(area, 6).filter((c) => !state.exclude || kmBetween(c.lon, c.lat, state.exclude[0], state.exclude[1]) > Math.max(40, area.cellKm * 2)).slice(0, 5);
 let glow: ImageryLayer | null = null;
 let pins: WorkLayer | null = null;
 let job = 0;
@@ -154,7 +158,7 @@ function paint(app: App) {
   glow = glowLayer(area);
   app.globe.viewer.imageryLayers.add(glow);
   pins ??= new WorkLayer(app, "answers-pins", "Answers", "#ffb04a", false);
-  pins.set(pickBest(area).map((c, i) => ({ id: `a${i}`, kind: "point", pts: [[c.lon, c.lat]], color: "#2a1650", label: String(i + 1) })));
+  pins.set(bestOf(area).map((c, i) => ({ id: `a${i}`, kind: "point", pts: [[c.lon, c.lat]], color: "#2a1650", label: String(i + 1) })));
   app.looks?.setLegend({ emoji: "✨", name: "How well it fits", stops: LEGEND_STOPS, from: "half", to: "all of it" });
   app.canvas.put({
     id: "answers", label: "Answers: where it fits", color: "#ffb04a", scope: "world", pinned: false,
@@ -178,11 +182,12 @@ const valueText = (key: string, v: number, area: Area) =>
 const cellKey = (c: Cell) => `${c.lon.toFixed(3)},${c.lat.toFixed(3)}`;
 
 /** Opens Ask the map, optionally with a question to answer straight away. */
-export function openAsk(ctx: WorkCtx, question?: string) {
+export function openAsk(ctx: WorkCtx, question?: string, preset?: { title: string; criteria: Criterion[]; exclude?: [number, number] }) {
   const { app } = ctx;
-  if (question !== undefined && question.trim() && question.trim() !== state.query) {
+  if (preset) Object.assign(state, { query: preset.title, criteria: preset.criteria.map((c) => ({ ...c })), notYet: [], area: null, exclude: preset.exclude });
+  else if (question !== undefined && question.trim() && question.trim() !== state.query) {
     const p = parseQuery(question);
-    Object.assign(state, { query: question.trim(), criteria: p.criteria, notYet: p.notYet, area: null });
+    Object.assign(state, { query: question.trim(), criteria: p.criteria, notYet: p.notYet, area: null, exclude: undefined });
   }
   const input = h("textarea", { class: "ask-input", rows: 2, placeholder: "Find flat, south-facing land under 800 m near an airport, low flood risk", "aria-label": "What are you looking for?" }) as HTMLTextAreaElement;
   input.value = state.query;
@@ -194,7 +199,7 @@ export function openAsk(ctx: WorkCtx, question?: string) {
 
   const read = () => {
     const p = parseQuery(input.value);
-    Object.assign(state, { query: input.value.trim(), criteria: p.criteria, notYet: p.notYet });
+    Object.assign(state, { query: input.value.trim(), criteria: p.criteria, notYet: p.notYet, exclude: undefined });
     renderConds();
   };
 
@@ -242,7 +247,7 @@ export function openAsk(ctx: WorkCtx, question?: string) {
     if (!area) { results.replaceChildren(); return; }
     const land = area.cells.filter((c) => !c.sea);
     const good = land.filter((c) => c.score >= 0.7).length;
-    const best = pickBest(area);
+    const best = bestOf(area);
     const summary = h("div", { class: "ask-summary" },
       h("strong", {}, land.length ? pct(good / land.length) : "0%"),
       h("span", {}, good ? "of the land on screen fits well; it glows gold." : "of the land on screen fits well. Loosen a condition, or move the map and search again."));
@@ -265,7 +270,7 @@ export function openAsk(ctx: WorkCtx, question?: string) {
         const m = MEASURES[k.key], v = c.v[k.key], s = c.parts[j] ?? 0;
         return h("div", { class: "ask-bar" },
           h("span", { class: "ask-bar-icon" }, iconFor(m.emoji, 13)),
-          h("span", { class: "ask-bar-label" }, m.label),
+          h("span", { class: "ask-bar-label" }, describe(k)),
           h("span", { class: "ask-bar-track" }, h("i", { style: `width:${pct(s)};background:${s > 0.8 ? "var(--ask-good)" : s > 0.4 ? "var(--ask-mid)" : "var(--ask-bad)"}` })),
           h("span", { class: "ask-bar-value" }, valueText(k.key, v, area)));
       });
@@ -310,7 +315,7 @@ export function openAsk(ctx: WorkCtx, question?: string) {
     rescore();
     // On a phone the panel covers the map: step aside so the answer shows, with a way back.
     if (matchMedia("(max-width: 720px)").matches) {
-      const n = pickBest(a).length;
+      const n = bestOf(a).length;
       ctx.hide();
       document.querySelector(".ask-peek")?.remove();
       const peek = h("button", { class: "ask-peek", onclick: () => { peek.remove(); ctx.unhide(); } }, ...labelled(`✨ ${n ? `${n} place${n > 1 ? "s" : ""} found` : "No close match"} · Show the list`));
@@ -331,5 +336,5 @@ export function openAsk(ctx: WorkCtx, question?: string) {
     state.query ? "" : h("div", {}, h("div", { class: "ask-label" }, "Try"), chips));
   renderConds();
   renderResults();
-  if (question && state.criteria.length && !state.area) void answer();
+  if ((question || preset) && state.criteria.length && !state.area) void answer();
 }
