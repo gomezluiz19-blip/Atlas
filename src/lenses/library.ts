@@ -1,6 +1,7 @@
 // Where made lenses live: the examples that ship with Atlas (each by one of
 // the example people), the ones made on this device, and ones opened from
 // links. "My lenses" (made or kept) join the lens strip for every place.
+import { deleteLensRemote, pushLens } from "../cloud/sync";
 import { lensFromJson, type LensDef } from "./custom";
 
 export const DEMO_LENSES: LensDef[] = [
@@ -83,8 +84,8 @@ export function allLenses(): LensDef[] {
 }
 export const findLens = (id: string) => allLenses().find((d) => d.id === id) ?? null;
 
-export function saveLens(d: LensDef) { write(MADE, [d, ...madeLenses().filter((x) => x.id !== d.id)]); }
-export function deleteLens(id: string) { write(MADE, madeLenses().filter((x) => x.id !== id)); keep(id, false); }
+export function saveLens(d: LensDef) { write(MADE, [d, ...madeLenses().filter((x) => x.id !== d.id)]); void pushLens(d).catch(() => {}); }
+export function deleteLens(id: string) { write(MADE, madeLenses().filter((x) => x.id !== id)); keep(id, false); void deleteLensRemote(id); }
 export function keep(id: string, on: boolean) { write(KEPT, on ? [...new Set([...keptIds(), id])] : keptIds().filter((x) => x !== id)); }
 /** A lens opened from a link, remembered so it can be found again. */
 export function rememberLens(d: LensDef) {

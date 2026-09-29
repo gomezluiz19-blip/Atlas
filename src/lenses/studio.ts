@@ -4,6 +4,8 @@
 // as a link. Everyone's lenses are in the gallery to try and remix.
 import type { App } from "../app";
 import { aiOn, askForTool } from "../robot/llm";
+import { cloudOn } from "../cloud/client";
+import { recentLenses } from "../cloud/sync";
 import { avatarEl } from "../social/account";
 import { findProfile, me, saveProfile } from "../social/store";
 import { h } from "../ui/dom";
@@ -109,7 +111,7 @@ export function createLensStudio(app: App, deps: {
   }
 
   async function share(d: LensDef) {
-    const link = findLens(d.id) && !isMade(d.id) && !d.id.includes("-") ? `${location.origin}${location.pathname}#/lens/${d.id}` : `${location.origin}${location.pathname}#/lens/~${await packJson(d)}`;
+    const link = (findLens(d.id) && !isMade(d.id) && !d.id.includes("-")) || (cloudOn() && isMade(d.id)) ? `${location.origin}${location.pathname}#/lens/${d.id}` : `${location.origin}${location.pathname}#/lens/~${await packJson(d)}`;
     try {
       if (navigator.share && matchMedia("(pointer: coarse)").matches) await navigator.share({ title: `${d.name}: a lens on Atlas`, url: link });
       else { await navigator.clipboard.writeText(link); app.toast("Link copied. Anyone who opens it gets the lens.", 3000); }
@@ -185,8 +187,14 @@ export function createLensStudio(app: App, deps: {
       def ? editor(def) : "",
       !aiOn() ? h("p", { class: "ls-fine" }, "Connect Atlas AI (in the account menu) and Claude designs lenses from any description. Without it, Atlas's built-in designer knows the common ones.") : "",
       mine.length ? h("section", { class: "ls-gallery" }, h("h3", {}, "Made by you"), ...mine.map(galleryCard)) : "",
-      h("section", { class: "ls-gallery" }, h("h3", {}, "Made by people"), ...others.map(galleryCard)));
+      h("section", { class: "ls-gallery" }, h("h3", {}, "Made by people"), ...[...others, ...remote.filter((r) => !others.some((o) => o.id === r.id) && !mine.some((m) => m.id === r.id))].map(galleryCard)));
+    if (cloudOn() && !remoteAsked) {
+      remoteAsked = true;
+      void recentLenses().then((ls) => { remote = ls; if (!el.hidden) render(); }).catch(() => {});
+    }
   }
+  let remote: LensDef[] = [];
+  let remoteAsked = false;
 
   return {
     get isOpen() { return !el.hidden; },

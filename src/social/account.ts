@@ -6,6 +6,8 @@ import { h } from "../ui/dom";
 import { icons } from "../ui/icons";
 import { DEMO_PROFILES } from "./demo";
 import { AVATAR_COLORS, AVATAR_EMOJI, ROLES, blankProfile, slugHandle, type Profile, type Role } from "./model";
+import { cloudOn, sendCode, verifyCode } from "../cloud/client";
+import { handleFree, linkHandle, pullMine, pushProfile } from "../cloud/sync";
 import { account, handleTaken, localAccounts, me, onAccount, signIn, signOut } from "./store";
 
 /** A round avatar: the person's emoji on their colour. */
@@ -100,8 +102,12 @@ export function createAccount(opts: {
     const go = () => {
       const v = email.value.trim();
       if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v)) { err.textContent = "That doesn't look like an email address."; email.focus(); return; }
-      createStep(v);
+      if (!cloudOn()) { createStep(v); return; }
+      err.textContent = "";
+      cont.disabled = true; cont.textContent = "Sending…";
+      sendCode(v).then(() => codeStep(v)).catch((e) => { err.textContent = (e as Error).message; cont.disabled = false; cont.textContent = "Continue"; });
     };
+    const cont = h("button", { class: "primary-btn", onclick: go }, "Continue") as HTMLButtonElement;
     email.addEventListener("keydown", (e) => { if (e.key === "Enter") go(); });
     const mine = localAccounts();
     sheet.replaceChildren(
@@ -110,14 +116,40 @@ export function createAccount(opts: {
         h("div", { class: "si-people" }, ...mine.slice(0, 4).map((p) => h("button", { class: "si-person", onclick: () => { signIn(p); done(p, false); } }, avatarEl(p, 40), h("strong", {}, p.name), h("small", {}, `@${p.handle}`))))) : "",
       h("div", { class: "si-block" },
         h("label", { class: "si-label" }, "Sign in or join with email"),
-        h("div", { class: "si-row" }, email, h("button", { class: "primary-btn", onclick: go }, "Continue")), err),
+        h("div", { class: "si-row" }, email, cont), err),
       h("div", { class: "si-or" }, h("span", {}, "or be someone for a while")),
       h("div", { class: "si-people" }, ...DEMO_PROFILES.slice(0, 6).map((d) => {
         const role = ROLES.find((r) => r.id === d.role)!;
         return h("button", { class: "si-person", onclick: () => { const copy = structuredClone(d); signIn(copy); done(copy, false); } }, avatarEl(d, 40), h("strong", {}, d.name.split(" ")[0]), h("small", {}, role.short ?? role.label));
       })),
-      h("p", { class: "si-fine" }, "This is a preview: your account lives in this browser, and nothing is sent anywhere. When Atlas's servers are switched on, you'll be able to sign in from any device."));
+      h("p", { class: "si-fine" }, cloudOn()
+        ? "We'll email you a six-digit code: no password to remember. Your page is public, so people can find it; everything else you make stays yours."
+        : "This is a preview: your account lives in this browser, and nothing is sent anywhere. When Atlas's servers are switched on, you'll be able to sign in from any device."));
     setTimeout(() => email.focus(), 60);
+  }
+
+  /** With Atlas's servers: the six-digit code from the email. */
+  function codeStep(email: string) {
+    const code = h("input", { class: "si-input si-code", inputmode: "numeric", autocomplete: "one-time-code", maxlength: 6, placeholder: "••••••", "aria-label": "Six-digit code" }) as HTMLInputElement;
+    const err = h("p", { class: "si-err", role: "alert" });
+    const check = async () => {
+      const t = code.value.replace(/\D/g, "");
+      if (t.length !== 6) { err.textContent = "The code has six digits."; return; }
+      err.textContent = "";
+      code.disabled = true;
+      try {
+        await verifyCode(email, t);
+        const mine = await pullMine().catch(() => null);
+        if (mine) { linkHandle(mine.handle); signIn(mine, email); done(mine, false); }
+        else createStep(email);
+      } catch (e) { err.textContent = (e as Error).message.replace(/token/i, "code"); code.disabled = false; code.focus(); }
+    };
+    code.addEventListener("input", () => { if (code.value.replace(/\D/g, "").length === 6) void check(); });
+    sheet.replaceChildren(
+      head("Check your email", `We sent a six-digit code to ${email}.`),
+      code, err,
+      h("div", { class: "si-actions" }, h("button", { class: "link-btn", onclick: startStep }, "Use another email"), h("button", { class: "link-btn", onclick: () => void sendCode(email).then(() => (err.textContent = "Sent again.")).catch((e) => (err.textContent = (e as Error).message)) }, "Send it again")));
+    setTimeout(() => code.focus(), 60);
   }
 
   function createStep(email: string) {
@@ -147,10 +179,16 @@ export function createAccount(opts: {
       if (!n) { err.textContent = "What should we call you?"; name.focus(); return; }
       if (hd.length < 2) { err.textContent = "Your handle needs at least two letters or numbers."; handle.focus(); return; }
       if (handleTaken(hd)) { err.textContent = `@${hd} is taken. Try another.`; handle.focus(); return; }
-      const p = blankProfile(n, hd, role);
-      p.avatar = { emoji, color };
-      signIn(p, email);
-      done(p, true);
+      const finish = () => {
+        const p = blankProfile(n, hd, role);
+        p.avatar = { emoji, color };
+        if (cloudOn()) linkHandle(hd);
+        signIn(p, email);
+        pushProfile(p);
+        done(p, true);
+      };
+      if (!cloudOn()) { finish(); return; }
+      handleFree(hd).then((ok) => { if (ok) finish(); else { err.textContent = `@${hd} is taken. Try another.`; handle.focus(); } }).catch(() => (err.textContent = "Couldn't reach Atlas's servers. Try again in a moment."));
     };
     sheet.replaceChildren(
       head("Make your page", email),

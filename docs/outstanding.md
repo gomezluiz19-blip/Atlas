@@ -2,7 +2,13 @@
 
 Things agreed and pinned for later. Ask "what's outstanding?" and this is the list.
 
-## Back end to a workable state (pinned 2026-09-29)
+## Back end to a workable state (pinned 2026-09-29; built 2026-09-29, waiting on accounts)
+
+Built: Supabase schema and client (sign-in by emailed code, pages, guestbooks, follows, lenses, guides,
+private sync), and the edge Worker (cache + keys). To switch on: `docs/backend.md` (about 25 minutes).
+Still to build once Supabase is connected: the scheduled job that sends push alerts for watches.
+
+The original plan, for reference:
 
 Atlas is a static site; every figure comes from the browser calling ~30 public services directly, and
 everything people make lives only in their browser. Before real users:

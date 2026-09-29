@@ -10,4 +10,9 @@ export const config = {
   seatgeekClientId: (import.meta.env.VITE_SEATGEEK_CLIENT_ID as string | undefined) || "",
   eventbriteToken: (import.meta.env.VITE_EVENTBRITE_TOKEN as string | undefined) || "",
   eventbriteOrg: (import.meta.env.VITE_EVENTBRITE_ORG_ID as string | undefined) || "",
+  /** Atlas's edge (proxy/atlas-edge-worker.js): caches the free public services and holds service keys. */
+  edge: ((import.meta.env.VITE_ATLAS_EDGE as string | undefined) || "").replace(/\/$/, ""),
+  /** Which keyed services the edge holds keys for: "ticketmaster,seatgeek,eventbrite". */
+  edgeKeys: ((import.meta.env.VITE_ATLAS_EDGE_KEYS as string | undefined) || "").split(",").map((s) => s.trim()).filter(Boolean),
 };
+export const edgeHas = (service: string) => !!config.edge && config.edgeKeys.includes(service);

@@ -391,3 +391,5 @@ textarea.pf-input { resize: vertical; line-height: 1.45; }
   .cl-hours { grid-template-columns: repeat(4, 1fr); }
   .pf-return { top: calc(var(--gutter) + var(--bar) + 6px + env(safe-area-inset-top, 0px)); }
 }
+
+.si-code { font-size: 30px; letter-spacing: 0.4em; text-align: center; font-variant-numeric: tabular-nums; }

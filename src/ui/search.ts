@@ -4,6 +4,7 @@ import { BoundingSphere, Cartesian3, HeadingPitchRange, Math as CesiumMath } fro
 import { elevation } from "../data/elevation";
 import type { Globe } from "../globe/viewer";
 import { h } from "./dom";
+import { viaEdge } from "../data/http";
 import { icons } from "./icons";
 import { decodePlusCode, formatCoordinates, parseLocation, recoverPlusCode } from "../data/locationParse";
 
@@ -152,7 +153,7 @@ interface PhotonFeature {
 async function photon(q: string, bias: { lat: number; lon: number } | null, signal: AbortSignal): Promise<SearchResult[]> {
   let url = `https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&limit=8`;
   if (bias) url += `&lat=${bias.lat.toFixed(3)}&lon=${bias.lon.toFixed(3)}&location_bias_scale=0.3`;
-  const res = await fetch(url, { signal });
+  const res = await fetch(viaEdge(url), { signal });
   if (!res.ok) throw new Error(`Search failed (HTTP ${res.status})`);
   const body = (await res.json()) as { features: PhotonFeature[] };
   return body.features.map((f) => {
@@ -173,7 +174,7 @@ async function photon(q: string, bias: { lat: number; lon: number } | null, sign
 /** One-off search (Nominatim), used as a fallback when Photon is unavailable. */
 async function nominatim(q: string, signal: AbortSignal): Promise<SearchResult[]> {
   const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=6&q=${encodeURIComponent(q)}`;
-  const res = await fetch(url, { signal, headers: { "Accept-Language": navigator.language } });
+  const res = await fetch(viaEdge(url), { signal, headers: { "Accept-Language": navigator.language } });
   if (!res.ok) throw new Error(`Search failed (HTTP ${res.status})`);
   const rows = (await res.json()) as { display_name: string; lat: string; lon: string; boundingbox: string[]; type: string }[];
   return rows.map((r) => {

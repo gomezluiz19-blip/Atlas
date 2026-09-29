@@ -3,6 +3,8 @@
 // servers are switched on, an account lives in this browser (so signing in is
 // a preview: nothing is sent anywhere).
 import { DEMO_PROFILES } from "./demo";
+import { cloudSignOut } from "../cloud/client";
+import { followRemote, linkHandle, pushProfile, signRemote } from "../cloud/sync";
 import { profileFromJson, type Profile, type Signature } from "./model";
 
 const ACCOUNT = "atlas.account.v1";
@@ -42,10 +44,13 @@ export function signIn(p: Profile, email?: string) {
 }
 export function signOut() {
   try { localStorage.removeItem(ACCOUNT); } catch { /* ignore */ }
+  linkHandle(null);
+  void cloudSignOut();
   changed();
 }
 export function saveProfile(p: Profile) {
   write(MINE, { ...mine(), [p.handle]: p });
+  pushProfile(p);
   changed();
 }
 /** Accounts made on this device (to switch between). */
@@ -79,10 +84,11 @@ export const findProfile = (handle: string) => allProfiles().find((p) => p.handl
 
 export function sign(p: Profile, sig: Signature) {
   const own = mine()[p.handle];
-  if (own) { own.guestbook.unshift(sig); saveProfile(own); return; }
+  if (own) { own.guestbook.unshift(sig); saveProfile(own); void signRemote(p.handle, sig).catch(() => {}); return; }
   const signed = read<Record<string, Signature[]>>(SIGNED, {});
   signed[p.handle] = [sig, ...(signed[p.handle] ?? [])].slice(0, 50);
   write(SIGNED, signed);
+  void signRemote(p.handle, sig).catch(() => {});
   changed();
 }
 
@@ -90,6 +96,7 @@ export const following = (): string[] => read<string[]>(FOLLOWS, []);
 export const isFollowing = (handle: string) => following().includes(handle);
 export function follow(handle: string, on: boolean) {
   write(FOLLOWS, on ? [...new Set([...following(), handle])] : following().filter((h) => h !== handle));
+  void followRemote(handle, on).catch(() => {});
   changed();
 }
 

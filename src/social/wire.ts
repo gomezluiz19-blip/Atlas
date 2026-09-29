@@ -5,7 +5,9 @@
 import "./social.css";
 import type { App } from "../app";
 import { customLens, type LensDef } from "../lenses/custom";
-import { findLens, myLenses } from "../lenses/library";
+import { findLens, myLenses, rememberLens } from "../lenses/library";
+import { cloudOn } from "../cloud/client";
+import { fetchLens } from "../cloud/sync";
 import { createLensStudio } from "../lenses/studio";
 import type { Lens } from "../lenses/types";
 import { flyToPlace } from "../ui/search";
@@ -109,7 +111,10 @@ export function wireSocial(app: App, deps: SocialDeps) {
       if (arg.startsWith("~")) { if (!(await profiles.openPacked(arg.slice(1)))) app.toast("That page link is damaged. Ask for it again.", 4000); }
       else profiles.open(arg);
     } else if (arg.startsWith("~")) { if (!(await studio.openPacked(arg.slice(1)))) app.toast("That lens link is damaged. Ask for it again.", 4000); }
-    else { const d = findLens(arg); if (d) studio.open(d); else app.toast("Couldn't find that lens.", 3500); }
+    else {
+      const d = findLens(arg) ?? (cloudOn() ? await fetchLens(arg).catch(() => null) : null);
+      if (d) { rememberLens(d); studio.open(d); } else app.toast("Couldn't find that lens.", 3500);
+    }
     try { history.replaceState(null, "", location.pathname); } catch { /* embedded viewers */ }
   };
   addEventListener("hashchange", () => void route());

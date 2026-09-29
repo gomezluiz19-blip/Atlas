@@ -41,6 +41,10 @@ jobs:
           VITE_EVENTBRITE_ORG_ID: ${{ vars.EVENTBRITE_ORG_ID }}
           # The Atlas AI proxy (docs/ai-proxy.md): a URL, not a secret; the API key stays in the proxy.
           VITE_ATLAS_AI_PROXY: ${{ vars.ATLAS_AI_PROXY }}
+          VITE_ATLAS_EDGE: ${{ vars.ATLAS_EDGE }}
+          VITE_ATLAS_EDGE_KEYS: ${{ vars.ATLAS_EDGE_KEYS }}
+          VITE_FEEDBACK_URL: ${{ vars.FEEDBACK_URL }}
+          VITE_VAPID_PUBLIC_KEY: ${{ vars.VAPID_PUBLIC_KEY }}
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist

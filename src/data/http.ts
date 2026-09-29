@@ -9,6 +9,12 @@ export class ServiceError extends Error {
   }
 }
 
+// Through Atlas's edge when it's set up: one cache in front of the free public services, so a crowd of
+// visitors looks like one polite client (Nominatim allows a request a second; others throttle too).
+const EDGE = ((import.meta.env?.VITE_ATLAS_EDGE as string | undefined) || "").replace(/\/$/, "");
+const EDGE_HOSTS = /^https:\/\/(nominatim\.openstreetmap\.org|photon\.komoot\.io|api\.open-meteo\.com|archive-api\.open-meteo\.com|marine-api\.open-meteo\.com|climate-api\.open-meteo\.com|query\.wikidata\.org|overpass-api\.de|api\.inaturalist\.org|macrostrat\.org|api\.worldbank\.org|restcountries\.com|services\.swpc\.noaa\.gov|earthquake\.usgs\.gov|[a-z]+\.wikipedia\.org)\//;
+export const viaEdge = (url: string) => (EDGE && EDGE_HOSTS.test(url) ? `${EDGE}/f/${encodeURIComponent(url)}` : url);
+
 const RETRYABLE = new Set([408, 425, 429, 500, 502, 503, 504]);
 const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -20,7 +26,7 @@ const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
 export async function fetchRetry(url: string, init: RequestInit = {}, tries = 3, baseDelayMs = 400): Promise<Response> {
   for (let attempt = 1; ; attempt++) {
     try {
-      const res = await fetch(url, init);
+      const res = await fetch(viaEdge(url), init);
       if (!RETRYABLE.has(res.status) || attempt >= tries) return res;
       const after = Number(res.headers.get("retry-after"));
       await wait(after > 0 && after < 30 ? after * 1000 : baseDelayMs * 2 ** (attempt - 1));

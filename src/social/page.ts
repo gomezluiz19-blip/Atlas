@@ -8,6 +8,8 @@ import type { App } from "../app";
 import { reverseGeocode } from "../data/geocode";
 import { overpass, elementPoint } from "../data/overpass";
 import { packJson, unpackJson } from "../data/pack";
+import { cloudOn } from "../cloud/client";
+import { fetchProfile, fetchSignatures } from "../cloud/sync";
 import { h } from "../ui/dom";
 import { icons } from "../ui/icons";
 import { flyToPlace, geocode } from "../ui/search";
@@ -432,7 +434,7 @@ export function createProfiles(app: App, deps: {
 
   async function share(p: Profile) {
     const lean = { ...p, demo: undefined };
-    const link = p.demo || !isMe(p.handle) ? `${location.origin}${location.pathname}#/u/${p.handle}` : `${location.origin}${location.pathname}#/u/~${await packJson(lean)}`;
+    const link = p.demo || !isMe(p.handle) || cloudOn() ? `${location.origin}${location.pathname}#/u/${p.handle}` : `${location.origin}${location.pathname}#/u/~${await packJson(lean)}`;
     try {
       if (navigator.share && matchMedia("(pointer: coarse)").matches) await navigator.share({ title: `${p.name} on Atlas`, url: link });
       else { await navigator.clipboard.writeText(link); app.toast(isMe(p.handle) ? "Link to your page copied. It carries the whole page, so it works anywhere." : "Link copied", 3500); }
@@ -443,11 +445,25 @@ export function createProfiles(app: App, deps: {
     get isOpen() { return !el.hidden; },
     open(handle, edit = false) {
       const p = findProfile(handle);
-      if (!p) { app.toast(`There's no one called @${handle} on this device yet.`, 3500); return; }
+      if (!p) {
+        if (!cloudOn()) { app.toast(`There's no one called @${handle} on this device yet.`, 3500); return; }
+        void fetchProfile(handle.replace(/^@/, "").toLowerCase()).then((r) => {
+          if (!r) { app.toast(`There's no one called @${handle} on Atlas.`, 3500); return; }
+          remember(r); show(r); el.scrollTop = 0; frame(r);
+        }).catch(() => app.toast("Couldn't reach Atlas's servers just now.", 3500));
+        return;
+      }
       editing = edit && isMe(p.handle);
       show(isMe(p.handle) ? p : structuredClone(p));
       el.scrollTop = 0;
       frame(p);
+      // The latest guestbook from the servers (a page made elsewhere, signed by anyone).
+      if (cloudOn() && !p.demo) void fetchSignatures(p.handle).then((sigs) => {
+        if (current?.handle !== p.handle || !sigs.length) return;
+        const seen = new Set(current.guestbook.map((g) => g.from + g.text));
+        current.guestbook = [...sigs.filter((g) => !seen.has(g.from + g.text)), ...current.guestbook].sort((a, b) => b.at.localeCompare(a.at));
+        render();
+      }).catch(() => {});
     },
     async openPacked(packed) {
       const raw = await unpackJson(packed);

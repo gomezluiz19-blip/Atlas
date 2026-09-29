@@ -3,7 +3,7 @@
 // search by location; Eventbrite lists one organisation's own events (its
 // public search closed in 2020). Without any, Wikidata still knows the
 // festivals and annual events held nearby.
-import { config } from "../config";
+import { config, edgeHas } from "../config";
 import { getJson } from "./http";
 
 export type EventKind = "music" | "sports" | "arts" | "family" | "food" | "talks" | "festival" | "other";
@@ -26,11 +26,12 @@ export interface EventItem {
 
 export interface Festival { name: string; about?: string; when?: string; url?: string; lon: number; lat: number }
 
-export const EVENT_SOURCES = () => [
-  config.ticketmasterKey ? "Ticketmaster" : "",
-  config.seatgeekClientId ? "SeatGeek" : "",
-  config.eventbriteToken && config.eventbriteOrg ? "Eventbrite" : "",
-].filter(Boolean);
+// Each service works with a key in the build (development) or through Atlas's edge, which holds the key.
+const hasTm = () => !!config.ticketmasterKey || edgeHas("ticketmaster");
+const hasSg = () => !!config.seatgeekClientId || edgeHas("seatgeek");
+const hasEb = () => !!config.eventbriteOrg && (!!config.eventbriteToken || edgeHas("eventbrite"));
+
+export const EVENT_SOURCES = () => [hasTm() ? "Ticketmaster" : "", hasSg() ? "SeatGeek" : "", hasEb() ? "Eventbrite" : ""].filter(Boolean);
 
 export function kindOf(text: string): EventKind {
   const t = text.toLowerCase();
@@ -63,7 +64,7 @@ interface TmEvent {
 async function ticketmaster(lon: number, lat: number, km: number): Promise<EventItem[]> {
   const start = new Date().toISOString().slice(0, 19) + "Z";
   const body = await getJson<{ _embedded?: { events?: TmEvent[] } }>("Ticketmaster",
-    `https://app.ticketmaster.com/discovery/v2/events.json?apikey=${encodeURIComponent(config.ticketmasterKey)}&latlong=${lat.toFixed(4)},${lon.toFixed(4)}&radius=${Math.round(km)}&unit=km&size=60&sort=date,asc&startDateTime=${start}`);
+    `${edgeHas("ticketmaster") ? `${config.edge}/k/ticketmaster/discovery/v2/events.json?` : `https://app.ticketmaster.com/discovery/v2/events.json?apikey=${encodeURIComponent(config.ticketmasterKey)}&`}latlong=${lat.toFixed(4)},${lon.toFixed(4)}&radius=${Math.round(km)}&unit=km&size=60&sort=date,asc&startDateTime=${start}`);
   return (body._embedded?.events ?? []).flatMap((e): EventItem[] => {
     const d = e.dates?.start?.localDate;
     if (!d) return [];
@@ -81,7 +82,7 @@ interface SgEvent { id: number; title: string; url?: string; datetime_local?: st
 
 async function seatgeek(lon: number, lat: number, km: number): Promise<EventItem[]> {
   const body = await getJson<{ events?: SgEvent[] }>("SeatGeek",
-    `https://api.seatgeek.com/2/events?client_id=${encodeURIComponent(config.seatgeekClientId)}&lat=${lat.toFixed(4)}&lon=${lon.toFixed(4)}&range=${Math.round(km)}km&per_page=60&sort=datetime_local.asc`);
+    `${edgeHas("seatgeek") ? `${config.edge}/k/seatgeek/2/events?` : `https://api.seatgeek.com/2/events?client_id=${encodeURIComponent(config.seatgeekClientId)}&`}lat=${lat.toFixed(4)}&lon=${lon.toFixed(4)}&range=${Math.round(km)}km&per_page=60&sort=datetime_local.asc`);
   return (body.events ?? []).flatMap((e): EventItem[] => {
     if (!e.datetime_local) return [];
     return [{
@@ -96,8 +97,8 @@ interface EbEvent { id: string; name?: { text?: string }; url?: string; start?: 
 
 async function eventbrite(): Promise<EventItem[]> {
   const body = await getJson<{ events?: EbEvent[] }>("Eventbrite",
-    `https://www.eventbriteapi.com/v3/organizations/${encodeURIComponent(config.eventbriteOrg)}/events/?status=live&order_by=start_asc&expand=venue`,
-    { headers: { Authorization: `Bearer ${config.eventbriteToken}` } });
+    `${edgeHas("eventbrite") ? `${config.edge}/k/eventbrite` : "https://www.eventbriteapi.com"}/v3/organizations/${encodeURIComponent(config.eventbriteOrg)}/events/?status=live&order_by=start_asc&expand=venue`,
+    edgeHas("eventbrite") ? undefined : { headers: { Authorization: `Bearer ${config.eventbriteToken}` } });
   return (body.events ?? []).flatMap((e): EventItem[] => {
     const s = e.start?.local;
     if (!s) return [];
@@ -112,9 +113,9 @@ async function eventbrite(): Promise<EventItem[]> {
 /** Upcoming events from every connected service, soonest first, without duplicates. */
 export async function eventsNear(lon: number, lat: number, km = 25): Promise<{ items: EventItem[]; failed: string[] }> {
   const jobs: [string, Promise<EventItem[]>][] = [];
-  if (config.ticketmasterKey) jobs.push(["Ticketmaster", ticketmaster(lon, lat, km)]);
-  if (config.seatgeekClientId) jobs.push(["SeatGeek", seatgeek(lon, lat, km)]);
-  if (config.eventbriteToken && config.eventbriteOrg) jobs.push(["Eventbrite", eventbrite()]);
+  if (hasTm()) jobs.push(["Ticketmaster", ticketmaster(lon, lat, km)]);
+  if (hasSg()) jobs.push(["SeatGeek", seatgeek(lon, lat, km)]);
+  if (hasEb()) jobs.push(["Eventbrite", eventbrite()]);
   const got = await Promise.allSettled(jobs.map(([, p]) => p));
   const failed = jobs.filter((_, i) => got[i].status === "rejected").map(([n]) => n);
   const all = got.flatMap((g) => (g.status === "fulfilled" ? g.value : []));
