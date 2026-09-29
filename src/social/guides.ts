@@ -6,6 +6,7 @@ import { ArcType, Cartesian3, Color, HeightReference, VerticalOrigin, type Entit
 import type { App } from "../app";
 import { pushGuide } from "../cloud/sync";
 import { h } from "../ui/dom";
+import { canvasUrl } from "../ui/canvasUrl";
 import { icons } from "../ui/icons";
 import { flyToPlace } from "../ui/search";
 import { avatarEl } from "./account";
@@ -14,18 +15,18 @@ import { SPOT_KINDS, type Guide, type Profile, type Spot } from "./model";
 const newId = () => Math.random().toString(36).slice(2, 10);
 const stopsOf = (p: Profile, g: Guide) => g.stops.map((st) => ({ st, spot: p.spots.find((x) => x.id === st.spot) })).filter((x): x is { st: Guide["stops"][number]; spot: Spot } => !!x.spot);
 
-const numberPin = (n: number, color: string) => {
+const numberPin = (n: number, color: string) => canvasUrl(`gd|${n}|${color}`, () => {
   const c = document.createElement("canvas");
   c.width = 52; c.height = 52;
-  const g = c.getContext("2d")!;
+  const g = c.getContext("2d", { willReadFrequently: true })!;
   g.shadowColor = "rgba(0,0,0,.35)"; g.shadowBlur = 6; g.shadowOffsetY = 2;
   g.beginPath(); g.arc(26, 26, 20, 0, Math.PI * 2); g.fillStyle = color; g.fill();
   g.shadowColor = "transparent";
   g.lineWidth = 3.5; g.strokeStyle = "#fff"; g.stroke();
   g.fillStyle = "#fff"; g.font = "700 20px Inter, system-ui, sans-serif"; g.textAlign = "center"; g.textBaseline = "middle";
   g.fillText(String(n), 26, 27);
-  return c.toDataURL();
-};
+  return c;
+});
 
 /** Plays a guide on the globe. Returns a function that stops it. */
 export function playGuide(app: App, p: Profile, g: Guide, opts: { color: string; onClose(): void; onShare(): void }): () => void {
@@ -33,7 +34,12 @@ export function playGuide(app: App, p: Profile, g: Guide, opts: { color: string;
   const stops = stopsOf(p, g);
   const drawn: Entity[] = [];
   drawn.push(viewer.entities.add({ polyline: { positions: stops.map((x) => Cartesian3.fromDegrees(x.spot.lon, x.spot.lat)), width: 4, arcType: ArcType.GEODESIC, clampToGround: stops.every((x, i) => i === 0 || Math.hypot(x.spot.lon - stops[i - 1].spot.lon, x.spot.lat - stops[i - 1].spot.lat) < 3), material: Color.fromCssColorString(opts.color).withAlpha(0.85) } }));
-  stops.forEach((x, i) => drawn.push(viewer.entities.add({ position: Cartesian3.fromDegrees(x.spot.lon, x.spot.lat), billboard: { image: numberPin(i + 1, opts.color), scale: 0.6, verticalOrigin: VerticalOrigin.CENTER, heightReference: HeightReference.CLAMP_TO_GROUND, disableDepthTestDistance: Number.POSITIVE_INFINITY } })));
+  let stopped = false;
+  void Promise.all(stops.map((_, i) => numberPin(i + 1, opts.color))).then((imgs) => {
+    if (stopped) return;
+    stops.forEach((x, i) => drawn.push(viewer.entities.add({ position: Cartesian3.fromDegrees(x.spot.lon, x.spot.lat), billboard: { image: imgs[i], scale: 0.6, verticalOrigin: VerticalOrigin.CENTER, heightReference: HeightReference.CLAMP_TO_GROUND, disableDepthTestDistance: Number.POSITIVE_INFINITY } })));
+    viewer.scene.requestRender();
+  });
   viewer.scene.requestRender();
 
   let i = 0, playing = false, timer = 0;
@@ -49,6 +55,7 @@ export function playGuide(app: App, p: Profile, g: Guide, opts: { color: string;
   };
   const setPlaying = (on: boolean) => { playing = on; clearTimeout(timer); if (on) go(i); else render(); };
   const stop = () => {
+    stopped = true;
     clearTimeout(timer);
     for (const e of drawn) viewer.entities.remove(e);
     viewer.scene.requestRender();

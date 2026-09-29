@@ -106,7 +106,7 @@ function emojiImage(e: string): string {
   if (!url) {
     const c = document.createElement("canvas");
     c.width = c.height = 72;
-    const g = c.getContext("2d")!;
+    const g = c.getContext("2d", { willReadFrequently: true })!;
     g.fillStyle = "rgba(255,255,255,0.92)";
     g.beginPath();
     g.arc(36, 36, 30, 0, Math.PI * 2);

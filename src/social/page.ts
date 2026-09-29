@@ -11,6 +11,7 @@ import { packJson, unpackJson } from "../data/pack";
 import { cloudOn } from "../cloud/client";
 import { fetchProfile, fetchSignatures } from "../cloud/sync";
 import { h } from "../ui/dom";
+import { canvasUrl } from "../ui/canvasUrl";
 import { icons } from "../ui/icons";
 import { flyToPlace, geocode } from "../ui/search";
 import { avatarEl } from "./account";
@@ -40,16 +41,12 @@ function bannerTiles(lon: number, lat: number, z = 13): HTMLElement {
 
 // ---- Pins on the globe --------------------------------------------------------------------------
 
-const pinCache = new Map<string, string>();
-/** A pin as a data URL (Cesium keys its texture atlas by URL, so redrawn pins always appear). */
-function pinImage(emoji: string, color: string, big = false): string {
-  const key = `${emoji}|${color}|${big}`;
-  const hit = pinCache.get(key);
-  if (hit) return hit;
+/** A pin as an image URL (Cesium keys its texture atlas by URL, so redrawn pins always appear). */
+const pinImage = (emoji: string, color: string, big = false) => canvasUrl(`pf|${emoji}|${color}|${big}`, () => {
   const s = big ? 2.4 : 2, W = 30 * s, H = 38 * s;
   const c = document.createElement("canvas");
   c.width = W; c.height = H;
-  const g = c.getContext("2d")!;
+  const g = c.getContext("2d", { willReadFrequently: true })!;
   g.scale(s, s);
   g.shadowColor = "rgba(0,0,0,0.35)"; g.shadowBlur = 4; g.shadowOffsetY = 1.5;
   g.beginPath();
@@ -60,10 +57,8 @@ function pinImage(emoji: string, color: string, big = false): string {
   g.beginPath(); g.arc(15, 15, 10, 0, Math.PI * 2); g.fillStyle = "#fff"; g.fill();
   g.font = "13px system-ui, 'Apple Color Emoji', 'Segoe UI Emoji', sans-serif"; g.textAlign = "center"; g.textBaseline = "middle";
   g.fillText(emoji, 15, 15.5);
-  const url = c.toDataURL();
-  pinCache.set(key, url);
-  return url;
-}
+  return c;
+});
 
 // ---- The page ---------------------------------------------------------------------------------------
 
@@ -123,25 +118,31 @@ export function createProfiles(app: App, deps: {
   let pins: Entity[] = [];
   let touring = 0;
 
-  const clearPins = () => { for (const e of pins) viewer.entities.remove(e); pins = []; viewer.scene.requestRender(); };
+  const clearPins = () => { pinJob++; for (const e of pins) viewer.entities.remove(e); pins = []; viewer.scene.requestRender(); };
+  let pinJob = 0;
   const drawPins = (p: Profile) => {
     clearPins();
+    const my = ++pinJob;
     const accent = SKIN_ACCENT[p.skin] ?? p.avatar.color;
     const top = new Set(p.top);
-    for (const s of p.spots)
-      pins.push(viewer.entities.add({
+    const notes = p.posts.filter((post) => post.lon !== undefined && post.lat !== undefined && !post.spot);
+    void Promise.all([
+      Promise.all(p.spots.map((s) => pinImage(SPOT_KINDS[s.kind].emoji, accent, top.has(s.id)))),
+      Promise.all(notes.map((post) => pinImage(NOTE_KINDS.find((k) => k.id === post.kind)?.emoji ?? "📝", accent))),
+    ]).then(([spotImgs, noteImgs]) => {
+      if (my !== pinJob || !current) return;
+      p.spots.forEach((s, i) => pins.push(viewer.entities.add({
         position: Cartesian3.fromDegrees(s.lon, s.lat),
-        billboard: { image: pinImage(SPOT_KINDS[s.kind].emoji, accent, top.has(s.id)), verticalOrigin: VerticalOrigin.BOTTOM, heightReference: HeightReference.CLAMP_TO_GROUND, disableDepthTestDistance: Number.POSITIVE_INFINITY, scale: 0.5 },
+        billboard: { image: spotImgs[i], verticalOrigin: VerticalOrigin.BOTTOM, heightReference: HeightReference.CLAMP_TO_GROUND, disableDepthTestDistance: Number.POSITIVE_INFINITY, scale: 0.5 },
         label: { text: s.name, font: "600 12px Inter, system-ui, sans-serif", fillColor: Color.WHITE, outlineColor: Color.fromCssColorString("rgba(0,0,0,0.75)"), outlineWidth: 3, style: LabelStyle.FILL_AND_OUTLINE, verticalOrigin: VerticalOrigin.TOP, pixelOffset: { x: 0, y: 4 } as never, heightReference: HeightReference.CLAMP_TO_GROUND, disableDepthTestDistance: Number.POSITIVE_INFINITY, distanceDisplayCondition: { near: 0, far: 60_000 } as never },
-      }));
-    // Field notes, where they were taken.
-    for (const post of p.posts)
-      if (post.lon !== undefined && post.lat !== undefined && !post.spot)
-        pins.push(viewer.entities.add({
-          position: Cartesian3.fromDegrees(post.lon, post.lat),
-          billboard: { image: pinImage(NOTE_KINDS.find((k) => k.id === post.kind)?.emoji ?? "📝", accent), verticalOrigin: VerticalOrigin.BOTTOM, heightReference: HeightReference.CLAMP_TO_GROUND, disableDepthTestDistance: Number.POSITIVE_INFINITY, scale: 0.42 },
-        }));
-    viewer.scene.requestRender();
+      })));
+      // Field notes, where they were taken.
+      notes.forEach((post, i) => pins.push(viewer.entities.add({
+        position: Cartesian3.fromDegrees(post.lon!, post.lat!),
+        billboard: { image: noteImgs[i], verticalOrigin: VerticalOrigin.BOTTOM, heightReference: HeightReference.CLAMP_TO_GROUND, disableDepthTestDistance: Number.POSITIVE_INFINITY, scale: 0.42 },
+      })));
+      viewer.scene.requestRender();
+    });
   };
   /** Frames every place on the page. */
   const frame = (p: Profile) => {

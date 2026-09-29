@@ -92,7 +92,7 @@ function deviceIcon(type: Device["type"]): string {
   if (!url) {
     const c = document.createElement("canvas");
     c.width = c.height = 48;
-    const ctx = c.getContext("2d")!;
+    const ctx = c.getContext("2d", { willReadFrequently: true })!;
     ctx.beginPath();
     ctx.arc(24, 24, 20, 0, Math.PI * 2);
     ctx.fillStyle = DEVICES[type].color;

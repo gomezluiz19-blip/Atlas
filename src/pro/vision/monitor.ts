@@ -156,7 +156,7 @@ export class CameraMonitor {
   private thumb(el: CanvasImageSource): string {
     const c = this.thumbCanvas;
     c.width = 192; c.height = 108;
-    c.getContext("2d")!.drawImage(el, 0, 0, c.width, c.height);
+    c.getContext("2d", { willReadFrequently: true })!.drawImage(el, 0, 0, c.width, c.height);
     return c.toDataURL("image/jpeg", 0.7);
   }
 

@@ -11,6 +11,7 @@ import { sunPosition } from "../delight/sun";
 import { latestKp } from "../data/space";
 import { magneticLatitude } from "../analysis/insights";
 import { h } from "../ui/dom";
+import { canvasUrl } from "../ui/canvasUrl";
 import type { Lens, LensHost, Subject, SubjectKind } from "./types";
 
 // ---- The recipe ----------------------------------------------------------------------------------
@@ -161,27 +162,26 @@ interface Verdict { score: number; why: string }
 
 // ---- Showing it -----------------------------------------------------------------------------------
 
-type Ctx = { app: App; s: Subject; def: LensDef; pins: Entity[]; verdicts: Verdict[]; paintVerdict(): void; headless?: boolean };
+type Ctx = { app: App; s: Subject; def: LensDef; pins: Entity[]; verdicts: Verdict[]; paintVerdict(): void; headless?: boolean; closed?: boolean };
 
-const pins = new Map<string, string>();
-const pinFor = (emoji: string, color: string) => {
-  const key = emoji + color;
-  if (pins.has(key)) return pins.get(key)!;
+const pinFor = (emoji: string, color: string) => canvasUrl(`lens|${emoji}|${color}`, () => {
   const c = document.createElement("canvas");
   c.width = 44; c.height = 44;
-  const g = c.getContext("2d")!;
+  const g = c.getContext("2d", { willReadFrequently: true })!;
   g.beginPath(); g.arc(22, 22, 19, 0, Math.PI * 2); g.fillStyle = color; g.fill();
   g.lineWidth = 3; g.strokeStyle = "#fff"; g.stroke();
   g.font = "20px system-ui, 'Apple Color Emoji', 'Segoe UI Emoji', sans-serif"; g.textAlign = "center"; g.textBaseline = "middle";
   g.fillText(emoji, 22, 23);
-  pins.set(key, c.toDataURL());
-  return pins.get(key)!;
-};
+  return c;
+});
 function pin(ctx: Ctx, lon: number, lat: number, emoji: string, name?: string) {
   if (ctx.headless) return;
+  void pinFor(emoji, ctx.def.color).then((image) => { if (!ctx.closed) { addPin(ctx, lon, lat, image, name); ctx.app.globe.viewer.scene.requestRender(); } });
+}
+function addPin(ctx: Ctx, lon: number, lat: number, image: string, name?: string) {
   ctx.pins.push(ctx.app.globe.viewer.entities.add({
     position: Cartesian3.fromDegrees(lon, lat),
-    billboard: { image: pinFor(emoji, ctx.def.color), heightReference: HeightReference.CLAMP_TO_GROUND, verticalOrigin: VerticalOrigin.CENTER, scale: 0.55, disableDepthTestDistance: Number.POSITIVE_INFINITY },
+    billboard: { image, heightReference: HeightReference.CLAMP_TO_GROUND, verticalOrigin: VerticalOrigin.CENTER, scale: 0.55, disableDepthTestDistance: Number.POSITIVE_INFINITY },
     label: name ? { text: name, font: "600 11px Inter, system-ui, sans-serif", fillColor: Color.WHITE, outlineColor: Color.BLACK.withAlpha(0.7), outlineWidth: 3, style: LabelStyle.FILL_AND_OUTLINE, verticalOrigin: VerticalOrigin.TOP, pixelOffset: { x: 0, y: 14 } as never, heightReference: HeightReference.CLAMP_TO_GROUND, disableDepthTestDistance: Number.POSITIVE_INFINITY, distanceDisplayCondition: { near: 0, far: 30_000 } as never } : undefined,
   }));
 }
@@ -387,7 +387,7 @@ export async function judgeLens(app: App, s: Subject, def: LensDef): Promise<Jud
 
 export function renderLens(host: LensHost, s: Subject, def: LensDef, opts: { author?: HTMLElement; headless?: boolean } = {}): Promise<Omit<Judgement, "at"> | null> {
   const ctx: Ctx = { app: host.app, s, def, pins: [], verdicts: [], paintVerdict: () => {}, headless: opts.headless };
-  host.onClose(() => { for (const e of ctx.pins) host.app.globe.viewer.entities.remove(e); host.app.globe.viewer.scene.requestRender(); });
+  host.onClose(() => { ctx.closed = true; for (const e of ctx.pins) host.app.globe.viewer.entities.remove(e); host.app.globe.viewer.scene.requestRender(); });
   const verdict = h("div", { class: "cl-verdict wait", style: `--lc:${def.color}` }, h("span", { class: "spinner small" }), h("span", {}, `Reading ${s.name} for ${def.name.toLowerCase()}…`));
   const judged = lensJudges(def);
   let settled = 0;
