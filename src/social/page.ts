@@ -16,6 +16,9 @@ import { flyToPlace, geocode } from "../ui/search";
 import { avatarEl } from "./account";
 import { ROLES, SKINS, SPOT_KINDS, AVATAR_EMOJI, AVATAR_COLORS, TOP, byKind, countriesOf, dayText, profileFromJson, topSpots, type Post, type Profile, type Spot, type SpotKind } from "./model";
 import { findProfile, follow, isFollowing, isMe, me, remember, saveProfile, sign } from "./store";
+import { guideCards, guideEditor, playGuide, publishGuide } from "./guides";
+import { NOTE_KINDS, photoUrl } from "./notes";
+import type { Guide } from "./model";
 
 // ---- Pictures from above ----------------------------------------------------------------------
 
@@ -95,6 +98,8 @@ export interface ProfilePages {
   /** Opens a profile carried whole in a link (#/u/~packed). */
   openPacked(packed: string): Promise<boolean>;
   close(): void;
+  /** Plays one of someone's guides (#/g/handle/id). */
+  playGuide(handle: string, id: string): void;
   /** Adds a place to your own page (from a place card), asking what kind it is. */
   addSpot(spot: { name: string; lon: number; lat: number; where?: string; slug?: string }): void;
   readonly isOpen: boolean;
@@ -112,6 +117,9 @@ export function createProfiles(app: App, deps: {
   (document.getElementById("ui") ?? document.body).append(el, back);
   let current: Profile | null = null;
   let editing = false;
+  /** The guide being made or changed (null: a new one; undefined: none). */
+  let guideEdit: Guide | null | undefined;
+  let stopGuide: (() => void) | null = null;
   let pins: Entity[] = [];
   let touring = 0;
 
@@ -126,6 +134,13 @@ export function createProfiles(app: App, deps: {
         billboard: { image: pinImage(SPOT_KINDS[s.kind].emoji, accent, top.has(s.id)), verticalOrigin: VerticalOrigin.BOTTOM, heightReference: HeightReference.CLAMP_TO_GROUND, disableDepthTestDistance: Number.POSITIVE_INFINITY, scale: 0.5 },
         label: { text: s.name, font: "600 12px Inter, system-ui, sans-serif", fillColor: Color.WHITE, outlineColor: Color.fromCssColorString("rgba(0,0,0,0.75)"), outlineWidth: 3, style: LabelStyle.FILL_AND_OUTLINE, verticalOrigin: VerticalOrigin.TOP, pixelOffset: { x: 0, y: 4 } as never, heightReference: HeightReference.CLAMP_TO_GROUND, disableDepthTestDistance: Number.POSITIVE_INFINITY, distanceDisplayCondition: { near: 0, far: 60_000 } as never },
       }));
+    // Field notes, where they were taken.
+    for (const post of p.posts)
+      if (post.lon !== undefined && post.lat !== undefined && !post.spot)
+        pins.push(viewer.entities.add({
+          position: Cartesian3.fromDegrees(post.lon, post.lat),
+          billboard: { image: pinImage(NOTE_KINDS.find((k) => k.id === post.kind)?.emoji ?? "📝", accent), verticalOrigin: VerticalOrigin.BOTTOM, heightReference: HeightReference.CLAMP_TO_GROUND, disableDepthTestDistance: Number.POSITIVE_INFINITY, scale: 0.42 },
+        }));
     viewer.scene.requestRender();
   };
   /** Frames every place on the page. */
@@ -163,6 +178,7 @@ export function createProfiles(app: App, deps: {
     clearPins();
     current = null;
     editing = false;
+    guideEdit = undefined;
     document.body.classList.remove("profile-open");
   };
   /** Steps out to a place, leaving a way back. */
@@ -176,6 +192,27 @@ export function createProfiles(app: App, deps: {
     deps.openPlace(s);
   };
   back.addEventListener("click", () => { back.hidden = true; if (current) show(current); });
+
+  /** Plays a guide: the page steps aside, the globe takes over. */
+  function play(p: Profile, g: Guide) {
+    stopTour();
+    stopGuide?.();
+    clearPins();
+    el.hidden = true;
+    back.hidden = true;
+    document.body.classList.remove("profile-open");
+    stopGuide = playGuide(app, p, g, {
+      color: SKIN_ACCENT[p.skin] ?? p.avatar.color,
+      onClose: () => { stopGuide = null; show(p); },
+      onShare: () => void (async () => {
+        const link = `${location.origin}${location.pathname}#/g/${p.handle}/${g.id}`;
+        try {
+          if (navigator.share && matchMedia("(pointer: coarse)").matches) await navigator.share({ title: `${g.title}: a guide on Atlas`, url: link });
+          else { await navigator.clipboard.writeText(link); app.toast(p.demo || cloudOn() || !isMe(p.handle) ? "Link to this guide copied" : "Link copied. It opens the guide on your page for anyone once Atlas's servers are on; for now, share your page's link.", 4000); }
+        } catch { /* dismissed */ }
+      })(),
+    });
+  }
 
   function show(p: Profile) {
     current = p;
@@ -229,6 +266,14 @@ export function createProfiles(app: App, deps: {
       editing ? editor(p) : "",
       h("div", { class: "pf-stats" }, stat(p.spots.length, p.spots.length === 1 ? "place" : "places"), stat(countriesOf(p), countriesOf(p) === 1 ? "country" : "countries"), stat(p.posts.length, p.posts.length === 1 ? "post" : "posts"), stat(p.lenses.length, p.lenses.length === 1 ? "lens" : "lenses")),
       topEight(p, own, first),
+      own && guideEdit !== undefined
+        ? guideEditor(p, guideEdit, (g, removed) => {
+          if (g && removed) p.guides = (p.guides ?? []).filter((x) => x.id !== g.id);
+          else if (g) { p.guides = [g, ...(p.guides ?? []).filter((x) => x.id !== g.id)]; publishGuide(p, g); app.toast(`🧭 “${g.title}” is on your page`, 3000); }
+          guideEdit = undefined;
+          persist(); render();
+        })
+        : guideCards(p, own, editing, { play: (g) => play(p, g), edit: (g) => { if (!g && p.spots.length < 2) { editing = true; render(); return; } guideEdit = g; render(); }, aerial: (lon, lat) => aerial(lon, lat, 15) }),
       p.bio || editing ? h("section", { class: "pf-card" }, h("h2", {}, `About ${own ? "me" : first}`), editing ? edit("bio", true, "A few lines about you and the places you love.") : h("div", { class: "pf-bio" }, ...p.bio.split(/\n{2,}/).map((para) => h("p", {}, para)))) : "",
       journal(p, own),
       spotsByKind(p, own),
@@ -281,14 +326,20 @@ export function createProfiles(app: App, deps: {
       } }, "Post")));
     };
     return h("section", { class: "pf-card" }, h("h2", {}, "Journal"),
-      own ? (() => { const slot = h("div", {}, h("button", { class: "pf-btn", onclick: () => { slot.replaceChildren(compose()); slot.querySelector<HTMLInputElement>("input")?.focus(); } }, "✍️  Write a post")); return slot; })() : "",
+      own ? (() => { const slot = h("div", { class: "pf-row" }, h("button", { class: "pf-btn", onclick: () => { slot.replaceChildren(compose()); slot.querySelector<HTMLInputElement>("input")?.focus(); } }, "✍️  Write a post"), h("button", { class: "pf-btn", onclick: () => app.actions.get("note:new")?.run() }, "📷  Field note")); return slot; })() : "",
       ...p.posts.map((post) => {
         const s = spotOf(post);
+        const img = post.photo ? h("img", { class: "pf-post-photo", alt: post.title, loading: "lazy" }) as HTMLImageElement : null;
+        if (img && post.photo) void photoUrl(post.photo).then((u) => { if (u) img.src = u; else img.remove(); });
+        const at = post.lon !== undefined && post.lat !== undefined ? { lon: post.lon, lat: post.lat } : null;
+        const k = NOTE_KINDS.find((x) => x.id === post.kind);
         return h("article", { class: "pf-post" },
-          h("div", { class: "pf-post-head" }, h("strong", {}, post.title), h("time", {}, dayText(post.at))),
-          ...post.body.split(/\n{2,}/).map((para) => h("p", {}, para)),
+          img ?? "",
+          h("div", { class: "pf-post-head" }, h("strong", {}, k ? `${k.emoji} ${post.title}` : post.title), h("time", {}, dayText(post.at))),
+          ...post.body.split(/\n{2,}/).filter(Boolean).map((para) => h("p", {}, para)),
           h("div", { class: "pf-post-foot" },
-            s ? h("button", { class: "pf-chip", onclick: () => visit(s) }, `${SPOT_KINDS[s.kind].emoji} ${s.name}`) : "",
+            s ? h("button", { class: "pf-chip", onclick: () => visit(s) }, `${SPOT_KINDS[s.kind].emoji} ${s.name}`)
+              : at ? h("button", { class: "pf-chip", onclick: () => visit({ id: post.id, name: post.title, kind: "place", lon: at.lon, lat: at.lat }) }, "📍 Where it was") : "",
             own && editing ? h("button", { class: "link-btn danger", onclick: () => { p.posts = p.posts.filter((x) => x !== post); persist(); render(); } }, "Delete") : ""));
       }),
       !p.posts.length ? h("p", { class: "pf-empty" }, "Your journal is empty. Write about a place: the day you went, what you saw.") : "");
@@ -475,6 +526,13 @@ export function createProfiles(app: App, deps: {
       return true;
     },
     close,
+    playGuide(handle: string, id: string) {
+      const go = (p: Profile) => { const g = p.guides?.find((x) => x.id === id); if (g) { current = p; play(p, g); } else show(p); };
+      const p = findProfile(handle);
+      if (p) go(p);
+      else if (cloudOn()) void fetchProfile(handle).then((r) => { if (r) { remember(r); go(r); } else app.toast("Couldn't find that guide.", 3000); }).catch(() => {});
+      else app.toast("Couldn't find that guide.", 3000);
+    },
     addSpot(s) {
       const p = me();
       if (!p) { deps.signIn(() => this.addSpot(s)); return; }

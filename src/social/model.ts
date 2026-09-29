@@ -50,9 +50,18 @@ export interface Post {
   body: string;
   /** The spot it's about (an id in spots), if any. */
   spot?: string;
+  /** Field notes: a photo ("idb:…" on the device, or a web address), where it was, and what it is. */
+  photo?: string;
+  lon?: number;
+  lat?: number;
+  kind?: string;
 }
 
 export interface Signature { from: string; name: string; text: string; at: string }
+
+/** A guide: some of your places, in order, with what to do at each ("Lisbon in a day"). */
+export interface GuideStop { spot: string; note: string; time?: string }
+export interface Guide { id: string; title: string; blurb: string; stops: GuideStop[]; updated: string }
 
 export type Skin = "dawn" | "ocean" | "forest" | "desert" | "night" | "paper" | "2006";
 export const SKINS: { id: Skin; label: string }[] = [
@@ -81,6 +90,7 @@ export interface Profile {
   /** Ids of lenses this person made. */
   lenses: string[];
   guestbook: Signature[];
+  guides?: Guide[];
   joined: string;
   /** Shipped with Atlas as an example. */
   demo?: boolean;
@@ -136,9 +146,17 @@ export function profileFromJson(v: unknown): Profile | null {
     banner: banner && Number.isFinite(num(banner.lon)) ? { lon: num(banner.lon), lat: num(banner.lat) } : undefined,
     top: (Array.isArray(o.top) ? o.top : []).map((x) => str(x, 40)).filter((id) => ids.has(id)).slice(0, TOP),
     spots,
-    posts: (Array.isArray(o.posts) ? o.posts : []).slice(0, 100).flatMap((x: Record<string, unknown>) => x && str(x.id) && (str(x.title) || str(x.body)) ? [{ id: str(x.id, 40), at: str(x.at, 30), title: str(x.title, 140), body: str(x.body, 4000), spot: ids.has(str(x.spot, 40)) ? str(x.spot, 40) : undefined }] : []),
+    posts: (Array.isArray(o.posts) ? o.posts : []).slice(0, 100).flatMap((x: Record<string, unknown>) => x && str(x.id) && (str(x.title) || str(x.body)) ? [{ id: str(x.id, 40), at: str(x.at, 30), title: str(x.title, 140), body: str(x.body, 4000), spot: ids.has(str(x.spot, 40)) ? str(x.spot, 40) : undefined,
+      photo: /^(https:\/\/|idb:[a-z0-9]+$)/.test(str(x.photo, 500)) ? str(x.photo, 500) : undefined,
+      ...(Math.abs(num(x.lat)) <= 90 && Math.abs(num(x.lon)) <= 180 ? { lon: num(x.lon), lat: num(x.lat) } : {}),
+      kind: str(x.kind, 20) || undefined }] : []),
     lenses: (Array.isArray(o.lenses) ? o.lenses : []).map((x) => str(x, 60)).filter(Boolean).slice(0, 40),
     guestbook: (Array.isArray(o.guestbook) ? o.guestbook : []).slice(0, 100).flatMap((x: Record<string, unknown>) => x && str(x.text) ? [{ from: slugHandle(str(x.from, 40)), name: str(x.name, 60), text: str(x.text, 500), at: str(x.at, 30) }] : []),
+    guides: (Array.isArray(o.guides) ? o.guides : []).slice(0, 20).flatMap((g: Record<string, unknown>) => {
+      if (!g || !str(g.id) || !str(g.title)) return [];
+      const stops = (Array.isArray(g.stops) ? g.stops : []).slice(0, 30).flatMap((x: Record<string, unknown>) => x && ids.has(str(x.spot, 40)) ? [{ spot: str(x.spot, 40), note: str(x.note, 1500), time: str(x.time, 30) || undefined }] : []);
+      return stops.length ? [{ id: str(g.id, 40), title: str(g.title, 80), blurb: str(g.blurb, 300), stops, updated: str(g.updated, 30) }] : [];
+    }),
     joined: str(o.joined, 30) || new Date().toISOString().slice(0, 10),
   };
 }

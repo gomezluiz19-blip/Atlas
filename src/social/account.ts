@@ -68,6 +68,7 @@ export function createAccount(opts: {
           h("button", { class: "primary-btn", onclick: () => { close(); openSignIn(); } }, "Sign in or join")),
       p ? h("div", { class: "am-group" },
         row("Edit my page", () => opts.openProfile(p.handle, true), icons.pencil),
+        row("Field note", () => document.dispatchEvent(new CustomEvent("atlas:note")), icons.pin),
         row("Make a lens", () => opts.lenses(), icons.sparkle)) : "",
       others.length || p ? h("div", { class: "am-group" },
         ...others.slice(0, 4).map((o) => h("button", { class: "am-row", role: "menuitem", onclick: () => { close(); signIn(o); opts.welcome(o, false); } }, avatarEl(o, 22), h("span", {}, `Switch to ${o.name}`))),

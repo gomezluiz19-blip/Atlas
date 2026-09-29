@@ -11,6 +11,7 @@ import { fetchLens } from "../cloud/sync";
 import { createLensStudio } from "../lenses/studio";
 import type { Lens, Subject } from "../lenses/types";
 import { createWatch } from "../watch/watch";
+import { openFieldNote } from "./notes";
 import { flyToPlace } from "../ui/search";
 import { createAccount, type AccountMenuItem } from "./account";
 import { ROLES, type Profile } from "./model";
@@ -104,6 +105,11 @@ export function wireSocial(app: App, deps: SocialDeps) {
   app.actions.set("profile:open", { label: "Open someone's page", run: (h) => { if (h) { deps.closePanels(); studio.close(); profiles.open(h); } } });
   app.actions.set("profile:me", { label: "My page", run: () => { const p = me(); if (p) { deps.closePanels(); profiles.open(p.handle); } else account.signIn(); } });
   app.actions.set("account:signin", { label: "Sign in", run: () => account.signIn() });
+  app.actions.set("note:new", { label: "Field note", run: () => openFieldNote(app, {
+    signIn: (then) => account.signIn(() => then()),
+    saved: (p) => { if (profiles.isOpen) profiles.open(p.handle); },
+  }) });
+  document.addEventListener("atlas:note", () => app.actions.get("note:new")?.run());
   app.actions.set("profile:add", { label: "Add this place to my page", run: () => {
     const p = app.place;
     if (!p) return;
@@ -119,6 +125,8 @@ export function wireSocial(app: App, deps: SocialDeps) {
       try { history.replaceState(null, "", location.pathname); } catch { /* embedded */ }
       return;
     }
+    const gm = /^#\/g\/([a-z0-9._]+)\/([\w-]+)$/.exec(location.hash);
+    if (gm) { deps.closePanels(); profiles.playGuide(gm[1], gm[2]); try { history.replaceState(null, "", location.pathname); } catch { /* embedded */ } return; }
     const m = /^#\/(u|lens)\/(.+)$/.exec(location.hash);
     if (!m) return;
     const [, kind, rest] = m;

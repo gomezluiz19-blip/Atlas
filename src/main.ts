@@ -70,7 +70,7 @@ import { SITES, sitesFor, type Site } from "./content/sites";
 import { MINES } from "./content/minerals";
 import { LINKS } from "./content/links";
 import { wireSocial } from "./social/wire";
-import { searchProfiles } from "./social/store";
+import { allProfiles, searchProfiles } from "./social/store";
 import { allLenses } from "./lenses/library";
 
 const $ = (id: string) => document.getElementById(id)!;
@@ -541,9 +541,13 @@ $("search-slot").replaceWith(createSearch(globe, {
     const qw = words.filter((w) => w.length > 2);
     const made: SearchResult[] = qw.length ? allLenses().filter((d) => qw.every((w) => `${d.name} ${d.blurb}`.toLowerCase().includes(w)) || qw.some((w) => d.name.toLowerCase().startsWith(w))).slice(0, 2)
       .map((d) => ({ name: `${d.name} lens`, detail: d.blurb, lon: 0, lat: 0, radius: 0, source: "thing", svg: iconSvg(d.icon, 18) ?? icons.sparkle, run: () => app.actions.get("lens:custom")?.run(d.id) })) : [];
+    const guides: SearchResult[] = qw.length ? allProfiles().flatMap((p) => (p.guides ?? []).map((g) => ({ p, g })))
+      .filter(({ g }) => qw.every((w) => `${g.title} ${g.blurb}`.toLowerCase().includes(w))).slice(0, 2)
+      .map(({ p, g }) => ({ name: g.title, detail: `A guide by ${p.name} · ${g.stops.length} stops`, lon: 0, lat: 0, radius: 0, source: "thing", svg: iconSvg("🧭", 18) ?? icons.compass, run: () => { location.hash = `#/g/${p.handle}/${g.id}`; } })) : [];
     return [
       ...(lead ? [{ heading: "Best match", items: [as(lead)], lead: true }] : []),
       { heading: "People", items: people },
+      { heading: "Guides", items: guides },
       { heading: "Lenses people made", items: made },
       { heading: "Time", items: time },
       ...(["Show on the map", "Open", "Stories"] as const).map((g) => ({ heading: g, items: found.filter((t) => t.group === g && t !== lead).slice(0, 3).map(as) })),
