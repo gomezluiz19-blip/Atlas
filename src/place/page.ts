@@ -70,7 +70,8 @@ export function pageHead(app: App, place: Place, placesLike: (title: string) => 
       card,
       copy,
       h("button", { class: "pg-btn", onclick: () => placesLike(place.name?.title ?? "here") }, ...labelled("✨ Places like this", 15)),
-      h("button", { class: "pg-btn", onclick: () => app.actions.get("place:save")?.run() }, ...labelled("📍 Save", 15))));
+      h("button", { class: "pg-btn", title: "Add it to your page (restaurants, trails, favourite views…)", onclick: () => app.actions.get("profile:add")?.run() }, ...labelled("♡ My page", 15)),
+      h("button", { class: "pg-btn", title: "Save it to My Place for a daily brief", onclick: () => app.actions.get("place:save")?.run() }, ...labelled("📍 Save", 15))));
   let slug = "";
   void slugOfPlace(place).then((s) => {
     slug = s;

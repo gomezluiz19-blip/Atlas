@@ -228,3 +228,12 @@ export async function testAi(c: AiConfig): Promise<string> {
   const r = await call(c, { model: c.model, max_tokens: 30, messages: [{ role: "user", content: "Reply with just: Atlas AI is connected." }] });
   return r.content.map((b) => (b.type === "text" ? b.text : "")).join("").trim();
 }
+
+/** Asks Claude to fill in one tool's input (a structured answer), e.g. a lens recipe. */
+export async function askForTool(system: string, tool: Tool, request: string, signal?: AbortSignal): Promise<Record<string, unknown> | null> {
+  const c = loadAi();
+  const r = await call(c, { model: c.model, max_tokens: 1500, system, tools: [tool], tool_choice: { type: "tool", name: tool.name }, messages: [{ role: "user", content: request }] }, signal);
+  const use = r.content.find((b): b is Extract<Block, { type: "tool_use" }> => b.type === "tool_use");
+  return use?.input ?? null;
+}
+export type { Tool as AiTool };

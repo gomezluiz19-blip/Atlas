@@ -17,6 +17,9 @@ everything people make lives only in their browser. Before real users:
 3. **Accounts and sync** (Supabase: auth, Postgres, storage). Saved places, trips, farms, stories, follows kept
    on the server so they survive devices; publishing stories for the network effect (`stories-backend.sql`
    is written for it). Build sign-in behind a switch that stays on-device until Supabase is connected.
+   The preview sign-in (`src/social/`) already has the shape: accounts, profiles (Top 8, spots, journal,
+   guestbook, follows) and made lenses (`src/lenses/library.ts`) all go through small stores that can swap
+   localStorage for the server without touching the UI. Guestbooks and follows only become shared then.
 4. **Nightly data jobs** (GitHub Actions on a schedule): refresh place pages and the sitemap; pre-fetch
    politics snapshots, next elections, governors and country figures into static files, so pages load
    instantly and survive outages.

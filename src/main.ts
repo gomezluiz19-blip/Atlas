@@ -69,6 +69,9 @@ import { createCanvasTray } from "./ui/canvasTray";
 import { SITES, sitesFor, type Site } from "./content/sites";
 import { MINES } from "./content/minerals";
 import { LINKS } from "./content/links";
+import { wireSocial } from "./social/wire";
+import { searchProfiles } from "./social/store";
+import { allLenses } from "./lenses/library";
 
 const $ = (id: string) => document.getElementById(id)!;
 
@@ -300,7 +303,10 @@ function closePanels(keep?: HTMLElement) {
   if (keep !== pro.panel) pro.close();
   if (keep !== space.panel) space.close();
   toggleLayers(false);
+  hideSocial();
 }
+/** Profile pages and Lens Studio step aside when another panel opens (set up once they exist). */
+let hideSocial = () => {};
 function openMode(m: Mode) {
   if (m === "look") { closePanels(); modes.set("look"); return; }
   const hub = m === "place" ? placeHub : makeHub;
@@ -530,8 +536,15 @@ $("search-slot").replaceWith(createSearch(globe, {
     // is called exactly that: the thing leads, ahead of places and commands.
     const words = tokens(q);
     const lead = found[0] && words.length === 1 && scoreThing(found[0], q) >= 3 && !searchPlaces(q, 4).some((p) => tokens(p.name).join(" ") === words[0]) ? found[0] : null;
+    // People by name or @handle, and lenses people have made.
+    const people: SearchResult[] = searchProfiles(q).slice(0, 3).map((p) => ({ name: p.name, detail: `@${p.handle}${p.now ? ` · ${p.now}` : ""}`, lon: 0, lat: 0, radius: 0, source: "thing", svg: iconSvg(p.avatar.emoji, 18) ?? icons.people, run: () => app.actions.get("profile:open")?.run(p.handle) }));
+    const qw = words.filter((w) => w.length > 2);
+    const made: SearchResult[] = qw.length ? allLenses().filter((d) => qw.every((w) => `${d.name} ${d.blurb}`.toLowerCase().includes(w)) || qw.some((w) => d.name.toLowerCase().startsWith(w))).slice(0, 2)
+      .map((d) => ({ name: `${d.name} lens`, detail: d.blurb, lon: 0, lat: 0, radius: 0, source: "thing", svg: iconSvg(d.icon, 18) ?? icons.sparkle, run: () => app.actions.get("lens:custom")?.run(d.id) })) : [];
     return [
       ...(lead ? [{ heading: "Best match", items: [as(lead)], lead: true }] : []),
+      { heading: "People", items: people },
+      { heading: "Lenses people made", items: made },
       { heading: "Time", items: time },
       ...(["Show on the map", "Open", "Stories"] as const).map((g) => ({ heading: g, items: found.filter((t) => t.group === g && t !== lead).slice(0, 3).map(as) })),
     ].filter((g) => g.items.length);
@@ -650,11 +663,10 @@ about.innerHTML = icons.info;
 const soundBtn = h("button", { class: "pill-btn sound-toggle", "aria-pressed": String(soundOn()) }, soundOn() ? "Sounds on" : "Sounds off") as HTMLButtonElement;
 soundBtn.addEventListener("click", () => { const on = !soundOn(); setSound(on); soundBtn.textContent = on ? "Sounds on" : "Sounds off"; soundBtn.setAttribute("aria-pressed", String(on)); });
 const aboutPanel = h("div", { class: "popover about", hidden: true },
-  h("h2", { class: "group-title" }, "About Atlas"),
-  h("div", { class: "about-row" }, h("span", { class: "muted small" }, "Soft sounds when you arrive somewhere (and taps on phones)."), soundBtn),
-  h("div", { class: "about-row" }, h("span", { class: "muted small" }, "A one-minute walk through what Atlas can do."), h("button", { class: "pill-btn", onclick: () => { aboutPanel.hidden = true; startTour(app); } }, "Take the tour")),
+  h("div", { class: "about-head" }, h("h2", { class: "group-title" }, "About Atlas"), h("button", { class: "icon-btn", "aria-label": "Close", html: icons.close, onclick: () => (aboutPanel.hidden = true) })),
   h("p", {}, "Atlas does three things, switched at the top. My Place: your home, farm, site or business, with a daily brief and the tools to run it (Grow, Flock, Build, live occupancy). Look: the whole Earth and space; tap anything, then flip through the themes or look at it through a lens. Make: plans, presentations, videos and lessons made from the map."),
   h("p", {}, "You can also type a request into the search box, like \u201cstorm drains and railways in Chicago\u201d, and Atlas will plan the steps and do them."),
+  h("p", {}, "People have pages here too: the places they love, a journal, and lenses they've made. Make your own from the account button, and a lens of your own in Lens Studio."),
   h("button", { class: "pill-btn about-ai", onclick: () => { aboutPanel.hidden = true; aiSettings.open(); } }, aiOn() ? "Atlas AI: connected · settings" : "Connect Atlas AI (Claude)…"),
   h("p", {}, "The themes are lenses on one shared map. What you add stays as you switch (see \"On the map\" at the top), and every view ends with Connected links to related views of the same place."),
   h("h2", { class: "group-title" }, "Where the data comes from"),
@@ -669,7 +681,6 @@ const aboutPanel = h("div", { class: "popover about", hidden: true },
   h("p", { class: "fineprint" }, "Every dataset is a record of what's been measured or mapped. None of them is complete, so treat gaps as unknowns, not absences."),
   h("p", { class: "fineprint" }, "Keyboard: 1–9 switch themes · / searches · + and − zoom · Esc cancels a line or closes a chart. Double-click to zoom in on a spot."));
 $("ui").append(aboutPanel);
-about.addEventListener("click", () => (aboutPanel.hidden = !aboutPanel.hidden));
 
 // Status bar: cursor position.
 const readout = $("readout");
@@ -707,6 +718,25 @@ app.sheet.el.querySelector(".share-menu")!.after(lenses.strip);
 $("ui").append(lenses.panel);
 app.onName = (p) => lenses.rename(p);
 for (const l of LENSES) app.actions.set(`lens:${l.id}`, { label: l.label, run: () => void lenses.openWhenReady(l.id).then((ok) => { if (!ok) app.toast("Tap a place first, then choose a lens.", 4000); }) });
+
+// People: accounts, pages about the places people love, and lenses anyone can make.
+const soundRow = h("div", { class: "am-row am-static" }, h("span", {}, "Sounds and taps"), soundBtn);
+const social = wireSocial(app, {
+  lensList: LENSES,
+  lenses,
+  openPlace: (slug) => openPlace(slug),
+  closePanels: () => closePanels(),
+  extras: () => [
+    { label: "Take the tour", icon: icons.compass, run: () => startTour(app) },
+    { label: aiOn() ? "Atlas AI: connected" : "Connect Atlas AI", icon: icons.sparkle, run: () => aiSettings.open() },
+    { label: "Send feedback", icon: icons.pencil, run: () => void import("./ui/feedback").then((m) => m.openFeedback(app)) },
+    { label: "About Atlas and its data", icon: icons.info, run: () => { aboutPanel.hidden = false; } },
+    soundRow,
+  ],
+});
+about.replaceWith(social.account.button);
+$("ui").append(social.account.menu);
+hideSocial = () => { if (social.profiles.isOpen) social.profiles.close(); if (social.studio.isOpen) social.studio.close(); };
 app.onPlace = (p) => {
   // A new place ends the slow circling around the last one.
   stopArriving();

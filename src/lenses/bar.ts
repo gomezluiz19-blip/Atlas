@@ -66,7 +66,8 @@ export function createLenses(app: App, lenses: Lens[]) {
       fact ? factLine(fact) : "",
       h("div", { class: "lens-chips" },
         ...shown.map(({ l }) => h("button", { class: "lens-chip" + (active === l ? " on" : ""), title: l.blurb, onclick: () => void (active === l ? close() : open(l)) }, h("span", {}, l.icon), l.label)),
-        list.length > shown.length ? h("button", { class: "lens-chip more", onclick: () => { showAll = true; render(); } }, `+${list.length - shown.length}`) : ""));
+        list.length > shown.length ? h("button", { class: "lens-chip more", onclick: () => { showAll = true; render(); } }, `+${list.length - shown.length}`) : "",
+        showAll || list.length <= shown.length ? h("button", { class: "lens-chip make", title: "Describe a lens and Atlas builds it", onclick: () => app.actions.get("lens:studio")?.run() }, h("span", {}, "✨"), "Make a lens") : ""));
   };
 
   const update = (p: Place | null) => (pending = identifyPlace(p));
@@ -88,6 +89,8 @@ export function createLenses(app: App, lenses: Lens[]) {
 
   return {
     strip, panel, update, rename, close,
+    /** Lenses were added or removed: redraw the chips. */
+    refresh() { if (subject) render(); },
     get subject() { return subject; },
     /** Opens a lens by id on the current subject (for the task robot and links). */
     openById(id: string) { const l = lenses.find((x) => x.id === id); if (l && subject) void open(l); return !!(l && subject); },

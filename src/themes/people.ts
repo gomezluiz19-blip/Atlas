@@ -14,6 +14,7 @@ import { icons } from "../ui/icons";
 import { asyncBlock, hero, note, section, stats } from "./common";
 import { iconFor, labelled } from "../ui/glyph";
 import { flyToPlace } from "../ui/search";
+import { profilesSubtab } from "../social/subtab";
 
 const fmtPeople = (n: number) => (n >= 1e9 ? `${(n / 1e9).toFixed(1)} billion` : n >= 1e6 ? `${(n / 1e6).toFixed(n >= 1e7 ? 0 : 1)} million` : n >= 1e4 ? `${Math.round(n / 1e3).toLocaleString()},000` : Math.round(n).toLocaleString());
 const byId = (id: string) => VIEWS.find((v) => v.id === id)!;
@@ -222,7 +223,7 @@ export function peopleTheme(app: App): Theme {
     icon: icons.people,
     color: "#ff9f0a",
     intro: "Where people live, and how: homes, health, phones and more.",
-    subtabs: [here, homes, health, connected, events],
+    subtabs: [here, profilesSubtab(), homes, health, connected, events],
     enter() { if (current !== "pop") void showView(current); },
     leave() { job++; if (layer) { app.globe.viewer.imageryLayers.remove(layer, true); layer = null; } app.looks?.setLegend(null); },
     renderEmpty(_app, body) {
