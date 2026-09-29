@@ -107,6 +107,23 @@ export const INDICATORS = {
   agriculture: "NV.AGR.TOTL.ZS",
   industry: "NV.IND.TOTL.ZS",
   services: "NV.SRV.TOTL.ZS",
+  // Tourism
+  arrivals: "ST.INT.ARVL",
+  tourismShare: "ST.INT.RCPT.XP.ZS",
+  // Education
+  literacy: "SE.ADT.LITR.ZS",
+  secondary: "SE.SEC.ENRR",
+  tertiary: "SE.TER.ENRR",
+  eduSpend: "SE.XPD.TOTL.GD.ZS",
+  pupilTeacher: "SE.PRM.ENRL.TC.ZS",
+  // Health
+  infantMortality: "SP.DYN.IMRT.IN",
+  maternal: "SH.STA.MMRT",
+  healthSpend: "SH.XPD.CHEX.GD.ZS",
+  healthPerPerson: "SH.XPD.CHEX.PC.CD",
+  outOfPocket: "SH.XPD.OOPC.CH.ZS",
+  doctors: "SH.MED.PHYS.ZS",
+  beds: "SH.MED.BEDS.ZS",
 } as const;
 export type IndicatorKey = keyof typeof INDICATORS;
 

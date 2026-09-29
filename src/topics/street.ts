@@ -1,10 +1,12 @@
 // What's on the streets around a place, from OpenStreetMap, read once and
 // shared by every topic: shops and markets (Money & trade), boutiques
 // (Fashion), restaurants and cafés (Food), pitches and gyms (Sports),
-// theatres, venues and galleries (Arts & music).
+// theatres, venues and galleries (Arts & music), hotels and sights
+// (Tourism), schools and universities (Education), hospitals, clinics and
+// pharmacies (Health).
 import { elementPoint, overpass, type OsmElement } from "../data/overpass";
 
-export type Topic = "money" | "fashion" | "food" | "sports" | "arts";
+export type Topic = "money" | "fashion" | "food" | "sports" | "arts" | "tourism" | "education" | "health";
 
 export interface Spot {
   id: string;
@@ -49,11 +51,23 @@ const MONEY_SHOP: Record<string, string> = {
   furniture: "Furniture", chemist: "Chemist", pharmacy: "Pharmacy", books: "Books", car: "Car dealer", kiosk: "Kiosk", gift: "Gifts", beauty: "Beauty",
   hairdresser: "Hairdresser", cosmetics: "Cosmetics", optician: "Optician", toys: "Toys", pawnbroker: "Pawnbroker",
 };
+const STAYS: Record<string, string> = {
+  hotel: "Hotel", guest_house: "Guest house", hostel: "Hostel", motel: "Motel", apartment: "Holiday flat", camp_site: "Campsite", chalet: "Chalet",
+  attraction: "Sight", viewpoint: "Viewpoint", theme_park: "Theme park", zoo: "Zoo", aquarium: "Aquarium",
+};
+const SCHOOLS: Record<string, string> = {
+  kindergarten: "Nursery", school: "School", college: "College", university: "University", library: "Library",
+  language_school: "Language school", music_school: "Music school", driving_school: "Driving school",
+};
+const HEALTH: Record<string, string> = { hospital: "Hospital", clinic: "Clinic", doctors: "Doctor", dentist: "Dentist", pharmacy: "Pharmacy" };
 const tidy = (v: string) => (v.charAt(0).toUpperCase() + v.slice(1)).replace(/_/g, " ");
 
 /** Which topic an OpenStreetMap feature belongs to, and what to call it. */
 export function classify(t: Record<string, string>): { topic: Topic; kind: string } | null {
   const { shop, amenity, leisure, tourism } = t;
+  if (amenity && HEALTH[amenity]) return { topic: "health", kind: HEALTH[amenity] };
+  if (amenity && SCHOOLS[amenity]) return { topic: "education", kind: SCHOOLS[amenity] };
+  if (tourism && STAYS[tourism]) return { topic: "tourism", kind: STAYS[tourism] };
   if (shop && FASHION[shop]) return { topic: "fashion", kind: FASHION[shop] };
   if (amenity && FOOD_AMENITY[amenity]) return { topic: "food", kind: FOOD_AMENITY[amenity] };
   if (shop && FOOD_SHOP[shop]) return { topic: "food", kind: FOOD_SHOP[shop] };
@@ -104,11 +118,11 @@ const query = (lon: number, lat: number, r: number) => {
   return `[out:json][timeout:25];
 (
   nwr${a}[shop];
-  nwr${a}[amenity~"^(${[...Object.keys(FOOD_AMENITY), ...Object.keys(MONEY_AMENITY), "theatre", "arts_centre", "cinema", "music_venue", "nightclub"].join("|")})$"];
+  nwr${a}[amenity~"^(${[...Object.keys(FOOD_AMENITY), ...Object.keys(MONEY_AMENITY), "theatre", "arts_centre", "cinema", "music_venue", "nightclub", ...Object.keys(SCHOOLS), ...Object.keys(HEALTH)].join("|")})$"];
   nwr${a}[leisure~"^(${Object.keys(SPORTS).join("|")})$"];
-  nwr${a}[tourism~"^(museum|gallery)$"];
+  nwr${a}[tourism~"^(museum|gallery|${Object.keys(STAYS).join("|")})$"];
 );
-out center tags 4000;`;
+out center tags 6000;`;
 };
 
 const cache = new Map<string, Promise<Street>>();
@@ -127,6 +141,19 @@ export function streetAround(lon: number, lat: number): Promise<Street> {
     cache.set(key, p);
   }
   return p;
+}
+
+/** Hospitals within 30 km, for "the nearest hospital" when there's none on the streets around. */
+export async function hospitalsAround(lon: number, lat: number): Promise<Spot[]> {
+  return toSpots(await overpass(`[out:json][timeout:25];
+nwr(around:30000,${lat.toFixed(4)},${lon.toFixed(4)})["amenity"="hospital"];
+out center tags 300;`));
+}
+
+/** Kilometres between two points (near enough for a town or a region). */
+export function kmBetween(a: { lon: number; lat: number }, b: { lon: number; lat: number }): number {
+  const r = Math.PI / 180, x = (b.lon - a.lon) * r * Math.cos(((a.lat + b.lat) / 2) * r), y = (b.lat - a.lat) * r;
+  return Math.hypot(x, y) * 6371;
 }
 
 /** "within 1.5 km" / "within 8 km" */

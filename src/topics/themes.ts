@@ -6,6 +6,9 @@
 //   Fashion        boutiques and tailors; the country's labels and designers
 //   Food           what people eat here; the country's dishes
 //   Arts & music   venues, theatres and galleries; who was born or formed here
+//   Tourism        places to stay and sights; visitors, spending and World Heritage
+//   Education      schools, colleges and libraries; literacy, enrolment, universities
+//   Health         the nearest hospital, clinics and pharmacies; the country's health
 import type { App, Place, Subtab, Theme } from "../app";
 import { countryAt, countryFacts, indicators, type CountryFacts, type IndicatorKey, type Series } from "../data/countries";
 import { commonsThumb } from "../data/wikidata";
@@ -14,8 +17,8 @@ import { icons } from "../ui/icons";
 import { flyToPlace } from "../ui/search";
 import { WorkLayer } from "../work/layer";
 import { asyncBlock, hero, inlineChart, note, section, stats } from "../themes/common";
-import { cuisines, sportsPlayed, streetAround, tally, within, type Spot, type Street, type Topic } from "./street";
-import { artistsNear, athletesOf, companiesNear, companiesOf, dishesOf, fashionOf, moneyBodies, venuesNear, type Named } from "./wiki";
+import { cuisines, hospitalsAround, kmBetween, sportsPlayed, streetAround, tally, within, type Spot, type Street, type Topic } from "./street";
+import { artistsNear, athletesOf, companiesNear, companiesOf, dishesOf, fashionOf, heritageOf, moneyBodies, universitiesOf, venuesNear, type Named } from "./wiki";
 import { rateText, usdRates } from "./rates";
 
 // ---- Shared pieces -------------------------------------------------------
@@ -119,6 +122,18 @@ function countryTab(id: string, label: string, build: (app: App, place: Place, c
   };
 }
 
+/** A tally worth drawing: a handful of things or more (two shops as bars is noise). */
+function tallySection(title: string, rows: { label: string; n: number }[], color: string): HTMLElement | "" {
+  return rows.reduce((t, r) => t + r.n, 0) >= 4 && rows.length > 1 ? section(title, bars(rows, color)) : "";
+}
+
+/** A World Bank series over the years, when there are enough of them to draw. */
+function trend(sr: Series, yLabel: string, fmt: (v: number) => string): HTMLElement | "" {
+  if (sr.points.length < 5) return "";
+  return h("div", { class: "chart-card" }, inlineChart({ x: sr.points.map((p) => p.year), y: sr.points.map((p) => p.value) }, { xLabel: "Year", yLabel, xFormat: (v) => String(Math.round(v)), yFormat: fmt }, 150));
+}
+const WB_NOTE = "Figures from the World Bank's World Development Indicators; the latest year each country reported.";
+
 /** Counts as stat rows, leaving out the ones with nothing to count. */
 const counts = (...rows: [string, number][]) => stats(...rows.filter(([, n]) => n > 0).map(([l, n]) => [l, n.toLocaleString()] as [string, string]));
 
@@ -198,7 +213,7 @@ function moneyTheme(): Theme {
     return [
       hero(all.toLocaleString(), `shops ${within(street.radius)} of ${placeName(place)}`),
       big.length ? section("Markets and shopping centres", spotList(app, big)) : "",
-      shops.length ? section("What people buy here", bars(tally(shops.map((s) => s.kind)), color)) : "",
+      tallySection("What people buy here", tally(shops.map((s) => s.kind)), color),
       counts(["Banks", money("bank")], ["Cash machines", money("atm")], ["Money exchange", money("bureau_de_change")], ["Money transfer", money("money_transfer")]),
       note(OSM_NOTE),
     ];
@@ -227,7 +242,7 @@ function sportsTheme(): Theme {
             const x = v as Named & { capacity?: number; teams: string[] };
             return [x.capacity ? `${x.capacity.toLocaleString()} seats` : "", x.teams.length ? `Home of ${x.teams.join(", ")}` : x.detail].filter(Boolean).join(" · ");
           } })) : "",
-          played.length ? section(`What people play ${street ? within(street.radius) : "here"}`, bars(played, color)) : "",
+          played.length ? tallySection(`What people play ${street ? within(street.radius) : "here"}`, played, color) : "",
           counts(["Pitches and courts", count("pitch")], ["Gyms", count("fitness_centre")], ["Sports centres", count("sports_centre") + count("sports_hall")], ["Swimming pools", count("swimming_pool")], ["Golf courses", count("golf_course")]),
           note(`Stadiums and teams from Wikidata (within 40 km, biggest first); pitches, gyms and pools from OpenStreetMap.`),
         ];
@@ -264,10 +279,7 @@ const CAPITALS = [
   { name: "Mexico City", lon: -99.13, lat: 19.43, when: "Apr and Oct" },
   { name: "Santo Domingo", lon: -69.93, lat: 18.49, when: "Dominicana Moda, in the autumn" },
 ];
-const km = (a: { lon: number; lat: number }, b: { lon: number; lat: number }) => {
-  const r = Math.PI / 180, x = (b.lon - a.lon) * r * Math.cos(((a.lat + b.lat) / 2) * r), y = (b.lat - a.lat) * r;
-  return Math.hypot(x, y) * 6371;
-};
+const km = kmBetween;
 
 function fashionTheme(): Theme {
   const color = "#ff2d92";
@@ -277,7 +289,7 @@ function fashionTheme(): Theme {
     return [
       hero(String(mine.length), `fashion shops ${within(street.radius)} of ${placeName(place)}`),
       mine.length ? section("Boutiques and shops", spotList(app, mine, 10)) : "",
-      mine.length ? section("What they sell", bars(tally(mine.map((s) => s.kind)), color)) : "",
+      tallySection("What they sell", tally(mine.map((s) => s.kind)), color),
       section("Nearest fashion week",
         h("div", { class: "list" }, h("button", { class: "list-row", onclick: () => void flyToPlace(app.globe, { name: cap.name, lon: cap.lon, lat: cap.lat, radius: 8000 }) },
           h("span", { class: "story-mini-emoji" }, "👗"),
@@ -308,7 +320,7 @@ function foodTheme(): Theme {
     const eat = cuisines(mine);
     return [
       hero(String(n("restaurant", "fast_food", "food_court")), `places to eat ${within(street.radius)} of ${placeName(place)}`),
-      eat.length ? section("What people eat here", bars(eat, color)) : "",
+      eat.length ? tallySection("What people eat here", eat, color) : "",
       counts(["Cafés", n("cafe")], ["Bars and pubs", n("bar", "pub", "biergarten")], ["Bakeries", n("bakery", "pastry")], ["Ice cream", n("ice_cream")]),
       markets.length ? section("Markets", spotList(app, markets)) : "",
       mine.length ? section("On the map", spotList(app, mine, 8)) : "",
@@ -334,7 +346,7 @@ function artsTheme(): Theme {
     return [
       hero(String(mine.length), `venues, theatres and galleries ${within(street.radius)} of ${placeName(place)}`),
       mine.length ? section("Where to go", spotList(app, mine, 10)) : "",
-      kinds.length ? section("What's here", bars(kinds, color)) : "",
+      kinds.length ? tallySection("What's here", kinds, color) : "",
       note(OSM_NOTE),
     ];
   });
@@ -356,6 +368,124 @@ function artsTheme(): Theme {
   return theme({ id: "arts", label: "Arts & music", icon: icons.music, color, intro: "Theatres, music venues and galleries around a place, and the musicians and artists who came from there.", subtabs: [here, people] });
 }
 
+// ---- Tourism ---------------------------------------------------------------
+
+function tourismTheme(): Theme {
+  const color = "#00c7be";
+  const here = streetTab("here", "Here", "tourism", color, (app, place, mine, street) => {
+    const stays = mine.filter((s) => !/^(attraction|viewpoint|theme_park|zoo|aquarium)$/.test(s.tags.tourism ?? ""));
+    const sights = [...mine.filter((s) => !stays.includes(s)), ...street.spots.filter((s) => s.tags.tourism === "museum" || s.tags.tourism === "gallery")];
+    const rooms = stays.reduce((n, s) => n + (Number(s.tags.rooms) || 0), 0);
+    return [
+      hero(String(stays.length), `places to stay ${within(street.radius)} of ${placeName(place)}`, rooms ? `at least ${rooms.toLocaleString()} rooms listed` : undefined),
+      tallySection("What kind", tally(stays.map((s) => s.kind)), color),
+      stays.length ? section("Where to stay", spotList(app, stays, 8)) : "",
+      sights.length ? section("Sights and museums", spotList(app, sights, 8)) : "",
+      note(OSM_NOTE),
+    ];
+  });
+  const country = countryTab("country", "Country", async (app, _p, c) => {
+    const [s, sites] = await Promise.all([indicators(c.iso3, ["arrivals", "tourism", "tourismShare"]), soft(heritageOf(c.iso3))]);
+    return [
+      hero(s.arrivals.latest ? compact(s.arrivals.latest.value) : "—", `visitors from abroad a year in ${theCountry(c)}`, s.arrivals.latest ? String(s.arrivals.latest.year) : undefined),
+      trend(s.arrivals, "Visitors", compact),
+      stats(
+        ["Spent by visitors a year", latest(s.tourism, (v) => `$${compact(v)}`) ?? "Not reported"],
+        ["Tourism's share of exports", latest(s.tourismShare, pct) ?? "Not reported", "Money spent by visitors, against everything the country sells abroad"],
+      ),
+      sites?.length ? section(`World Heritage Sites · ${sites.length}`, namedList(app, sites, { emoji: "🏛️" })) : "",
+      note(`${WB_NOTE} World Heritage Sites from Wikidata.`),
+    ];
+  });
+  return theme({ id: "tourism", label: "Tourism", icon: icons.suitcase, color, intro: "Places to stay and things to see around a place; how many visit a country, what they spend, and its World Heritage Sites.", subtabs: [here, country] });
+}
+
+// ---- Education -------------------------------------------------------------
+
+function educationTheme(): Theme {
+  const color = "#0a84ff";
+  const here = streetTab("here", "Here", "education", color, (app, place, mine, street) => {
+    const n = (...k: string[]) => mine.filter((s) => k.includes(s.tags.amenity ?? "")).length;
+    const higher = mine.filter((s) => /^(university|college)$/.test(s.tags.amenity ?? ""));
+    return [
+      hero(String(n("school")), `schools ${within(street.radius)} of ${placeName(place)}`),
+      counts(["Nurseries", n("kindergarten")], ["Colleges and universities", higher.length], ["Libraries", n("library")], ["Other schools (language, music, driving)", n("language_school", "music_school", "driving_school")]),
+      higher.length ? section("Colleges and universities", spotList(app, higher, 6)) : "",
+      mine.some((s) => s.tags.amenity === "school") ? section("Schools", spotList(app, mine.filter((s) => s.tags.amenity === "school"), 8)) : "",
+      mine.some((s) => s.tags.amenity === "library") ? section("Libraries", spotList(app, mine.filter((s) => s.tags.amenity === "library"), 4)) : "",
+      note(OSM_NOTE),
+    ];
+  });
+  const country = countryTab("country", "Country", async (app, _p, c) => {
+    const [s, unis] = await Promise.all([indicators(c.iso3, ["literacy", "secondary", "tertiary", "eduSpend", "pupilTeacher"]), soft(universitiesOf(c.iso3))]);
+    return [
+      hero(s.literacy.latest ? pct(s.literacy.latest.value) : s.tertiary.latest ? pct(s.tertiary.latest.value) : "—", s.literacy.latest ? "of adults can read and write" : "go on to university or college", `In ${theCountry(c)}${s.literacy.latest ? `, ${s.literacy.latest.year}` : ""}`),
+      stats(
+        ["In secondary school", latest(s.secondary, pct) ?? "Not reported", "Gross enrolment: can pass 100% when older or younger pupils are in the class"],
+        ["Go on to university or college", latest(s.tertiary, pct) ?? "Not reported", "Gross enrolment in higher education"],
+        ["Pupils per teacher (primary)", latest(s.pupilTeacher, (v) => v.toFixed(0)) ?? "Not reported"],
+        ["Spent on education", latest(s.eduSpend, (v) => `${v.toFixed(1)}% of the economy`) ?? "Not reported"],
+      ),
+      trend(s.tertiary, "% in higher education", (v) => `${Math.round(v)}%`),
+      unis?.length ? section(`Best-known universities in ${theCountry(c)}`, namedList(app, unis, { emoji: "🎓" })) : "",
+      note(`${WB_NOTE} Universities from Wikidata, best known first.`),
+    ];
+  });
+  return theme({ id: "education", label: "Education", icon: icons.graduate, color, intro: "Schools, colleges and libraries around a place; how well a country reads, how many study on, and its best-known universities.", subtabs: [here, country] });
+}
+
+// ---- Health ----------------------------------------------------------------
+
+function healthTheme(): Theme {
+  const color = "#ff453a";
+  const here = streetTab("here", "Here", "health", color, (app, place, mine, street) => {
+    const n = (k: string) => mine.filter((s) => s.tags.amenity === k).length;
+    const nearest = h("div", {}, h("p", { class: "muted small" }, "Finding the nearest hospital…"));
+    // The nearest hospital, even when it's beyond the streets read around.
+    void hospitalsAround(place.lon, place.lat).then((list) => {
+      const byKm = list.map((s) => ({ s, d: km(place, s) })).sort((a, b) => a.d - b.d);
+      const best = byKm.find((x) => x.s.name) ?? byKm[0];
+      nearest.replaceChildren(best
+        ? h("div", { class: "list" }, h("button", { class: "list-row", onclick: () => void flyToPlace(app.globe, { name: best.s.name ?? "Hospital", lon: best.s.lon, lat: best.s.lat, radius: 600 }) },
+            h("span", { class: "story-mini-emoji" }, "🏥"),
+            h("span", { class: "list-text" }, h("span", { class: "list-title" }, best.s.name ?? "Hospital"), h("span", { class: "list-sub" }, `${best.d < 1 ? `${Math.round(best.d * 1000)} m` : `${best.d.toFixed(1)} km`} away in a straight line${best.s.tags.emergency === "yes" ? " · emergency department" : ""}`)),
+            h("span", { class: "chev", html: "&rsaquo;" })))
+        : h("p", { class: "muted small" }, "No hospital mapped within 30 km."));
+    }).catch(() => nearest.replaceChildren(h("p", { class: "muted small" }, "Couldn't look up hospitals just now.")));
+    const care = mine.filter((s) => s.tags.amenity !== "pharmacy");
+    return [
+      section("Nearest hospital", nearest),
+      counts(["Clinics", n("clinic")], ["Doctors", n("doctors")], ["Dentists", n("dentist")], ["Pharmacies", n("pharmacy")], ["Hospitals", n("hospital")]),
+      care.length ? section(`Care ${within(street.radius)}`, spotList(app, care, 8)) : "",
+      mine.some((s) => s.tags.amenity === "pharmacy") ? section("Pharmacies", spotList(app, mine.filter((s) => s.tags.amenity === "pharmacy"), 5)) : "",
+      h("p", { class: "fineprint" }, "In an emergency, call your local emergency number. Opening hours and services aren't checked here."),
+      note(OSM_NOTE),
+    ];
+  });
+  const country = countryTab("country", "Country", async (_app, _p, c) => {
+    const s = await indicators(c.iso3, ["lifeExpectancy", "infantMortality", "maternal", "healthSpend", "healthPerPerson", "outOfPocket", "doctors", "beds"]);
+    return [
+      hero(s.lifeExpectancy.latest ? `${s.lifeExpectancy.latest.value.toFixed(1)} years` : "—", `life expectancy in ${theCountry(c)}`, s.lifeExpectancy.latest ? String(s.lifeExpectancy.latest.year) : undefined),
+      trend(s.lifeExpectancy, "Years", (v) => v.toFixed(0)),
+      section("Care",
+        stats(
+          ["Doctors per 1,000 people", latest(s.doctors, (v) => v.toFixed(1)) ?? "Not reported"],
+          ["Hospital beds per 1,000 people", latest(s.beds, (v) => v.toFixed(1)) ?? "Not reported"],
+          ["Spent on health", latest(s.healthSpend, (v) => `${v.toFixed(1)}% of the economy`) ?? "Not reported"],
+          ["Spent per person", latest(s.healthPerPerson, (v) => `$${compact(v)} a year`) ?? "Not reported"],
+          ["Paid by patients themselves", latest(s.outOfPocket, pct) ?? "Not reported", "Out-of-pocket spending, as a share of all health spending"],
+        )),
+      section("Mothers and babies",
+        stats(
+          ["Babies who die before age 1", latest(s.infantMortality, (v) => `${v.toFixed(1)} in 1,000`) ?? "Not reported"],
+          ["Mothers who die in childbirth", latest(s.maternal, (v) => `${Math.round(v)} in 100,000`) ?? "Not reported"],
+        )),
+      note(WB_NOTE),
+    ];
+  });
+  return theme({ id: "health", label: "Health", icon: icons.medical, color, intro: "The nearest hospital, and the clinics, doctors and pharmacies around a place; how long people live in a country and the care they get.", subtabs: [here, country] });
+}
+
 export function topicThemes(): Theme[] {
-  return [moneyTheme(), sportsTheme(), fashionTheme(), foodTheme(), artsTheme()];
+  return [moneyTheme(), sportsTheme(), fashionTheme(), foodTheme(), artsTheme(), tourismTheme(), educationTheme(), healthTheme()];
 }

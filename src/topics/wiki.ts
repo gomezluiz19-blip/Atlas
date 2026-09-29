@@ -201,3 +201,29 @@ export function artistsNear(lon: number, lat: number, km = 30): Promise<{ music:
     return { music, art };
   });
 }
+
+/** A country's World Heritage Sites, best known first. */
+export function heritageOf(iso3: string): Promise<Named[]> {
+  return cached(`topics:whs:${iso3}`, 30 * DAY, async () => named(await sparql(`SELECT ?x ?xLabel ?xDescription ?sl ?coord ?image ?article WHERE {
+  { SELECT ?x ?sl WHERE { ?c wdt:P298 "${iso3}". ?x wdt:P1435 wd:Q9259; wdt:P17 ?c; wikibase:sitelinks ?sl. } ORDER BY DESC(?sl) LIMIT 14 }
+  OPTIONAL { ?x wdt:P625 ?coord. }
+  OPTIONAL { ?x wdt:P18 ?image. }
+  ${ARTICLE("?x")}
+  ${LABELS}
+}`), "x").slice(0, 12));
+}
+
+/** A country's best-known universities. */
+export function universitiesOf(iso3: string): Promise<Named[]> {
+  return cached(`topics:uni:${iso3}`, 30 * DAY, async () => named(await sparql(`SELECT ?x ?xLabel ?xDescription ?sl ?coord ?image ?article WHERE {
+  { SELECT DISTINCT ?x ?sl WHERE {
+    ?c wdt:P298 "${iso3}". ?x wdt:P31 ?t; wdt:P17 ?c. VALUES ?t { wd:Q3918 wd:Q902104 wd:Q15936437 }
+    FILTER NOT EXISTS { ?x wdt:P576 ?gone. }
+    ?x wikibase:sitelinks ?sl.
+  } ORDER BY DESC(?sl) LIMIT 14 }
+  OPTIONAL { ?x wdt:P625 ?coord. }
+  OPTIONAL { ?x wdt:P154 ?image. }
+  ${ARTICLE("?x")}
+  ${LABELS}
+}`), "x").slice(0, 12));
+}

@@ -328,7 +328,7 @@ map's labels come from Natural Earth's detailed (10 m) data: seas, bays, straits
 ice fields and salt flats, then about 7,800 towns, lakes and reservoirs as you zoom in, and detailed rivers
 for the area in view. The Built theme adds famous streets and squares and the world's metro systems.
 
-**More: topics beyond the land.** The last tab on the theme bar, **More**, holds five topics that look at a
+**More: topics beyond the land.** The last tab on the theme bar, **More**, holds eight topics that look at a
 place through what people do there, each opening on the streets around it and widening to its country:
 **Money & trade** (today's exchange rate, inflation, borrowing costs, unemployment, trade, remittances and
 what the economy runs on; the central bank and stock exchange; the companies based nearby and the country's
@@ -336,8 +336,13 @@ best known; and where people shop, bank and send money), **Sports** (stadiums an
 home teams, what people play on local pitches, the country's sports stars), **Fashion** (boutiques, tailors
 and shoe shops around, the nearest fashion week, the country's labels and designers), **Food** (what people
 eat here by cuisine, cafés, bars, bakeries and markets, the country's dishes) and **Arts & music** (theatres,
-venues, cinemas and galleries, and the musicians, bands and artists who came from there). Street-level
-figures come from OpenStreetMap (read once, shared by all five), names from Wikidata, figures from the World
+venues, cinemas and galleries, and the musicians, bands and artists who came from there), **Tourism**
+(hotels, guest houses and sights around; visitors a year, what they spend and the World Heritage Sites),
+**Education** (schools, nurseries, colleges and libraries around; literacy, enrolment, pupils per teacher,
+spending and the best-known universities) and **Health** (the nearest hospital, even beyond the streets read,
+with its distance and whether it has an emergency department; clinics, doctors, dentists and pharmacies;
+life expectancy, doctors and hospital beds per 1,000, health spending and what patients pay themselves).
+Street-level figures come from OpenStreetMap (read once, shared by all eight), names from Wikidata, figures from the World
 Bank, and exchange rates from open.er-api.com. The same menu lists your lenses, so the views you've made are
 one tap from any place.
 
