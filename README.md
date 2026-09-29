@@ -148,7 +148,7 @@ Then pick a theme from the tab bar; each theme's subtabs describe the chosen pla
 | **Plants** | Species · Life zones · At risk | What grows here, with photos and icons (conifer, palm, cactus, orchid, lily, vine, fern, moss, mushroom, kelp…); where each species lives by elevation; threatened plants |
 | **Animals** | Species · Life zones · At risk | The same for birds, mammals, reptiles, insects and more, each with its own icon on the card and the map (62 in all, from owls and penguins to seals, jellyfish and coral) |
 | **Built** | Overview · Transport · Energy · Internet · Water | How a place connects: nearest airport, seaport, main railway, highway and shipping lane; power plants and the power mix around it and nationally; undersea cable landings; and everything OpenStreetMap maps nearby |
-| **Countries** | Overview · People · Economy · Environment | Flag, capital, languages and neighbours; population, income, forests and emissions over time |
+| **Countries** | Overview · Politics · People · Economy · Environment | Flag, capital, languages and neighbours; population, income, forests and emissions over time |
 | **People** | Here · Homes · Health · Online · Events | How many people live around a place (7,300 towns and cities), and the country's figures next to the world's: crowdedness, growth, city dwellers, children and over-65s, births; homeowners and renters (US neighbourhoods from the Census Bureau's American Community Survey: own vs rent, rent, home value, income); life expectancy, child deaths, doctors, safe water; mobile phones, internet, electricity, income. The world view glows with every town and city, or colours countries by any of 16 views. **Events**: what's on nearby (today, this weekend, this week, next 30 days; music, sports, arts, family, food, talks) with tickets and the venues pinned, from Ticketmaster, SeatGeek or Eventbrite once connected ([docs/events.md](docs/events.md)), plus festivals and annual events from Wikidata |
 | **Space** | Sky here | The globe with real day and night; satellites, the ISS, launches and the solar system; tonight's Moon and planets over the chosen place |
 
@@ -178,6 +178,14 @@ the internet. Tap a dot for the plant, port or airport.
 **The tools.** Grow, Flock, Build and live occupancy live under **My Place**; Plan, Present, Video and Teach
 under **Make**; Learn under **Look**. All of them are open to anyone:
 
+- **Politics** (Countries › Politics): who governs the place you're looking at. For every country: who holds
+  power (head of state and of government, with their parties and portraits), the legislature (chambers and
+  seats), the courts, the governing party and the next national election (Wikidata). The United States in
+  depth, live: the President and Vice President, the House and Senate drawn as parliament arcs by party with
+  their leaders (the @unitedstates congress-legislators data, updated as members change), the Supreme Court,
+  the next Election Day with a countdown; and for a spot in a state, its governor, both senators and your House
+  representative, with the district outlined on the map (Census TIGERweb). Maps: states by governor's party or
+  Senate delegation, and the world by how soon each country votes.
 - **Delight.** Atlas opens like a film: from black, a few words faded in and out ("Every place on Earth has a
   story."), the name, then the Earth fades up in real sunlight with its night side dark, and a live line on
   what's happening on the planet right now (the biggest recent earthquake, the aurora, the next launch), each
