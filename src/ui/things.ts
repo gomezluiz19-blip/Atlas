@@ -13,6 +13,11 @@ import type { Thing } from "./frontDoor";
 
 const THEME: Record<string, { emoji: string; words: string }> = {
   explore: { emoji: "🧭", words: "overview discover browse explore" },
+  money: { emoji: "💰", words: "money finance commerce trade business economy companies currency exchange rate dollar inflation interest banks stock market shopping malls markets" },
+  sports: { emoji: "🏟️", words: "sport stadium arena teams football soccer baseball basketball athletes gym pitch" },
+  fashion: { emoji: "👗", words: "clothes boutique designers brands labels style fashion week tailor shoes" },
+  food: { emoji: "🍲", words: "restaurants cafes eat cuisine dishes dining markets bakery" },
+  arts: { emoji: "🎭", words: "music musicians bands artists theatre galleries venues concerts culture" },
   land: { emoji: "⛰️", words: "earth ground terrain rocks geology minerals mountains soil" },
   water: { emoji: "🌊", words: "rivers lakes oceans sea flood" },
   climate: { emoji: "🌦️", words: "weather temperature rain forecast" },

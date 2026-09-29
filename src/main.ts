@@ -73,7 +73,8 @@ import { wireSocial } from "./social/wire";
 import { watchForProblems } from "./ui/errors";
 watchForProblems();
 import { allProfiles, searchProfiles } from "./social/store";
-import { allLenses } from "./lenses/library";
+import { allLenses, myLenses } from "./lenses/library";
+import { topicThemes } from "./topics/themes";
 
 const $ = (id: string) => document.getElementById(id)!;
 
@@ -296,6 +297,8 @@ $("ui").append(pro.panel);
 // Space: satellites, the ISS, launches and the solar system.
 const space = createSpace(app);
 app.addTheme(spaceTheme(space));
+// Topics (Money & trade, Sports, Fashion, Food, Arts & music) live under "More" on the theme bar.
+for (const t of topicThemes()) app.addTheme(t);
 $("ui").append(space.panel, placeHub.panel, makeHub.panel, lookHub.panel);
 space.button.addEventListener("space:opened", () => closePanels(space.panel));
 for (const hub of [placeHub, makeHub, lookHub]) hub.button.addEventListener("work:opened", () => closePanels(hub.panel));
@@ -744,6 +747,16 @@ const syncHash = () => {
 };
 // Lenses: ways of looking at whatever was tapped, offered in the place card.
 const lenses = createLenses(app, LENSES);
+// "More" also holds the lenses you've made or kept, one tap from any place.
+app.moreExtras = () => {
+  const mine = myLenses();
+  return [
+    h("p", { class: "more-title" }, "Your lenses"),
+    h("div", { class: "chips wrap more-lenses" },
+      ...mine.map((d) => h("button", { class: "chip", title: d.blurb, onclick: () => { app.toggleMore(false); app.actions.get("lens:custom")?.run(d.id); } }, `${d.icon} ${d.name}`)),
+      h("button", { class: "chip", onclick: () => { app.toggleMore(false); app.actions.get("lens:studio")?.run(); } }, mine.length ? "✨ Make another" : "✨ Make a lens")),
+  ];
+};
 app.sheet.el.querySelector(".share-menu")!.after(lenses.strip);
 $("ui").append(lenses.panel);
 app.onName = (p) => lenses.rename(p);

@@ -94,6 +94,19 @@ export const INDICATORS = {
   protectedLand: "ER.LND.PTLD.ZS",
   gini: "SI.POV.GINI",
   fertility: "SP.DYN.TFRT.IN",
+  // Money & trade
+  inflation: "FP.CPI.TOTL.ZG",
+  lendingRate: "FR.INR.LEND",
+  unemployment: "SL.UEM.TOTL.ZS",
+  trade: "NE.TRD.GNFS.ZS",
+  exports: "NE.EXP.GNFS.CD",
+  fdi: "BX.KLT.DINV.CD.WD",
+  fxRate: "PA.NUS.FCRF",
+  tourism: "ST.INT.RCPT.CD",
+  remittances: "BX.TRF.PWKR.CD.DT",
+  agriculture: "NV.AGR.TOTL.ZS",
+  industry: "NV.IND.TOTL.ZS",
+  services: "NV.SRV.TOTL.ZS",
 } as const;
 export type IndicatorKey = keyof typeof INDICATORS;
 

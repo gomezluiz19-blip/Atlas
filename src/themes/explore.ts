@@ -264,7 +264,9 @@ export function exploreTheme(app: App, feeds: Feeds, overlays: Overlays, openSit
     nearbyPages(app, place, body, (slug) => app.actions.get("place:open")?.run(slug));
     body.append(
       section("See it through a theme",
-        ...app.themes.filter((t) => t.id !== "explore").map((t) => action(t.label, () => app.setTheme(t.id), t.icon))),
+        ...app.themes.filter((t) => t.id !== "explore" && !t.more).map((t) => action(t.label, () => app.setTheme(t.id), t.icon)),
+        h("div", { class: "chips wrap topic-chips" }, h("span", { class: "chips-label" }, "More:"),
+          ...app.themes.filter((t) => t.more).map((t) => h("button", { class: "chip", onclick: () => app.setTheme(t.id) }, t.label)))),
       note("Places and descriptions from Wikidata and Wikipedia; importance is how many language editions write about a place."),
     );
   };

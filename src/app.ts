@@ -117,6 +117,8 @@ export interface Theme {
   leave?(app: App): void;
   /** Content before a place is chosen; defaults to the app's empty state. */
   renderEmpty?(app: App, body: HTMLElement): void;
+  /** A topic: kept off the main bar, under "More". */
+  more?: boolean;
 }
 
 /** The place card: header, theme subtabs and content. */
@@ -158,6 +160,11 @@ export class App {
   subtab!: Subtab;
   private tabbar: HTMLElement;
   private tabButtons = new Map<string, HTMLButtonElement>();
+  /** "More": the topics that aren't on the main bar, plus whatever main adds (your lenses). */
+  private moreBtn: HTMLButtonElement | null = null;
+  private moreMenu = h("div", { class: "more-menu", role: "menu", hidden: true });
+  /** Extra rows for the More menu (set by main). */
+  moreExtras?: () => (Node | string)[];
   private tools = new Map<string, { tool: Tool; panel: Panel; placeKey: string; active: boolean }>();
   private toolHome = new Map<string, [string, string]>();
   private interaction: Tool | null = null;
@@ -255,12 +262,14 @@ export class App {
         return;
       }
       const n = Number(e.key);
-      if (n >= 1 && n <= this.themes.length) this.setTheme(this.themes[n - 1].id);
+      const bar = this.themes.filter((t) => !t.more);
+      if (n >= 1 && n <= bar.length) this.setTheme(bar[n - 1].id);
     });
   }
 
   addTheme(theme: Theme) {
     this.themes.push(theme);
+    if (theme.more) { this.moreButton(); return; }
     const btn = h(
       "button",
       {
@@ -274,8 +283,35 @@ export class App {
       h("span", { class: "tab-label" }, theme.label),
     );
     this.tabButtons.set(theme.id, btn);
-    this.tabbar.append(btn);
+    this.tabbar.insertBefore(btn, this.moreBtn);
     if (!this.theme) this.setTheme(theme.id);
+  }
+
+  /** The last tab: the topics that aren't on the main bar. */
+  private moreButton() {
+    if (this.moreBtn) return;
+    this.moreBtn = h("button", { class: "tab more-tab", role: "tab", "aria-selected": "false", "aria-haspopup": "menu", "aria-expanded": "false", style: "--tab-color:var(--accent)", onclick: () => this.toggleMore() },
+      h("span", { class: "tab-icon", html: icons.grid }), h("span", { class: "tab-label" }, "More"));
+    this.tabbar.append(this.moreBtn);
+    this.tabbar.after(this.moreMenu);
+    document.addEventListener("pointerdown", (e) => {
+      if (!this.moreMenu.hidden && !this.moreMenu.contains(e.target as Node) && !this.moreBtn!.contains(e.target as Node)) this.toggleMore(false);
+    });
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !this.moreMenu.hidden) this.toggleMore(false); });
+  }
+
+  toggleMore(open = this.moreMenu.hidden) {
+    if (open) {
+      this.moreMenu.replaceChildren(
+        h("p", { class: "more-title" }, "More ways to see a place"),
+        h("div", { class: "more-grid" }, ...this.themes.filter((t) => t.more).map((t) =>
+          h("button", { class: "more-item", role: "menuitem", style: `--tab-color:${t.color}`, "aria-current": String(t === this.theme), onclick: () => { this.toggleMore(false); this.setTheme(t.id); } },
+            h("span", { class: "more-icon", html: t.icon }),
+            h("span", { class: "more-text" }, h("strong", {}, t.label), h("span", {}, t.intro))))),
+        ...(this.moreExtras?.() ?? []));
+    }
+    this.moreMenu.hidden = !open;
+    this.moreBtn?.setAttribute("aria-expanded", String(open));
   }
 
   /** Remembers which theme/subtab hosts a tool, so tools can link to each other. */
@@ -296,6 +332,13 @@ export class App {
       this.theme = theme;
       this.subtab = theme.subtabs[0];
       for (const [tid, b] of this.tabButtons) b.setAttribute("aria-selected", String(tid === id));
+      // A topic shows on the More tab while it's open.
+      if (this.moreBtn) {
+        this.moreBtn.setAttribute("aria-selected", String(!!theme.more));
+        this.moreBtn.style.setProperty("--tab-color", theme.more ? theme.color : "var(--accent)");
+        this.moreBtn.querySelector(".tab-icon")!.innerHTML = theme.more ? theme.icon : icons.grid;
+        this.moreBtn.querySelector(".tab-label")!.textContent = theme.more ? theme.label.split(" ")[0] : "More";
+      }
       document.documentElement.style.setProperty("--theme", theme.color);
       theme.enter?.(this);
       this.canvas.setTheme(theme.id);

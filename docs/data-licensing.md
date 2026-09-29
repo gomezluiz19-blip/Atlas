@@ -14,6 +14,7 @@ commercially as used, needs a licence or a replacement.
 | Source | Used for | Status | What to do |
 |---|---|---|---|
 | Esri World Imagery (`server.arcgisonline.com`) | Satellite imagery, Block lens texture, Save picture | ❌ | Commercial apps need an Esri account (Location Platform / ArcGIS) with API keys and usage billing; check whether exporting images (Block "Save picture") and offline storage are allowed. Alternatives: MapTiler Satellite, Mapbox Satellite, Cesium ion (Bing / Google 3D tiles), Maxar. |
+| open.er-api.com (ExchangeRate-API, free tier) | Money & trade: today's exchange rate | ⚠️ attribution | Free without a key, updated daily; the terms ask for a "Rates By Exchange Rate API" link (it is in the page's data note). For commercial volume, a paid ExchangeRate-API plan, or the ECB rates via Frankfurter (fewer currencies). |
 | Esri Wayback (`wayback.maptiles.arcgis.com`) | Rewind: then and now | ❌ | Same Esri terms. Alternative: Sentinel-2 (Copernicus, free) time series via Sentinel Hub or your own tiles. |
 | Esri reference overlays (roads, places) | Street and place names over imagery | ❌ | Same Esri terms, or switch to a vector basemap provider's labels. |
 | EOX Sentinel-2 cloudless 2020 (`tiles.maps.eox.at`) | Backup imagery | ❌ | The 2018+ mosaics are CC BY-NC-SA: non-commercial. Buy a licence from EOX, or use the 2016 mosaic (CC BY 4.0). |

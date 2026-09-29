@@ -328,6 +328,19 @@ map's labels come from Natural Earth's detailed (10 m) data: seas, bays, straits
 ice fields and salt flats, then about 7,800 towns, lakes and reservoirs as you zoom in, and detailed rivers
 for the area in view. The Built theme adds famous streets and squares and the world's metro systems.
 
+**More: topics beyond the land.** The last tab on the theme bar, **More**, holds five topics that look at a
+place through what people do there, each opening on the streets around it and widening to its country:
+**Money & trade** (today's exchange rate, inflation, borrowing costs, unemployment, trade, remittances and
+what the economy runs on; the central bank and stock exchange; the companies based nearby and the country's
+best known; and where people shop, bank and send money), **Sports** (stadiums and arenas with their seats and
+home teams, what people play on local pitches, the country's sports stars), **Fashion** (boutiques, tailors
+and shoe shops around, the nearest fashion week, the country's labels and designers), **Food** (what people
+eat here by cuisine, cafés, bars, bakeries and markets, the country's dishes) and **Arts & music** (theatres,
+venues, cinemas and galleries, and the musicians, bands and artists who came from there). Street-level
+figures come from OpenStreetMap (read once, shared by all five), names from Wikidata, figures from the World
+Bank, and exchange rates from open.er-api.com. The same menu lists your lenses, so the views you've made are
+one tap from any place.
+
 **Space** (from the Earth card in Explore, or "satellites" in the search box) shows satellites computed live from CelesTrak's orbital elements (space
 stations, the brightest, science, weather, GPS, geostationary and Starlink), the ISS with its orbit and a
 "ride along" camera, when the ISS will pass over your place, rocket launches with countdowns from Launch
