@@ -31,6 +31,7 @@ import { TimeBar } from "./time/bar";
 import { arrive, stopArriving } from "./delight/arrive";
 import { playIntro } from "./delight/intro";
 import { setSound, soundOn } from "./delight/sound";
+import { startTour, tourDone } from "./delight/tour";
 import { firstSentence, headline } from "./place/headline";
 import { measureAt } from "./place/measure";
 import { yearName } from "./time/model";
@@ -176,6 +177,7 @@ const MAKE_TOOLS: WorkTool[] = [
   tool("teach", "Teach", "Lessons, quizzes, games, a world politics simulation and field trips", "#bf5af2", icons.graduate, openTeach),
 ];
 const LOOK_TOOLS: WorkTool[] = [
+  tool("year", "The year breathes", "Spin through the seasons: the sun, polar night and the planet greening week by week", "#30d158", icons.sprout, (ctx) => { ctx.close(); app.actions.get("rhythms:year")?.run(); }),
   tool("ask", "Ask the map", "Find places that meet many things at once: ground, climate, towns, access, rivers, hazards", "#ffb04a", icons.sparkle, openAsk),
   tool("learn", "Learn", "Games, a daily challenge, your passport, and museums and libraries near you", "#30d158", icons.book, openLearn),
   tool("space", "Space", "Satellites, the ISS, rocket launches and the solar system", "#5e5ce6", icons.saturn, () => app.setTheme("space")),
@@ -340,7 +342,7 @@ for (const el of [placeHub.panel, myPlaces.panel, pro.panel, makeHub.panel, look
 
 const HUB_OF: Record<string, { hub: typeof placeHub; open: (ctx: WorkCtx) => void }> = {};
 for (const [hub, tools] of [[placeHub, PLACE_TOOLS], [makeHub, MAKE_TOOLS], [lookHub, LOOK_TOOLS]] as const)
-  for (const t of tools) if (t.id !== "occupancy" && t.id !== "space") HUB_OF[t.id] = { hub, open: t.open };
+  for (const t of tools) if (t.id !== "occupancy" && t.id !== "space" && t.id !== "year") HUB_OF[t.id] = { hub, open: t.open };
 for (const [t, { hub, open }] of Object.entries(HUB_OF))
   app.actions.set(`work:${t}`, { label: `${hub === placeHub ? "My Place" : hub === makeHub ? "Make" : "Look"} › ${t}`, run: () => { hub.ctx.open(); open(hub.ctx); } });
 // Place pages: #/p/nile (or /p/nile/, which forwards here) opens the Nile's page.
@@ -362,6 +364,8 @@ const KIND_WORDS: Partial<Record<string, string>> = {
   city: "town or city", capital: "capital city", water: "lake or water", sea: "sea", island: "island", peak: "mountain", range: "mountain range",
   desert: "desert", region: "region", continent: "continent", glacier: "glacier", nature: "natural feature", park: "park", waterfall: "waterfall", volcano: "volcano",
 };
+app.actions.set("rhythms:year", { label: "The year breathes", run: () => void import("./delight/year").then((m) => m.yearBreathes(app)) });
+app.actions.set("tour", { label: "Take the tour", run: () => void import("./delight/tour").then((m) => m.startTour(app)) });
 app.actions.set("surprise", { label: "Show me something amazing", run: () => void import("./delight/surprise").then((m) => m.surprise(app)) });
 app.actions.set("place:open", { label: "Open a place's page", run: (slug) => { if (slug) void openPlace(slug); } });
 app.actions.set("place:save", { label: "Save this place", run: () => {
@@ -640,6 +644,7 @@ soundBtn.addEventListener("click", () => { const on = !soundOn(); setSound(on); 
 const aboutPanel = h("div", { class: "popover about", hidden: true },
   h("h2", { class: "group-title" }, "About Atlas"),
   h("div", { class: "about-row" }, h("span", { class: "muted small" }, "Soft sounds when you arrive somewhere (and taps on phones)."), soundBtn),
+  h("div", { class: "about-row" }, h("span", { class: "muted small" }, "A one-minute walk through what Atlas can do."), h("button", { class: "pill-btn", onclick: () => { aboutPanel.hidden = true; startTour(app); } }, "Take the tour")),
   h("p", {}, "Atlas does three things, switched at the top. My Place: your home, farm, site or business, with a daily brief and the tools to run it (Grow, Flock, Build, live occupancy). Look: the whole Earth and space; tap anything, then flip through the themes or look at it through a lens. Make: plans, presentations, videos and lessons made from the map."),
   h("p", {}, "You can also type a request into the search box, like \u201cstorm drains and railways in Chicago\u201d, and Atlas will plan the steps and do them."),
   h("button", { class: "pill-btn about-ai", onclick: () => { aboutPanel.hidden = true; aiSettings.open(); } }, aiOn() ? "Atlas AI: connected · settings" : "Connect Atlas AI (Claude)…"),
@@ -746,7 +751,11 @@ if (shared.camera) {
   let seen = false;
   try { seen = localStorage.getItem("atlas.intro") === "1"; } catch { /* private mode */ }
   const home = !shared.camera && !pageLinked && !myStore.all().length ? homeRegion() : null;
-  void playIntro(app, { home, full: !seen && !!home }).then(() => { try { localStorage.setItem("atlas.intro", "1"); } catch { /* private mode */ } });
+  void playIntro(app, { home, full: !seen && !!home }).then(() => {
+    try { localStorage.setItem("atlas.intro", "1"); } catch { /* private mode */ }
+    // The tour, once: after the first opening (not when arriving by a link to a place or view).
+    if (home && !tourDone()) setTimeout(() => startTour(app), 1200);
+  });
 }
 if (pageLinked) { if (/^#\/p\//.test(location.hash)) placeHash(); else if (pageSlug) void openPlace(pageSlug); }
 if (shared.theme) app.setTheme(shared.theme);

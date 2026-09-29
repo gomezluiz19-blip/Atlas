@@ -186,6 +186,17 @@ under **Make**; Learn under **Look**. All of them are open to anyone:
   the next Election Day with a countdown; and for a spot in a state, its governor, both senators and your House
   representative, with the district outlined on the map (Census TIGERweb). Maps: states by governor's party or
   Senate delegation, and the world by how soon each country votes.
+- **Rhythms.** Two views of the cycles everything on Earth lives by. **A day here** (a lens on any place): a
+  day passes in half a minute; the sun rises and sets where it really does, each slope brightens as it turns to
+  face it, ridges throw real shadows across the valleys (worked out from the ground's shape), the light warms at
+  dawn and dusk, and night falls. Pick midsummer, the equinox or midwinter; the dial gives sunrise, sunset,
+  daylight and golden hour, and says when the summit catches first light and how long the valley floor waits
+  ("158 minutes later" in Yosemite). **The year breathes** (Look): spin a dial through the year and watch the
+  planet change: the sun where it is on that day, with polar night and the midnight sun, and NASA's satellite
+  greenness week by week, with a line on what the planet is doing that month. Play loops it.
+- **The tour.** A step-by-step introduction shown once, after the first opening: one box for everything, a
+  place's page, lenses, themes, time, and Look, Make and My Place, ending with "Finished". Replay it from
+  About or by typing "tour".
 - **Delight.** Atlas opens like a film: from black, a few words faded in and out ("Every place on Earth has a
   story."), the name, then the Earth fades up in real sunlight with its night side dark, and a live line on
   what's happening on the planet right now (the biggest recent earthquake, the aurora, the next launch), each

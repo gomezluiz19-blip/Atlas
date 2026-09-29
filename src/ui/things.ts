@@ -32,6 +32,7 @@ const TOOL: Record<string, { emoji: string; words: string }> = {
   video: { emoji: "🎬", words: "record film movie studio" }, teach: { emoji: "🎓", words: "lesson quiz class students" },
   ask: { emoji: "✨", words: "find search suitable conditions land where" }, learn: { emoji: "🏛️", words: "games museums quiz challenge" },
   space: { emoji: "🪐", words: "satellites iss launches" },
+  year: { emoji: "🌱", words: "seasons year months greening spring summer autumn winter solstice equinox rhythm" },
 };
 
 export function buildThings(app: App, overlays: Overlays, tools: WorkTool[]): Thing[] {
@@ -61,12 +62,13 @@ export function buildThings(app: App, overlays: Overlays, tools: WorkTool[]): Th
   for (const v of VIEWS)
     out.push({ title: v.label, detail: `${v.about}, country by country`, emoji: v.emoji, group: "Show on the map", words: `people ${v.group}`, run: act("people:view", v.id) });
   for (const t of tools)
-    out.push({ title: t.label, detail: t.about, emoji: TOOL[t.id]?.emoji ?? "✨", group: "Open", words: TOOL[t.id]?.words, run: t.id === "space" ? () => app.setTheme("space") : t.id === "occupancy" ? act("pro:occupancy") : act(`work:${t.id}`) });
+    out.push({ title: t.label, detail: t.about, emoji: TOOL[t.id]?.emoji ?? "✨", group: "Open", words: TOOL[t.id]?.words, run: t.id === "space" ? () => app.setTheme("space") : t.id === "occupancy" ? act("pro:occupancy") : t.id === "year" ? act("rhythms:year") : act(`work:${t.id}`) });
   for (const l of LENSES)
-    out.push({ title: `${l.label} lens`, detail: l.blurb, emoji: l.icon, group: "Open", words: "lens look", run: act(`lens:${l.id}`) });
+    out.push({ title: `${l.label} lens`, detail: l.blurb, emoji: l.icon, group: "Open", words: l.id === "day" ? "lens look sunrise sunset shadows golden hour light sun rhythm" : "lens look", run: act(`lens:${l.id}`) });
   for (const s of FEATURED)
     out.push({ title: s.title, detail: s.summary, emoji: "📖", group: "Stories", words: `story ${s.tags.join(" ")}`, run: act("story:open", s.id) });
   out.push({ title: "Show me something amazing", detail: "Somewhere unexpected, and why it's worth seeing", emoji: "🎲", group: "Open", words: "surprise random wonder amazing beautiful inspire", run: act("surprise") });
+  out.push({ title: "Take the tour", detail: "A one-minute walk through what Atlas can do", emoji: "🧭", group: "Open", words: "tour help tutorial guide intro introduction how start learn", run: act("tour") });
   out.push({ title: "Time travel", detail: "The globe in any year: borders of the time, the view from space, projections", emoji: "⏳", group: "Open", words: "time history past then now future year years borders empires old", run: act("time:open") });
   return out;
 }
