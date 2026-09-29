@@ -13,9 +13,10 @@ audience, and what to say when something's slow.
 - [ ] **Feedback**: set `VITE_FEEDBACK_URL` (a Formspree or similar endpoint) to collect notes centrally.
       Without it, notes stay on the device; read them from account › Send feedback › *Notes left on this
       device*, and download them after.
-- [ ] **A clean slate for visitors**: open the site in a fresh browser profile (or clear site data) so each
-      visitor gets the opening titles and the one-minute tour. For your own run-through, use a profile
-      where you've already seen them.
+- [ ] **A clean slate for each visitor**: account button › About Atlas › *Start fresh* (tap twice). The
+      next visitor gets the opening titles and the one-minute tour; Atlas AI and feedback notes are kept.
+- [ ] **Link previews**: deploy with the site's address known (the GitHub Pages workflow sets
+      `ATLAS_SITE_URL`), so links you send show the Atlas card with its image.
 - [ ] Chrome or Safari, full screen, a mouse or trackpad. On phones, Atlas works one-handed; add it to the
       home screen for full screen.
 
@@ -74,5 +75,5 @@ The pitch in the product: *the whole Earth, and your own corner of it*.
 
 ## Resetting the demo machine
 
-Clear the site's data (browser settings › site data for the Atlas address). The example people, lenses and
-the demo farm come back untouched; accounts, pages and lenses made on the device are removed.
+About › *Start fresh* between visitors. For a complete wipe (feedback notes and the AI key too), clear the
+site's data in the browser's settings. The example people, lenses and demo farm are always there.
