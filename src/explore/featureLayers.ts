@@ -15,7 +15,7 @@ import { canvasLayer, tracePath } from "../globe/networkLayer";
 import { h } from "../ui/dom";
 import { iconFor } from "../ui/glyph";
 
-interface Layer {
+export interface Layer {
   id: string;
   emoji: string;
   label: string;
@@ -165,36 +165,41 @@ export const THEME_LAYERS: Record<string, Layer[]> = {
   ],
 };
 
+const layerKey = (themeId: string, l: Layer) => `fl:${themeId}:${l.id}`;
+/** Whether a theme's layer is on the map. */
+export const layerIsOn = (app: App, themeId: string, l: Layer) => (l.action ? !!app.actions.get(l.action)?.isOn?.() : app.canvas.has(layerKey(themeId, l)));
+
+/** Switches one of a theme's layers on or off (it joins the "On the map" tray). */
+export async function switchLayer(app: App, themeId: string, l: Layer, on = !layerIsOn(app, themeId, l)) {
+  if (l.action) {
+    const a = app.actions.get(l.action);
+    if (!a || on === !!a.isOn?.()) return;
+    if (on) a.run(); else a.stop?.();
+    return;
+  }
+  const id = layerKey(themeId, l);
+  if (!on) { app.canvas.remove(id); return; }
+  if (app.canvas.has(id)) return;
+  try {
+    const got = await l.on!(app);
+    app.canvas.put({ id, label: `${l.emoji} ${l.label}`, color: l.color, scope: "world", pinned: true, show: got.show, remove: got.remove }, true);
+  } catch {
+    app.toast(`Couldn't load ${l.label.toLowerCase()}. Check the connection and try again.`, 4000);
+  }
+}
+
 /** The switches for a theme, or null if it has none. */
 export function featureChips(app: App, themeId: string): HTMLElement | null {
   const list = THEME_LAYERS[themeId];
   if (!list?.length) return null;
-  const key = (l: Layer) => `fl:${themeId}:${l.id}`;
-  const isOn = (l: Layer) => (l.action ? !!app.actions.get(l.action)?.isOn?.() : app.canvas.has(key(l)));
+  const isOn = (l: Layer) => layerIsOn(app, themeId, l);
   const box = h("div", { class: "fl-chips", role: "group", "aria-label": "On the map" });
   const render = () => box.replaceChildren(...list.map((l) => {
     const on = isOn(l);
     return h("button", { class: `fl-chip${on ? " on" : ""}`, style: `--c:${l.color}`, "aria-pressed": String(on), title: l.about, onclick: () => void toggle(l) },
       iconFor(l.emoji, 15), h("span", {}, l.label));
   }));
-  const toggle = async (l: Layer) => {
-    if (l.action) {
-      const a = app.actions.get(l.action);
-      if (!a) return;
-      if (a.isOn?.()) a.stop?.(); else a.run();
-      setTimeout(render, 50);
-      return;
-    }
-    const id = key(l);
-    if (app.canvas.has(id)) { app.canvas.remove(id); render(); return; }
-    try {
-      const got = await l.on!(app);
-      app.canvas.put({ id, label: `${l.emoji} ${l.label}`, color: l.color, scope: "world", pinned: true, show: got.show, remove: got.remove }, true);
-    } catch {
-      app.toast(`Couldn't load ${l.label.toLowerCase()}. Check the connection and try again.`, 4000);
-    }
-    render();
-  };
+  const toggle = async (l: Layer) => { await switchLayer(app, themeId, l); render(); setTimeout(render, 50); };
   render();
   const off = app.canvas.subscribe(() => { if (!box.isConnected) off(); else render(); });
   return h("section", { class: "group fl-group" }, h("h2", { class: "group-title" }, "On the map"), box);

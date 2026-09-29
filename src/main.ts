@@ -2,7 +2,7 @@ import "./styles.css";
 // Cesium loads its web workers and assets relative to this URL.
 (window as unknown as { CESIUM_BASE_URL: string }).CESIUM_BASE_URL = new URL("./cesium/", document.baseURI).href;
 
-import { Cartesian2, Cartesian3, EasingFunction, Math as CesiumMath } from "cesium";
+import { Cartesian2, Cartesian3, Math as CesiumMath } from "cesium";
 import { createMapControls, homeRegion } from "./globe/controls";
 import { Looks } from "./globe/looks";
 import { featureChips } from "./explore/featureLayers";
@@ -23,6 +23,19 @@ import { animalsTheme, plantsTheme } from "./themes/life";
 import { waterTheme } from "./themes/water";
 import { formatElevation, formatLonLat, h } from "./ui/dom";
 import { icons } from "./ui/icons";
+import { describe as describeCriterion, looksLikeSearch, parseQuery, type Criterion } from "./answers/criteria";
+import { resolvePlace, searchPlaces, slugOfPlace, warmPlaces } from "./place/places";
+import { findThings, type Thing } from "./ui/frontDoor";
+import { buildThings } from "./ui/things";
+import { TimeBar } from "./time/bar";
+import { arrive, stopArriving } from "./delight/arrive";
+import { playIntro } from "./delight/intro";
+import { setSound, soundOn } from "./delight/sound";
+import { startTour, tourDone } from "./delight/tour";
+import { firstSentence, headline } from "./place/headline";
+import { measureAt } from "./place/measure";
+import { yearName } from "./time/model";
+import { iconSvg } from "./ui/glyph";
 import { createLayersPanel } from "./ui/layers";
 import { createSearch, flyToPlace, geocode, type Command, type Place as SearchPlace, type SearchResult } from "./ui/search";
 import { createRobot } from "./ui/robotCard";
@@ -69,6 +82,7 @@ const openBuild = lazy(() => import("./work/build").then((m) => m.openBuild));
 const openFlock = lazy(() => import("./work/flock").then((m) => m.openFlock));
 const openTeach = lazy(() => import("./work/teach").then((m) => m.openTeach));
 const openLearn = lazy(() => import("./work/learn").then((m) => m.openLearn));
+const openAsk = lazy(() => import("./answers/ui").then((m) => (ctx: WorkCtx) => m.openAsk(ctx)));
 
 const globe = new Globe($("globe"), $("credits"));
 const app = new App(globe, $("ui"));
@@ -163,6 +177,8 @@ const MAKE_TOOLS: WorkTool[] = [
   tool("teach", "Teach", "Lessons, quizzes, games, a world politics simulation and field trips", "#bf5af2", icons.graduate, openTeach),
 ];
 const LOOK_TOOLS: WorkTool[] = [
+  tool("year", "The year breathes", "Spin through the seasons: the sun, polar night and the planet greening week by week", "#30d158", icons.sprout, (ctx) => { ctx.close(); app.actions.get("rhythms:year")?.run(); }),
+  tool("ask", "Ask the map", "Find places that meet many things at once: ground, climate, towns, access, rivers, hazards", "#ffb04a", icons.sparkle, openAsk),
   tool("learn", "Learn", "Games, a daily challenge, your passport, and museums and libraries near you", "#30d158", icons.book, openLearn),
   tool("space", "Space", "Satellites, the ISS, rocket launches and the solar system", "#5e5ce6", icons.saturn, () => app.setTheme("space")),
 ];
@@ -253,7 +269,7 @@ const makeHub = createWork(app, MAKE_TOOLS, {
 });
 const lookHub = createWork(app, LOOK_TOOLS, {
   title: "Look further",
-  intro: "Beyond the themes and lenses in the place card: games and places to learn, and everything above the Earth.",
+  intro: "Beyond the themes and lenses in the place card: ask the map a question, games and places to learn, and everything above the Earth.",
 });
 
 const myPlaces = createMyPlaces(app, myStore, myScene, {
@@ -326,9 +342,42 @@ for (const el of [placeHub.panel, myPlaces.panel, pro.panel, makeHub.panel, look
 
 const HUB_OF: Record<string, { hub: typeof placeHub; open: (ctx: WorkCtx) => void }> = {};
 for (const [hub, tools] of [[placeHub, PLACE_TOOLS], [makeHub, MAKE_TOOLS], [lookHub, LOOK_TOOLS]] as const)
-  for (const t of tools) if (t.id !== "occupancy" && t.id !== "space") HUB_OF[t.id] = { hub, open: t.open };
+  for (const t of tools) if (t.id !== "occupancy" && t.id !== "space" && t.id !== "year") HUB_OF[t.id] = { hub, open: t.open };
 for (const [t, { hub, open }] of Object.entries(HUB_OF))
   app.actions.set(`work:${t}`, { label: `${hub === placeHub ? "My Place" : hub === makeHub ? "Make" : "Look"} › ${t}`, run: () => { hub.ctx.open(); open(hub.ctx); } });
+// Place pages: #/p/nile (or /p/nile/, which forwards here) opens the Nile's page.
+const openPlace = async (slug: string, theme?: string) => {
+  const r = await resolvePlace(slug).catch(() => null);
+  if (!r) { app.toast("Couldn't find that place. The link may be out of date.", 5000); return; }
+  app.setTheme(theme && app.themes.some((t) => t.id === theme) ? theme : "explore");
+  app.select({ lon: r.lon, lat: r.lat, height: 0 }, r.name ? { title: r.name, context: r.context } : undefined, r.feature);
+  if (app.place) app.place.slug = r.slug;
+  // Arrive: the camera comes in at an angle, the name is set over the map with the one fact worth knowing.
+  const what = r.what ?? KIND_WORDS[r.kind] ?? "";
+  const kicker = [what && what.charAt(0).toUpperCase() + what.slice(1), r.context && !r.context.includes(":") ? r.context : ""].filter(Boolean).join(" · ");
+  void arrive(app, {
+    name: r.name || "This spot", kicker, lon: r.lon, lat: r.lat, radius: r.radius,
+    fact: r.blurb ? firstSentence(r.blurb) : measureAt(r.lon, r.lat).then((m) => headline(m.v, r.kind)),
+  });
+};
+const KIND_WORDS: Partial<Record<string, string>> = {
+  city: "town or city", capital: "capital city", water: "lake or water", sea: "sea", island: "island", peak: "mountain", range: "mountain range",
+  desert: "desert", region: "region", continent: "continent", glacier: "glacier", nature: "natural feature", park: "park", waterfall: "waterfall", volcano: "volcano",
+};
+app.actions.set("rhythms:year", { label: "The year breathes", run: () => void import("./delight/year").then((m) => m.yearBreathes(app)) });
+app.actions.set("tour", { label: "Take the tour", run: () => void import("./delight/tour").then((m) => m.startTour(app)) });
+app.actions.set("surprise", { label: "Show me something amazing", run: () => void import("./delight/surprise").then((m) => m.surprise(app)) });
+app.actions.set("place:open", { label: "Open a place's page", run: (slug) => { if (slug) void openPlace(slug); } });
+app.actions.set("place:save", { label: "Save this place", run: () => {
+  const p = app.place;
+  if (!p) return;
+  myPlaces.add(p.lon, p.lat, p.name?.title);
+} });
+const placeHash = () => {
+  const m = /^#\/p\/([^/]+)(?:\/([a-z]+))?$/.exec(location.hash);
+  if (m && decodeURIComponent(m[1]) !== app.place?.slug) void openPlace(decodeURIComponent(m[1]), m[2]);
+};
+addEventListener("hashchange", placeHash);
 // A student opening a quiz link from their teacher.
 const quizLink = /^#quiz=([\w-]+)/.exec(location.hash);
 if (quizLink) void import("./work/quiz").then((m) => m.openQuizLink(app, quizLink[1]));
@@ -408,11 +457,41 @@ const tripCommand = (q: string): Command | null => {
   } };
 };
 
+/** "Flat land under 800 m near an airport": a question for every place on screen at once. */
+const askMap = (q?: string) => {
+  closePanels(lookHub.panel);
+  lookHub.ctx.open();
+  void import("./answers/ui").then((m) => m.openAsk(lookHub.ctx, q)).catch(() => app.toast("Couldn't load that tool. Check the connection and try again.", 5000));
+};
+app.actions.set("answers:ask", { label: "Ask the map", run: (q) => askMap(q) });
+/** "Places like this": step back to see the region around the place, then answer. */
+app.actions.set("answers:preset", { label: "Places like this", run: (json) => {
+  if (!json) return;
+  const preset = JSON.parse(json) as { title: string; criteria: Criterion[]; exclude?: [number, number] };
+  const at = app.place;
+  const answer = () => {
+    closePanels(lookHub.panel);
+    lookHub.ctx.open();
+    void import("./answers/ui").then((m) => m.openAsk(lookHub.ctx, undefined, preset)).catch(() => app.toast("Couldn't load that tool. Check the connection and try again.", 5000));
+  };
+  if (!at) { answer(); return; }
+  globe.viewer.camera.flyTo({ destination: Cartesian3.fromDegrees(at.lon, at.lat, 1_400_000), duration: 1.6, complete: answer, cancel: answer });
+} });
+const answerCommand = (q: string): Command | null => {
+  if (!looksLikeSearch(q)) return null;
+  return { title: "Answer on the map", steps: parseQuery(q).criteria.map(describeCriterion), run: () => askMap(q) };
+};
+
+let things: Thing[] | null = null;
+const iconOfKind = (k: string) => (k === "peak" || k === "range" || k === "volcano" ? "mountain" as const : k === "water" || k === "sea" || k === "waterfall" ? "drop" as const : k === "city" || k === "capital" ? "building" as const : "target" as const);
+
 const asCommand = (q: string): Command | null => {
   const logged = logCommand(q);
   if (logged) return logged;
   const trip = tripCommand(q);
   if (trip) return trip;
+  const answer = answerCommand(q);
+  if (answer) return answer;
   const p = plan(q);
   // With Claude connected, anything that reads as a request or question goes to it.
   if (aiOn() && looksLikeAsk(q)) return { title: "Ask Atlas AI", steps: [p.steps.length ? describe(p).join(" → ") : "Claude will work out the steps"], run: () => void robot.ask(q.trim(), p.steps.length ? p : null) };
@@ -424,17 +503,39 @@ const asCommand = (q: string): Command | null => {
 $("search-slot").replaceWith(createSearch(globe, {
   command: asCommand,
   examples: [
+    "Find flat, sunny land under 800 m near an airport, low flood risk",
     "Where does rain go in downtown Chicago, and show the storm drains",
-    "Lithium mines in Chile",
     "Railways and power plants near Munich",
-    "Earthquakes and tectonic plates in Japan",
   ],
   onPick: pick,
-  local: (q) => [...siteMatches(q), ...searchLocal(feeds, q).map((m) => ({
+  local: (q) => [
+    // Places Atlas knows by name open their page.
+    ...searchPlaces(q, 4).map((r): SearchResult => ({ name: r.name, detail: r.detail, lon: r.lon, lat: r.lat, radius: r.radius, source: "local", icon: iconOfKind(r.kind), run: () => void openPlace(r.slug) })),
+    ...siteMatches(q), ...searchLocal(feeds, q).map((m) => ({
     name: m.name, detail: m.detail, lon: m.lon, lat: m.lat, source: "local" as const,
     radius: m.kind === "sea" || m.kind === "continent" ? 1_500_000 : m.kind === "range" || m.kind === "desert" || m.kind === "region" ? 400_000 : m.kind === "city" || m.kind === "capital" ? 15_000 : m.kind === "district" ? 3000 : 1200,
-    icon: m.kind === "peak" || m.kind === "range" ? "mountain" as const : m.kind === "water" || m.kind === "sea" ? "drop" as const : m.kind === "city" || m.kind === "capital" ? "building" as const : "target" as const,
+    icon: iconOfKind(m.kind),
   }))].filter((r, i, all) => all.findIndex((o) => o.name === r.name) === i).slice(0, 8),
+  things: (q) => {
+    things ??= buildThings(app, overlays, [...PLACE_TOOLS, ...MAKE_TOOLS, ...LOOK_TOOLS]);
+    const found = findThings(things, q, 6);
+    const as = (t: Thing): SearchResult => ({ name: t.title, detail: t.on?.() ? `On · ${t.detail}` : t.detail, lon: 0, lat: 0, radius: 0, source: "thing", svg: iconSvg(t.emoji, 18) ?? icons.sparkle, run: t.run });
+    // A year ("1914", "500 BC", "the world in 2050") goes there in time.
+    const y = /^(?:(?:the )?world in |in |year )?(\d{1,4})\s*(bc|bce|ad)?$/i.exec(q.trim());
+    const year = y ? Number(y[1]) * (/^bc/i.test(y[2] ?? "") ? -1 : 1) : NaN;
+    const time: SearchResult[] = Number.isFinite(year) && year >= -3000 && year <= 2100 && (Math.abs(year) >= 100 || y![2])
+      ? [{ name: `Go to ${yearName(year)}`, detail: year < 2000 ? "The world's borders at the time" : year < new Date().getUTCFullYear() ? "The Earth from space that year" : "Projections for places", lon: 0, lat: 0, radius: 0, source: "thing", svg: iconSvg("⏳", 18) ?? icons.sparkle, run: () => timeBar.goToYear(year) }]
+      : [];
+    return [{ heading: "Time", items: time }, ...(["Show on the map", "Open", "Stories"] as const).map((g) => ({ heading: g, items: found.filter((t) => t.group === g).slice(0, 3).map(as) }))].filter((g) => g.items.length);
+  },
+  frontDoor: () => {
+    const go = (name: string, slug: string, detail: string, emoji: string): SearchResult => ({ name, detail, lon: 0, lat: 0, radius: 0, source: "thing", svg: iconSvg(emoji, 18) ?? icons.target, run: () => void openPlace(slug) });
+    const show = (name: string, detail: string, emoji: string, run: () => void): SearchResult => ({ name, detail, lon: 0, lat: 0, radius: 0, source: "thing", svg: iconSvg(emoji, 18) ?? icons.sparkle, run });
+    return [
+      { heading: "Go to", items: [{ name: "Show me something amazing", detail: "Somewhere unexpected, and why it's worth seeing", lon: 0, lat: 0, radius: 0, source: "thing", svg: iconSvg("🎲", 18) ?? icons.sparkle, run: () => app.actions.get("surprise")?.run() }, go("The Nile", "nile", "The longest river, source to sea", "🌊"), go("Mount Everest", "mount-everest", "The highest mountain", "🏔️"), go("Grand Canyon", "grand-canyon", "Two billion years of rock", "🏜️")] },
+      { heading: "Show", items: [show("Where people live", "Every town and city as a glow", "👥", () => app.actions.get("people:view")?.run("pop")), show("This week's earthquakes", "Live, worldwide", "〽️", () => void overlays.set("quakes", true)), show("The planet at night", "City lights from space", "🌃", () => void overlays.set("lights", true))] },
+    ];
+  },
   bias: () => (feeds.view.zoom > 4 ? { lat: feeds.view.lat, lon: feeds.view.lon } : null),
 }));
 
@@ -522,11 +623,28 @@ globe.onApply = () => {
 layersBtn.addEventListener("click", () => { const open = layers.hidden; for (const c of [placeHub.ctx, makeHub.ctx, lookHub.ctx]) c.close(); myPlaces.close(); pro.close(); space.close(); toggleLayers(open); });
 globe.viewer.scene.canvas.addEventListener("pointerdown", () => toggleLayers(false));
 
+// Time: one slider from the ancient world to 2100 (borders of the time, the view from space, projections).
+const timeBar = new TimeBar(app);
+$("ui").append(timeBar.el);
+const timeBtn = h("button", { id: "time-btn", class: "round-btn", "aria-label": "Time: see the globe in another year", html: iconSvg("⏳", 20) ?? "" });
+timeBtn.addEventListener("click", () => (timeBar.el.hidden ? timeBar.open() : timeBar.close()));
+layersBtn.before(timeBtn);
+app.actions.set("time:open", { label: "Time travel", run: () => timeBar.open() });
+// "1914", or "1914@lon,lat" to light up whoever governed that place.
+app.actions.set("time:go", { label: "Go to a year", run: (arg) => {
+  const m = /^(-?\d+)(?:@(-?[\d.]+),(-?[\d.]+))?$/.exec(arg ?? "");
+  if (m) timeBar.goToYear(Number(m[1]), m[2] ? [Number(m[2]), Number(m[3])] : undefined);
+} });
+
 // About / data sources.
 const about = $("about-btn");
 about.innerHTML = icons.info;
+const soundBtn = h("button", { class: "pill-btn sound-toggle", "aria-pressed": String(soundOn()) }, soundOn() ? "Sounds on" : "Sounds off") as HTMLButtonElement;
+soundBtn.addEventListener("click", () => { const on = !soundOn(); setSound(on); soundBtn.textContent = on ? "Sounds on" : "Sounds off"; soundBtn.setAttribute("aria-pressed", String(on)); });
 const aboutPanel = h("div", { class: "popover about", hidden: true },
   h("h2", { class: "group-title" }, "About Atlas"),
+  h("div", { class: "about-row" }, h("span", { class: "muted small" }, "Soft sounds when you arrive somewhere (and taps on phones)."), soundBtn),
+  h("div", { class: "about-row" }, h("span", { class: "muted small" }, "A one-minute walk through what Atlas can do."), h("button", { class: "pill-btn", onclick: () => { aboutPanel.hidden = true; startTour(app); } }, "Take the tour")),
   h("p", {}, "Atlas does three things, switched at the top. My Place: your home, farm, site or business, with a daily brief and the tools to run it (Grow, Flock, Build, live occupancy). Look: the whole Earth and space; tap anything, then flip through the themes or look at it through a lens. Make: plans, presentations, videos and lessons made from the map."),
   h("p", {}, "You can also type a request into the search box, like \u201cstorm drains and railways in Chicago\u201d, and Atlas will plan the steps and do them."),
   h("button", { class: "pill-btn about-ai", onclick: () => { aboutPanel.hidden = true; aiSettings.open(); } }, aiOn() ? "Atlas AI: connected · settings" : "Connect Atlas AI (Claude)…"),
@@ -557,14 +675,19 @@ const cameraState = () => {
   const pos = c.positionCartographic;
   return { lat: CesiumMath.toDegrees(pos.latitude), lon: CesiumMath.toDegrees(pos.longitude), height: pos.height, heading: CesiumMath.toDegrees(c.heading), pitch: CesiumMath.toDegrees(c.pitch) };
 };
-const stateHash = () => formatHash({ place: app.place ?? undefined, theme: app.theme?.id !== "explore" ? app.theme?.id : undefined, camera: cameraState() });
+const stateHash = () => app.place?.slug && !app.place.slug.startsWith("@")
+  ? `#/p/${app.place.slug}${app.theme?.id !== "explore" ? `/${app.theme.id}` : ""}`
+  : formatHash({ place: app.place ?? undefined, theme: app.theme?.id !== "explore" ? app.theme?.id : undefined, camera: cameraState() });
 app.shareLink = () => `${location.origin}${location.pathname}${stateHash()}`;
 let hashTimer = 0;
 const syncHash = () => {
   clearTimeout(hashTimer);
   hashTimer = window.setTimeout(() => {
     try {
-      history.replaceState(null, "", stateHash() || location.pathname);
+      const next = stateHash();
+      // On a place's own page, its address is already the URL.
+      if (pageSlug && next === `#/p/${pageSlug}`) history.replaceState(null, "", location.pathname);
+      else history.replaceState(null, "", next || location.pathname);
     } catch {
       /* some embedded viewers forbid history changes */
     }
@@ -577,7 +700,11 @@ $("ui").append(lenses.panel);
 app.onName = (p) => lenses.rename(p);
 for (const l of LENSES) app.actions.set(`lens:${l.id}`, { label: l.label, run: () => void lenses.openWhenReady(l.id).then((ok) => { if (!ok) app.toast("Tap a place first, then choose a lens.", 4000); }) });
 app.onPlace = (p) => {
+  // A new place ends the slow circling around the last one.
+  stopArriving();
   void lenses.update(p);
+  // Its page address, for the link in the URL.
+  if (p && !p.slug) void slugOfPlace(p).then((s) => { if (app.place === p) { p.slug = s; syncHash(); } }).catch(() => {});
   // My Place's home lists "Save this spot": keep it in step with the selection.
   if (!placeHub.panel.hidden && placeHub.panel.querySelector(".today-card")) placeHub.ctx.home();
   syncHash();
@@ -601,6 +728,12 @@ globe.viewer.camera.moveEnd.addEventListener(syncHash);
 
 // Opening view: a shared link's view, or the whole planet.
 const shared = parseHash(location.hash);
+// Opened from a place's own page (p/nile/), or a link to one (#/p/nile).
+const pageSlug = (window as { ATLAS_PAGE?: string }).ATLAS_PAGE;
+// Places by name answer the first keystroke.
+setTimeout(warmPlaces, 1500);
+document.querySelector(".seo-page")?.remove();
+const pageLinked = /^#\/p\//.test(location.hash) || (!!pageSlug && !location.hash);
 if (shared.camera) {
   const c = shared.camera;
   globe.viewer.camera.setView({
@@ -608,17 +741,26 @@ if (shared.camera) {
     orientation: { heading: CesiumMath.toRadians(c.heading), pitch: CesiumMath.toRadians(c.pitch), roll: 0 },
   });
 } else {
-  // Open on the user's own side of the planet (from the time zone), then settle in.
-  const home = homeRegion(), cam = globe.viewer.camera;
-  cam.setView({ destination: Cartesian3.fromDegrees(home.lon - 25, home.lat * 0.6, 22_000_000) });
-  const start = Cartesian3.clone(cam.positionWC);
-  // Skipped if the person has already moved the map or searched, or when Atlas flies to their saved place.
-  if (!myStore.all().length)
-    setTimeout(() => { if (Cartesian3.equalsEpsilon(cam.positionWC, start, 0, 1)) cam.flyTo({ destination: Cartesian3.fromDegrees(home.lon, home.lat * 0.8, 13_000_000), duration: 2.2, easingFunction: EasingFunction.QUADRATIC_IN_OUT }); }, 600);
+  // Open on the user's own side of the planet (from the time zone).
+  const home = homeRegion();
+  globe.viewer.camera.setView({ destination: Cartesian3.fromDegrees(home.lon - 25, home.lat * 0.6, 22_000_000) });
 }
+// The opening: from black, the titles (first visit) or just the name, then the Earth in real sunlight
+// settling on the viewer's side of the planet. A link to a view or a place, or a saved place, sets its own view.
+{
+  let seen = false;
+  try { seen = localStorage.getItem("atlas.intro") === "1"; } catch { /* private mode */ }
+  const home = !shared.camera && !pageLinked && !myStore.all().length ? homeRegion() : null;
+  void playIntro(app, { home, full: !seen && !!home }).then(() => {
+    try { localStorage.setItem("atlas.intro", "1"); } catch { /* private mode */ }
+    // The tour, once: after the first opening (not when arriving by a link to a place or view).
+    if (home && !tourDone()) setTimeout(() => startTour(app), 1200);
+  });
+}
+if (pageLinked) { if (/^#\/p\//.test(location.hash)) placeHash(); else if (pageSlug) void openPlace(pageSlug); }
 if (shared.theme) app.setTheme(shared.theme);
 if (shared.place) app.select({ lon: shared.place.lon, lat: shared.place.lat, height: 0 });
-else if (!shared.camera && myStore.all().length) {
+else if (!shared.camera && !pageLinked && myStore.all().length) {
   // Start where people are: fly in to their own place.
   const saved = myStore.all();
   const home = saved.find((p) => p.kind === "home") ?? saved[0];

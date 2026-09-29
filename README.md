@@ -148,7 +148,7 @@ Then pick a theme from the tab bar; each theme's subtabs describe the chosen pla
 | **Plants** | Species · Life zones · At risk | What grows here, with photos and icons (conifer, palm, cactus, orchid, lily, vine, fern, moss, mushroom, kelp…); where each species lives by elevation; threatened plants |
 | **Animals** | Species · Life zones · At risk | The same for birds, mammals, reptiles, insects and more, each with its own icon on the card and the map (62 in all, from owls and penguins to seals, jellyfish and coral) |
 | **Built** | Overview · Transport · Energy · Internet · Water | How a place connects: nearest airport, seaport, main railway, highway and shipping lane; power plants and the power mix around it and nationally; undersea cable landings; and everything OpenStreetMap maps nearby |
-| **Countries** | Overview · People · Economy · Environment | Flag, capital, languages and neighbours; population, income, forests and emissions over time |
+| **Countries** | Overview · Politics · People · Economy · Environment | Flag, capital, languages and neighbours; population, income, forests and emissions over time |
 | **People** | Here · Homes · Health · Online · Events | How many people live around a place (7,300 towns and cities), and the country's figures next to the world's: crowdedness, growth, city dwellers, children and over-65s, births; homeowners and renters (US neighbourhoods from the Census Bureau's American Community Survey: own vs rent, rent, home value, income); life expectancy, child deaths, doctors, safe water; mobile phones, internet, electricity, income. The world view glows with every town and city, or colours countries by any of 16 views. **Events**: what's on nearby (today, this weekend, this week, next 30 days; music, sports, arts, family, food, talks) with tickets and the venues pinned, from Ticketmaster, SeatGeek or Eventbrite once connected ([docs/events.md](docs/events.md)), plus festivals and annual events from Wikidata |
 | **Space** | Sky here | The globe with real day and night; satellites, the ISS, launches and the solar system; tonight's Moon and planets over the chosen place |
 
@@ -178,6 +178,64 @@ the internet. Tap a dot for the plant, port or airport.
 **The tools.** Grow, Flock, Build and live occupancy live under **My Place**; Plan, Present, Video and Teach
 under **Make**; Learn under **Look**. All of them are open to anyone:
 
+- **Politics** (Countries › Politics): who governs the place you're looking at. For every country: who holds
+  power (head of state and of government, with their parties and portraits), the legislature (chambers and
+  seats), the courts, the governing party and the next national election (Wikidata). The United States in
+  depth, live: the President and Vice President, the House and Senate drawn as parliament arcs by party with
+  their leaders (the @unitedstates congress-legislators data, updated as members change), the Supreme Court,
+  the next Election Day with a countdown; and for a spot in a state, its governor, both senators and your House
+  representative, with the district outlined on the map (Census TIGERweb). Maps: states by governor's party or
+  Senate delegation, and the world by how soon each country votes.
+- **Rhythms.** Two views of the cycles everything on Earth lives by. **A day here** (a lens on any place): a
+  day passes in half a minute; the sun rises and sets where it really does, each slope brightens as it turns to
+  face it, ridges throw real shadows across the valleys (worked out from the ground's shape), the light warms at
+  dawn and dusk, and night falls. Pick midsummer, the equinox or midwinter; the dial gives sunrise, sunset,
+  daylight and golden hour, and says when the summit catches first light and how long the valley floor waits
+  ("158 minutes later" in Yosemite). **The year breathes** (Look): spin a dial through the year and watch the
+  planet change: the sun where it is on that day, with polar night and the midnight sun, and NASA's satellite
+  greenness week by week, with a line on what the planet is doing that month. Play loops it.
+- **The tour.** A step-by-step introduction shown once, after the first opening: one box for everything, a
+  place's page, lenses, themes, time, and Look, Make and My Place, ending with "Finished". Replay it from
+  About or by typing "tour".
+- **Delight.** Atlas opens like a film: from black, a few words faded in and out ("Every place on Earth has a
+  story."), the name, then the Earth fades up in real sunlight with its night side dark, and a live line on
+  what's happening on the planet right now (the biggest recent earthquake, the aurora, the next launch), each
+  one tap from its place. After the first visit, just the name. Opening a place is an arrival: the camera comes
+  in at an angle, the name is set large over the map with the one fact worth knowing, and the view slowly
+  circles until you touch it; the page opens with a headline ("Stands 3,715 m above the sea") and reads its
+  layers live. **Show me something amazing** takes you somewhere unexpected and says why. Any page becomes a
+  picture **card** (1080 × 1350: the view, the name, the fact, the link) to share or save. The globe answers
+  too: in "Who governed here", each ruler's lands light up gold and are framed; the future end of the time
+  bar warms the planet's glow. Soft sounds on arrival are off by default (About › Sounds); phones get a tap.
+- **Time.** One slider (the hourglass, top right, or type a year: "1914", "500 BC") runs from the ancient
+  world to 2100. Before 2000 the globe draws the borders of the time; from 2000 it shows NASA's satellite
+  picture of a summer day that year (MODIS, 250 m); then today; then projections. Play runs through history.
+  Every place page has **Through time**: its yearly temperatures since 1950 as warming stripes, how much
+  warmer the last ten years were than the 1950s, a climate model's change by the 2050s (CMIP6
+  EC-Earth3P-HR via Open-Meteo), who governed it across the centuries ("Poland-Lithuania → Tsardom of
+  Muscovy → Russian Empire → USSR → Ukraine"), each year opening the map of the time, and one tap to see
+  it from space in past years.
+- **One front door.** The search box answers anything: a place (the ~11,900 places Atlas knows by name
+  answer the first keystroke and open their page), an address or coordinates, a question for the map, a
+  trip, or something to show or open, found in everyday words: "railways", "night lights", "homeowners",
+  "plan a trip", "record a film", "nile story". Empty, it offers questions to ask, places to go and things to
+  show.
+- **Every place has a page** with a permanent address: `#/p/nile`, and on the live site a real page at
+  `p/nile/` for each of the ~11,900 places Atlas knows by name (built with its own title, description,
+  structured data and a sitemap, so search engines and link previews see the place, then the app opens on it).
+  Wikidata places (`#/p/eiffel-tower~q243`) and any spot (`#/p/@35.36,138.73`) have addresses too. A page shows
+  the place across every layer at once (height, slope, facing; climate; people; airports, rail, roads, ports;
+  the sea, rivers, flood risk; plate edges and volcanoes; country figures), each figure opening its theme, with
+  **Places like this** (its own figures as conditions, answered across the region), stories that pass through,
+  and pages nearby.
+- **Ask the map** (in Look, or typed into the search box) answers questions no single layer can: "flat,
+  south-facing land under 800 m, near an airport, low flood risk". The sentence becomes conditions you can see
+  and tune with sliders (height, slope, which way it faces, warmth, coldest month, frost, rain, sunshine, the
+  nearest big city, people nearby, airports, seaports, rail, main roads, rivers, the sea, a flood proxy,
+  volcanoes, plate boundaries, internet use, income, life expectancy). Every place on screen is scored against
+  all of them at once from terrain tiles, last year's weather, towns, infrastructure, rivers, plates and World
+  Bank figures; the map glows where they're met, and the best five places are pinned and ranked with the reasons
+  and what held each back. Things Atlas can't measure yet (prices, schools, crime) are said plainly.
 - **Plan** trips told step by step, the way you'd say them: "fly to Manila, taxi to the Peninsula, stay 3
   nights, train to Baguio". Each leg travels its own way (fly, train, drive, taxi, bus, ferry, walk, bike) with
   times and distances; stays hold their own stops by day; the trip plays back on the globe, names itself and

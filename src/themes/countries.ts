@@ -7,6 +7,7 @@ import { vectorLayer } from "../globe/vectorLayer";
 import { h } from "../ui/dom";
 import { icons } from "../ui/icons";
 import { asyncBlock, hero, inlineChart, note, section, stats } from "./common";
+import { politicsSubtab } from "../politics/ui";
 
 interface Country {
   shape: CountryShape;
@@ -145,8 +146,8 @@ export function countriesTheme(): Theme {
     label: "Countries",
     icon: icons.flag,
     color: "#ff375f",
-    intro: "The nation a place belongs to: its people, economy and environment.",
-    subtabs: [overview, people, economy, environment],
+    intro: "The nation a place belongs to: who governs it, its people, economy and environment.",
+    subtabs: [overview, politicsSubtab(), people, economy, environment],
     enter(app) {
       if (!borders) {
         void countryShapes().then((shapes) => {

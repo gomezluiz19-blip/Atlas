@@ -29,11 +29,13 @@ self.addEventListener("fetch", (e) => {
   const url = new URL(req.url);
 
   if (req.mode === "navigate") {
+    // A place's page (p/nile/) is kept as itself, not as the app's front page.
+    const page = /\/p\/[^/]+\/?$/.test(url.pathname);
     e.respondWith(fetch(req).then((res) => {
       const copy = res.clone();
-      caches.open(APP).then((c) => c.put("./index.html", copy));
+      if (res.ok) caches.open(APP).then((c) => c.put(page ? req : "./index.html", copy));
       return res;
-    }).catch(() => caches.match("./index.html").then((r) => r || caches.match("./"))));
+    }).catch(() => (page ? caches.match(req) : Promise.resolve(undefined)).then((r) => r || caches.match("./index.html")).then((r) => r || caches.match("./"))));
     return;
   }
 

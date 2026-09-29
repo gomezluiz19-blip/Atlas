@@ -61,6 +61,14 @@ export function peopleTheme(app: App): Theme {
     app.looks?.setLegend({ emoji: v.emoji, name: v.label, stops: v.ramp, from: v.unit(lo), to: v.unit(hi) });
   };
 
+  // Any view by name, from the search box: "homeowners", "life expectancy".
+  app.actions.set("people:view", { label: "People view", run: (id) => {
+    if (!id || (id !== "pop" && !VIEWS.some((v) => v.id === id))) return;
+    current = id;
+    if (app.theme?.id !== "people") app.setTheme("people");
+    else { void showView(id); app.render(); }
+  } });
+
   const here: Subtab = {
     id: "here", label: "Here",
     render({ app, place, body }) {

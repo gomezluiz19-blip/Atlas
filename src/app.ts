@@ -20,6 +20,8 @@ export interface Place extends GeoPoint {
   name?: PlaceName | null;
   /** Set when the place is a named feature (a label or map marker was tapped). */
   feature?: unknown;
+  /** Its page address ("nile", "eiffel-tower~q243"), once known. */
+  slug?: string;
 }
 
 /** An interactive analysis that renders into its own panel. */

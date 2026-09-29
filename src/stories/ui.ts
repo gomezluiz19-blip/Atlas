@@ -242,6 +242,12 @@ export async function openFromHash(ctx: WorkCtx, hash: string): Promise<boolean>
 }
 
 /** The stories about the part of the world on screen (for the Explore card). */
+/** Stories that visit somewhere within about `km` of a point. */
+export async function storiesNear(lon: number, lat: number, km = 150, limit = 3): Promise<StoryCard[]> {
+  const dLat = km / 111, dLon = km / (111 * Math.max(0.2, Math.cos((lat * Math.PI) / 180)));
+  return (await library().find({ bbox: [lon - dLon, lat - dLat, lon + dLon, lat + dLat], sort: "popular" })).slice(0, limit);
+}
+
 export async function storiesHere(app: App, limit = 3): Promise<StoryCard[]> {
   const box = viewBox(app);
   if (!box) return [];

@@ -8,7 +8,7 @@ import {
   House, KeyRound, Landmark, Layers, Leaf, Lightbulb, Map, MapPin, Mic, Moon, Mountain, MountainSnow, Music, Orbit, PawPrint, Plane, Puzzle, Rocket, Rotate3d, RotateCw,
   Ruler, School, Search, Ship, Smartphone, Snowflake, Sparkles, Sprout, Stethoscope, Sun, Syringe, Tag, Target, Telescope, Tent, Thermometer, Timer, TrainFront, TreePine,
   TrendingUp, TriangleAlert, Users, Waves, Wheat, Wind, ZoomIn, ZoomOut, ArrowDownToLine, Hourglass, Pickaxe, Gem, Radiation, Ticket, Utensils, Tractor, HardHat,
-  Truck, Bug, Fish, Squirrel, Sunrise, Tornado, Trophy, Drama, PartyPopper,
+  Truck, Bug, Fish, Squirrel, Sunrise, Tornado, Trophy, Drama, PartyPopper, Dices,
   type IconNode,
 } from "lucide";
 
@@ -32,7 +32,7 @@ const BY_EMOJI: Record<string, IconNode> = {
   "🔥": Flame, "🆕": Clock, "🏛️": Landmark, "🌦️": CloudSun, "🪐": Orbit, "🧭": Compass, "⑂": GitFork, "♥": Heart, "📖": BookOpen, "❓": CircleHelp, "🎯": Target,
   "🚀": Rocket, "🔭 ": Telescope, "💨": Wind, "⛈️": CloudLightning, "🌤️": CloudSun, "☀️": Sun, "🍂": Leaf, "🪰": Bug, "💉": Syringe, "🌾": Wheat, "🌱": Sprout,
   "🏗️": HardHat, "🚚": Truck, "⚠️": TriangleAlert, "📏": Ruler, "🎓": GraduationCap, "🎟️": Ticket, "🍽️": Utensils, "🚜": Tractor, "⏳": Hourglass, "⛏️": Pickaxe,
-  "💎": Gem, "☢️": Radiation, "🏭": Factory, "🎞️": Film, "📊": ChartLine, "👁️": Eye, "🐟": Fish, "🐿️": Squirrel, "🌅": Sunrise, "🌪️": Tornado, "🌄": Rotate3d, "🏅": Trophy, "🎭": Drama, "🎉": PartyPopper, "🎤": Mic,
+  "💎": Gem, "☢️": Radiation, "🏭": Factory, "🎞️": Film, "📊": ChartLine, "👁️": Eye, "🐟": Fish, "🐿️": Squirrel, "🌅": Sunrise, "🌪️": Tornado, "🌄": Rotate3d, "🏅": Trophy, "🎭": Drama, "🎉": PartyPopper, "🎤": Mic, "🎲": Dices,
 };
 
 /** The line icon for a control's emoji, or null to keep the emoji (it's content). */

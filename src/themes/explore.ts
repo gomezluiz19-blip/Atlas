@@ -5,24 +5,23 @@ import type { App, Place, Subtab, Theme } from "../app";
 import { distanceKm } from "../analysis/insights";
 import { CATEGORIES, KIND_INFO, type PlaceKind } from "../analysis/placeKinds";
 import { glyphFor } from "../ui/placeGlyphs";
-import { countryAt } from "../data/countries";
-import { elevation } from "../data/elevation";
 import { reverseGeocode } from "../data/geocode";
-import { forecast } from "../data/openmeteo";
 import type { Quake } from "../data/quakes";
 import { commonsThumb, notablePlaces, type Notable } from "../data/wikidata";
 import { summary, summaryByName } from "../data/wikipedia";
-import { weatherText } from "../analysis/climate";
 import type { Feeds, LabelData } from "../explore/feeds";
 import { insightsFor, type Insight } from "../explore/insights";
 import { currentView } from "../explore/view";
 import { OVERLAYS, type OverlayId, type Overlays } from "../globe/overlays";
-import { formatElevation, h } from "../ui/dom";
+import { h } from "../ui/dom";
 import { icons } from "../ui/icons";
 import { flyToPlace } from "../ui/search";
 import { siteBrowser } from "../ui/sites";
 import { SITES, type Site } from "../content/sites";
 import { action, asyncBlock, hero, note, section, stats } from "./common";
+import { acrossLayers, nearbyPages, pageHead, placesLike } from "../place/page";
+import { throughTime } from "../time/placeTime";
+import { iconSvg } from "../ui/glyph";
 
 const INSIGHT_ICON: Record<Insight["icon"], string> = {
   aurora: icons.sparkle, sun: icons.sun, moon: icons.moon, plates: icons.plates, quake: icons.activity, heritage: icons.heritage, globe: icons.globe,
@@ -85,7 +84,8 @@ export function exploreTheme(app: App, feeds: Feeds, overlays: Overlays, openSit
     const go = (id: string) => () => app.actions.get(id)?.run();
     return h("div", { class: "look-further" },
       h("button", { class: "look-tile", onclick: () => app.setTheme("space") }, h("span", { class: "look-tile-icon", style: "--c:#5e5ce6", html: icons.saturn }), h("span", {}, h("strong", {}, "Space"), h("small", {}, "Satellites, the ISS, launches, planets"))),
-      h("button", { class: "look-tile", onclick: go("work:learn") }, h("span", { class: "look-tile-icon", style: "--c:#30d158", html: icons.book }), h("span", {}, h("strong", {}, "Learn"), h("small", {}, "Games, daily challenge, places to learn"))));
+      h("button", { class: "look-tile", onclick: go("work:learn") }, h("span", { class: "look-tile-icon", style: "--c:#30d158", html: icons.book }), h("span", {}, h("strong", {}, "Learn"), h("small", {}, "Games, daily challenge, places to learn"))),
+      h("button", { class: "look-tile surprise-tile", onclick: go("surprise") }, h("span", { class: "look-tile-icon", style: "--c:#ff9f0a", html: iconSvg("🎲", 18) ?? icons.sparkle }), h("span", {}, h("strong", {}, "Show me something amazing"), h("small", {}, "Somewhere unexpected, and why"))));
   };
   /** First visit: what Atlas is for, in three taps. */
   const welcome = (app: App) => {
@@ -199,6 +199,8 @@ export function exploreTheme(app: App, feeds: Feeds, overlays: Overlays, openSit
         text.replaceChildren(h("p", {}, s.extract), h("a", { class: "link-btn", href: s.url, target: "_blank", rel: "noopener" }, "Read more on Wikipedia"));
       })
       .catch(() => text.replaceChildren(h("p", { class: "muted" }, n?.description ?? "Couldn't load a summary.")));
+    acrossLayers(app, place, body);
+    throughTime(app, place, body);
     nearbyAndThemes(place, body, n?.id);
   };
 
@@ -223,20 +225,8 @@ export function exploreTheme(app: App, feeds: Feeds, overlays: Overlays, openSit
 
   /** A plain spot on the map: quick facts from every theme, insights and what's nearby. */
   const placeCard = (place: Place, body: HTMLElement) => {
-    asyncBlock(app, body, "Getting to know this place…", async () => {
-      const [[z], country, weather] = await Promise.all([
-        elevation.sample([[place.lon, place.lat]], 12).catch(() => [NaN]),
-        countryAt(place.lon, place.lat).catch(() => null),
-        forecast(place.lon, place.lat).catch(() => null),
-      ]);
-      const w = weather ? weatherText(weather.current.weather_code) : null;
-      return [
-        h("div", { class: "glance" },
-          glance(icons.mountain, Number.isFinite(z) ? formatElevation(z) : "—", "Elevation", () => app.setTheme("land")),
-          glance(icons.cloudSun, weather ? `${Math.round(weather.current.temperature_2m)}°` : "—", w ? w.text : "Weather", () => app.setTheme("climate")),
-          glance(icons.flag, country?.name ?? "—", "Country", () => app.setTheme("countries"))),
-      ];
-    });
+    acrossLayers(app, place, body);
+    throughTime(app, place, body);
     asyncBlock(app, body, "Looking for things worth knowing…", async () => {
       const list = await insightsFor(place.lon, place.lat, 60, feeds.notable);
       return list.length ? [section("Worth knowing here", ...list.slice(0, 4).map(insightCard))] : [];
@@ -257,6 +247,15 @@ export function exploreTheme(app: App, feeds: Feeds, overlays: Overlays, openSit
         .slice(0, 6);
       return near.length ? [section("Nearby", h("div", { class: "list" }, ...near.map((n) => notableRow(n, place))))] : [];
     });
+    asyncBlock(app, body, "", async () => {
+      const { storiesNear } = await import("../stories/ui");
+      const list = await storiesNear(place.lon, place.lat, 150, 3).catch(() => []);
+      return list.length ? [section("Stories that pass through here", h("div", { class: "list" }, ...list.map((st) => h("button", { class: "list-row", onclick: () => { app.actions.get("mode:make")?.run(); app.actions.get("story:open")?.run(st.id); } },
+        st.cover ? h("img", { class: "present-mini", src: st.cover, alt: "" }) : h("span", { class: "story-mini-emoji" }, "📖"),
+        h("span", { class: "list-text" }, h("span", { class: "list-title" }, st.title), h("span", { class: "list-sub" }, `${st.author.name} · ${st.slideCount} places`)),
+        h("span", { class: "chev", html: "&rsaquo;" }))))), ] : [];
+    });
+    nearbyPages(app, place, body, (slug) => app.actions.get("place:open")?.run(slug));
     body.append(
       section("See it through a theme",
         ...app.themes.filter((t) => t.id !== "explore").map((t) => action(t.label, () => app.setTheme(t.id), t.icon))),
@@ -268,6 +267,7 @@ export function exploreTheme(app: App, feeds: Feeds, overlays: Overlays, openSit
     id: "here",
     label: "Here",
     render({ place, body }) {
+      body.append(pageHead(app, place, () => void placesLike(app, place, (title, criteria) => app.actions.get("answers:preset")?.run(JSON.stringify({ title, criteria, exclude: [place.lon, place.lat] })))));
       const f = place.feature as { type?: string; source?: string } | undefined;
       // Other themes can attach their own features (e.g. a mine); only show the ones Explore knows.
       if (f && (f.type === "quake" || f.source)) featureCard(place, body);
@@ -284,10 +284,6 @@ export function exploreTheme(app: App, feeds: Feeds, overlays: Overlays, openSit
     subtabs: [here],
     renderEmpty,
   };
-}
-
-function glance(icon: string, value: string, label: string, onclick: () => void): HTMLElement {
-  return h("button", { class: "glance-tile", onclick }, h("span", { class: "glance-icon", html: icon }), h("span", { class: "glance-value" }, value), h("span", { class: "glance-label" }, label));
 }
 
 function formatKm(km: number): string {

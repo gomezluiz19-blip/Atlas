@@ -110,3 +110,12 @@ export async function hourlyHumid(lon: number, lat: number): Promise<{ time: str
   );
   return r.hourly.time.map((time, i) => ({ time, t: r.hourly.temperature_2m[i], rh: r.hourly.relative_humidity_2m[i] }));
 }
+
+/**
+ * A climate model's daily mean temperature for a place, 1991 to 2060 (CMIP6
+ * HighResMIP EC-Earth3P-HR via Open-Meteo's climate API), for how much it
+ * warms by mid-century.
+ */
+export function projection(lon: number, lat: number): Promise<{ daily: { time: string[]; temperature_2m_mean: (number | null)[] } }> {
+  return getJson("Open-Meteo", `https://climate-api.open-meteo.com/v1/climate?${ll(lon, lat)}&start_date=1991-01-01&end_date=2060-12-31&models=EC_Earth3P_HR&daily=temperature_2m_mean`, undefined, 60_000);
+}
