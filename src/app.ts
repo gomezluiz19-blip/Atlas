@@ -410,10 +410,11 @@ export class App {
         this.toast((await copyText(text())) ? done : "Couldn't copy. Select and copy the text instead.");
       } }, label);
     menu.replaceChildren(
+      item("Copy link to this place", () => this.shareLink?.() ?? location.href, "Link copied"),
+      this.actions.has("place:card") ? h("button", { role: "menuitem", class: "share-item", onclick: () => { this.toggleShare(false); this.actions.get("place:card")?.run(); } }, "Make a picture card") : "",
       item("Copy coordinates", () => `${p.lat.toFixed(6)}, ${p.lon.toFixed(6)}`, "Coordinates copied"),
       item("Copy as degrees, minutes, seconds", () => formatDms(p.lat, p.lon), "Coordinates copied"),
       address ? item("Copy name and area", () => address, "Copied") : "",
-      item("Copy link to this place", () => this.shareLink?.() ?? location.href, "Link copied"),
       h("a", { role: "menuitem", class: "share-item", href: `https://www.google.com/maps/search/?api=1&query=${p.lat.toFixed(6)},${p.lon.toFixed(6)}`, target: "_blank", rel: "noopener" }, "Open in Google Maps"),
       h("a", { role: "menuitem", class: "share-item", href: `https://maps.apple.com/?ll=${p.lat.toFixed(6)},${p.lon.toFixed(6)}&q=${encodeURIComponent(name ?? "Dropped pin")}`, target: "_blank", rel: "noopener" }, "Open in Apple Maps"),
     );

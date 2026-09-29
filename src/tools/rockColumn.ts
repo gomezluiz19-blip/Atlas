@@ -1,5 +1,6 @@
 // Rock column: the stack of rock layers beneath any point, drawn as a
 // geologist's stratigraphic column, plus the bedrock mapped at the surface.
+import { note } from "../themes/common";
 import type { CustomDataSource } from "cesium";
 import type { App, GeoPoint, Tool } from "../app";
 import { fetchColumn, fetchMapUnit, formatAge, lithologySummary, unitThickness, type MapUnit, type StratUnit } from "../data/macrostrat";
@@ -99,7 +100,7 @@ export class RockColumnTool implements Tool {
       h("div", { class: "column" }, ...rows),
       econ.length ? h("p", { class: "fineprint" }, h("strong", {}, "Resources in these layers: "), econ.join(", ")) : "",
       envs.length ? h("p", { class: "fineprint" }, h("strong", {}, "Ancient environments: "), envs.slice(0, 8).join(", ")) : "",
-      h("p", { class: "fineprint" }, "Bar heights are proportional to thickness. Patterns follow geologic map conventions (dots: sandstone, bricks: limestone, dashes: shale)."),
+      note("Bar heights are proportional to thickness. Patterns follow geologic map conventions (dots: sandstone, bricks: limestone, dashes: shale)."),
     );
   }
 }

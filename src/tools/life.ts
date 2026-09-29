@@ -1,6 +1,7 @@
 // Plants and animals recorded around a place, from iNaturalist: a species
 // gallery, life zones by elevation, and threatened species. One LifeTool
 // instance per subtab; instances of the same theme share a LifeState.
+import { note } from "../themes/common";
 import type { CustomDataSource } from "cesium";
 import type { App, GeoPoint, Tool } from "../app";
 import { elevation } from "../data/elevation";
@@ -114,7 +115,7 @@ export class LifeTool implements Tool {
       total ? "" : h("p", { class: "muted" }, "No sightings recorded here yet. Try a larger radius."),
       breakdown(species),
       h("div", { class: "species-grid" }, ...species.map((sp) => this.card(sp))),
-      h("p", { class: "fineprint" }, "From sightings people have shared on iNaturalist, so busy trails are better covered than remote places. Photos © their observers."),
+      note("From sightings people have shared on iNaturalist, so busy trails are better covered than remote places. Photos © their observers."),
     );
   }
 
@@ -127,7 +128,7 @@ export class LifeTool implements Tool {
         h("span", { class: "hero-label" }, species.length === 1 ? "threatened species recorded" : "threatened species recorded")),
       species.length ? "" : h("p", { class: "muted" }, "No threatened species have been recorded here. That can also mean nobody has looked yet."),
       h("div", { class: "species-grid" }, ...species.map((sp) => this.card(sp, true))),
-      h("p", { class: "fineprint" }, "Threatened means listed as vulnerable, endangered or critically endangered by the IUCN or a national authority. Exact locations of sensitive species are hidden by iNaturalist."),
+      note("Threatened means listed as vulnerable, endangered or critically endangered by the IUCN or a national authority. Exact locations of sensitive species are hidden by iNaturalist."),
     );
   }
 

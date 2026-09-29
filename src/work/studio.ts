@@ -1,4 +1,4 @@
-// Make › Video as a studio: the globe on a monitor in the middle, framed to
+// Create › Video as a studio: the globe on a monitor in the middle, framed to
 // the video's shape, with everything for making the film around it. Shots on
 // the left (save a view, play them in order, record them), the look and camera
 // moves on the right, and the soundtrack, caption and record button below.

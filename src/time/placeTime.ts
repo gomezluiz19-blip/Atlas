@@ -7,7 +7,7 @@ import { bordersFor } from "../data/history";
 import { history, projection } from "../data/openmeteo";
 import { cached } from "../data/diskCache";
 import { h } from "../ui/dom";
-import { loading, section } from "../themes/common";
+import { loading, section, note } from "../themes/common";
 import { polityAt, projectedChange, rulerTimeline, spanMean, yearName, yearlyMeans } from "./model";
 
 const RULER_YEARS = [1500, 1700, 1815, 1880, 1914, 1938, 1960, 1994];
@@ -65,7 +65,7 @@ export function throughTime(app: App, place: Place, body: HTMLElement) {
     rulers.replaceChildren(h("ol", { class: "pt-timeline" }, ...rulerTimeline(rows).map((r) =>
       h("li", {}, h("button", { class: "pt-when", title: "See the map of the time", onclick: () => app.actions.get("time:go")?.run(`${r.from}@${place.lon},${place.lat}`) }, r.from === r.to ? yearName(r.from) : `${yearName(r.from)}–${r.to === now ? "today" : yearName(r.to)}`),
         h("span", {}, r.name ?? "No state recorded")))),
-      h("p", { class: "fineprint" }, "Historical borders: historical-basemaps (A. Ourednik et al.); before the modern era they're approximate. Tap a year to see the map of the time."));
+      note("Historical borders: historical-basemaps (A. Ourednik et al.); before the modern era they're approximate. Tap a year to see the map of the time."));
   };
   const showRulers = h("button", { class: "pill-btn", onclick: () => void loadRulers() }, "Who governed here");
   // The ways into the past show at once; the warming chart (75 years of daily records) fills in when it arrives.
@@ -76,7 +76,7 @@ export function throughTime(app: App, place: Place, body: HTMLElement) {
     h("div", { class: "pt-row" }, h("span", { class: "pt-row-label" }, "From space"),
       ...[2001, 2010, 2020, now - 1].map((y) => h("button", { class: "chip", onclick: () => go(y) }, String(y)))),
     rulers, showRulers,
-    h("p", { class: "fineprint" }, "Measured: ERA5 reanalysis since 1950. Projected: CMIP6 EC-Earth3P-HR, its change from 1991–2010 to 2041–2060 added to what was measured. Both via Open-Meteo.")));
+    note("Measured: ERA5 reanalysis since 1950. Projected: CMIP6 EC-Earth3P-HR, its change from 1991–2010 to 2041–2060 added to what was measured. Both via Open-Meteo.")));
   void (async () => {
     const [hist, model] = await Promise.all([
       history(place.lon, place.lat).catch(() => null),

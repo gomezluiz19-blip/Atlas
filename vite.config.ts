@@ -27,6 +27,9 @@ function placePages(): Plugin {
         writeFileSync(join(outDir, "sitemap.xml"), sitemap(site, pages.map((p) => p.slug)));
         writeFileSync(join(outDir, "robots.txt"), `User-agent: *\nAllow: /\nSitemap: ${site}sitemap.xml\n`);
       }
+      // A fresh offline cache for each deploy (the service worker clears the last one).
+      const sw = join(outDir, "sw.js");
+      writeFileSync(sw, readFileSync(sw, "utf8").replace('const VERSION = "atlas-dev";', `const VERSION = "atlas-${Date.now().toString(36)}";`));
       console.log(`Place pages: ${pages.length}${site ? " (with sitemap)" : ""}`);
     },
   };

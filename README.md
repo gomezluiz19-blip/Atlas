@@ -10,14 +10,14 @@ themes) and goes deep when you want it to: rock sections, watersheds, life zones
 
 Atlas does three things, switched at the top of the screen:
 
-- **My Place**: your home, farm, site or business. A daily brief ("Today at Hillside Farm": frost tonight,
+- **My Places**: your home, farm, site or business. A daily brief ("Today at Hillside Farm": frost tonight,
   a ewe due to lamb, a vaccination due, a project running behind), your saved places with their 3D view,
   energy, water and security, and the tools to run them: **Grow**, **Flock**, **Build** and live occupancy (Pro).
-- **Look**: the whole Earth and space. Tap anything, flip through the themes, or look at it through a lens.
+- **Explore**: the whole Earth and space. Tap anything, flip through the themes, or look at it through a lens.
   **Space** and **Learn** are one tap away on the Earth card.
-- **Make**: **Plan**, **Present**, **Video** and **Teach**: things made from the map to share.
+- **Create**: **Plan**, **Present**, **Video** and **Teach**: things made from the map to share.
 
-**Explore (the default).** Just move the map. Atlas labels what's worth knowing as you go: seas, mountain
+**Overview (the default).** Just move the map. Atlas labels what's worth knowing as you go: seas, mountain
 ranges and cities when zoomed out; rivers, landmarks, stadiums, parks and museums when zoomed in (the Hudson,
 the Empire State Building and Madison Square Garden in Manhattan; the Thames, Big Ben and Wembley in London).
 Places are ranked by how many Wikipedia language editions write about them. The card follows the map with
@@ -66,7 +66,7 @@ ground, and offers the lenses that suit it, best first. Each lens is designed on
 The task robot opens lenses too: "slice open Mount Rainier", "drain the ocean around Britain", "true size
 of Greenland", "subway map of Tokyo", "ocean currents in the Atlantic", "where was London during Pangaea".
 
-**Today at your place.** My Place opens on a daily brief for your main place, most urgent first: frost,
+**Today at your place.** My Places opens on a daily brief for your main place, most urgent first: frost,
 heat, heavy rain or gales in the next four days (with what to do about them for crops, animals or a
 building site), animals due to give birth or due a vaccination (overdue first), fields ready to harvest or
 within two weeks of it, how much to irrigate this week (mm and litres for the field), projects running
@@ -89,11 +89,11 @@ wheat"* (Grow's field diary, which also sets the crop and planting date), *"Oak 
 slab, 14 crew, structure 60%"* or *"Oak Street delivery of steel on Friday"* (Build's site log, progress and
 deliveries). It shows what it will save first, and the search box accepts the same lines.
 
-**Try a demo farm.** With nothing saved yet, My Place offers Hillside Farm, a demo smallholding with sheep
+**Try a demo farm.** With nothing saved yet, My Places offers Hillside Farm, a demo smallholding with sheep
 (six about to lamb), cattle, hens, paddocks and three fields, all dated from today, so the brief and the tools
 are alive at once. One tap removes it.
 
-**My Place.** The My Place mode (top right) keeps the places you care about: home, a family hotel, a farm.
+**My Places.** The My Places mode (top right) keeps the places you care about: home, a family hotel, a farm.
 Save a spot you tapped or searched for, or start from where you are. Each place gets a dashboard:
 a **3D view** of the buildings around it (OpenStreetMap footprints extruded to their mapped height or
 number of floors, yours in orange, with an orbit), **energy** (solar panels, battery, generator: expected
@@ -175,8 +175,8 @@ track from OpenRailwayMap when zoomed in), highways and ferries, shipping lanes,
 airports, 35,000 power plants coloured by fuel and sized by capacity, and the undersea cables that carry
 the internet. Tap a dot for the plant, port or airport.
 
-**The tools.** Grow, Flock, Build and live occupancy live under **My Place**; Plan, Present, Video and Teach
-under **Make**; Learn under **Look**. All of them are open to anyone:
+**The tools.** Grow, Flock, Build and live occupancy live under **My Places**; Plan, Present, Video and Teach
+under **Create**; Learn under **Explore**. All of them are open to anyone:
 
 - **Politics** (Countries › Politics): who governs the place you're looking at. For every country: who holds
   power (head of state and of government, with their parties and portraits), the legislature (chambers and
@@ -191,11 +191,11 @@ under **Make**; Learn under **Look**. All of them are open to anyone:
   face it, ridges throw real shadows across the valleys (worked out from the ground's shape), the light warms at
   dawn and dusk, and night falls. Pick midsummer, the equinox or midwinter; the dial gives sunrise, sunset,
   daylight and golden hour, and says when the summit catches first light and how long the valley floor waits
-  ("158 minutes later" in Yosemite). **The year breathes** (Look): spin a dial through the year and watch the
+  ("158 minutes later" in Yosemite). **The year breathes** (Explore): spin a dial through the year and watch the
   planet change: the sun where it is on that day, with polar night and the midnight sun, and NASA's satellite
   greenness week by week, with a line on what the planet is doing that month. Play loops it.
 - **The tour.** A step-by-step introduction shown once, after the first opening: one box for everything, a
-  place's page, lenses, themes, time, and Look, Make and My Place, ending with "Finished". Replay it from
+  place's page, lenses, themes, time, and Explore, Create and My Places, ending with "Finished". Replay it from
   About or by typing "tour".
 - **Delight.** Atlas opens like a film: from black, a few words faded in and out ("Every place on Earth has a
   story."), the name, then the Earth fades up in real sunlight with its night side dark, and a live line on
@@ -228,7 +228,7 @@ under **Make**; Learn under **Look**. All of them are open to anyone:
   the sea, rivers, flood risk; plate edges and volcanoes; country figures), each figure opening its theme, with
   **Places like this** (its own figures as conditions, answered across the region), stories that pass through,
   and pages nearby.
-- **Ask the map** (in Look, or typed into the search box) answers questions no single layer can: "flat,
+- **Ask the map** (in Explore, or typed into the search box) answers questions no single layer can: "flat,
   south-facing land under 800 m, near an airport, low flood risk". The sentence becomes conditions you can see
   and tune with sliders (height, slope, which way it faces, warmth, coldest month, frost, rain, sunshine, the
   nearest big city, people nearby, airports, seaports, rail, main roads, rivers, the sea, a flood proxy,
@@ -317,7 +317,7 @@ The task robot opens these too: "Europe in 1914", "the Roman Empire in 100 AD", 
 
 **Works offline, installs as an app.** Add Atlas to a phone's home screen. The app, its bundled data and
 the terrain you've looked at stay cached, so Atlas opens in a field with no signal, with your records on the
-device (satellite imagery follows the browser's own cache until an imagery licence allows storing it). **Back up everything** (in My Place) saves all your places, animals, fields,
+device (satellite imagery follows the browser's own cache until an imagery licence allows storing it). **Back up everything** (in My Places) saves all your places, animals, fields,
 projects, plans, decks and quizzes to one file to keep or to restore on another device.
 
 **Worth knowing.** Tap a notable feature and the place card says something true about it: about 270 rivers,
@@ -328,7 +328,7 @@ map's labels come from Natural Earth's detailed (10 m) data: seas, bays, straits
 ice fields and salt flats, then about 7,800 towns, lakes and reservoirs as you zoom in, and detailed rivers
 for the area in view. The Built theme adds famous streets and squares and the world's metro systems.
 
-**Space** (from the Earth card in Look, or "satellites" in the search box) shows satellites computed live from CelesTrak's orbital elements (space
+**Space** (from the Earth card in Explore, or "satellites" in the search box) shows satellites computed live from CelesTrak's orbital elements (space
 stations, the brightest, science, weather, GPS, geostationary and Starlink), the ISS with its orbit and a
 "ride along" camera, when the ISS will pass over your place, rocket launches with countdowns from Launch
 Library 2 (a rocket in flight gets an illustrative climb, labelled as such), tonight's Moon and planets,

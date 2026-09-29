@@ -22,7 +22,7 @@ export interface SocialDeps {
   lensList: Lens[];
   lenses: { refresh(): void; openWhenReady(id: string): Promise<boolean>; openOn(id: string, s: Subject): void };
   openPlace(slug: string): Promise<void> | void;
-  /** Closes the other panels (hubs, space, My Place…). */
+  /** Closes the other panels (hubs, space, My Places…). */
   closePanels(): void;
   /** Rows at the foot of the account menu. */
   extras(): (AccountMenuItem | HTMLElement)[];

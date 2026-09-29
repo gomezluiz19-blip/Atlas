@@ -32,7 +32,7 @@ const STEPS: Step[] = [
   { target: ".tabbar", title: "See the planet a different way", text: "Each theme shows the whole Earth its own way: the ground, water, climate, plants and animals, what we've built, people, countries and space." },
   { target: "#time-btn", title: "Travel in time", text: "The borders of any age, the Earth from space on a day in any year since 2000, and where we're heading." },
   { target: ".account-btn", title: "Your page, and lenses you make", text: "Make a page of the places you love: your Top 8, the restaurants and trails you swear by, a journal. Then describe a lens (“birdwatching”, “a coffee crawl”) and Atlas builds it, to use anywhere and share." },
-  { target: ".mode-bar", title: "Look, Make, My Place", text: "Look further: ask the map, watch the year breathe. Make: trips, stories, videos and lessons. My Place: your home, farm or site, with a daily brief." },
+  { target: ".mode-bar", title: "Explore, Create, My Places", text: "Explore: the whole planet, and questions for the map. Create: trips, stories, videos and lessons. My Places: your home, farm or business, with a daily brief." },
   { title: "That's Atlas", text: "Tap anything to start, or let Atlas pick somewhere for you.", finale: true },
 ];
 

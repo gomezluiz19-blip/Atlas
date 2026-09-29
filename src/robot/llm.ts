@@ -204,7 +204,7 @@ async function runTool(app: App, deps: AiDeps, u: Extract<Block, { type: "tool_u
       return `Opened ${i.tool}.`;
     case "today_brief": {
       const text = deps.brief ? await deps.brief() : "";
-      return text || "No place is saved yet. The person can save one in My Place (top right).";
+      return text || "No place is saved yet. The person can save one in My Places (top right).";
     }
     case "log_record": {
       if (!deps.logLine) throw new Error("Logging isn't available.");

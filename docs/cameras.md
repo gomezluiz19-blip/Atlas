@@ -1,4 +1,4 @@
-# Cameras in My Place
+# Cameras in My Places
 
 Connect a place's cameras and Atlas watches them for you, on the device: who's in view, who came in
 and went out across a line drawn over the doorway, where people spend their time (a heatmap, and
@@ -7,7 +7,7 @@ jump to. A recorded clip ends with a summary in a sentence.
 
 ## Setting one up
 
-1. **My Place › your place › Cameras & security › + Camera.** Tap where the camera is, then the far
+1. **My Places › your place › Cameras & security › + Camera.** Tap where the camera is, then the far
    edge of what it sees. Its view is drawn on the ground.
 2. **Live › Connect** with one of:
    - **A recorded clip** (MP4 or MOV exported from the recorder, or a phone video of the screen).
@@ -41,12 +41,12 @@ cross-origin requests (go2rtc does by default; for others, serve it through the 
 - **Motion mode**: if the detector can't load (offline, blocked), Atlas watches for movement
   instead: activity, the heatmap, zones and moments still work; counts at the door need people mode.
 - It never identifies anyone: no faces, no identities. Video and pictures stay in the browser; only
-  what you save (the camera's place, line and zones) is kept with My Place.
+  what you save (the camera's place, line and zones) is kept with My Places.
 - Positions on the map are approximate (worked out from where the camera is and which way it faces).
 
 ## Trying it: Flor Boutique
 
-Save the shop in My Place (search "Parque Duarte, Eugenio María de Hostos" and tap the shop), set it
+Save the shop in My Places (search "Parque Duarte, Eugenio María de Hostos" and tap the shop), set it
 to *Business*, add a camera over the shop floor, then *Open a recorded clip* with the recorder's
 export. Draw the door line across the entrance and a zone over each rack; play the clip through for
 the summary.

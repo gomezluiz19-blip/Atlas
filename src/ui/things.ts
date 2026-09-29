@@ -12,7 +12,7 @@ import type { WorkTool } from "../work/hub";
 import type { Thing } from "./frontDoor";
 
 const THEME: Record<string, { emoji: string; words: string }> = {
-  explore: { emoji: "🧭", words: "discover browse" },
+  explore: { emoji: "🧭", words: "overview discover browse explore" },
   land: { emoji: "⛰️", words: "earth ground terrain rocks geology minerals mountains soil" },
   water: { emoji: "🌊", words: "rivers lakes oceans sea flood" },
   climate: { emoji: "🌦️", words: "weather temperature rain forecast" },

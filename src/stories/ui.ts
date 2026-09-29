@@ -1,4 +1,4 @@
-// The story library in Make › Stories: find a story (by words, topic, or the
+// The story library in Create › Stories: find a story (by words, topic, or the
 // part of the world on the map), play it, teach with it, remix it into your
 // own, and publish your own for others to find. Every remix credits where it
 // came from, and stories point on to other stories.

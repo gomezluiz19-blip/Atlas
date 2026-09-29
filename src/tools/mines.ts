@@ -1,5 +1,6 @@
 // Mines & minerals: mines and quarries around a point, what they produce,
 // whether they are still working, and the rock that hosts them.
+import { note } from "../themes/common";
 import type { CustomDataSource } from "cesium";
 import type { App, GeoPoint, Tool } from "../app";
 import { commodityOf, GROUPS, isHistoric, mineKind, type CommodityGroup } from "../analysis/commodities";
@@ -173,7 +174,7 @@ out tags center 1500;`;
       this.geoBox,
       list.length ? h("h3", { class: "panel-sub" }, "Sites") : "",
       h("div", { class: "site-list" }, ...list),
-      h("p", { class: "fineprint" }, "Faded dots are historic or inactive. OpenStreetMap coverage varies: many small or historic workings are unmapped, and commodities are often not recorded."),
+      note("Faded dots are historic or inactive. OpenStreetMap coverage varies: many small or historic workings are unmapped, and commodities are often not recorded."),
     );
   }
 

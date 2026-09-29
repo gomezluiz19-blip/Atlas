@@ -161,8 +161,8 @@ const siteMatches = (q: string): SearchResult[] => {
     .map((s) => ({ name: s.name, detail: `${s.where} · ${s.why}`, lon: s.lon, lat: s.lat, radius: s.radius, source: "local" as const, icon: "target" as const }));
 };
 
-// ---- The three modes: My Place, Look, Make -------------------------------------------------
-// My Place: saved places (home, a farm, a hotel…) with today's brief, 3D, energy, water and
+// ---- The three modes: My Places, Explore, Create -------------------------------------------------
+// My Places: saved places (home, a farm, a hotel…) with today's brief, 3D, energy, water and
 // security, and the tools to run them (Grow, Flock, Build, live occupancy).
 // Look: the Earth through themes and lenses (the place card), plus Space and Learn.
 // Make: Plan, Present, Video and Teach.
@@ -245,20 +245,27 @@ function logBox(): HTMLElement {
 }
 
 const placeHub = createWork(app, PLACE_TOOLS, {
-  title: "My Place",
+  title: "My Places",
   intro: "Your home, farm, site or business: what matters there today, and the tools to run it.",
   top: () => {
     const main = savedPlaceHere();
-    return [
-      main ? todayCard(main, openBriefItem) : h("div", { class: "today-card first" },
+    // The places-only export is covered by "Back up everything" below.
+    const list = myPlaces.listBody().filter((n) => !(n instanceof HTMLElement && n.classList.contains("mp-foot")));
+    // Nothing saved yet: one card with every way in (address, this spot, where I am, a demo).
+    if (!main) return [
+      h("div", { class: "today-card first" },
         h("div", { class: "today-head" }, h("strong", {}, "Start with your place")),
-        h("p", { class: "small" }, "Type your address, or tap your place on the map, and save it. Atlas then gives you a daily brief there: frost, heat, storms, and what's due for your animals, fields and projects."),
+        h("p", { class: "small" }, "Save your home, farm, site or business and Atlas gives you a daily brief there: frost, heat, storms, and what's due for your animals, fields and projects."),
         addressBox(),
-        h("button", { class: "pill-btn", onclick: () => { loadDemo(myStore); openMode("place"); app.toast("Hillside Farm is a demo: sheep, cattle, hens and three fields. Remove it any time from the bottom of My Place.", 7000); } }, "Or try a demo farm")),
-      main ? logBox() : "",
+        ...list,
+        h("button", { class: "pill-btn", onclick: () => { loadDemo(myStore); openMode("place"); app.toast("Hillside Farm is a demo: sheep, cattle, hens and three fields. Remove it any time from the bottom of My Places.", 7000); } }, "Or try a demo farm")),
+      h("h2", { class: "group-title" }, "Run your place"),
+    ];
+    return [
+      todayCard(main, openBriefItem),
+      logBox(),
       h("h2", { class: "group-title" }, "Your places"),
-      // The places-only export is covered by "Back up everything" below.
-      ...myPlaces.listBody().filter((n) => !(n instanceof HTMLElement && n.classList.contains("mp-foot"))),
+      ...list,
       h("h2", { class: "group-title" }, "Run your place"),
     ];
   },
@@ -269,12 +276,12 @@ const placeHub = createWork(app, PLACE_TOOLS, {
 });
 keepStorage();
 const makeHub = createWork(app, MAKE_TOOLS, {
-  title: "Make",
-  intro: "Make something from the map: plan a trip or a new road, present a place's story, record a video, or teach a lesson.",
+  title: "Create",
+  intro: "Make something from the map: a trip, a story, a video or a lesson.",
 });
 const lookHub = createWork(app, LOOK_TOOLS, {
-  title: "Look further",
-  intro: "Beyond the themes and lenses in the place card: ask the map a question, games and places to learn, and everything above the Earth.",
+  title: "Explore more",
+  intro: "Ask the map a question, watch the seasons turn, learn with games, and look up at space.",
 });
 
 const myPlaces = createMyPlaces(app, myStore, myScene, {
@@ -315,7 +322,7 @@ function openMode(m: Mode) {
   // Tapping the current mode again goes back to its home screen.
   hub.ctx.open();
   hub.ctx.home();
-  // My Place takes you to your place when you're looking at somewhere far away.
+  // My Places takes you to your place when you're looking at somewhere far away.
   const main = m === "place" ? savedPlaceHere() : undefined;
   if (main) {
     const cam = globe.viewer.camera.positionCartographic;
@@ -324,8 +331,8 @@ function openMode(m: Mode) {
   }
 }
 const modes = createModeBar(openMode);
-app.actions.set("mode:place", { label: "My Place", run: () => openMode("place") });
-app.actions.set("mode:make", { label: "Make", run: () => openMode("make") });
+app.actions.set("mode:place", { label: "My Places", run: () => openMode("place") });
+app.actions.set("mode:make", { label: "Create", run: () => openMode("make") });
 app.actions.set("myplace:report", {
   label: "About your place",
   run: () => {
@@ -342,7 +349,7 @@ const syncMode = () => {
   modes.set([placeHub.panel, myPlaces.panel, pro.panel].some(shown) ? "place" : shown(makeHub.panel) ? "make" : "look");
   // Phones have room for one panel: the place card steps aside while a mode panel is open.
   document.body.dataset.panel = [placeHub.panel, myPlaces.panel, pro.panel, makeHub.panel, lookHub.panel, space.panel].some(shown) ? "open" : "";
-  // Working in My Place or Make: the empty Explore card steps aside so the mode has the screen.
+  // Working in My Places or Make: the empty Explore card steps aside so the mode has the screen.
   document.body.dataset.work = [placeHub.panel, myPlaces.panel, pro.panel, makeHub.panel].some(shown) ? "1" : "";
 };
 const watcher = new MutationObserver(syncMode);
@@ -352,7 +359,7 @@ const HUB_OF: Record<string, { hub: typeof placeHub; open: (ctx: WorkCtx) => voi
 for (const [hub, tools] of [[placeHub, PLACE_TOOLS], [makeHub, MAKE_TOOLS], [lookHub, LOOK_TOOLS]] as const)
   for (const t of tools) if (t.id !== "occupancy" && t.id !== "space" && t.id !== "year") HUB_OF[t.id] = { hub, open: t.open };
 for (const [t, { hub, open }] of Object.entries(HUB_OF))
-  app.actions.set(`work:${t}`, { label: `${hub === placeHub ? "My Place" : hub === makeHub ? "Make" : "Look"} › ${t}`, run: () => { hub.ctx.open(); open(hub.ctx); } });
+  app.actions.set(`work:${t}`, { label: `${hub === placeHub ? "My Places" : hub === makeHub ? "Create" : "Explore"} › ${t}`, run: () => { hub.ctx.open(); open(hub.ctx); } });
 // Place pages: #/p/nile (or /p/nile/, which forwards here) opens the Nile's page.
 const openPlace = async (slug: string, theme?: string) => {
   const r = await resolvePlace(slug).catch(() => null);
@@ -406,7 +413,7 @@ app.actions.set("pro:occupancy", {
   run: () => {
     const p = savedPlaceHere();
     if (p) pro.open(p.id);
-    else { app.toast("Save the building in My Place first, then connect its bookings.", 6000); openMode("place"); }
+    else { app.toast("Save the building in My Places first, then connect its bookings.", 6000); openMode("place"); }
   },
 });
 
@@ -670,7 +677,7 @@ const soundBtn = h("button", { class: "pill-btn sound-toggle", "aria-pressed": S
 soundBtn.addEventListener("click", () => { const on = !soundOn(); setSound(on); soundBtn.textContent = on ? "Sounds on" : "Sounds off"; soundBtn.setAttribute("aria-pressed", String(on)); });
 const aboutPanel = h("div", { class: "popover about", hidden: true },
   h("div", { class: "about-head" }, h("h2", { class: "group-title" }, "About Atlas"), h("button", { class: "icon-btn", "aria-label": "Close", html: icons.close, onclick: () => (aboutPanel.hidden = true) })),
-  h("p", {}, "Atlas does three things, switched at the top. My Place: your home, farm, site or business, with a daily brief and the tools to run it (Grow, Flock, Build, live occupancy). Look: the whole Earth and space; tap anything, then flip through the themes or look at it through a lens. Make: plans, presentations, videos and lessons made from the map."),
+  h("p", {}, "Atlas does three things, switched at the top. Explore: the whole Earth and space; tap anything, then flip through the themes or look at it through a lens. Create: trips, stories, videos and lessons made from the map. My Places: your home, farm, site or business, with a daily brief and the tools to run it."),
   h("p", {}, "You can also type a request into the search box, like \u201cstorm drains and railways in Chicago\u201d, and Atlas will plan the steps and do them."),
   h("p", {}, "People have pages here too: the places they love, a journal, and lenses they've made. Make your own from the account button, and a lens of your own in Lens Studio."),
   h("button", { class: "pill-btn about-ai", onclick: () => { aboutPanel.hidden = true; aiSettings.open(); } }, aiOn() ? "Atlas AI: connected · settings" : "Connect Atlas AI (Claude)…"),
@@ -762,12 +769,13 @@ about.replaceWith(social.account.button);
 $("ui").append(social.account.menu);
 hideSocial = () => { if (social.profiles.isOpen) social.profiles.close(); if (social.studio.isOpen) social.studio.close(); };
 app.onPlace = (p) => {
+  if (p) try { localStorage.setItem("atlas.tapped", "1"); } catch { /* private mode */ }
   // A new place ends the slow circling around the last one.
   stopArriving();
   void lenses.update(p);
   // Its page address, for the link in the URL.
   if (p && !p.slug) void slugOfPlace(p).then((s) => { if (app.place === p) { p.slug = s; syncHash(); } }).catch(() => {});
-  // My Place's home lists "Save this spot": keep it in step with the selection.
+  // My Places's home lists "Save this spot": keep it in step with the selection.
   if (!placeHub.panel.hidden && placeHub.panel.querySelector(".today-card")) placeHub.ctx.home();
   syncHash();
   myPlaces.refresh();
@@ -867,7 +875,7 @@ else if (!shared.camera && !pageLinked && myStore.all().length) {
   setTimeout(() => {
     void flyToPlace(globe, { name: home.name, lon: home.lon, lat: home.lat, radius: 400 });
     app.select({ lon: home.lon, lat: home.lat, height: 0 }, { title: home.name, context: home.address ?? "My place" });
-    app.toast(`Welcome back to ${home.name}. My Place (top right) has today's brief and its dashboard.`, 6000);
+    app.toast(`Welcome back to ${home.name}. My Places (top right) has today's brief and its dashboard.`, 6000);
   }, 1200);
 }
 

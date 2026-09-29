@@ -162,7 +162,7 @@ export const DEMO_PROFILES: Profile[] = [
     handle: "lena.surf", name: "Lena Brandt", role: "owner", demo: true, skin: "ocean",
     avatar: { emoji: "🌊", color: "#64d2ff" },
     now: "Swell's up at Nazaré this week",
-    bio: "I run a small surf school in Ericeira. My Place keeps my boards, bookings and the forecast in one place; my Surf check lens tells students whether tomorrow is a lesson day.",
+    bio: "I run a small surf school in Ericeira. My Places keeps my boards, bookings and the forecast in one place; my Surf check lens tells students whether tomorrow is a lesson day.",
     home: { name: "Ericeira, Portugal", lon: -9.4167, lat: 38.9667 },
     banner: { lon: -9.071, lat: 39.6021 },
     spots: [

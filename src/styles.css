@@ -2357,3 +2357,10 @@ body.year-open .look-legend { display: none; }
 
 /* The time bar and the map's zoom buttons share the bottom right when a side panel is open: lift the buttons. */
 @media (min-width: 821px) { body.time-open .map-controls { bottom: calc(var(--gutter) + 146px); } }
+
+/* "About this data": sources fold away so views end cleanly. */
+.about-data { margin-top: 4px; }
+.about-data summary { cursor: pointer; font-size: 12px; color: var(--tertiary, var(--secondary)); list-style: none; display: inline-flex; align-items: center; gap: 4px; }
+.about-data summary::-webkit-details-marker { display: none; }
+.about-data summary::before { content: "ⓘ"; font-size: 12px; }
+.about-data[open] summary { margin-bottom: 4px; }

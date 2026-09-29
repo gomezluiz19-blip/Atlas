@@ -63,7 +63,8 @@ export function createLenses(app: App, lenses: Lens[]) {
     const shown = showAll ? list : list.filter((x, i) => i < 6 || x.l === active);
     strip.replaceChildren(
       h("div", { class: "lens-kind" }, h("span", {}, KIND_ICON[subject.kind]), h("span", {}, h("strong", {}, KIND_LABEL[subject.kind]), h("small", {}, "Look at it through a lens"))),
-      fact ? factLine(fact) : "",
+      // The feature's facts, unless the card is already this feature's own page.
+      fact && fact.name !== app.place?.name?.title ? factLine(fact) : "",
       h("div", { class: "lens-chips" },
         ...shown.map(({ l }) => h("button", { class: "lens-chip" + (active === l ? " on" : ""), title: l.blurb, onclick: () => void (active === l ? close() : open(l)) }, h("span", {}, l.icon), l.label)),
         list.length > shown.length ? h("button", { class: "lens-chip more", onclick: () => { showAll = true; render(); } }, `+${list.length - shown.length}`) : "",

@@ -23,6 +23,9 @@ import { acrossLayers, nearbyPages, pageHead, placesLike } from "../place/page";
 import { throughTime } from "../time/placeTime";
 import { iconSvg } from "../ui/glyph";
 
+/** Whether this person has chosen a place before (then "how to start" hints step aside). */
+const tapped = () => { try { return localStorage.getItem("atlas.tapped") === "1"; } catch { return false; } };
+
 const INSIGHT_ICON: Record<Insight["icon"], string> = {
   aurora: icons.sparkle, sun: icons.sun, moon: icons.moon, plates: icons.plates, quake: icons.activity, heritage: icons.heritage, globe: icons.globe,
 };
@@ -79,7 +82,7 @@ export function exploreTheme(app: App, feeds: Feeds, overlays: Overlays, openSit
   };
 
   /** The live "what's in view" card. */
-  /** Look further, one tap from the Earth card: ask the map, the year, space and learning. */
+  /** Explore more, one tap from the Earth card: ask the map, the year, space and learning. */
   const lookFurther = (app: App) => {
     const go = (id: string) => () => app.actions.get(id)?.run();
     return h("div", { class: "look-further" },
@@ -100,9 +103,9 @@ export function exploreTheme(app: App, feeds: Feeds, overlays: Overlays, openSit
     card.append(
       h("div", { class: "welcome-head" }, h("strong", {}, "Welcome to Atlas"), h("button", { class: "icon-btn", "aria-label": "Dismiss", html: icons.close, onclick: done })),
       h("p", {}, "The whole Earth, and your own corner of it. Three ways in:"),
-      h("button", { class: "welcome-row", onclick: go("mode:place") }, h("span", { class: "welcome-icon", style: "--c:#ff9f0a", html: icons.home }), h("span", {}, h("strong", {}, "My Place"), h("small", {}, "Save your home, farm or site for a daily brief and the tools to run it"))),
-      h("button", { class: "welcome-row", onclick: done }, h("span", { class: "welcome-icon", style: "--c:#0a84ff", html: icons.eye }), h("span", {}, h("strong", {}, "Look"), h("small", {}, "Tap any mountain, sea, river or city and look at it through a lens"))),
-      h("button", { class: "welcome-row", onclick: go("mode:make") }, h("span", { class: "welcome-icon", style: "--c:#bf5af2", html: icons.pencil }), h("span", {}, h("strong", {}, "Make"), h("small", {}, "Plans, presentations, videos and lessons from the map"))),
+      h("button", { class: "welcome-row", onclick: go("mode:place") }, h("span", { class: "welcome-icon", style: "--c:#ff9f0a", html: icons.home }), h("span", {}, h("strong", {}, "My Places"), h("small", {}, "Save your home, farm or site for a daily brief and the tools to run it"))),
+      h("button", { class: "welcome-row", onclick: done }, h("span", { class: "welcome-icon", style: "--c:#0a84ff", html: icons.eye }), h("span", {}, h("strong", {}, "Explore"), h("small", {}, "Tap any mountain, sea, river or city and look at it through a lens"))),
+      h("button", { class: "welcome-row", onclick: go("mode:make") }, h("span", { class: "welcome-icon", style: "--c:#bf5af2", html: icons.pencil }), h("span", {}, h("strong", {}, "Create"), h("small", {}, "Trips, stories, videos and lessons from the map"))),
       h("p", { class: "muted small" }, "Or just type what you want in the search box: \u201cslice open Mount Fuji\u201d, \u201cfrost at my farm\u201d, \u201csubway map of Tokyo\u201d."));
     return card;
   };
@@ -113,7 +116,8 @@ export function exploreTheme(app: App, feeds: Feeds, overlays: Overlays, openSit
     const start = siteBrowser(SITES.explore, openSite, { color: "#0a84ff" });
     body.append(
       welcome(app),
-      h("div", { class: "empty-hint compact" }, h("span", { class: "empty-icon", html: icons.compass }), h("span", {}, h("strong", {}, "Move the map to explore"), h("span", {}, "Labels appear as you zoom in. Tap a mountain, sea, river or city to look at it through a lens."))),
+      // How to start, until someone has: after their first tap it's just clutter.
+      tapped() ? "" : h("div", { class: "empty-hint compact" }, h("span", { class: "empty-icon", html: icons.compass }), h("span", {}, h("strong", {}, "Move the map to explore"), h("span", {}, "Labels appear as you zoom in. Tap a mountain, sea, river or city to look at it through a lens."))),
       lookFurther(app),
       insightsBox,
       storiesBox,
@@ -279,7 +283,7 @@ export function exploreTheme(app: App, feeds: Feeds, overlays: Overlays, openSit
 
   return {
     id: "explore",
-    label: "Explore",
+    label: "Overview",
     icon: icons.compass,
     color: "#0a84ff",
     intro: "Move the map; tap anything to learn about it.",

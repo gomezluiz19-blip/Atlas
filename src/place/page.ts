@@ -9,7 +9,7 @@ import { forecast } from "../data/openmeteo";
 import { weatherText } from "../analysis/climate";
 import { h } from "../ui/dom";
 import { iconFor, labelled } from "../ui/glyph";
-import { asyncBlock, section } from "../themes/common";
+import { asyncBlock, note, section } from "../themes/common";
 import { likeThis, measureAt } from "./measure";
 import { headline } from "./headline";
 import { nearestNamed, slugOfPlace } from "./places";
@@ -32,7 +32,7 @@ const TILES: { group: Group; keys: string[] }[] = [
 ];
 /** Short names for the tiles (the full labels are for conditions). */
 const SHORT: Record<string, string> = {
-  elev: "Height", slope: "Slope", aspect: "Faces", temp: "Average", winter: "Coldest month", rain: "Rain a year", sun: "Sunshine", frost: "Frosty nights",
+  elev: "Ground here", slope: "Slope", aspect: "Faces", temp: "Average", winter: "Coldest month", rain: "Rain a year", sun: "Sunshine", frost: "Frosty nights",
   crowd: "People, 25 km", city: "Big city", airport: "Airport", rail: "Railway", highway: "Main road", port: "Seaport",
   coast: "The sea", river: "River", flood: "Flood risk", faults: "Plate edge", volcano: "Volcano", income: "Income", life: "Life expectancy", online: "Online",
 };
@@ -49,42 +49,32 @@ const value = (key: string, v: number) => {
 
 /** The page's header strip: its address and what you can do from here. */
 export function pageHead(app: App, place: Place, placesLike: (title: string) => void): HTMLElement {
-  const addr = h("span", { class: "pg-addr" }, "…");
-  const copy = h("button", { class: "pg-btn", title: "Copy this page's link" }, ...labelled("🏷️ Copy link", 15));
   // The one fact worth knowing first, from the layers measured here.
   const head = h("p", { class: "pg-headline" });
-  let fact = "";
+  let fact = "", slug = "";
   void measureAt(place.lon, place.lat).then((m) => {
-    fact = headline(m.v, (place.feature as { world?: { kind?: string } } | undefined)?.world?.kind) ?? "";
+    // A summit's own height (in the card's subtitle) wins over the ground sampled where it was tapped.
+    const known = /height[:\s]+([\d,]+)\s*m/i.exec(place.name?.context ?? "");
+    const v = known ? { ...m.v, elev: Number(known[1].replace(/,/g, "")) } : m.v;
+    fact = headline(v, (place.feature as { world?: { kind?: string } } | undefined)?.world?.kind) ?? "";
     if (fact && head.isConnected) { head.textContent = fact; head.classList.add("on"); }
   }).catch(() => {});
-  const card = h("button", { class: "pg-btn", title: "A picture card of this place to send" }, ...labelled("🎞️ Card", 15));
-  card.addEventListener("click", () => void import("../delight/card").then((m) => m.shareCard(app, {
-    title: place.name?.title ?? "A place on Earth", kicker: place.name?.context?.split(",").slice(-1)[0]?.trim(), fact: fact || undefined,
-    link: slug ? pageLink(slug) : app.shareLink?.() ?? location.href,
-  })));
-  const row = h("div", { class: "pg-head" },
+  void slugOfPlace(place).then((s) => (slug = s)).catch(() => {});
+  // Sharing lives in the card's share button (link, picture card, coordinates, other maps).
+  app.actions.set("place:card", { label: "A picture card of this place", run: () => {
+    // Whatever place is chosen now (the fact and page address are this page's, if it's still the one).
+    const p = app.place ?? place, same = p === place;
+    void import("../delight/card").then((m) => m.shareCard(app, {
+      title: p.name?.title ?? "A place on Earth", kicker: p.name?.context?.split(",").slice(-1)[0]?.trim(), fact: same && fact ? fact : undefined,
+      link: same && slug && !slug.startsWith("@") ? pageLink(slug) : app.shareLink?.() ?? location.href,
+    }));
+  } });
+  return h("div", { class: "pg-head" },
     head,
-    h("div", { class: "pg-kicker" }, h("span", { class: "pg-dot" }), "Atlas page ", addr),
     h("div", { class: "pg-actions" },
-      card,
-      copy,
-      h("button", { class: "pg-btn", onclick: () => placesLike(place.name?.title ?? "here") }, ...labelled("✨ Places like this", 15)),
-      h("button", { class: "pg-btn", title: "Add it to your page (restaurants, trails, favourite views…)", onclick: () => app.actions.get("profile:add")?.run() }, ...labelled("♡ My page", 15)),
-      h("button", { class: "pg-btn", title: "Save it to My Place for a daily brief", onclick: () => app.actions.get("place:save")?.run() }, ...labelled("📍 Save", 15))));
-  let slug = "";
-  void slugOfPlace(place).then((s) => {
-    slug = s;
-    addr.textContent = s.startsWith("@") ? "for this spot" : `/${s}`;
-  }).catch(() => { addr.textContent = ""; });
-  copy.addEventListener("click", async () => {
-    const link = slug ? pageLink(slug) : app.shareLink?.() ?? location.href;
-    try {
-      if (navigator.share && matchMedia("(pointer: coarse)").matches) await navigator.share({ title: place.name?.title ?? "A place on Atlas", url: link });
-      else { await navigator.clipboard.writeText(link); app.toast("Link to this page copied", 2500); }
-    } catch { /* share dismissed */ }
-  });
-  return row;
+      h("button", { class: "pg-btn", title: "Find places with the same ground and climate", onclick: () => placesLike(place.name?.title ?? "here") }, ...labelled("✨ Places like this", 15)),
+      h("button", { class: "pg-btn", title: "A place you love: it goes on your page (your Top 8, favourite restaurants, trails…)", onclick: () => app.actions.get("profile:add")?.run() }, ...labelled("♡ Add to my page", 15)),
+      h("button", { class: "pg-btn", title: "A place you live, farm or run: My Places gives it a daily brief", onclick: () => app.actions.get("place:save")?.run() }, ...labelled("🏠 Add to My Places", 15))));
 }
 
 /** The place across every layer at once: each tile opens the theme it came from. */
@@ -94,7 +84,7 @@ export function acrossLayers(app: App, place: Place, body: HTMLElement) {
   // The layers being read, ticking in live, until the page has them all.
   const dots = new Map<Needs, HTMLElement>();
   const reading = h("div", { class: "pg-reading", role: "status" },
-    h("span", { class: "pg-reading-title" }, "Reading every layer here"),
+    h("span", { class: "pg-reading-title" }, "Reading this place"),
     h("div", { class: "pg-reading-list" }, ...READING.map(([n, label]) => { const el = h("span", { class: "pg-reading-item" }, h("i"), label); dots.set(n, el); return el; })));
   body.append(reading);
   asyncBlock(app, body, "", async () => {
@@ -114,10 +104,9 @@ export function acrossLayers(app: App, place: Place, body: HTMLElement) {
           ...tiles.map((k) => tile(MEASURES[k].emoji, value(k, m.v[k]), SHORT[k], () => app.setTheme(THEME_OF[group])))));
     }).filter((g) => g !== null);
     return [
-      section("Across every layer", h("div", { class: "pg-layers" }, ...groups)),
-      h("p", { class: "fineprint" },
-        "Read just now from: terrain (Mapzen/AWS Terrain Tiles), last year's weather (ERA5 via Open-Meteo), towns (Natural Earth), airports, ports, rail and roads (Natural Earth), rivers (Natural Earth), plate boundaries (Bird 2003), country figures (World Bank). Flood risk is a rough proxy.",
-        m.missing.length ? ` Couldn't reach ${m.missing.join(", ")} just now.` : ""),
+      section("At a glance", h("div", { class: "pg-layers" }, ...groups)),
+      m.missing.length ? h("p", { class: "fineprint" }, `Couldn't reach ${m.missing.join(", ")} just now.`) : "",
+      note("Read just now from: terrain (Mapzen/AWS Terrain Tiles), last year's weather (ERA5 via Open-Meteo), towns (Natural Earth), airports, ports, rail and roads (Natural Earth), rivers (Natural Earth), plate boundaries (Bird 2003), country figures (World Bank). Flood risk is a rough proxy."),
     ];
   });
 }
