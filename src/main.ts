@@ -70,6 +70,8 @@ import { SITES, sitesFor, type Site } from "./content/sites";
 import { MINES } from "./content/minerals";
 import { LINKS } from "./content/links";
 import { wireSocial } from "./social/wire";
+import { watchForProblems } from "./ui/errors";
+watchForProblems();
 import { allProfiles, searchProfiles } from "./social/store";
 import { allLenses } from "./lenses/library";
 

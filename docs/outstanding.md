@@ -38,5 +38,10 @@ checklist for connecting Supabase and Cloudflare.
 
 ## Also pending
 
+- Switch on the back end: connect Supabase and deploy the edge Worker (`docs/backend.md`); then the
+  scheduled job that sends push alerts for watches while Atlas is closed.
+- A pass on real phones and a school Chromebook against live data (this environment can only use
+  stand-in data), including the people detector loading for cameras.
+- Nightly data jobs (place pages refresh, politics and country snapshots) and privacy-friendly analytics.
 - Campuses and standard places in My Places (on hold).
 - Party seat splits for other countries' legislatures (Wikidata doesn't hold them reliably).

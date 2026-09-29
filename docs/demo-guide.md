@@ -34,10 +34,15 @@ audience, and what to say when something's slow.
 6. **Make a lens.** From Maya's page, her *Birdwatching* lens: it opens on Reifel sanctuary with what's been
    seen this month, the hides, the best window for the weather, and a verdict. Then Lens Studio: type
    `a coffee crawl with bakeries` and press *Make it*; try it on any city.
+7. **Watch it.** On any lens with a verdict, *🔔 Tell me when*: Atlas checks and tells you when it's a
+   good time (Kenji's *Aurora watch* on Tromsø is the showstopper on a stormy night).
+8. **A guide.** Priya's page › *Lisbon in a day* › ▶: the route draws itself and the globe flies stop to
+   stop with her words.
 
 ## For students (10 minutes)
 
 - Sign in as **Maya** (student). Show her page, her journal, her guestbook (sign it).
+- On a phone: account › *Field note*: a photo, a line, pinned where they're standing, in their journal.
 - Look › Learn: the daily challenge, games and the passport (each country you explore stamps it).
 - Search `1914`, or ask *"Show me the Roman Empire"* (with Atlas AI).
 - Let them make their own page: account › Sign in or join › any email (nothing is sent) › pick a face and
@@ -50,6 +55,7 @@ audience, and what to say when something's slow.
   *Rock detective* lens.
 - Make › Teach: a lesson from the map, a quiz with a link for students (`#quiz=…`), a field trip.
 - Make › Stories: a story told on the globe, shared as a link, remixable.
+- Ms Okafor's guide *A geography day along the Thames*: a field trip as a guide students can play.
 - The *Sea level* lens on London; *Rewind* on the chalk cliffs (250 million years in one slider).
 
 ## For investors (7 minutes)
@@ -62,9 +68,19 @@ The pitch in the product: *the whole Earth, and your own corner of it*.
    web pages (`/p/<name>/`) for search engines, which is the growth loop.
 3. **People and making**: pages of places people love, and lenses anyone can make by describing them.
    Every page and lens is a shareable link, so each user brings the next.
-4. **A daily reason to return**: My Place › *Or try a demo farm*: today's brief (frost, heat, animals due).
-5. **What's real and what's next**: every figure comes from live public data (sources in About). Accounts
-   are a preview on the device; the back end that syncs them is the next build (`docs/outstanding.md`).
+4. **A daily reason to return**: My Place › *Or try a demo farm*: today's brief (frost, heat, animals due);
+   and *Watch* on any lens (alerts when it's a good time).
+5. **Businesses**: a shop's own cameras in My Place (see *Cameras* below): who came in, where people
+   spend their time, the moments worth seeing, all on the device.
+6. **What's real and what's next**: every figure comes from live public data (sources in About). The back
+   end is built and switches on with a Supabase project (`docs/backend.md`, about 25 minutes).
+
+## Cameras (5 minutes, for owners and investors)
+
+Have the shop's recorded clip on the laptop (Flor Boutique's works). My Place › the business › Cameras &
+security › Live › *Open a recorded clip*. While it plays: *🔥 Where people spend time*, drag a zone over a
+rack, tap a moment to jump there. At the end, the clip's summary in a sentence. Setup notes, including
+CCTV recorders: `docs/cameras.md`.
 
 ## If something's slow
 
