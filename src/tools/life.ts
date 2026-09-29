@@ -152,10 +152,11 @@ export class LifeTool implements Tool {
     })
       .then((rows) => {
         if (job !== this.job) return;
+        status.className = "fineprint";
         status.replaceChildren(h("span", {}, "Bars span where each species was seen; the box holds the middle half and the tick is the median."));
         box.replaceChildren(rangeChart(rows, (v) => `${Math.round(v).toLocaleString()} m`));
       })
-      .catch((err) => box.replaceChildren(h("p", { class: "error" }, (err as Error).message)));
+      .catch((err) => { status.remove(); box.replaceChildren(h("p", { class: "error" }, (err as Error).message)); });
   }
 
   private card(s: SpeciesCount, threatened = false): HTMLElement {

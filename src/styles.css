@@ -2348,3 +2348,9 @@ body.year-open .look-legend { display: none; }
 .tour-skip { position: absolute; top: 12px; right: 12px; padding: 4px 10px; border: 0; border-radius: 999px; font: 500 12px var(--font); color: var(--secondary); background: var(--fill); cursor: pointer; }
 .tour.centred .tour-skip { top: 10px; right: 10px; }
 @media (prefers-reduced-motion: reduce) { .tour-hole, .tour-bubble { transition: none; } }
+
+/* The card follows the map: the place you moved away from, one tap back */
+.back-to { display: inline-flex; align-items: center; gap: 8px; margin: 0 0 12px; padding: 7px 14px 7px 10px; border: 0; border-radius: 999px; font: 500 13px var(--font); color: var(--label); background: var(--fill); cursor: pointer; animation: ask-in 0.3s var(--ease) both; max-width: 100%; }
+.back-to strong { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.back-to:hover { background: var(--fill-strong); }
+.back-to-arrow { color: var(--accent); font-size: 15px; line-height: 1; }

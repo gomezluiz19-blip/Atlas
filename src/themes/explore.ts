@@ -79,10 +79,12 @@ export function exploreTheme(app: App, feeds: Feeds, overlays: Overlays, openSit
   };
 
   /** The live "what's in view" card. */
-  /** Space and Learn, one tap from the Earth card. */
+  /** Look further, one tap from the Earth card: ask the map, the year, space and learning. */
   const lookFurther = (app: App) => {
     const go = (id: string) => () => app.actions.get(id)?.run();
     return h("div", { class: "look-further" },
+      h("button", { class: "look-tile", onclick: go("work:ask") }, h("span", { class: "look-tile-icon", style: "--c:#ffb04a", html: icons.sparkle }), h("span", {}, h("strong", {}, "Ask the map"), h("small", {}, "Where fits many things at once"))),
+      h("button", { class: "look-tile", onclick: go("rhythms:year") }, h("span", { class: "look-tile-icon", style: "--c:#30d158", html: icons.sprout }), h("span", {}, h("strong", {}, "The year breathes"), h("small", {}, "The seasons sweep the planet"))),
       h("button", { class: "look-tile", onclick: () => app.setTheme("space") }, h("span", { class: "look-tile-icon", style: "--c:#5e5ce6", html: icons.saturn }), h("span", {}, h("strong", {}, "Space"), h("small", {}, "Satellites, the ISS, launches, planets"))),
       h("button", { class: "look-tile", onclick: go("work:learn") }, h("span", { class: "look-tile-icon", style: "--c:#30d158", html: icons.book }), h("span", {}, h("strong", {}, "Learn"), h("small", {}, "Games, daily challenge, places to learn"))),
       h("button", { class: "look-tile surprise-tile", onclick: go("surprise") }, h("span", { class: "look-tile-icon", style: "--c:#ff9f0a", html: iconSvg("🎲", 18) ?? icons.sparkle }), h("span", {}, h("strong", {}, "Show me something amazing"), h("small", {}, "Somewhere unexpected, and why"))));

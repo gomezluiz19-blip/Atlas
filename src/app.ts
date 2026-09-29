@@ -323,6 +323,7 @@ export class App {
   }
 
   select(p: GeoPoint, name?: PlaceName | null, feature?: unknown) {
+    this.lastPlace = null;
     this.setInteraction(null);
     this.subtab?.leave?.(this);
     this.canvas.newPlace();
@@ -348,7 +349,27 @@ export class App {
     }
   }
 
+  /** The place the card let go of when the map moved away from it (for "Back to …"). */
+  lastPlace: Place | null = null;
+  /** Called to go back to a place the card let go of. */
+  onReturn?: (p: Place) => void;
+
+  /** True while a tool is waiting for clicks on the globe (drawing a line, picking a point). */
+  get interacting(): boolean {
+    return this.interaction !== null;
+  }
+
+  /** Lets go of the chosen place because the map has moved away from it; the card follows the map. */
+  release() {
+    const p = this.place;
+    if (!p) return;
+    this.clearPlace();
+    this.lastPlace = p;
+    this.render();
+  }
+
   clearPlace() {
+    this.lastPlace = null;
     this.subtab?.leave?.(this);
     this.setInteraction(null);
     this.canvas.newPlace();
@@ -441,6 +462,9 @@ export class App {
     body.replaceChildren(content);
     body.scrollTop = 0;
     if (!this.place) {
+      // The place the map moved away from, one tap back.
+      const last = this.lastPlace;
+      if (last) content.append(h("button", { class: "back-to", onclick: () => this.onReturn?.(last) }, h("span", { class: "back-to-arrow", html: "&larr;" }), h("span", {}, "Back to ", h("strong", {}, last.name?.title ?? "the place you chose"))));
       if (theme.renderEmpty) theme.renderEmpty(this, content);
       else content.append(this.emptyState?.(theme) ?? h("p", {}, "Tap anywhere on Earth."));
       // The theme's own switches for the map, just under the first hint.

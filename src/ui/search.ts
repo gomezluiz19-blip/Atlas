@@ -227,7 +227,8 @@ export interface SearchOptions {
   /** Instant matches from data already on the device (labels, curated places). */
   local?: (q: string) => SearchResult[];
   /** What Atlas can show and do that matches ("railways", "homeowners", "plan a trip"), by group. */
-  things?: (q: string) => { heading: string; items: SearchResult[] }[];
+  /** Atlas's own things for a query; a group marked lead is so plainly what was meant that it goes first. */
+  things?: (q: string) => { heading: string; items: SearchResult[]; lead?: boolean }[];
   /** The front door, shown when the box is empty (after recent searches and examples). */
   frontDoor?: () => { heading: string; items: SearchResult[] }[];
   /** Bias address results toward what's on screen. */
@@ -331,9 +332,13 @@ export function createSearch(globe: Globe, opts: SearchOptions = {}): HTMLElemen
     const cmd = parsed.shortCode ? null : opts.command?.(raw) ?? null;
     const cmdItems: SearchResult[] = cmd ? [{ name: cmd.title, detail: cmd.steps.join(" → "), lat: 0, lon: 0, radius: 0, icon: "sparkle", source: "command", run: cmd.run }] : [];
     const local = parsed.shortCode ? [] : opts.local?.(parsed.text) ?? [];
-    const things = parsed.shortCode || cmd ? [] : opts.things?.(parsed.text) ?? [];
-    const thingGroups = () => things.map((g) => ({ heading: g.heading, items: g.items }));
-    render([{ heading: cmd ? "Do it" : undefined, items: cmdItems }, { heading: local.length ? "Places" : undefined, items: local.slice(0, 4) }, ...thingGroups()], "Searching…");
+    const allThings = parsed.shortCode ? [] : opts.things?.(parsed.text) ?? [];
+    const leads = allThings.filter((g) => g.lead);
+    // A command hides the rest unless one of them is plainly what was asked for.
+    const things = cmd && !leads.length ? [] : allThings;
+    const thingGroups = () => things.filter((g) => !g.lead).map((g) => ({ heading: g.heading, items: g.items }));
+    const leadGroups = leads.map((g) => ({ heading: g.heading, items: g.items }));
+    render([...leadGroups, { heading: cmd ? "Do it" : undefined, items: cmdItems }, { heading: local.length ? "Places" : undefined, items: local.slice(0, 4) }, ...thingGroups()], "Searching…");
     timer = window.setTimeout(async () => {
       controller = new AbortController();
       const signal = controller.signal;
@@ -353,11 +358,11 @@ export function createSearch(globe: Globe, opts: SearchOptions = {}): HTMLElemen
         const seen = new Set(local.map((l) => l.name.toLowerCase()));
         const addresses = results.filter((r) => !seen.has(r.name.toLowerCase()));
         render(
-          [{ heading: cmd ? "Do it" : undefined, items: cmdItems }, { heading: local.length ? "Places" : undefined, items: local.slice(0, 4) }, ...thingGroups(), { heading: local.length || cmd || things.length ? "Addresses" : undefined, items: cmd || things.length ? addresses.slice(0, 3) : addresses }],
+          [...leadGroups, { heading: cmd ? "Do it" : undefined, items: cmdItems }, { heading: local.length ? "Places" : undefined, items: local.slice(0, 4) }, ...thingGroups(), { heading: local.length || cmd || things.length ? "Addresses" : undefined, items: cmd || things.length ? addresses.slice(0, 3) : addresses }],
           local.length + addresses.length + cmdItems.length + things.length ? undefined : "No matches. Try adding a town or country.",
         );
       } catch (err) {
-        if ((err as Error).name !== "AbortError") render([{ items: [...cmdItems, ...local] }, ...thingGroups()], cmd || local.length || things.length ? undefined : "Address search is unavailable right now.");
+        if ((err as Error).name !== "AbortError") render([...leadGroups, { items: [...cmdItems, ...local] }, ...thingGroups()], cmd || local.length || things.length ? undefined : "Address search is unavailable right now.");
       }
     }, 220);
   };

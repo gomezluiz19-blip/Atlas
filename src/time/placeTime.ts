@@ -7,7 +7,7 @@ import { bordersFor } from "../data/history";
 import { history, projection } from "../data/openmeteo";
 import { cached } from "../data/diskCache";
 import { h } from "../ui/dom";
-import { asyncBlock, section } from "../themes/common";
+import { loading, section } from "../themes/common";
 import { polityAt, projectedChange, rulerTimeline, spanMean, yearName, yearlyMeans } from "./model";
 
 const RULER_YEARS = [1500, 1700, 1815, 1880, 1914, 1938, 1960, 1994];
@@ -68,27 +68,32 @@ export function throughTime(app: App, place: Place, body: HTMLElement) {
       h("p", { class: "fineprint" }, "Historical borders: historical-basemaps (A. Ourednik et al.); before the modern era they're approximate. Tap a year to see the map of the time."));
   };
   const showRulers = h("button", { class: "pill-btn", onclick: () => void loadRulers() }, "Who governed here");
-  asyncBlock(app, body, "Reading this place's past…", async () => {
-    const hist = await history(place.lon, place.lat).catch(() => null);
+  // The ways into the past show at once; the warming chart (75 years of daily records) fills in when it arrives.
+  const warming = h("div", { class: "async" }, loading("Reading 75 years of temperatures here…"));
+  const token = app.token;
+  body.append(section("Through time",
+    warming,
+    h("div", { class: "pt-row" }, h("span", { class: "pt-row-label" }, "From space"),
+      ...[2001, 2010, 2020, now - 1].map((y) => h("button", { class: "chip", onclick: () => go(y) }, String(y)))),
+    rulers, showRulers,
+    h("p", { class: "fineprint" }, "Measured: ERA5 reanalysis since 1950. Projected: CMIP6 EC-Earth3P-HR, its change from 1991–2010 to 2041–2060 added to what was measured. Both via Open-Meteo.")));
+  void (async () => {
+    const [hist, model] = await Promise.all([
+      history(place.lon, place.lat).catch(() => null),
+      cached(`proj:${place.lon.toFixed(2)},${place.lat.toFixed(2)}`, 30 * 86_400_000, async () => {
+        const p = await projection(place.lon, place.lat);
+        return yearlyMeans(p.daily.time, p.daily.temperature_2m_mean);
+      }).catch(() => null),
+    ]);
+    if (!app.isCurrent(token)) return;
     const years = hist ? yearlyMeans(hist.daily.time, hist.daily.temperature_2m_mean) : [];
-    const model = await cached(`proj:${place.lon.toFixed(2)},${place.lat.toFixed(2)}`, 30 * 86_400_000, async () => {
-      const p = await projection(place.lon, place.lat);
-      return yearlyMeans(p.daily.time, p.daily.temperature_2m_mean);
-    }).catch(() => null);
-    const out: (Node | string)[] = [];
-    if (years.length >= 30) {
-      const first = years[0].year, lastY = years[years.length - 1].year;
-      const then = spanMean(years, first, first + 9), recent = spanMean(years, lastY - 9, lastY);
-      const change = model?.length ? projectedChange(model) : NaN;
-      const future = Number.isFinite(change) ? { year: 2050, mean: spanMean(years, 1991, 2010) + change } : null;
-      out.push(chart(years, future), h("p", { class: "pt-says" },
-        `The last ten years here averaged ${recent.toFixed(1)} °C, ${signed(recent - then)} on the ${first}s.`,
-        future ? ` By the 2050s, one climate model has it ${signed(change).replace("+", "")} warmer than 1991–2010.` : ""));
-    }
-    out.push(h("div", { class: "pt-row" }, h("span", { class: "pt-row-label" }, "From space"),
-      ...[2001, 2010, 2020, now - 1].map((y) => h("button", { class: "chip", onclick: () => go(y) }, String(y)))));
-    out.push(rulers, showRulers);
-    out.push(h("p", { class: "fineprint" }, "Measured: ERA5 reanalysis since 1950. Projected: CMIP6 EC-Earth3P-HR, its change from 1991–2010 to 2041–2060 added to what was measured. Both via Open-Meteo."));
-    return [section("Through time", ...out)];
-  });
+    if (years.length < 30) { warming.remove(); return; }
+    const first = years[0].year, lastY = years[years.length - 1].year;
+    const then = spanMean(years, first, first + 9), recent = spanMean(years, lastY - 9, lastY);
+    const change = model?.length ? projectedChange(model) : NaN;
+    const future = Number.isFinite(change) ? { year: 2050, mean: spanMean(years, 1991, 2010) + change } : null;
+    warming.replaceChildren(chart(years, future), h("p", { class: "pt-says" },
+      `The last ten years here averaged ${recent.toFixed(1)} °C, ${signed(recent - then)} on the ${first}s.`,
+      future ? ` By the 2050s, one climate model has it ${signed(change).replace("+", "")} warmer than 1991–2010.` : ""));
+  })();
 }

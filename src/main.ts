@@ -2,7 +2,7 @@ import "./styles.css";
 // Cesium loads its web workers and assets relative to this URL.
 (window as unknown as { CESIUM_BASE_URL: string }).CESIUM_BASE_URL = new URL("./cesium/", document.baseURI).href;
 
-import { Cartesian2, Cartesian3, Math as CesiumMath } from "cesium";
+import { Cartesian2, Cartesian3, Math as CesiumMath, SceneTransforms } from "cesium";
 import { createMapControls, homeRegion } from "./globe/controls";
 import { Looks } from "./globe/looks";
 import { featureChips } from "./explore/featureLayers";
@@ -25,7 +25,7 @@ import { formatElevation, formatLonLat, h } from "./ui/dom";
 import { icons } from "./ui/icons";
 import { describe as describeCriterion, looksLikeSearch, parseQuery, type Criterion } from "./answers/criteria";
 import { resolvePlace, searchPlaces, slugOfPlace, warmPlaces } from "./place/places";
-import { findThings, type Thing } from "./ui/frontDoor";
+import { findThings, scoreThing, tokens, type Thing } from "./ui/frontDoor";
 import { buildThings } from "./ui/things";
 import { TimeBar } from "./time/bar";
 import { arrive, stopArriving } from "./delight/arrive";
@@ -37,7 +37,7 @@ import { measureAt } from "./place/measure";
 import { yearName } from "./time/model";
 import { iconSvg } from "./ui/glyph";
 import { createLayersPanel } from "./ui/layers";
-import { createSearch, flyToPlace, geocode, type Command, type Place as SearchPlace, type SearchResult } from "./ui/search";
+import { createSearch, flyToPlace, freeArea, geocode, type Command, type Place as SearchPlace, type SearchResult } from "./ui/search";
 import { createRobot } from "./ui/robotCard";
 import { createAiSettings } from "./ui/aiSettings";
 import { aiOn, looksLikeAsk } from "./robot/llm";
@@ -526,7 +526,15 @@ $("search-slot").replaceWith(createSearch(globe, {
     const time: SearchResult[] = Number.isFinite(year) && year >= -3000 && year <= 2100 && (Math.abs(year) >= 100 || y![2])
       ? [{ name: `Go to ${yearName(year)}`, detail: year < 2000 ? "The world's borders at the time" : year < new Date().getUTCFullYear() ? "The Earth from space that year" : "Projections for places", lon: 0, lat: 0, radius: 0, source: "thing", svg: iconSvg("⏳", 18) ?? icons.sparkle, run: () => timeBar.goToYear(year) }]
       : [];
-    return [{ heading: "Time", items: time }, ...(["Show on the map", "Open", "Stories"] as const).map((g) => ({ heading: g, items: found.filter((t) => t.group === g).slice(0, 3).map(as) }))].filter((g) => g.items.length);
+    // One word that names an Atlas thing outright ("tour", "seasons", "railways"), and no place
+    // is called exactly that: the thing leads, ahead of places and commands.
+    const words = tokens(q);
+    const lead = found[0] && words.length === 1 && scoreThing(found[0], q) >= 3 && !searchPlaces(q, 4).some((p) => tokens(p.name).join(" ") === words[0]) ? found[0] : null;
+    return [
+      ...(lead ? [{ heading: "Best match", items: [as(lead)], lead: true }] : []),
+      { heading: "Time", items: time },
+      ...(["Show on the map", "Open", "Stories"] as const).map((g) => ({ heading: g, items: found.filter((t) => t.group === g && t !== lead).slice(0, 3).map(as) })),
+    ].filter((g) => g.items.length);
   },
   frontDoor: () => {
     const go = (name: string, slug: string, detail: string, emoji: string): SearchResult => ({ name, detail, lon: 0, lat: 0, radius: 0, source: "thing", svg: iconSvg(emoji, 18) ?? icons.target, run: () => void openPlace(slug) });
@@ -725,6 +733,44 @@ looks.set(app.theme.id);
 app.looks = looks;
 app.onTheme = (id) => { looks.set(id); syncHash(); };
 globe.viewer.camera.moveEnd.addEventListener(syncHash);
+
+// The card follows the map. After you move the map yourself (drag, scroll, pinch, the zoom buttons), if the
+// place you chose has left the part of the map you can see (or you've pulled right out to the whole planet),
+// the card lets go of it and shows what's in view instead, with "Back to …" one tap away. Atlas's own camera
+// moves (arriving somewhere, time travel, framing an answer) never do this, nor do moves while a lens or a
+// drawing tool is working on the place.
+{
+  const canvas = globe.viewer.scene.canvas;
+  let byHand = false;
+  const mark = () => { byHand = true; };
+  for (const ev of ["pointerdown", "wheel", "touchstart"]) canvas.addEventListener(ev, mark, { passive: true });
+  document.addEventListener("click", (e) => { if ((e.target as Element | null)?.closest?.(".map-zoom, .map-ctl")) mark(); }, true);
+  const inView = (p: { lon: number; lat: number; height: number }) => {
+    const scene = globe.viewer.scene, pos = Cartesian3.fromDegrees(p.lon, p.lat, 0);
+    // Behind the globe?
+    const cam = scene.camera.positionWC, n = Cartesian3.normalize(pos, new Cartesian3());
+    if (Cartesian3.dot(Cartesian3.subtract(cam, pos, new Cartesian3()), n) < 0) return false;
+    const w = SceneTransforms.worldToWindowCoordinates(scene, pos);
+    if (!w) return false;
+    const pad = freeArea(canvas), W = canvas.clientWidth, H = canvas.clientHeight, m = 12;
+    return w.x >= pad.left - m && w.x <= W - pad.right + m && w.y >= pad.top - m && w.y <= H - pad.bottom + m;
+  };
+  globe.viewer.camera.moveEnd.addEventListener(() => {
+    if (!byHand) return;
+    byHand = false;
+    const p = app.place;
+    if (!p || !lenses.panel.hidden || app.interacting) return;
+    const far = globe.viewer.camera.positionCartographic.height > 6_000_000;
+    if (!inView(p) || far) app.release();
+  });
+  // "Back to …": fly back and open it again, as it was.
+  app.onReturn = (p) => {
+    const slug = p.slug;
+    if (slug && !slug.startsWith("@")) { void openPlace(slug); return; }
+    void flyToPlace(globe, { name: p.name?.title ?? "", lon: p.lon, lat: p.lat, radius: 1500 });
+    app.select({ lon: p.lon, lat: p.lat, height: p.height }, p.name, p.feature);
+  };
+}
 
 // Opening view: a shared link's view, or the whole planet.
 const shared = parseHash(location.hash);
