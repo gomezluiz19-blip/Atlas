@@ -7,6 +7,7 @@ import { reverseGeocode } from "../data/geocode";
 import { h } from "../ui/dom";
 import { icons } from "../ui/icons";
 import { placeReport } from "./report";
+import { createCameraSection } from "../pro/vision/cameras";
 import { roofHarvestLitres, solarByMonth, sunAndRain, type SunAndRain } from "./estimates";
 import { footprintM2, type PlaceScene } from "./scene";
 import { blankPlace, DEVICES, KIND_LABEL, newId, type Device, type DeviceType, type MyPlace, type PlaceKind, type PlaceStore } from "./store";
@@ -298,7 +299,9 @@ export function createMyPlaces(app: App, store: PlaceStore, scene: PlaceScene, o
 
       h("section", { class: "group" }, h("h2", { class: "group-title" }, "Cameras & security"),
         cams.length ? h("p", { class: "muted small" }, `${cams.length} camera${cams.length === 1 ? "" : "s"} watching up to ${Math.round(watched).toLocaleString()} m² (overlaps counted twice). Their views are drawn on the ground in pink.`) : h("p", { class: "muted small" }, "Place cameras to see what they cover, and spot the gaps. Add a feed link to open a camera's live view."),
-        deviceRows(p, "security"), addButtons(p, ["camera", "gate", "alarm", "light", "sensor"])),
+        deviceRows(p, "security"), addButtons(p, ["camera", "gate", "alarm", "light", "sensor"]),
+        cams.length ? h("h3", { class: "mp-sub-title" }, "Live") : "",
+        cams.length ? createCameraSection(app, scene, store).el(p) : ""),
 
       h("section", { class: "group" }, h("h2", { class: "group-title" }, "Notes"),
         h("textarea", { class: "mp-notes", rows: 3, placeholder: "Anything worth remembering: when the tank was cleaned, the inverter model…", onchange: (e: Event) => set({ notes: (e.target as HTMLTextAreaElement).value }) }, p.notes ?? "")),

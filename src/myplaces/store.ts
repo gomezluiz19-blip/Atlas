@@ -18,6 +18,9 @@ export interface Device {
   range?: number;
   /** Cameras: a link to the live feed, if the owner has one. */
   url?: string;
+  /** Cameras: a counting line across the picture (e.g. a doorway), and named zones (normalised 0..1). */
+  line?: { a: [number, number]; b: [number, number] };
+  zones?: { name: string; box: [number, number, number, number] }[];
 }
 
 export interface MyPlace {
@@ -59,6 +62,17 @@ export function blankPlace(name: string, lon: number, lat: number, kind: PlaceKi
   return { id: newId(), name, kind, lon, lat, created: Date.now(), energy: {}, water: {}, devices: [] };
 }
 
+const unit = (v: unknown) => typeof v === "number" && v >= 0 && v <= 1;
+function cleanLine(v: unknown): Device["line"] {
+  const l = v as { a?: unknown[]; b?: unknown[] } | undefined;
+  return l && Array.isArray(l.a) && Array.isArray(l.b) && [...l.a, ...l.b].length === 4 && [...l.a, ...l.b].every(unit) ? { a: [l.a[0] as number, l.a[1] as number], b: [l.b[0] as number, l.b[1] as number] } : undefined;
+}
+function cleanZones(v: unknown): Device["zones"] {
+  if (!Array.isArray(v)) return undefined;
+  const zs = v.flatMap((z: { name?: unknown; box?: unknown[] }) => z && typeof z.name === "string" && Array.isArray(z.box) && z.box.length === 4 && z.box.every(unit) ? [{ name: z.name.slice(0, 40), box: z.box as [number, number, number, number] }] : []);
+  return zs.length ? zs.slice(0, 12) : undefined;
+}
+
 /** Checks and tidies places read from storage or an import file. */
 export function sanitize(raw: unknown): MyPlace[] {
   if (!Array.isArray(raw)) return [];
@@ -70,7 +84,7 @@ export function sanitize(raw: unknown): MyPlace[] {
     if (lon === undefined || lat === undefined || Math.abs(lat) > 90 || Math.abs(lon) > 180) return [];
     const devices = Array.isArray(o.devices)
       ? (o.devices as Record<string, unknown>[]).filter((d) => d && typeof d.type === "string" && d.type in DEVICES && num(d.lon) !== undefined && num(d.lat) !== undefined)
-          .map((d) => ({ id: String(d.id ?? newId()), type: d.type as DeviceType, lon: d.lon as number, lat: d.lat as number, label: typeof d.label === "string" ? d.label : undefined, heading: num(d.heading), fov: num(d.fov), range: num(d.range), url: typeof d.url === "string" && /^https?:\/\//.test(d.url) ? d.url : undefined }))
+          .map((d) => ({ id: String(d.id ?? newId()), type: d.type as DeviceType, lon: d.lon as number, lat: d.lat as number, label: typeof d.label === "string" ? d.label : undefined, heading: num(d.heading), fov: num(d.fov), range: num(d.range), url: typeof d.url === "string" && /^https?:\/\//.test(d.url) ? d.url : undefined, line: cleanLine(d.line), zones: cleanZones(d.zones) }))
       : [];
     const kind = typeof o.kind === "string" && o.kind in KIND_LABEL ? (o.kind as PlaceKind) : "other";
     return [{

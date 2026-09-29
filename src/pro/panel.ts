@@ -42,7 +42,7 @@ export function createPro(app: App, store: PlaceStore, scene: PlaceScene, showPl
   let error = "";
   let offset = 0; // hours from now shown by the time slider
   let timer = 0;
-  const cameras = createCameraSection(app, scene);
+  const cameras = createCameraSection(app, scene, store);
 
   const place = () => (placeId ? store.get(placeId) : undefined);
   const config = () => (placeId ? loadConfigs()[placeId] : undefined);
