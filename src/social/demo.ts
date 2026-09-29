@@ -133,7 +133,7 @@ export const DEMO_PROFILES: Profile[] = [
     posts: [
       { id: "kp1", at: "2026-08-14", title: "Perseids from Tekapo (in my dreams)", body: "The Perseids peak in August, but they're a northern shower. From New Zealand the radiant in Perseus never even rises. Turn the globe and you can see why: Tekapo is too far south to see that part of the sky.", spot: "k3" },
     ],
-    lenses: ["stargazing"],
+    lenses: ["stargazing", "aurora-watch"],
     guestbook: [{ from: "maya", name: "Maya Chen", text: "Owls AND stars, we should be friends", at: "2026-09-13" }],
     joined: "2026-02-02",
   },

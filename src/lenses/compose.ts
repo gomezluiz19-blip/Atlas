@@ -13,6 +13,8 @@ const TEMPLATES: Template[] = [
     blocks: [{ type: "species", group: "birds", days: 30 }, { type: "places", title: "Hides and reserves", emoji: "🔭", tags: ["leisure=bird_hide", "leisure=nature_reserve"] }, { type: "weather", good: { windMax: 25, rainMax: 0.2 }, when: "day" }, { type: "sun" }, { type: "tip", text: "Go early. Birds are busiest in the first two hours after sunrise, and quiet down in the midday heat." }] },
   { re: /\b(?:stars?\b|stargaz|astro|night sky|milky way|meteor|galax|telescope|planets?)/, name: "Stargazing", icon: "🔭", color: "#5e5ce6", blurb: "Tonight's darkness, the moon and cloud, and somewhere with a view",
     radiusKm: 15, blocks: [{ type: "sky" }, { type: "weather", title: "Cloud after dark", good: { cloudMax: 30 }, when: "night" }, { type: "places", title: "Viewpoints", emoji: "🌄", tags: ["tourism=viewpoint"] }, { type: "ground" }, { type: "tip", text: "Give your eyes 20 minutes in the dark, and use a red light: white light resets them." }] },
+  { re: /\b(?:aurora|northern lights|southern lights|borealis|australis)/, name: "Aurora watch", icon: "🌌", color: "#30d158", blurb: "Is the aurora strong enough to reach here, is it dark, and is it clear?",
+    radiusKm: 15, blocks: [{ type: "aurora" }, { type: "sky" }, { type: "weather", title: "Cloud after dark", good: { cloudMax: 40 }, when: "night" }, { type: "places", title: "Viewpoints", emoji: "🌄", tags: ["tourism=viewpoint"] }, { type: "tip", text: "Look towards the pole, away from towns. Your phone's night mode often sees colour your eyes can't." }] },
   { re: /\b(?:surf|swell|waves?|bodyboard|kite ?surf)/, name: "Surf check", icon: "🏄", color: "#0a84ff", blurb: "The swell, the wind and the breaks nearby",
     for: ["coast", "sea", "island"], radiusKm: 8, blocks: [{ type: "marine" }, { type: "weather", title: "Wind", good: { windMax: 20 }, when: "day" }, { type: "places", title: "Beaches and breaks", emoji: "🏖️", tags: ["natural=beach", "sport=surfing"] }, { type: "tip", text: "Period matters more than height: long-period swell from a distant storm gives clean, powerful waves." }] },
   { re: /\b(?:coffee|caf[eé]s?|espresso|latte|brunch)/, name: "Coffee crawl", icon: "☕", color: "#a2845e", blurb: "Cafés within a walk, and whether to sit outside",
@@ -127,7 +129,7 @@ export const LENS_SCHEMA = {
       items: {
         type: "object",
         properties: {
-          type: { type: "string", enum: ["species", "places", "weather", "marine", "sky", "sun", "ground", "tip"] },
+          type: { type: "string", enum: ["species", "places", "weather", "marine", "sky", "aurora", "sun", "ground", "tip"] },
           group: { type: "string", enum: Object.keys(SPECIES_GROUPS), description: "species: which living things." },
           days: { type: "number", description: "species: how many recent days to count sightings over." },
           tags: { type: "array", items: { type: "string" }, description: "places: OpenStreetMap tags as key=value, e.g. amenity=cafe, leisure=bird_hide, tourism=viewpoint, natural=beach, cuisine=ramen." },
@@ -145,5 +147,5 @@ export const LENS_SCHEMA = {
 };
 
 export const LENS_SYSTEM = `You design "lenses" for Atlas, a 3D globe app. A lens is a recipe of building blocks that, applied to any place, shows what matters for one passion or purpose, and whether now is a good time for it.
-Blocks: species (wildlife recorded nearby lately, from iNaturalist, by group), places (named OpenStreetMap features within the radius, by tags), weather (the next hours with a best window, judged by the "good" thresholds), marine (wave height, period, sea temperature), sky (tonight's darkness, moon phase, cloud), sun (sunrise, sunset, golden hour), ground (elevation and relief), tip (advice from the maker).
+Blocks: species (wildlife recorded nearby lately, from iNaturalist, by group), places (named OpenStreetMap features within the radius, by tags), weather (the next hours with a best window, judged by the "good" thresholds), marine (wave height, period, sea temperature), sky (tonight's darkness, moon phase, cloud), aurora (geomagnetic activity against what it takes to reach the place), sun (sunrise, sunset, golden hour), ground (elevation and relief), tip (advice from the maker).
 Pick only blocks that genuinely serve the request, most useful first. Use real, common OpenStreetMap tags. Set sensible "good" thresholds for the activity. Include one tip only if it's accurate and useful. Keep it friendly and suitable for all ages. Call make_lens exactly once.`;

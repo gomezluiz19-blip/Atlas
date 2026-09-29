@@ -8,6 +8,8 @@ import type { App } from "../app";
 import { getJson } from "../data/http";
 import { elementPoint, overpass } from "../data/overpass";
 import { sunPosition } from "../delight/sun";
+import { latestKp } from "../data/space";
+import { magneticLatitude } from "../analysis/insights";
 import { h } from "../ui/dom";
 import type { Lens, LensHost, Subject, SubjectKind } from "./types";
 
@@ -34,6 +36,7 @@ export type Block =
   | { type: "weather"; title?: string; good?: { windMax?: number; rainMax?: number; cloudMax?: number; cloudMin?: number; tempMin?: number; tempMax?: number }; when?: "day" | "night" | "any" }
   | { type: "marine"; good?: { waveMin?: number; waveMax?: number; periodMin?: number } }
   | { type: "sky" }
+  | { type: "aurora" }
   | { type: "sun" }
   | { type: "ground" }
   | { type: "tip"; text: string };
@@ -44,6 +47,7 @@ export const BLOCK_INFO: Record<Block["type"], { label: string; emoji: string; a
   weather: { label: "The weather that matters", emoji: "🌤️", about: "The next hours, and the best window" },
   marine: { label: "The swell", emoji: "🌊", about: "Wave height, period and sea temperature" },
   sky: { label: "Tonight's sky", emoji: "🌌", about: "Darkness, the moon and cloud" },
+  aurora: { label: "The aurora", emoji: "🟩", about: "Geomagnetic activity now, and what it takes to reach here" },
   sun: { label: "The light", emoji: "🌅", about: "Sunrise, sunset and golden hour" },
   ground: { label: "The ground", emoji: "⛰️", about: "Height and relief" },
   tip: { label: "A tip", emoji: "💬", about: "Advice from whoever made the lens" },
@@ -93,7 +97,7 @@ export function lensFromJson(v: unknown): LensDef | null {
           good: { windMax: num(g.windMax, 0, 150), rainMax: num(g.rainMax, 0, 50), cloudMax: num(g.cloudMax, 0, 100), cloudMin: num(g.cloudMin, 0, 100), tempMin: num(g.tempMin, -60, 60), tempMax: num(g.tempMax, -60, 60) } }];
       }
       case "marine": { const g = (b.good ?? {}) as Record<string, unknown>; return [{ type: "marine", good: { waveMin: num(g.waveMin, 0, 30), waveMax: num(g.waveMax, 0, 30), periodMin: num(g.periodMin, 0, 25) } }]; }
-      case "sky": case "sun": case "ground": return [{ type: b.type }];
+      case "sky": case "sun": case "ground": case "aurora": return [{ type: b.type }];
       case "tip": return str(b.text) ? [{ type: "tip", text: str(b.text, 400) }] : [];
       default: return [];
     }
@@ -157,7 +161,7 @@ interface Verdict { score: number; why: string }
 
 // ---- Showing it -----------------------------------------------------------------------------------
 
-type Ctx = { app: App; s: Subject; def: LensDef; pins: Entity[]; verdicts: Verdict[]; paintVerdict(): void };
+type Ctx = { app: App; s: Subject; def: LensDef; pins: Entity[]; verdicts: Verdict[]; paintVerdict(): void; headless?: boolean };
 
 const pins = new Map<string, string>();
 const pinFor = (emoji: string, color: string) => {
@@ -174,6 +178,7 @@ const pinFor = (emoji: string, color: string) => {
   return pins.get(key)!;
 };
 function pin(ctx: Ctx, lon: number, lat: number, emoji: string, name?: string) {
+  if (ctx.headless) return;
   ctx.pins.push(ctx.app.globe.viewer.entities.add({
     position: Cartesian3.fromDegrees(lon, lat),
     billboard: { image: pinFor(emoji, ctx.def.color), heightReference: HeightReference.CLAMP_TO_GROUND, verticalOrigin: VerticalOrigin.CENTER, scale: 0.55, disableDepthTestDistance: Number.POSITIVE_INFINITY },
@@ -331,32 +336,71 @@ async function sun(ctx: Ctx, el: HTMLElement) {
   }
 }
 
+async function aurora(ctx: Ctx, el: HTMLElement) {
+  const kp = await latestKp();
+  const mlat = Math.abs(magneticLatitude(ctx.s.lat, ctx.s.lon));
+  // Roughly: the oval sits near 67° magnetic latitude when quiet and moves ~2° towards the equator per Kp step.
+  const need = mlat >= 62 && mlat <= 76 ? 1 : mlat > 76 ? 2 : Math.max(3, Math.min(9, Math.ceil((66.5 - mlat) / 2)));
+  const now = kp ? Math.round(kp.kp * 10) / 10 : null;
+  const dark = darkness(Date.now(), ctx.s.lat, ctx.s.lon);
+  el.replaceChildren(
+    h("div", { class: "cl-stats" },
+      h("div", {}, h("strong", {}, now === null ? "—" : `Kp ${now}`), h("small", {}, "activity now")),
+      h("div", {}, h("strong", {}, need >= 9 ? "Kp 9" : `Kp ${need}+`), h("small", {}, "to reach here")),
+      h("div", {}, h("strong", {}, `${mlat.toFixed(0)}°`), h("small", {}, "magnetic latitude"))),
+    h("p", { class: "cl-sub" }, mlat < 40 ? "Too far from the magnetic poles: only the rarest, greatest storms (like May 2024's) bring the aurora this far."
+      : now !== null && now >= need ? "Activity is high enough to reach here right now. Look towards the pole, away from city lights."
+        : "Not enough activity to reach here right now. Storms can build within hours of a solar eruption."));
+  const up = now !== null && now >= need;
+  ctx.verdicts.push(mlat < 40 ? { score: 0.05, why: "Too far from the poles" } : up ? { score: dark ? 1 : 0.5, why: dark ? `Kp ${now} is enough here, and it's dark` : `Kp ${now} is enough here; wait for dark` } : { score: now !== null && now >= need - 1 ? 0.35 : 0.1, why: now === null ? "Activity unknown" : `Kp ${now}; needs ${need}+ here` });
+  ctx.paintVerdict();
+}
+
 // ---- The lens ---------------------------------------------------------------------------------------
 
 export function customLens(def: LensDef): Lens {
   return {
     id: def.id, label: def.name, icon: def.icon, blurb: def.blurb,
     score: (s) => (def.for?.length ? (def.for.includes(s.kind) ? 0.62 : 0.12) : 0.45),
-    open: (host, s) => renderLens(host, s, def),
+    open: (host, s) => { void renderLens(host, s, def); },
   };
 }
 
-export function renderLens(host: LensHost, s: Subject, def: LensDef, opts: { author?: HTMLElement } = {}) {
-  const ctx: Ctx = { app: host.app, s, def, pins: [], verdicts: [], paintVerdict: () => {} };
+export interface Judgement { score: number; label: string; face: string; why: string[]; at: number }
+const JUDGED = ["weather", "marine", "sky", "species", "sun", "aurora"];
+const judge = (vs: Verdict[]): Omit<Judgement, "at"> | null => {
+  if (!vs.length) return null;
+  const score = vs.reduce((a, v) => a + v.score, 0) / vs.length, worst = Math.min(...vs.map((v) => v.score));
+  const final = worst < 0.2 ? Math.min(score, 0.3) : score;
+  const [label, face] = final >= 0.75 ? ["Good time for it", "✅"] : final >= 0.45 ? ["Worth a go", "🤞"] : ["Not today", "💤"];
+  return { score: final, label, face, why: vs.map((v) => v.why) };
+};
+/** Whether a lens gives a verdict at all (some are only a view of a place). */
+export const lensJudges = (def: LensDef) => def.blocks.some((b) => JUDGED.includes(b.type) && (b.type !== "weather" || (!!b.good && Object.values(b.good).some((v) => v !== undefined))));
+
+/** The verdict alone, without showing anything (for watches). */
+export async function judgeLens(app: App, s: Subject, def: LensDef): Promise<Judgement | null> {
+  const host: LensHost = { app, body: document.createElement("div"), title: () => {}, onClose: () => {}, close: () => {} };
+  const v = await renderLens(host, s, def, { headless: true });
+  return v ? { ...v, at: Date.now() } : null;
+}
+
+export function renderLens(host: LensHost, s: Subject, def: LensDef, opts: { author?: HTMLElement; headless?: boolean } = {}): Promise<Omit<Judgement, "at"> | null> {
+  const ctx: Ctx = { app: host.app, s, def, pins: [], verdicts: [], paintVerdict: () => {}, headless: opts.headless };
   host.onClose(() => { for (const e of ctx.pins) host.app.globe.viewer.entities.remove(e); host.app.globe.viewer.scene.requestRender(); });
   const verdict = h("div", { class: "cl-verdict wait", style: `--lc:${def.color}` }, h("span", { class: "spinner small" }), h("span", {}, `Reading ${s.name} for ${def.name.toLowerCase()}…`));
-  const judged = def.blocks.some((b) => b.type === "weather" && b.good && Object.values(b.good).some((v) => v !== undefined) || b.type === "marine" || b.type === "sky" || b.type === "species" || b.type === "sun");
+  const judged = lensJudges(def);
   let settled = 0;
-  const total = def.blocks.filter((b) => ["weather", "marine", "sky", "species", "sun"].includes(b.type)).length;
+  const total = def.blocks.filter((b) => JUDGED.includes(b.type)).length;
+  const watchBtn = h("button", { class: "cl-watch", title: "Atlas checks for you and tells you when it's a good time here", onclick: () => host.app.actions.get("watch:add")?.run(JSON.stringify({ lens: def.id, subject: s })) }, "🔔 Tell me when");
   ctx.paintVerdict = () => {
-    if (!ctx.verdicts.length) return;
-    const score = ctx.verdicts.reduce((a, v) => a + v.score, 0) / ctx.verdicts.length, worst = Math.min(...ctx.verdicts.map((v) => v.score));
-    const final = worst < 0.2 ? Math.min(score, 0.3) : score;
-    const [label, face] = final >= 0.75 ? ["Good time for it", "✅"] : final >= 0.45 ? ["Worth a go", "🤞"] : ["Not today", "💤"];
-    verdict.className = `cl-verdict ${final >= 0.75 ? "good" : final >= 0.45 ? "fair" : "poor"}`;
-    verdict.replaceChildren(h("span", { class: "cl-face" }, face), h("span", {}, h("strong", {}, `${label}${settled < total ? "…" : ""}`), h("small", {}, ctx.verdicts.map((v) => v.why).join(" · "))));
+    const j = judge(ctx.verdicts);
+    if (!j) return;
+    verdict.className = `cl-verdict ${j.score >= 0.75 ? "good" : j.score >= 0.45 ? "fair" : "poor"}`;
+    verdict.replaceChildren(h("span", { class: "cl-face" }, j.face), h("span", {}, h("strong", {}, `${j.label}${settled < total ? "…" : ""}`), h("small", {}, j.why.join(" · "))), watchBtn);
   };
   const body: HTMLElement[] = [];
+  const runs: Promise<unknown>[] = [];
   for (const b of def.blocks) {
     const info = BLOCK_INFO[b.type];
     const slot = h("div", {}, pending("Reading…"));
@@ -364,11 +408,16 @@ export function renderLens(host: LensHost, s: Subject, def: LensDef, opts: { aut
     const emoji = b.type === "species" ? SPECIES_GROUPS[b.group]?.emoji ?? info.emoji : b.type === "places" ? b.emoji ?? info.emoji : info.emoji;
     if (b.type === "tip") { body.push(h("section", { class: "cl-tip" }, opts.author ?? h("span", { class: "cl-tip-q" }, "“"), h("p", {}, b.text))); continue; }
     if (b.type === "ground") { body.push(card(info.label, info.emoji, h("div", { class: "cl-stats" }, h("div", {}, h("strong", {}, `${Math.round(s.elevation).toLocaleString()} m`), h("small", {}, s.elevation < 0 ? "below sea level" : "above sea level")), h("div", {}, h("strong", {}, `${Math.round(s.relief).toLocaleString()} m`), h("small", {}, "from lowest to highest nearby"))))); continue; }
+    // Watches only need the blocks that judge.
+    if (opts.headless && (!JUDGED.includes(b.type) || b.type === "sun" && def.blocks.some((x) => x.type === "weather"))) continue;
     body.push(card(title, emoji, slot));
-    const run = b.type === "species" ? species(ctx, b, slot) : b.type === "places" ? places(ctx, b, slot) : b.type === "weather" ? weather(ctx, b, slot) : b.type === "marine" ? marine(ctx, b, slot) : b.type === "sky" ? sky(ctx, slot) : sun(ctx, slot);
-    void run.catch((e) => slot.replaceChildren(h("p", { class: "cl-none" }, `Couldn't read this just now (${(e as Error).message}).`)))
-      .finally(() => { if (["weather", "marine", "sky", "species", "sun"].includes(b.type)) { settled++; ctx.paintVerdict(); } });
+    const run = b.type === "species" ? species(ctx, b, slot) : b.type === "places" ? places(ctx, b, slot) : b.type === "weather" ? weather(ctx, b, slot) : b.type === "marine" ? marine(ctx, b, slot) : b.type === "sky" ? sky(ctx, slot) : b.type === "aurora" ? aurora(ctx, slot) : sun(ctx, slot);
+    runs.push(run.catch((e) => slot.replaceChildren(h("p", { class: "cl-none" }, `Couldn't read this just now (${(e as Error).message}).`)))
+      .finally(() => { if (JUDGED.includes(b.type)) { settled++; ctx.paintVerdict(); } }));
   }
-  host.title(def.name, s.name);
-  host.body.replaceChildren(...(judged ? [verdict] : []), ...body, h("p", { class: "fineprint" }, `A lens${def.author ? ` by @${def.author}` : ""} made in Lens Studio. Sightings: iNaturalist. Places: OpenStreetMap. Weather and sea: Open-Meteo.`));
+  if (!opts.headless) {
+    host.title(def.name, s.name);
+    host.body.replaceChildren(...(judged ? [verdict] : []), ...body, h("p", { class: "fineprint" }, `A lens${def.author ? ` by @${def.author}` : ""} made in Lens Studio. Sightings: iNaturalist. Places: OpenStreetMap. Weather and sea: Open-Meteo. Aurora: NOAA SWPC.`));
+  }
+  return Promise.all(runs).then(() => (judged ? judge(ctx.verdicts) : null));
 }

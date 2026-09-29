@@ -744,6 +744,7 @@ const social = wireSocial(app, {
   openPlace: (slug) => openPlace(slug),
   closePanels: () => closePanels(),
   extras: () => [
+    { label: `Watching${social ? ` (${social.watch.count()})` : ""}`, icon: iconSvg("🔔", 18) ?? icons.sparkle, run: () => app.actions.get("watch:open")?.run() },
     { label: "Take the tour", icon: icons.compass, run: () => startTour(app) },
     { label: aiOn() ? "Atlas AI: connected" : "Connect Atlas AI", icon: icons.sparkle, run: () => aiSettings.open() },
     { label: "Send feedback", icon: icons.pencil, run: () => void import("./ui/feedback").then((m) => m.openFeedback(app)) },

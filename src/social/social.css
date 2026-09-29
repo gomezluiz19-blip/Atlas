@@ -335,7 +335,7 @@ textarea.pf-input { resize: vertical; line-height: 1.45; }
 /* A made lens, open on a place */
 .cl-verdict { display: flex; align-items: center; gap: 12px; padding: 14px; border-radius: 16px; background: var(--fill); }
 .cl-verdict.wait { color: var(--secondary); font-size: 14px; }
-.cl-verdict > span:last-child { display: flex; flex-direction: column; }
+.cl-verdict > span:nth-child(2) { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .cl-verdict strong { font-size: 17px; letter-spacing: -0.01em; }
 .cl-verdict small { font-size: 12.5px; color: var(--secondary); line-height: 1.35; }
 .cl-verdict.good { background: color-mix(in srgb, #30d158 16%, transparent); }
@@ -393,3 +393,20 @@ textarea.pf-input { resize: vertical; line-height: 1.45; }
 }
 
 .si-code { font-size: 30px; letter-spacing: 0.4em; text-align: center; font-variant-numeric: tabular-nums; }
+
+/* ---------- Watching ---------- */
+.cl-verdict .cl-watch { margin-left: auto; flex: none; padding: 7px 11px; border: 0; border-radius: 99px; background: var(--material-strong); color: var(--label); font: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); }
+.cl-verdict .cl-watch:hover { background: var(--fill-strong); }
+.account-btn.has-alert::after { content: ""; position: absolute; top: 3px; right: 3px; width: 10px; height: 10px; border-radius: 50%; background: #30d158; box-shadow: 0 0 0 2px var(--material-strong); }
+.account-btn { position: relative; }
+.watch-panel { width: 340px; z-index: 41; }
+.wt-list { display: flex; flex-direction: column; gap: 6px; }
+.wt-row { display: flex; align-items: center; gap: 4px; border-radius: 12px; background: var(--fill); }
+.wt-row.good { background: color-mix(in srgb, #30d158 16%, transparent); }
+.wt-row.fair { background: color-mix(in srgb, #ff9f0a 12%, transparent); }
+.wt-main { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; padding: 10px; border: 0; background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.wt-main > span:last-child { display: flex; flex-direction: column; min-width: 0; }
+.wt-main strong { font-size: 14px; }
+.wt-main small { font-size: 12px; color: var(--secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wt-icon { font-size: 22px; }
+.wt-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; }

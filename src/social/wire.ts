@@ -9,7 +9,8 @@ import { findLens, myLenses, rememberLens } from "../lenses/library";
 import { cloudOn } from "../cloud/client";
 import { fetchLens } from "../cloud/sync";
 import { createLensStudio } from "../lenses/studio";
-import type { Lens } from "../lenses/types";
+import type { Lens, Subject } from "../lenses/types";
+import { createWatch } from "../watch/watch";
 import { flyToPlace } from "../ui/search";
 import { createAccount, type AccountMenuItem } from "./account";
 import { ROLES, type Profile } from "./model";
@@ -18,7 +19,7 @@ import { me } from "./store";
 
 export interface SocialDeps {
   lensList: Lens[];
-  lenses: { refresh(): void; openWhenReady(id: string): Promise<boolean> };
+  lenses: { refresh(): void; openWhenReady(id: string): Promise<boolean>; openOn(id: string, s: Subject): void };
   openPlace(slug: string): Promise<void> | void;
   /** Closes the other panels (hubs, space, My Place…). */
   closePanels(): void;
@@ -89,6 +90,14 @@ export function wireSocial(app: App, deps: SocialDeps) {
     signIn: (then) => account.signIn(then ? () => then() : undefined),
   });
 
+  // ---- Watches: lens verdicts that tell you when it's a good time ----
+  const watch = createWatch(app, {
+    openLens: (id, s) => { const d = findLens(id); if (!d) return; syncLenses(d); deps.closePanels(); app.select({ lon: s.lon, lat: s.lat, height: 0 }, { title: s.name, context: `Watching for ${d.name.toLowerCase()}` }); deps.lenses.openOn(id, s); },
+    onChange: () => account.button.classList.toggle("has-alert", watch.good() > 0),
+  });
+  app.actions.set("watch:add", { label: "Watch this place", run: (json) => { if (!json) return; const { lens, subject } = JSON.parse(json) as { lens: string; subject: Subject }; watch.add(lens, subject); } });
+  app.actions.set("watch:open", { label: "Watching", run: () => watch.open() });
+
   // ---- Actions ----
   app.actions.set("lens:studio", { label: "Lens Studio: make a lens", run: (arg) => { deps.closePanels(); profiles.close(); studio.open(arg ? findLens(arg) ?? undefined : undefined); } });
   app.actions.set("lens:custom", { label: "Open a made lens", run: (id) => { const d = id ? findLens(id) : null; if (d) tryLens(d); } });
@@ -103,6 +112,13 @@ export function wireSocial(app: App, deps: SocialDeps) {
 
   // ---- Links ----
   const route = async () => {
+    const w = /^#\/w\/([a-z0-9]+)$/.exec(location.hash);
+    if (w) {
+      const it = (await import("../watch/watch")).watches().find((x) => x.id === w[1]);
+      if (it) { const d = findLens(it.lens); if (d) { syncLenses(d); void flyToPlace(app.globe, { name: it.subject.name, lon: it.subject.lon, lat: it.subject.lat, radius: Math.max(1500, it.subject.radius) }); app.select({ lon: it.subject.lon, lat: it.subject.lat, height: 0 }, { title: it.subject.name, context: d.name }); deps.lenses.openOn(d.id, it.subject); } }
+      try { history.replaceState(null, "", location.pathname); } catch { /* embedded */ }
+      return;
+    }
     const m = /^#\/(u|lens)\/(.+)$/.exec(location.hash);
     if (!m) return;
     const [, kind, rest] = m;
@@ -121,5 +137,5 @@ export function wireSocial(app: App, deps: SocialDeps) {
   // After the opening, so the globe is ready.
   setTimeout(() => void route(), 600);
 
-  return { account, profiles, studio, tryLens };
+  return { account, profiles, studio, tryLens, watch };
 }

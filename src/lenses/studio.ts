@@ -133,7 +133,7 @@ export function createLensStudio(app: App, deps: {
       if (!extra.length) { app.toast("I don't know that kind of place yet. Try another word.", 3000); return; }
       upd((x) => { x.blocks.push(...extra.filter((b) => !x.blocks.some((y) => JSON.stringify(y) === JSON.stringify(b)))); });
     } });
-    const missing = (["sky", "sun", "marine", "ground", "weather"] as const).filter((t) => !d.blocks.some((b) => b.type === t));
+    const missing = (["sky", "aurora", "sun", "marine", "ground", "weather"] as const).filter((t) => !d.blocks.some((b) => b.type === t));
     const species = h("select", { class: "pf-input", "aria-label": "Add wildlife", onchange: (e: Event) => { const g = (e.target as HTMLSelectElement).value; if (g) upd((x) => x.blocks.push({ type: "species", group: g, days: 30 })); } },
       h("option", { value: "" }, "Add wildlife…"), ...Object.entries(SPECIES_GROUPS).map(([k, v]) => h("option", { value: k }, `${v.emoji} ${v.label}`)));
     return h("div", { class: "ls-result", style: `--lc:${d.color}` },

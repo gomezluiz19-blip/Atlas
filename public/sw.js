@@ -62,3 +62,14 @@ self.addEventListener("fetch", (e) => {
     }));
   }
 });
+
+// A watch's notification: open (or focus) Atlas on that watch.
+self.addEventListener("notificationclick", (e) => {
+  e.notification.close();
+  const url = e.notification.data?.url ?? "./";
+  e.waitUntil((async () => {
+    const wins = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+    for (const w of wins) if ("focus" in w) { await w.focus(); if ("navigate" in w) await w.navigate(url); return; }
+    await self.clients.openWindow(url);
+  })());
+});
