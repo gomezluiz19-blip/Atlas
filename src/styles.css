@@ -2354,3 +2354,6 @@ body.year-open .look-legend { display: none; }
 .back-to strong { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .back-to:hover { background: var(--fill-strong); }
 .back-to-arrow { color: var(--accent); font-size: 15px; line-height: 1; }
+
+/* The time bar and the map's zoom buttons share the bottom right when a side panel is open: lift the buttons. */
+@media (min-width: 821px) { body.time-open .map-controls { bottom: calc(var(--gutter) + 146px); } }

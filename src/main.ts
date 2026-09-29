@@ -679,7 +679,24 @@ const aboutPanel = h("div", { class: "popover about", hidden: true },
     h("li", {}, "Aurora and geomagnetic activity: NOAA Space Weather Prediction Center. Earthquakes: USGS. Plates: Bird (2003)."),
     h("li", {}, "Place names: OpenStreetMap Nominatim.")),
   h("p", { class: "fineprint" }, "Every dataset is a record of what's been measured or mapped. None of them is complete, so treat gaps as unknowns, not absences."),
-  h("p", { class: "fineprint" }, "Keyboard: 1–9 switch themes · / searches · + and − zoom · Esc cancels a line or closes a chart. Double-click to zoom in on a spot."));
+  h("h2", { class: "group-title" }, "Your privacy"),
+  h("p", { class: "fineprint" }, "What you make in Atlas (your page, places, lenses, farm records, plans) stays in this browser; there are no ads and no tracking. To answer you, Atlas asks public services about the places you look at (for example OpenStreetMap for names and Open-Meteo for weather), which sends them the coordinates, not who you are. With Atlas AI on, your requests go to Anthropic."),
+  h("p", { class: "fineprint" }, "Keyboard: 1–9 switch themes · / searches · + and − zoom · Esc cancels a line or closes a chart. Double-click to zoom in on a spot."),
+  // Showing Atlas to people one after another on the same computer.
+  (() => {
+    const row = h("div", { class: "about-row" }, h("span", { class: "muted small" }, "Showing Atlas to people one after another? Start fresh for the next visitor: the opening, the tour and a clean slate (Atlas AI and feedback notes are kept)."));
+    const btn = h("button", { class: "pill-btn" }, "Start fresh") as HTMLButtonElement;
+    btn.addEventListener("click", () => {
+      if (btn.dataset.sure !== "1") { btn.dataset.sure = "1"; btn.textContent = "Tap again to clear"; setTimeout(() => { btn.dataset.sure = ""; btn.textContent = "Start fresh"; }, 4000); return; }
+      try {
+        for (const k of Object.keys(localStorage)) if (k.startsWith("atlas.") && k !== "atlas.ai.v1" && k !== "atlas.feedback.v1") localStorage.removeItem(k);
+        sessionStorage.clear();
+      } catch { /* storage blocked */ }
+      location.replace(location.pathname);
+    });
+    row.append(btn);
+    return row;
+  })());
 $("ui").append(aboutPanel);
 
 // Status bar: cursor position.
