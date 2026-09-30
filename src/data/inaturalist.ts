@@ -101,3 +101,21 @@ export const GBIF_DENSITY_TILES =
 export function gbifTiles(taxonKey: number, style = "purpleYellow.point"): string {
   return `https://api.gbif.org/v2/map/occurrence/density/{z}/{x}/{y}@1x.png?style=${style}&srs=EPSG:3857&taxonKey=${taxonKey}`;
 }
+
+export interface PhotoSighting { id: number; lon: number; lat: number; photo: string; taxon: Taxon; by?: string }
+
+/** Photographed sightings around a place, one per species, best liked first (for showing them where they were seen). */
+export async function photoSightings(a: Area, query: string, max = 24): Promise<PhotoSighting[]> {
+  const url = `${API}/observations?${area(a)}&quality_grade=research&photos=true&geo=true&per_page=120&order_by=votes${query ? `&${query}` : ""}`;
+  const body = await getJson<{ results: { id: number; geojson?: { coordinates: [number, number] }; taxon?: Taxon; photos?: { url?: string; attribution?: string }[]; user?: { login?: string } }[] }>("iNaturalist", url);
+  const seen = new Set<number>();
+  const out: PhotoSighting[] = [];
+  for (const r of body.results ?? []) {
+    const t = r.taxon, u = r.photos?.[0]?.url, c = r.geojson?.coordinates;
+    if (!t || !u || !c || seen.has(t.id)) continue;
+    seen.add(t.id);
+    out.push({ id: r.id, lon: c[0], lat: c[1], photo: u.replace("/square.", "/small."), taxon: t, by: r.user?.login });
+    if (out.length >= max) break;
+  }
+  return out;
+}

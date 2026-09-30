@@ -12,6 +12,24 @@ import { canvasLayer, drawDots, drawLines } from "../globe/networkLayer";
 import { formatDistance, h } from "../ui/dom";
 import { flyToPlace } from "../ui/search";
 import { asyncBlock, hero, note, section } from "./common";
+import { FlowOverlay, type FlowLine } from "../globe/flow";
+
+/** How each kind of channel flows on screen: rivers fast and bright, drains a trickle. */
+const FLOW: Partial<Record<CityWaterKind, { speed: number; density: number; size: number; color: string }>> = {
+  river: { speed: 90, density: 34, size: 2.2, color: "#7fd3ff" },
+  canal: { speed: 45, density: 26, size: 2, color: "#8fd8ff" },
+  stream: { speed: 70, density: 30, size: 1.8, color: "#9ee6ff" },
+  drain: { speed: 40, density: 26, size: 1.5, color: "#b5f0ff" },
+  pipe: { speed: 55, density: 22, size: 1.4, color: "#d6c3a0" },
+};
+
+/** The channels as moving water (downstream, the way OpenStreetMap draws waterways). */
+function flowLines(fs: CityWaterFeature[]): FlowLine[] {
+  return fs.filter((f) => f.line && FLOW[f.kind]).map((f) => {
+    const k = FLOW[f.kind]!;
+    return { pts: f.line as [number, number][], color: k.color, speed: k.speed, density: k.density, size: k.size, dim: f.underground };
+  });
+}
 
 const RADII = [1, 2, 3, 5];
 
@@ -87,18 +105,23 @@ export function cityWaterSubtab(): Subtab {
   let layer: ImageryLayer | null = null;
   let lastKey = "";
 
+  let flow: FlowOverlay | null = null;
   const put = (app: App, fs: CityWaterFeature[]) => {
     if (layer) app.globe.viewer.imageryLayers.remove(layer, true);
     layer = drawLayer(fs);
     app.globe.viewer.imageryLayers.add(layer);
-    const l = layer;
+    flow ??= new FlowOverlay(app.globe.viewer, { maxHeight: 30_000 });
+    flow.set(flowLines(fs));
+    flow.show(true);
+    const l = layer, fl = flow;
     const where = app.place?.name?.title;
     // On the shared canvas: stays on while you look at this place through other themes.
     app.canvas.put({
       id: "water:city", label: `Water › City water${where ? ` · ${where}` : ""}`, color: "#0a84ff", theme: "water", scope: "place", pinned: false,
-      show: (v) => { l.show = v; },
+      show: (v) => { l.show = v; fl.show(v); },
       remove: () => {
         app.globe.viewer.imageryLayers.remove(l, true);
+        fl.set([]);
         if (layer === l) { layer = null; lastKey = ""; }
       },
     }, true);
@@ -128,6 +151,7 @@ export function cityWaterSubtab(): Subtab {
           h("div", { class: "stat-row" }, h("dt", {}, h("span", { class: "dot", style: `background:${CITY_WATER[k].color};display:inline-block;margin-right:8px` }), CITY_WATER[k].label), h("dd", {}, value));
         return [
           hero(km1(total), `of mapped channels within ${radius} km`, s.buried ? `${Math.round((s.buried / Math.max(1, total)) * 100)}% of it buried in culverts and tunnels` : "Rivers, streams, canals, drains and ditches"),
+          h("p", { class: "flow-caption" }, h("span", { class: "flow-dots" }), "The moving light is the water: it runs downstream along each channel, faint where it's buried."),
           section("How water moves here", story(place, fs, radius)),
           section("On the map",
             h("dl", { class: "stat-list" },

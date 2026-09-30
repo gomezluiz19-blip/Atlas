@@ -2472,3 +2472,87 @@ body.year-open .look-legend { display: none; }
 .world-lead { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .look-further .world-tile { order: -1; }
 .look-further .world-tile { background: linear-gradient(120deg, color-mix(in srgb, #ff375f 14%, transparent), color-mix(in srgb, #5e5ce6 12%, transparent)); }
+
+/* ---------- Lenses: pictograms, not chips ---------- */
+.lens-row { display: flex; gap: 2px; overflow-x: auto; scrollbar-width: none; margin: 0 -8px; padding: 2px 8px 0; mask-image: linear-gradient(to right, #000 88%, transparent); }
+.lens-tile {
+  flex: none; width: 54px; display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 2px 0 4px;
+  border: 0; background: none; color: var(--label); font: inherit; cursor: pointer;
+}
+.lens-tile.gap { margin-left: 8px; }
+.lens-glyph {
+  display: grid; place-items: center; width: 42px; height: 42px; border-radius: 50%;
+  color: #fff; background: radial-gradient(circle at 32% 28%, color-mix(in srgb, var(--c) 72%, #fff), var(--c) 70%);
+  box-shadow: 0 6px 14px -8px var(--c), inset 0 -2px 6px rgba(0, 0, 0, 0.18);
+  transition: transform 0.25s var(--ease, ease), box-shadow 0.25s;
+}
+.lens-glyph svg { width: 24px; height: 24px; }
+.lens-glyph.emoji { font-size: 22px; }
+.lens-name { font-size: 11px; font-weight: 600; line-height: 1.15; text-align: center; color: var(--secondary); max-width: 58px; }
+.lens-tile:hover .lens-glyph, .lens-tile:focus-visible .lens-glyph { transform: translateY(-2px) scale(1.06); box-shadow: 0 10px 18px -8px var(--c), inset 0 -2px 6px rgba(0, 0, 0, 0.18); }
+.lens-tile:hover .lens-name, .lens-tile.on .lens-name { color: var(--label); }
+.lens-tile.on .lens-glyph { box-shadow: 0 0 0 2.5px var(--material-strong), 0 0 0 4.5px var(--c); }
+.lens-tile.make .lens-glyph { background: transparent; color: var(--c); box-shadow: inset 0 0 0 1.6px color-mix(in srgb, var(--c) 55%, transparent); }
+.lens-hint { margin: -2px 0 0; font-size: 12.5px; color: var(--secondary); min-height: 1.3em; }
+.lens-title-glyph { display: inline-grid; place-items: center; width: 26px; height: 26px; margin-right: 8px; vertical-align: -6px; border-radius: 50%; color: #fff; background: var(--c); }
+.lens-title-glyph svg { width: 16px; height: 16px; }
+@media (prefers-reduced-motion: reduce) { .lens-glyph { transition: none; } }
+.flow-layer { position: absolute; top: 0; left: 0; pointer-events: none; }
+.flow-caption { display: flex; align-items: center; gap: 10px; margin: 6px 0 2px; font-size: 13px; color: var(--secondary); }
+.flow-dots { flex: none; width: 34px; height: 6px; border-radius: 3px; background: repeating-linear-gradient(90deg, #7fd3ff 0 4px, transparent 4px 9px); background-size: 18px 6px; animation: flow-dots 0.9s linear infinite; }
+@keyframes flow-dots { to { background-position: 18px 0; } }
+@media (prefers-reduced-motion: reduce) { .flow-dots { animation: none; } }
+
+/* ---------- Plants and animals: the creatures first ---------- */
+.mosaic { display: grid; grid-template-columns: repeat(3, 1fr); grid-auto-rows: 104px; grid-auto-flow: dense; gap: 3px; margin: 0 -20px; }
+.mosaic-tile {
+  position: relative; overflow: hidden; border: 0; padding: 0; background: var(--fill); cursor: pointer; color: #fff; text-align: left;
+  animation: tile-in 0.6s var(--ease, ease) both; animation-delay: calc(var(--i) * 35ms);
+}
+.mosaic-tile.big { grid-column: span 2; grid-row: span 2; }
+.mosaic-tile.wide { grid-column: span 2; }
+.mosaic-tile img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.6s var(--ease, ease); }
+.mosaic-tile:hover img { transform: scale(1.06); }
+.mosaic-noimg { display: grid; place-items: center; width: 100%; height: 100%; color: var(--secondary); }
+.mosaic-noimg svg { width: 34px; height: 34px; }
+.mosaic-name {
+  position: absolute; left: 0; right: 0; bottom: 0; padding: 18px 8px 6px; display: flex; flex-direction: column; gap: 1px;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.72), transparent); text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+.mosaic-name strong { font-size: 12.5px; font-weight: 650; line-height: 1.2; }
+.mosaic-tile.big .mosaic-name strong { font-size: 17px; }
+.mosaic-name small { font-size: 10.5px; opacity: 0.85; }
+.mosaic-caption { margin: 2px 0 0; font-size: 13.5px; line-height: 1.45; color: var(--secondary); }
+.mosaic-caption strong { color: var(--label); font-size: 15px; }
+@keyframes tile-in { from { opacity: 0; transform: scale(0.94); } to { opacity: 1; transform: none; } }
+
+/* Photos floating over the map, where they were taken. */
+.bubbles { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.bubbles.far { display: none; }
+.bubble {
+  position: absolute; left: 0; top: 0; width: 0; height: 0; padding: 0; border: 0; background: none; pointer-events: auto; cursor: pointer;
+  z-index: 1;
+}
+.bubble:hover { z-index: 2; }
+.bubble-in {
+  position: absolute; left: -26px; top: -60px; width: 52px; height: 52px; border-radius: 50%; overflow: visible;
+  animation: bubble-in 0.7s var(--ease, ease) both, bubble-bob 5s ease-in-out infinite;
+  animation-delay: calc(var(--i) * 90ms), calc(var(--i) * -0.37s);
+}
+.bubble-in img {
+  width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block; background: var(--fill);
+  box-shadow: 0 0 0 2.5px #fff, 0 0 0 4.5px var(--c), 0 10px 22px -6px rgba(0, 0, 0, 0.55);
+  transition: transform 0.35s var(--ease, ease);
+}
+.bubble-in::after { content: ""; position: absolute; left: 50%; bottom: -9px; width: 2px; height: 9px; margin-left: -1px; background: #fff; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.2); }
+.bubble-name {
+  position: absolute; left: 50%; top: 100%; margin-top: 12px; transform: translateX(-50%); white-space: nowrap; padding: 3px 8px; border-radius: 999px;
+  font-size: 12px; font-weight: 650; color: #fff; background: rgba(0, 0, 0, 0.62); opacity: 0; transition: opacity 0.25s;
+}
+.bubble:hover .bubble-in img, .bubble:focus-visible .bubble-in img { transform: scale(1.35); }
+.bubble:hover .bubble-name, .bubble:focus-visible .bubble-name { opacity: 1; }
+@keyframes bubble-in { from { opacity: 0; transform: translateY(14px) scale(0.6); } to { opacity: 1; transform: none; } }
+@keyframes bubble-bob { 0%, 100% { translate: 0 0; } 50% { translate: 0 -5px; } }
+@media (prefers-reduced-motion: reduce) { .mosaic-tile, .bubble-in { animation: none; } }
+.lens-row { align-items: flex-start; }
+.lens-tile.make .lens-glyph { font-size: 14px; font-weight: 700; }

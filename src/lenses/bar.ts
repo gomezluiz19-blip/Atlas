@@ -6,6 +6,7 @@ import { h } from "../ui/dom";
 import { icons } from "../ui/icons";
 import { identify } from "./identify";
 import { factLine, factsFor } from "./facts";
+import { FAMILY, lensOrder, lookOf } from "./glyphs";
 import { KIND_LABEL, type Lens, type LensHost, type Subject, type SubjectKind } from "./types";
 
 const KIND_ICON: Record<SubjectKind, string> = {
@@ -21,7 +22,7 @@ export function createLenses(app: App, lenses: Lens[]) {
   let cleanups: (() => void)[] = [];
   let subject: Subject | null = null;
   let active: Lens | null = null;
-  let job = 0, showAll = false;
+  let job = 0;
   let pending: Promise<void> = Promise.resolve();
 
   const close = () => {
@@ -43,11 +44,15 @@ export function createLenses(app: App, lenses: Lens[]) {
     body.replaceChildren(h("p", { class: "muted small" }, "Opening…"));
     const host: LensHost = {
       app, body,
-      title: (t, sub) => { titleEl.textContent = `${lens.icon} ${t}`; subEl.textContent = sub ?? ""; },
+      title: (t, sub) => {
+        const look = lookOf(lens);
+        titleEl.replaceChildren(look.glyph ? h("span", { class: "lens-title-glyph", style: `--c:${FAMILY[look.family].color}`, html: look.glyph }) : `${lens.icon} `, t);
+        subEl.textContent = sub ?? "";
+      },
       onClose: (fn) => cleanups.push(fn),
       close,
     };
-    host.title(lens.label, s.name);
+    host.title(lookOf(lens).name, s.name);
     try {
       await lens.open(host, s);
     } catch (e) {
@@ -55,29 +60,56 @@ export function createLenses(app: App, lenses: Lens[]) {
     }
   };
 
-  const ranked = () => subject ? lenses.map((l) => ({ l, score: l.score(subject!) })).filter((x) => x.score > 0).sort((a, b) => b.score - a.score) : [];
+  // Every lens that suits this feature, in a fixed order by family (not by score, so the strip
+  // reads the same on every mountain or city).
+  // The ones that really suit it show; weaker fits wait behind "More".
+  let showAll = false;
+  const suited = () => {
+    if (!subject) return { main: [] as Lens[], rest: [] as Lens[] };
+    const scored = lenses.map((l) => ({ l, s: l.score(subject!) })).filter((x) => x.s > 0);
+    const main = scored.filter((x) => x.s >= 0.55 || x.l === active).map((x) => x.l).sort(lensOrder);
+    const rest = scored.filter((x) => !main.includes(x.l)).map((x) => x.l).sort(lensOrder);
+    return { main, rest };
+  };
   const render = () => {
     if (!subject) return;
     const fact = factsFor(subject);
-    const list = ranked();
-    const shown = showAll ? list : list.filter((x, i) => i < 6 || x.l === active);
+    const { main, rest } = suited();
+    const list = showAll ? [...main, ...rest] : main;
+    const hint = h("p", { class: "lens-hint" }, "Tap a view to see it differently");
+    const say = (text: string) => () => (hint.textContent = text);
+    const reset = say(active ? `${lookOf(active).name}: ${lookOf(active).hint}` : "Tap a view to see it differently");
+    let lastFamily = "";
+    const tiles = list.map((l) => {
+      const look = lookOf(l), fam = FAMILY[look.family];
+      const gap = lastFamily && lastFamily !== look.family ? " gap" : "";
+      lastFamily = look.family;
+      return h("button", {
+        class: `lens-tile${active === l ? " on" : ""}${gap}`, style: `--c:${fam.color}`, title: `${look.name}: ${look.hint}`, "aria-pressed": String(active === l),
+        onmouseenter: say(`${look.name}: ${look.hint}`), onfocus: say(`${look.name}: ${look.hint}`), onmouseleave: reset, onblur: reset,
+        onclick: () => void (active === l ? close() : open(l)),
+      }, look.glyph ? h("span", { class: "lens-glyph", html: look.glyph }) : h("span", { class: "lens-glyph emoji" }, l.icon), h("span", { class: "lens-name" }, look.name));
+    });
+    reset();
     strip.replaceChildren(
-      h("div", { class: "lens-kind" }, h("span", {}, KIND_ICON[subject.kind]), h("span", {}, h("strong", {}, KIND_LABEL[subject.kind]), h("small", {}, "Look at it through a lens"))),
+      h("div", { class: "lens-kind" }, h("span", {}, KIND_ICON[subject.kind]), h("span", {}, h("strong", {}, KIND_LABEL[subject.kind]), h("small", {}, "See it differently"))),
       // The feature's facts, unless the card is already this feature's own page.
       fact && fact.name !== app.place?.name?.title ? factLine(fact) : "",
-      h("div", { class: "lens-chips" },
-        ...shown.map(({ l }) => h("button", { class: "lens-chip" + (active === l ? " on" : ""), title: l.blurb, onclick: () => void (active === l ? close() : open(l)) }, h("span", {}, l.icon), l.label)),
-        list.length > shown.length ? h("button", { class: "lens-chip more", onclick: () => { showAll = true; render(); } }, `+${list.length - shown.length}`) : "",
-        showAll || list.length <= shown.length ? h("button", { class: "lens-chip make", title: "Describe a lens and Atlas builds it", onclick: () => app.actions.get("lens:studio")?.run() }, h("span", {}, "✨"), "Make a lens") : ""));
+      h("div", { class: "lens-row" }, ...tiles,
+        rest.length && !showAll ? h("button", { class: "lens-tile make gap", style: `--c:#8e8e93`, title: "Views that suit it less", onmouseenter: say(`${rest.length} more views: ${rest.map((l) => lookOf(l).name).join(", ")}`), onmouseleave: reset, onclick: () => { showAll = true; render(); } },
+          h("span", { class: "lens-glyph" }, `+${rest.length}`), h("span", { class: "lens-name" }, "More")) : "",
+        h("button", { class: "lens-tile make gap", style: `--c:${FAMILY.yours.color}`, title: "Describe a view and Atlas builds it", onmouseenter: say("Make your own: describe a view and Atlas builds it"), onmouseleave: reset, onclick: () => app.actions.get("lens:studio")?.run() },
+          h("span", { class: "lens-glyph", html: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>' }), h("span", { class: "lens-name" }, "Make one"))),
+      hint);
   };
 
   const update = (p: Place | null) => (pending = identifyPlace(p));
   const identifyPlace = async (p: Place | null) => {
     const my = ++job;
     close();
-    showAll = false;
     if (!p) { subject = null; strip.hidden = true; return; }
     strip.hidden = false;
+    showAll = false;
     strip.replaceChildren(h("div", { class: "lens-kind" }, h("span", { class: "spinner small" }), h("span", {}, h("small", {}, "Working out what this is…"))));
     const s = await identify(p).catch(() => null);
     if (my !== job || !s) return;

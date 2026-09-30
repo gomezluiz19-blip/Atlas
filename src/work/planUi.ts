@@ -41,7 +41,8 @@ export async function tripFromText(ctx: WorkCtx, text: string) {
   const { missed } = await addFromText(j, text);
   trips.save(j);
   openTrip(ctx, j.id);
-  frameJourney(ctx.app, j);
+  // Watch it play out: each leg travelled in turn, then the whole trip framed.
+  void playJourney(ctx.app, j, () => {});
   if (missed.length) ctx.app.toast(`${missed.join(". ")}. Add it in the trip.`, 6000);
 }
 

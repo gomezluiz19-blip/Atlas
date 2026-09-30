@@ -6,7 +6,8 @@ import type { CustomDataSource } from "cesium";
 import type { App, GeoPoint, Tool } from "../app";
 import { elevation } from "../data/elevation";
 import { mapLimit } from "../data/http";
-import { observations, speciesCounts, taxonPageUrl, type SpeciesCount, type Taxon, type TaxonGroup } from "../data/inaturalist";
+import { observations, photoSightings, speciesCounts, taxonPageUrl, type SpeciesCount, type Taxon, type TaxonGroup } from "../data/inaturalist";
+import { Bubbles } from "../globe/bubbles";
 import { iconMarker, layer } from "../globe/draw";
 import { GROUP_ICON, TAXON_ICONS, taxonIcon, taxonMarker, type TaxonIconKey } from "../ui/taxonIcons";
 import { h } from "../ui/dom";
@@ -27,6 +28,9 @@ export function lifeState(groups: TaxonGroup[], color: string, noun: string): Li
 }
 
 type View = "species" | "zones" | "threatened";
+
+/** The photos floating over the map (one set, shared by Plants and Animals). */
+let bubbles: Bubbles | null = null;
 
 export class LifeTool implements Tool {
   label = "Life";
@@ -50,10 +54,13 @@ export class LifeTool implements Tool {
       this.obsDs = layer(app.globe.viewer, `${this.id}-obs`);
     }
     this.ds.show = this.obsDs.show = true;
+    bubbles ??= new Bubbles(app.globe.viewer);
+    bubbles.show(this.view !== "zones");
   }
 
   deactivate() {
     this.ds.show = this.obsDs.show = false;
+    bubbles?.show(false);
     this.app.drawer.hide();
   }
 
@@ -76,6 +83,13 @@ export class LifeTool implements Tool {
     this.app.panel.show("", header, h("div", { class: "loading" }, h("div", { class: "spinner" }), "Looking up sightings…"));
     const area = { lon: c.lon, lat: c.lat, radiusKm: this.state.radius };
     const q = this.state.group.query;
+    bubbles?.set([]);
+    if (this.view !== "zones")
+      void photoSightings(area, `${q}${this.view === "threatened" ? "&threatened=true" : ""}`, 24).then((list) => {
+        if (job !== this.job || !bubbles) return;
+        bubbles.set(list.map((x) => ({ lon: x.lon, lat: x.lat, photo: x.photo, name: nameOf(x.taxon), color: this.state.color, onClick: () => void this.showSpecies(x.taxon) })));
+        bubbles.show(true);
+      }).catch(() => {});
     try {
       if (this.view === "threatened") {
         const threatened = await speciesCounts(area, q, { threatened: true, perPage: 60 });
@@ -106,15 +120,13 @@ export class LifeTool implements Tool {
 
   private renderSpecies(header: HTMLElement, total: number, species: SpeciesCount[]) {
     const s = this.state;
+    // The creatures first, as a wall of photos; the numbers after.
     this.app.panel.show(
       "",
       header,
-      h("div", { class: "hero-stat" },
-        h("span", { class: "hero-value" }, total.toLocaleString()),
-        h("span", { class: "hero-label" }, total === 1 ? `kind of ${s.noun} recorded` : `kinds of ${s.noun} recorded within ${s.radius} km`)),
-      total ? "" : h("p", { class: "muted" }, "No sightings recorded here yet. Try a larger radius."),
+      total ? this.mosaic(species) : h("p", { class: "muted" }, "No sightings recorded here yet. Try a larger radius."),
+      total ? h("p", { class: "mosaic-caption" }, h("strong", {}, total.toLocaleString()), ` kinds of ${s.noun} recorded within ${s.radius} km. The most seen are largest; the same faces float over the map where they were photographed.`) : "",
       breakdown(species),
-      h("div", { class: "species-grid" }, ...species.map((sp) => this.card(sp))),
       note("From sightings people have shared on iNaturalist, so busy trails are better covered than remote places. Photos © their observers."),
     );
   }
@@ -126,8 +138,7 @@ export class LifeTool implements Tool {
       h("div", { class: "hero-stat" },
         h("span", { class: "hero-value" }, String(species.length)),
         h("span", { class: "hero-label" }, species.length === 1 ? "threatened species recorded" : "threatened species recorded")),
-      species.length ? "" : h("p", { class: "muted" }, "No threatened species have been recorded here. That can also mean nobody has looked yet."),
-      h("div", { class: "species-grid" }, ...species.map((sp) => this.card(sp, true))),
+      species.length ? this.mosaic(species, true) : h("p", { class: "muted" }, "No threatened species have been recorded here. That can also mean nobody has looked yet."),
       note("Threatened means listed as vulnerable, endangered or critically endangered by the IUCN or a national authority. Exact locations of sensitive species are hidden by iNaturalist."),
     );
   }
@@ -160,24 +171,17 @@ export class LifeTool implements Tool {
       .catch((err) => { status.remove(); box.replaceChildren(h("p", { class: "error" }, (err as Error).message)); });
   }
 
-  private card(s: SpeciesCount, threatened = false): HTMLElement {
-    const t = s.taxon;
-    const photo = t.default_photo?.square_url;
-    const status = t.conservation_status?.status_name;
-    const icon = taxonIcon(t);
-    return h(
-      "button",
-      { class: "species", onclick: () => void this.showSpecies(t), title: t.default_photo?.attribution ?? "" },
-      h("span", { class: "species-pic" },
-        photo ? h("img", { src: photo, alt: "", loading: "lazy", width: 56, height: 56 }) : h("span", { class: "species-noimg", html: TAXON_ICONS[icon] }),
-        photo ? h("span", { class: "species-badge", style: `background:${this.state.color}`, html: TAXON_ICONS[icon] }) : ""),
-      h("span", { class: "species-text" },
-        h("span", { class: "species-name" }, nameOf(t)),
-        h("span", { class: "species-sci" }, t.name),
-        h("span", { class: "species-count" }, `${s.count.toLocaleString()} sightings`,
-          threatened ? h("span", { class: "pill threat" }, status ? cap(status) : "Threatened") : "",
-          t.introduced ? h("span", { class: "pill" }, "Introduced") : "")),
-    );
+  /** Photos edge to edge, sized by how often each is seen; names over the picture, no boxes. */
+  private mosaic(species: SpeciesCount[], threatened = false): HTMLElement {
+    const max = species[0]?.count ?? 1;
+    return h("div", { class: "mosaic" }, ...species.slice(0, 40).map((sp, i) => {
+      const t = sp.taxon, photo = t.default_photo?.medium_url ?? t.default_photo?.square_url;
+      const big = i === 0 || (i < 6 && sp.count > max * 0.6) ? " big" : i % 7 === 3 ? " wide" : "";
+      const status = t.conservation_status?.status_name;
+      return h("button", { class: `mosaic-tile${big}`, style: `--i:${i}`, onclick: () => void this.showSpecies(t), title: t.default_photo?.attribution ?? t.name },
+        photo ? h("img", { src: photo, alt: "", loading: i < 8 ? "eager" : "lazy" }) : h("span", { class: "mosaic-noimg", html: TAXON_ICONS[taxonIcon(t)] }),
+        h("span", { class: "mosaic-name" }, h("strong", {}, nameOf(t)), h("small", {}, threatened ? (status ? cap(status) : "Threatened") : `${sp.count.toLocaleString()} seen`)));
+    }));
   }
 
   private async showSpecies(t: Taxon) {
