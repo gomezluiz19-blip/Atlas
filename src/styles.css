@@ -2432,3 +2432,35 @@ body.year-open .look-legend { display: none; }
 .wn-year { flex: none; min-width: 42px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--accent); }
 .wn-history { color: var(--label); line-height: 1.4; }
 .wn-mag { flex: none; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 10px; background: color-mix(in srgb, #ff9500 18%, transparent); color: #ff9500; font-weight: 700; }
+
+/* ---------- Live traffic: the craft card ---------- */
+.tr-card {
+  position: absolute; z-index: 30; top: calc(var(--gutter) + var(--bar) + env(safe-area-inset-top, 0px)); right: var(--gutter); width: 330px;
+  padding: 12px 14px 12px; border-radius: 16px; background: var(--material-strong); box-shadow: var(--shadow);
+  -webkit-backdrop-filter: saturate(140%) blur(22px); backdrop-filter: saturate(140%) blur(22px);
+  display: flex; flex-direction: column; gap: 8px; animation: panel-in 0.18s ease-out;
+}
+.tr-head { display: flex; align-items: flex-start; gap: 10px; }
+.tr-dot { flex: none; width: 12px; height: 12px; margin-top: 6px; border-radius: 50%; box-shadow: 0 0 0 2px var(--material-strong), 0 0 0 3px var(--hairline); }
+.tr-title { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.tr-title strong { font-size: 17px; letter-spacing: 0.01em; }
+.tr-title span { font-size: 12.5px; color: var(--secondary); }
+.tr-route { margin: 0; font-size: 14px; font-weight: 600; letter-spacing: 0.02em; white-space: pre; overflow: hidden; text-overflow: ellipsis; }
+.tr-route:empty { display: none; }
+.tr-alert { margin: 0; padding: 6px 10px; border-radius: 8px; background: color-mix(in srgb, #ff3b30 18%, transparent); color: #ff453a; font-weight: 700; font-size: 13px; }
+.tr-stats { display: grid; grid-template-columns: auto 1fr; gap: 5px 12px; margin: 0; font-size: 13px; }
+.tr-stats dt { color: var(--secondary); }
+.tr-stats dd { margin: 0; font-variant-numeric: tabular-nums; font-weight: 550; text-align: right; }
+.tr-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.pill-btn.primary { background: var(--accent); color: #fff; box-shadow: none; }
+.layer-status { margin-left: auto; font-size: 12px; color: var(--secondary); text-align: right; max-width: 55%; }
+.panel-sub .pulse-dot { display: inline-block; vertical-align: middle; margin-right: 2px; }
+@media (max-width: 820px) {
+  .tr-card { top: auto; bottom: calc(var(--gutter) + 78px + env(safe-area-inset-bottom, 0px)); left: var(--gutter); right: var(--gutter); width: auto; }
+}
+@media (prefers-reduced-motion: reduce) { .tr-card { animation: none; } }
+.overhead { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 14px; background: var(--material-strong); }
+.overhead-n { font-size: 30px; font-weight: 700; font-variant-numeric: tabular-nums; color: #5ac8fa; }
+.overhead-text { flex: 1; font-size: 14px; line-height: 1.35; }
+/* Menus and panels open over a craft's card. */
+.popover:not([hidden]) { z-index: 40; }

@@ -52,10 +52,11 @@ npx wrangler secret put USER_AGENT           # Atlas (https://you.github.io; you
 npx wrangler secret put TICKETMASTER_KEY
 npx wrangler secret put SEATGEEK_CLIENT_ID
 npx wrangler secret put EVENTBRITE_TOKEN
+npx wrangler secret put AISSTREAM_KEY        # live ships worldwide (free key from aisstream.io)
 ```
 
 Then add GitHub variables `ATLAS_EDGE` (the Worker's URL) and `ATLAS_EDGE_KEYS` (the keyed services
-it holds, e.g. `ticketmaster,eventbrite`), and **remove** the old `EVENTBRITE_TOKEN` secret and the
+it holds, e.g. `ticketmaster,eventbrite,aisstream`), and **remove** the old `EVENTBRITE_TOKEN` secret and the
 `TICKETMASTER_KEY`/`SEATGEEK_CLIENT_ID` variables from the build.
 
 What goes through it: OpenStreetMap (Nominatim, Photon, Overpass), Open-Meteo (forecast, history,

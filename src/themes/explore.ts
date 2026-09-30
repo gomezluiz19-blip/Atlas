@@ -1,6 +1,7 @@
 // Explore: the default mode. The card follows the map: what's in view and
 // worth knowing, and one-touch map layers. Tapping a label or the ground
 // opens a card about that feature or spot.
+import { Cartesian3, Math as CesiumMath } from "cesium";
 import type { App, Place, Subtab, Theme } from "../app";
 import { distanceKm } from "../analysis/insights";
 import { CATEGORIES, KIND_INFO, type PlaceKind } from "../analysis/placeKinds";
@@ -260,6 +261,25 @@ export function exploreTheme(app: App, feeds: Feeds, overlays: Overlays, openSit
         st.cover ? h("img", { class: "present-mini", src: st.cover, alt: "" }) : h("span", { class: "story-mini-emoji" }, "📖"),
         h("span", { class: "list-text" }, h("span", { class: "list-title" }, st.title), h("span", { class: "list-sub" }, `${st.author.name} · ${st.slideCount} places`)),
         h("span", { class: "chev", html: "&rsaquo;" }))))), ] : [];
+    });
+    // What's flying over this place right now (one look; "Watch live" switches the planes on).
+    asyncBlock(app, body, "", async () => {
+      const { planesAround } = await import("../live/traffic");
+      const { tracks } = await planesAround(place.lon, place.lat, 40).catch(() => ({ tracks: [] as import("../live/traffic").Track[] }));
+      const up = tracks.filter((t) => !t.ground);
+      if (!up.length) return [];
+      const high = [...up].sort((a, b) => b.alt - a.alt)[0];
+      const low = [...up].sort((a, b) => a.alt - b.alt)[0];
+      const ftOf = (m: number) => `${(Math.round(m / 0.3048 / 100) * 100).toLocaleString()} ft`;
+      return [section("Overhead right now",
+        h("div", { class: "overhead" },
+          h("span", { class: "overhead-n" }, String(up.length)),
+          h("span", { class: "overhead-text" }, `plane${up.length === 1 ? "" : "s"} in the sky within 40 km.`, h("br"),
+            h("span", { class: "muted small" }, up.length > 1 ? `Highest ${high.label} at ${ftOf(high.alt)}; lowest ${low.label} at ${ftOf(low.alt)}.` : `${high.label} at ${ftOf(high.alt)}.`)),
+          h("button", { class: "pill-btn primary", onclick: () => {
+            app.actions.get("live:planes")?.run();
+            app.globe.viewer.camera.flyTo({ destination: Cartesian3.fromDegrees(place.lon, place.lat - 0.9, 90_000), orientation: { heading: 0, pitch: CesiumMath.toRadians(-40), roll: 0 }, duration: 2 });
+          } }, "Watch live")))];
     });
     // The week's news that mentions this place (named places only: a bare spot has no headlines).
     const named = place.name?.title && !/^-?\d/.test(place.name.title) ? place.name.title : null;

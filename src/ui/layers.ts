@@ -45,7 +45,10 @@ function legendFor(kind: OverlayKind, globe: Globe): HTMLElement | null {
   return null;
 }
 
-export function createLayersPanel(globe: Globe): HTMLElement {
+/** A live layer switch (planes, ships) shown first in the popover. */
+export interface LiveSwitch { label: string; about: string; on(): boolean; set(v: boolean): void; status?(): string }
+
+export function createLayersPanel(globe: Globe, live: LiveSwitch[] = []): HTMLElement {
   const s = globe.state;
   const apply = () => globe.apply();
 
@@ -140,9 +143,17 @@ export function createLayersPanel(globe: Globe): HTMLElement {
       )
     : h("p", { class: "fineprint" }, "Add a Google Maps API key to unlock photorealistic 3D cities and terrain. See the README.");
 
+  const liveRows = live.map((l) => {
+    const status = h("span", { class: "layer-status" }, l.on() ? l.status?.() ?? "" : "");
+    return h("label", { class: "layer-row", title: l.about },
+      h("input", { type: "checkbox", checked: l.on(), onchange: (e: Event) => { const v = (e.target as HTMLInputElement).checked; l.set(v); status.textContent = v ? "finding…" : ""; } }),
+      h("span", {}, l.label), status);
+  });
+
   return h(
     "div",
     { class: "popover layers-panel", hidden: true },
+    ...(liveRows.length ? [h("h3", { class: "panel-sub" }, h("span", { class: "pulse-dot" }), " Live"), ...liveRows] : []),
     h("h3", { class: "panel-sub" }, "Base map"),
     base,
     streets,

@@ -4,6 +4,8 @@
 //
 //   GET/POST /f/<encoded URL>   a cached passthrough to an allowed public service
 //   GET      /k/<service>/<path> a keyed service; the Worker adds the key
+//   WS       /ws/ais?bbox=w,s,e,n live ship positions, relayed from AISStream
+//                                 (its key stays here: AISStream refuses browsers)
 //
 // Answers are cached at Cloudflare's edge (weather for 10 minutes, place names and
 // maps for a week), so a crowd of visitors looks like one polite client. Only the
@@ -62,6 +64,7 @@ export default {
     if (limited(ip, Number(env.PER_MINUTE ?? 240))) return new Response("Too many requests", { status: 429, headers: { ...head, "Retry-After": "20" } });
 
     const url = new URL(req.url);
+    if (url.pathname === "/ws/ais") return aisRelay(req, env, url);
     let target, init = { method: req.method, headers: { "User-Agent": env.USER_AGENT ?? "Atlas (https://github.com/)", Accept: "application/json" } }, maxAge;
 
     if (url.pathname.startsWith("/f/")) {
@@ -97,3 +100,23 @@ export default {
     return new Response(out.body, { status: out.status, headers: { ...Object.fromEntries(out.headers), ...head, "X-Atlas-Cache": "miss" } });
   },
 };
+
+/** Relays AISStream's live positions for a box to one visitor (a few fields, no key). */
+async function aisRelay(req, env, url) {
+  if (req.headers.get("Upgrade") !== "websocket") return new Response("Expected a WebSocket", { status: 426 });
+  if (!env.AISSTREAM_KEY) return new Response("No AISStream key", { status: 503 });
+  const [w, s, e, n] = (url.searchParams.get("bbox") ?? "").split(",").map(Number);
+  if (![w, s, e, n].every(Number.isFinite)) return new Response("bbox=w,s,e,n", { status: 400 });
+  const pair = new WebSocketPair();
+  const [client, server] = Object.values(pair);
+  server.accept();
+  const up = await fetch("https://stream.aisstream.io/v0/stream", { headers: { Upgrade: "websocket" } });
+  const ws = up.webSocket;
+  if (!ws) { server.close(1011, "AISStream unavailable"); return new Response(null, { status: 101, webSocket: client }); }
+  ws.accept();
+  ws.send(JSON.stringify({ APIKey: env.AISSTREAM_KEY, BoundingBoxes: [[[s, w], [n, e]]], FilterMessageTypes: ["PositionReport", "ShipStaticData"] }));
+  ws.addEventListener("message", (m) => { try { server.send(typeof m.data === "string" ? m.data : new TextDecoder().decode(m.data)); } catch { /* visitor gone */ } });
+  ws.addEventListener("close", () => { try { server.close(1000, "done"); } catch { /* already closed */ } });
+  server.addEventListener("close", () => { try { ws.close(1000, "done"); } catch { /* already closed */ } });
+  return new Response(null, { status: 101, webSocket: client });
+}

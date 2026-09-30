@@ -37,9 +37,13 @@ export async function fetchRetry(url: string, init: RequestInit = {}, tries = 3,
   }
 }
 
-export async function getJson<T>(service: string, url: string, init?: RequestInit, timeoutMs = 25_000): Promise<T> {
+/**
+ * JSON from a service. Answers are remembered for the session (the same URL gives the same promise);
+ * pass `live` for feeds that change (positions, headlines), which are fetched afresh every time.
+ */
+export async function getJson<T>(service: string, url: string, init?: RequestInit, timeoutMs = 25_000, live = false): Promise<T> {
   const key = init?.body ? `${url}|${String(init.body)}` : url;
-  const hit = cache.get(key);
+  const hit = live ? undefined : cache.get(key);
   if (hit) return hit as Promise<T>;
   const p = (async () => {
     const ctrl = new AbortController();
@@ -56,6 +60,7 @@ export async function getJson<T>(service: string, url: string, init?: RequestIni
       clearTimeout(timer);
     }
   })();
+  if (live) return p;
   cache.set(key, p);
   p.catch(() => cache.delete(key));
   if (cache.size > 500) cache.delete(cache.keys().next().value!);

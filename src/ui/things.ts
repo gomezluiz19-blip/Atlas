@@ -57,6 +57,11 @@ export function buildThings(app: App, overlays: Overlays, tools: WorkTool[]): Th
       out.push({ title: l.label, detail: l.about, emoji: l.emoji, group: "Show on the map", words: themeId, on: () => layerIsOn(app, themeId, l),
         run: () => void switchLayer(app, themeId, l, true).then(() => app.toast(`${l.label} on the map. Switch it off from “On the map”.`, 3000)) });
     }
+  for (const [id, title, emoji, detail, words] of [
+    ["live:planes", "Live planes", "✈️", "Every aircraft in view, moving live at its real height", "planes flights aircraft flying overhead air traffic adsb flight tracker"],
+    ["live:ships", "Live ships", "🚢", "Vessels moving live over AIS: cargo, tankers, ferries", "ships boats vessels marine traffic ais shipping ferries"],
+  ] as const)
+    out.push({ title, detail, emoji, group: "Show on the map", words, on: () => !!app.actions.get(id)?.isOn?.(), run: act(id) });
   for (const n of NETWORKS)
     if (!seen.has(n.label)) {
       seen.add(n.label);

@@ -36,7 +36,7 @@ import { firstSentence, headline } from "./place/headline";
 import { measureAt } from "./place/measure";
 import { yearName } from "./time/model";
 import { iconSvg } from "./ui/glyph";
-import { createLayersPanel } from "./ui/layers";
+import { createLayersPanel, type LiveSwitch } from "./ui/layers";
 import { createSearch, flyToPlace, freeArea, geocode, type Command, type Place as SearchPlace, type SearchResult } from "./ui/search";
 import { createRobot } from "./ui/robotCard";
 import { createAiSettings } from "./ui/aiSettings";
@@ -76,6 +76,7 @@ import { allProfiles, searchProfiles } from "./social/store";
 import { allLenses, myLenses } from "./lenses/library";
 import { topicThemes } from "./topics/themes";
 import { openWorldNow } from "./live/worldNow";
+import { createTraffic } from "./live/tracks";
 
 const $ = (id: string) => document.getElementById(id)!;
 
@@ -623,13 +624,21 @@ $("ui").append(createCanvasTray(app));
 
 // Map style popover.
 const layersBtn = $("layers-btn");
-let layers = createLayersPanel(globe);
+// Live traffic: planes and ships moving on the globe.
+const traffic = createTraffic(app);
+const LIVE: LiveSwitch[] = [
+  { label: "Planes", about: "Every aircraft in view, live over ADS-B, flying at its real height. Tap one for its card; follow it.", on: () => traffic.isOn("plane"), set: (v) => traffic.set("plane", v), status: () => (traffic.count("plane") ? `${traffic.count("plane").toLocaleString()} live` : traffic.note("plane")) },
+  { label: "Ships", about: "Vessels live over AIS: cargo, tankers, ferries, fishing boats. Tap one for its card.", on: () => traffic.isOn("ship"), set: (v) => traffic.set("ship", v), status: () => (traffic.count("ship") ? `${traffic.count("ship").toLocaleString()} live` : traffic.note("ship")) },
+];
+for (const kind of ["plane", "ship"] as const)
+  app.actions.set(`live:${kind}s`, { label: kind === "plane" ? "Live planes" : "Live ships", run: () => traffic.set(kind, true), isOn: () => traffic.isOn(kind), stop: () => traffic.set(kind, false) });
+let layers = createLayersPanel(globe, LIVE);
 $("ui").append(layers);
 layersBtn.innerHTML = icons.layers;
 const toggleLayers = (open = layers.hidden) => {
   if (open) {
     // Rebuilt on open so it matches the canvas (layers can be removed from the tray).
-    const fresh = createLayersPanel(globe);
+    const fresh = createLayersPanel(globe, LIVE);
     layers.replaceWith(fresh);
     layers = fresh;
   }
@@ -901,6 +910,6 @@ if (import.meta.env.PROD && "serviceWorker" in navigator)
 
 // Handy for debugging from the browser console during development.
 if (import.meta.env.DEV) {
-  Object.assign(window, { atlas: { app, globe, labels, overlays, feeds } });
+  Object.assign(window, { atlas: { app, globe, labels, overlays, feeds, traffic, cart: (lon: number, lat: number, h: number) => Cartesian3.fromDegrees(lon, lat, h) } });
   void import("cesium").then((Cesium) => Object.assign(window, { Cesium }));
 }

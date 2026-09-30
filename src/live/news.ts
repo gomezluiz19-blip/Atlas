@@ -92,7 +92,7 @@ const ymd = (d: Date) => `${d.getUTCFullYear()}/${String(d.getUTCMonth() + 1).pa
 /** Today's feed (yesterday's when today's has no stories yet). */
 export function worldStories(now = new Date()): Promise<ReturnType<typeof readFeatured>> {
   return cached(`news:wp:${ymd(now)}:${now.getUTCHours() >> 2}`, 3 * 3_600_000, async () => {
-    const get = (d: Date) => getJson<Featured>("Wikipedia", `https://en.wikipedia.org/api/rest_v1/feed/featured/${ymd(d)}`);
+    const get = (d: Date) => getJson<Featured>("Wikipedia", `https://en.wikipedia.org/api/rest_v1/feed/featured/${ymd(d)}`, undefined, 25_000, true);
     const today = readFeatured(await get(now));
     if (today.stories.length) return today;
     const before = readFeatured(await get(new Date(now.getTime() - 86_400_000)).catch(() => ({})));
@@ -127,7 +127,7 @@ export function readHeadlines(articles: GdeltArticle[]): Headline[] {
 
 const gdelt = (query: string, max: number, timespan: string) =>
   getJson<{ articles?: GdeltArticle[] }>("GDELT",
-    `https://api.gdeltproject.org/api/v2/doc/doc?query=${encodeURIComponent(query)}&mode=artlist&maxrecords=${max}&format=json&sort=hybridrel&timespan=${timespan}`, undefined, 20_000)
+    `https://api.gdeltproject.org/api/v2/doc/doc?query=${encodeURIComponent(query)}&mode=artlist&maxrecords=${max}&format=json&sort=hybridrel&timespan=${timespan}`, undefined, 20_000, true)
     .then((b) => readHeadlines(b.articles ?? []));
 
 const WIRES = ["reuters.com", "apnews.com", "bbc.co.uk", "aljazeera.com", "france24.com", "dw.com"];
@@ -171,7 +171,7 @@ export function readEonet(events: EonetEvent[]): NaturalEvent[] {
 /** Natural events still open, from the past three weeks. */
 export function naturalEvents(): Promise<NaturalEvent[]> {
   return cached("news:eonet", 30 * 60_000, async () =>
-    readEonet((await getJson<{ events: EonetEvent[] }>("NASA EONET", "https://eonet.gsfc.nasa.gov/api/v3/events?status=open&days=21")).events ?? []));
+    readEonet((await getJson<{ events: EonetEvent[] }>("NASA EONET", "https://eonet.gsfc.nasa.gov/api/v3/events?status=open&days=21", undefined, 25_000, true)).events ?? []));
 }
 
 export const EVENT_LOOK: Record<EventKind, { emoji: string; label: string; color: string }> = {

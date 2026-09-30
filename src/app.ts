@@ -3,7 +3,7 @@
 import { Cartesian2, Cartesian3, Color, HeightReference, ScreenSpaceEventHandler, ScreenSpaceEventType, type Entity } from "cesium";
 import { Canvas } from "./canvas";
 import { reverseGeocode, type PlaceName } from "./data/geocode";
-import { pickFeature } from "./globe/pickables";
+import { pickFeature, tapHandler } from "./globe/pickables";
 import type { Globe } from "./globe/viewer";
 import { Chart, type ChartData, type ChartOptions } from "./ui/chart";
 import { formatDms } from "./data/locationParse";
@@ -218,7 +218,10 @@ export class App {
     const clickHandler = (e: { position: Cartesian2 }) => {
       const tool = this.interaction;
       if (!tool?.wantsClicks?.()) {
-        const f = pickFeature(globe.viewer.scene.pick(e.position));
+        const picked = globe.viewer.scene.pick(e.position);
+        const tap = tapHandler(picked);
+        if (tap) { tap(); return; }
+        const f = pickFeature(picked);
         if (f) {
           this.select({ lon: f.lon, lat: f.lat, height: 0 }, { title: f.title, context: f.context }, f.feature);
           return;
