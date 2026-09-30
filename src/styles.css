@@ -2673,3 +2673,13 @@ body.year-open .look-legend { display: none; }
 .po-table th { color: var(--secondary); font-weight: 600; }
 .po-topic { gap: 10px; align-items: center; }
 .po-topic .po-whip-bar { height: 8px; margin: 4px 0; }
+/* Field Network: pipeline stages, climate strip */
+.fn-stages { display: flex; flex-direction: column; gap: 5px; margin: 6px 0; }
+.fn-stages div { display: grid; grid-template-columns: 90px 1fr auto; gap: 8px; align-items: center; font-size: 12px; }
+.fn-stages span { color: var(--secondary); text-transform: capitalize; }
+.fn-stages i { display: block; height: 10px; min-width: 2px; border-radius: 5px; background: #0a84ff; }
+.fn-stages small { color: var(--secondary); font-variant-numeric: tabular-nums; }
+.fn-climate { display: grid; grid-template-columns: repeat(12, 1fr); gap: 3px; height: 56px; align-items: end; margin: 8px 0 2px; }
+.fn-climate span { display: flex; flex-direction: column; justify-content: flex-end; align-items: center; height: 100%; gap: 2px; }
+.fn-climate i { display: block; width: 100%; min-height: 2px; border-radius: 3px 3px 0 0; background: #0a84ff; }
+.fn-climate small { font-size: 9.5px; color: var(--secondary); }

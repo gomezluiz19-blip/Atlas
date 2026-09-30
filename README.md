@@ -436,6 +436,32 @@ once** (each placed where it reaches the most people still too far) and gives wa
 Communities come in from **Kobo, ODK or a spreadsheet** (name, GPS, population or households, needs), and a one-click
 **donor report** puts reach, indicators, gaps, supplies and incidents on a printable page.
 
+**Field Network (for mining equipment, technology and services companies).** There are far more companies selling
+to and servicing mines than there are mine operators, and their work is geographic: machines spread across remote sites,
+technicians who have to reach them, parts, and a market of every mine on Earth. Field Network puts it on one map.
+
+- **Every customer site fills itself in**: altitude and air density (at Collahuasi's 4,400 m the air is 59% of sea
+  level and diesels lose roughly a quarter of their power), ten years of climate (monthly temperatures, records, rain
+  and the wet months), the nearest large power station, port and airport, a **battery-electric readiness** screen
+  (grid close by, altitude where electric drives keep their power, long diesel supply lines, battery-unfriendly cold or
+  heat), and a flag where 3TG minerals meet a Dodd-Frank covered country.
+- **The installed base**: every machine with its hours (projected from the last reading), next service, warranty and
+  design life, so the fleet view shows what's down, overdue, due this week, and the **sales triggers**: warranties
+  ending (offer a service contract) and machines near the end of their life (start the replacement deal).
+- **Service**: jobs, and for each the technicians with the skill, available first, ranked by how long they'd really take
+  to get there, driving or flying to the airport nearest the site and driving the rest, with a connection or charter
+  for small airports and roads half as slow again in the site's wet months. Parts come from the nearest depot that has
+  them, with weeks of cover for each. Every site is checked against its contracted response time (and again with only
+  the technicians free right now), and Atlas suggests where one more base would bring the most machines back within it.
+- **Market**: Atlas's major mines plus every operating mine on Wikidata, each scored for fit (commodity, open pit or
+  underground, and whether it can be serviced from an existing base), with the good fits too far from any base called
+  out as a market a new base would open. Deals by stage, value weighted by stage, win rate.
+- **Risk**: how concentrated the installed base is by commodity and country (a copper price fall hits service hours
+  and new orders together), natural events and earthquakes near customers, conflict-minerals flags.
+- A **visit brief** for any site and a **monthly report**; customer sites and machines import from a CRM, ERP or
+  telemetry export, and the fleet exports back. The demo is a made-up equipment maker with 57 machines at 12 real mines
+  from the Andes to the Copperbelt, Mongolia, the Bushveld, the Pilbara and Lapland.
+
 **Business network.** Also in My Places: map a business as it runs. Its sites (head office, shops,
 warehouses, factories) and its partners (farms, suppliers, ports, customers), and what moves between them:
 goods, people, money and data, how much and how often, by truck, van, rail, ship, air, public transport, on
