@@ -328,6 +328,18 @@ map's labels come from Natural Earth's detailed (10 m) data: seas, bays, straits
 ice fields and salt flats, then about 7,800 towns, lakes and reservoirs as you zoom in, and detailed rivers
 for the area in view. The Built theme adds famous streets and squares and the world's metro systems.
 
+**3D by default, and a living city.** Coming down toward the ground, the camera tilts toward the horizon
+(straight down from space, about 55° over a region, about 38° at street level; once per descent, and never
+against your own tilt). Below about 3 km over a town, Atlas builds the city around you from OpenStreetMap and
+sets it going: buildings rise to their mapped height in soft clay tones with deeper-toned roofs, trees stand in
+the parks (the mapped ones, and more scattered through green spaces), small toy-like cars drive the real street
+network (keeping to their side, following one-ways, turning at junctions, at each road's speed), and figurine
+people walk the pavements and footpaths, thickest near shops, cafés and stations. How many are out follows
+the local hour: rush hours busy, nights quiet. Figures are life-size close up and grow with distance so they
+still read from above. It's a simulation on real streets (there is no public feed of individual cars and
+people), labelled as such; switch it under Layers › Live › Living city. With a Google key, the photorealistic
+3D city is on by default and the figures move through it.
+
 **World now.** The first tile in Explore (and the "Right now" line as Atlas opens) gathers what's happening
 on Earth: the day's biggest stories as Wikipedia's editors pick them, each pinned where it's happening; the
 latest headlines from the big wire services (via GDELT); natural events still going on (wildfires, storms,

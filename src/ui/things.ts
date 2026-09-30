@@ -59,6 +59,7 @@ export function buildThings(app: App, overlays: Overlays, tools: WorkTool[]): Th
     }
   for (const [id, title, emoji, detail, words] of [
     ["live:planes", "Live planes", "✈️", "Every aircraft in view, moving live at its real height", "planes flights aircraft flying overhead air traffic adsb flight tracker"],
+    ["city:life", "Living city", "🏙️", "3D buildings and trees, with cars and people moving on the real streets", "3d city buildings traffic people pedestrians cars simulation streets living"],
     ["live:ships", "Live ships", "🚢", "Vessels moving live over AIS: cargo, tankers, ferries", "ships boats vessels marine traffic ais shipping ferries"],
   ] as const)
     out.push({ title, detail, emoji, group: "Show on the map", words, on: () => !!app.actions.get(id)?.isOn?.(), run: act(id) });

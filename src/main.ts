@@ -2,7 +2,7 @@ import "./styles.css";
 // Cesium loads its web workers and assets relative to this URL.
 (window as unknown as { CESIUM_BASE_URL: string }).CESIUM_BASE_URL = new URL("./cesium/", document.baseURI).href;
 
-import { Cartesian2, Cartesian3, Math as CesiumMath, SceneTransforms } from "cesium";
+import { BoundingSphere, Cartesian2, Cartesian3, HeadingPitchRange, Math as CesiumMath, SceneTransforms } from "cesium";
 import { createMapControls, homeRegion } from "./globe/controls";
 import { Looks } from "./globe/looks";
 import { featureChips } from "./explore/featureLayers";
@@ -77,6 +77,7 @@ import { allLenses, myLenses } from "./lenses/library";
 import { topicThemes } from "./topics/themes";
 import { openWorldNow } from "./live/worldNow";
 import { createTraffic } from "./live/tracks";
+import { createCityLife } from "./city/life";
 
 const $ = (id: string) => document.getElementById(id)!;
 
@@ -626,9 +627,29 @@ $("ui").append(createCanvasTray(app));
 const layersBtn = $("layers-btn");
 // Live traffic: planes and ships moving on the globe.
 const traffic = createTraffic(app);
+// The living city: buildings, trees, and simulated cars and people on the real streets, once zoomed in.
+const cityLife = createCityLife(app);
+app.actions.set("city:life", { label: "Living city (3D, simulated movement)", run: () => cityLife.set(true), isOn: () => cityLife.isOn(), stop: () => cityLife.set(false) });
+// 3D by default: coming down into a place, the camera tilts toward the horizon once (unless you've tilted it yourself).
+{
+  let tilted = false;
+  const cam = globe.viewer.camera;
+  cam.moveEnd.addEventListener(() => {
+    const hgt = cam.positionCartographic.height;
+    if (hgt > 30_000) { tilted = false; return; }
+    if (tilted || hgt > 6000 || CesiumMath.toDegrees(cam.pitch) > -75) { if (CesiumMath.toDegrees(cam.pitch) > -75) tilted = true; return; }
+    tilted = true;
+    const c = globe.viewer.canvas, ray = cam.getPickRay(new Cartesian2(c.clientWidth / 2, c.clientHeight / 2));
+    const target = ray ? globe.viewer.scene.globe.pick(ray, globe.viewer.scene) : undefined;
+    if (!target) return;
+    const range = Cartesian3.distance(cam.positionWC, target);
+    cam.flyToBoundingSphere(new BoundingSphere(target, 1), { offset: new HeadingPitchRange(cam.heading, CesiumMath.toRadians(-40), range * 1.05), duration: 1.4 });
+  });
+}
 const LIVE: LiveSwitch[] = [
   { label: "Planes", about: "Every aircraft in view, live over ADS-B, flying at its real height. Tap one for its card; follow it.", on: () => traffic.isOn("plane"), set: (v) => traffic.set("plane", v), status: () => (traffic.count("plane") ? `${traffic.count("plane").toLocaleString()} live` : traffic.note("plane")) },
   { label: "Ships", about: "Vessels live over AIS: cargo, tankers, ferries, fishing boats. Tap one for its card.", on: () => traffic.isOn("ship"), set: (v) => traffic.set("ship", v), status: () => (traffic.count("ship") ? `${traffic.count("ship").toLocaleString()} live` : traffic.note("ship")) },
+  { label: "Living city", about: "Close in over a town: its buildings and trees in 3D, and simulated cars and people moving on the real streets, as many as usual for the hour.", on: () => cityLife.isOn(), set: (v) => cityLife.set(v), status: () => { const n = cityLife.counts(); return n.buildings ? `${n.cars} cars, ${n.people} people` : "zoom in to a town"; } },
   // The other live overlays, so everything happening now is switched from one place.
   ...(["quakes", "radar", "aurora"] as const).map((id) => {
     const o = OVERLAYS.find((x) => x.id === id)!;
@@ -922,6 +943,6 @@ if (import.meta.env.PROD && "serviceWorker" in navigator)
 
 // Handy for debugging from the browser console during development.
 if (import.meta.env.DEV) {
-  Object.assign(window, { atlas: { app, globe, labels, overlays, feeds, traffic, cart: (lon: number, lat: number, h: number) => Cartesian3.fromDegrees(lon, lat, h) } });
+  Object.assign(window, { atlas: { app, globe, labels, overlays, feeds, traffic, cityLife, cart: (lon: number, lat: number, h: number) => Cartesian3.fromDegrees(lon, lat, h) } });
   void import("cesium").then((Cesium) => Object.assign(window, { Cesium }));
 }

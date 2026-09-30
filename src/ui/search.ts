@@ -79,8 +79,9 @@ export async function flyToPlace(globe: Globe, place: Place) {
   const dx = (pad.left - pad.right) / 2 * mppAtHeight, dy = (pad.top - pad.bottom) / 2 * mppAtHeight;
   const cosLat = Math.max(0.05, Math.cos(CesiumMath.toRadians(place.lat)));
   const lon = place.lon - dx / (111_320 * cosLat), lat = place.lat + dy / 110_540;
-  const small = place.radius < 1500;
-  const pitch = small ? CesiumMath.toRadians(-52) : CesiumMath.toRadians(-89.5);
+  // 3D by default: the closer in, the more the camera tilts toward the horizon.
+  const small = place.radius < 20_000;
+  const pitch = CesiumMath.toRadians(place.radius < 1500 ? -38 : place.radius < 20_000 ? -55 : -89.5);
   // Tilted views shift sideways only (north-south shifts don't map simply onto a tilted view).
   const target = Cartesian3.fromDegrees(lon, small ? place.lat : lat, ground * globe.state.exaggeration);
   const distance = Cartesian3.distance(camera.positionWC, target);
