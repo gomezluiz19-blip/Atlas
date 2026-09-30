@@ -340,6 +340,17 @@ still read from above. It's a simulation on real streets (there is no public fee
 people), labelled as such; switch it under Layers › Live › Living city. With a Google key, the photorealistic
 3D city is on by default and the figures move through it.
 
+**Landmark intros.** The first time in a visit that you open one of about 120 of the world's most-searched
+places (from search, a place link or a curated list), it's introduced before you arrive. The place stands
+as a white architect's model on a plinth in a white studio: the ground shaped from the real terrain (sea in
+pale blue), the buildings around it from OpenStreetMap, and the landmark itself as a simple massing model
+that rises into place piece by piece. A few lines and the figures worth knowing sit beside it; the camera
+moves in and callouts point out its parts (the Statue of Liberty's torch, crown, pedestal and Fort Wood's
+star walls). Then it cuts to the real place on the globe, where the camera circles it. Drag to turn the model
+(the clock waits), **Go there** to cut early, **Skip**, or switch intros off. A chip on the map plays it again.
+The list is spread on purpose: Djenné, Lalibela, Great Zimbabwe, Aksum, Meroë, Chichén Itzá, Machu Picchu,
+Borobudur, Angkor Wat and Lagos stand beside the Eiffel Tower and the Empire State Building.
+
 **Politics Pro.** In My Places, a legislative office runs on the map. Start from the member (the whole of
 Congress is searchable) and the district is outlined from the Census Bureau, with its people from the American
 Community Survey (population, age, income, home values, veterans, poverty, born abroad, degrees). Add the

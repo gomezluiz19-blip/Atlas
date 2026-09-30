@@ -29,6 +29,7 @@ import { findThings, scoreThing, tokens, type Thing } from "./ui/frontDoor";
 import { buildThings } from "./ui/things";
 import { TimeBar } from "./time/bar";
 import { arrive, stopArriving } from "./delight/arrive";
+import { introFor, shouldPlay, type IntroPlace } from "./intros/places";
 import { playIntro } from "./delight/intro";
 import { setSound, soundOn } from "./delight/sound";
 import { startTour, tourDone } from "./delight/tour";
@@ -121,8 +122,20 @@ labels.onClick = (l) => {
   app.select({ lon: l.lon, lat: l.lat, height: 0 }, { title: l.name, context: d?.notable?.description ?? (detail ? detail[0].toUpperCase() + detail.slice(1) : undefined) ?? l.sub ?? KIND_INFO[l.kind].label }, { ...((l.data as object | undefined) ?? { source: "world" }), kind: l.kind, name: l.name });
 };
 
-const pick = (p: SearchPlace | SearchResult) =>
-  app.select({ lon: p.lon, lat: p.lat, height: 0 }, "named" in p && p.named === false ? undefined : { title: p.name, context: p.detail ?? "" });
+// Landmark intros: the first time in a visit that a well-known place is opened, it's shown as a white model
+// with a few lines about it, then the view cuts to the real place.
+const withIntro = (name: string | undefined, lon: number, lat: number, then: (ip?: IntroPlace) => void, force = false) => {
+  const ip = introFor(name, lon, lat);
+  if (!ip || (!force && !shouldPlay(ip))) { then(); return; }
+  void import("./intros/intro").then((m) => m.playIntro(ip, () => then(ip))).catch(() => then());
+};
+const arriveAt = (ip: IntroPlace) => void arrive(app, { name: ip.name, kicker: ip.where, lon: ip.lon, lat: ip.lat, radius: Math.max(150, ip.size / 3), fact: ip.lines[0] });
+
+const pick = (p: SearchPlace | SearchResult) => {
+  const named = !("named" in p && p.named === false) && !("source" in p && p.source === "coords");
+  app.select({ lon: p.lon, lat: p.lat, height: 0 }, named ? { title: p.name, context: p.detail ?? "" } : undefined);
+  if (named) withIntro(p.name, p.lon, p.lat, (ip) => ip && arriveAt(ip));
+};
 
 app.emptyState = (theme: Theme) =>
   h("div", { class: "empty" },
@@ -132,6 +145,7 @@ app.emptyState = (theme: Theme) =>
 const openSite = (s: Site) => {
   void flyToPlace(globe, s);
   app.select({ lon: s.lon, lat: s.lat, height: 0 }, { title: s.name, context: s.where });
+  withIntro(s.name, s.lon, s.lat, (ip) => ip && arriveAt(ip));
 };
 
 app.addTheme(exploreTheme(app, feeds, overlays, openSite));
@@ -380,10 +394,10 @@ const openPlace = async (slug: string, theme?: string) => {
   // Arrive: the camera comes in at an angle, the name is set over the map with the one fact worth knowing.
   const what = r.what ?? KIND_WORDS[r.kind] ?? "";
   const kicker = [what && what.charAt(0).toUpperCase() + what.slice(1), r.context && !r.context.includes(":") ? r.context : ""].filter(Boolean).join(" · ");
-  void arrive(app, {
+  withIntro(r.name, r.lon, r.lat, (ip) => void arrive(app, {
     name: r.name || "This spot", kicker, lon: r.lon, lat: r.lat, radius: r.radius,
-    fact: r.blurb ? firstSentence(r.blurb) : measureAt(r.lon, r.lat).then((m) => headline(m.v, r.kind)),
-  });
+    fact: ip ? ip.lines[0] : r.blurb ? firstSentence(r.blurb) : measureAt(r.lon, r.lat).then((m) => headline(m.v, r.kind)),
+  }));
 };
 const KIND_WORDS: Partial<Record<string, string>> = {
   city: "town or city", capital: "capital city", water: "lake or water", sea: "sea", island: "island", peak: "mountain", range: "mountain range",
@@ -828,7 +842,19 @@ const social = wireSocial(app, {
 about.replaceWith(social.account.button);
 $("ui").append(social.account.menu);
 hideSocial = () => { if (social.profiles.isOpen) social.profiles.close(); if (social.studio.isOpen) social.studio.close(); };
+// A landmark with an intro gets a small chip to play it again.
+const introChip = h("button", { class: "lmi-replay", hidden: true });
+$("ui").append(introChip);
+const syncIntroChip = (p: typeof app.place) => {
+  const ip = p ? introFor(p.name?.title, p.lon, p.lat) : null;
+  introChip.hidden = !ip;
+  if (!ip) return;
+  introChip.replaceChildren(h("span", { "aria-hidden": "true" }, "▶"), ` ${ip.name}: the intro`);
+  introChip.onclick = () => withIntro(ip.name, ip.lon, ip.lat, (x) => x && arriveAt(x), true);
+};
+app.actions.set("intro:play", { label: "Play this landmark's intro", run: () => { const p = app.place; if (p) withIntro(p.name?.title, p.lon, p.lat, (x) => x && arriveAt(x), true); } });
 app.onPlace = (p) => {
+  syncIntroChip(p);
   if (p) try { localStorage.setItem("atlas.tapped", "1"); } catch { /* private mode */ }
   // A new place ends the slow circling around the last one.
   stopArriving();
