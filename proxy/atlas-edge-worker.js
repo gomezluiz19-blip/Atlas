@@ -11,11 +11,11 @@
 // maps for a week), so a crowd of visitors looks like one polite client. Only the
 // site's own origins may call it, and each visitor is rate-limited.
 
-const ALLOWED = /^https:\/\/(nominatim\.openstreetmap\.org|photon\.komoot\.io|api\.open-meteo\.com|archive-api\.open-meteo\.com|marine-api\.open-meteo\.com|climate-api\.open-meteo\.com|query\.wikidata\.org|overpass-api\.de|api\.inaturalist\.org|macrostrat\.org|api\.worldbank\.org|restcountries\.com|services\.swpc\.noaa\.gov|earthquake\.usgs\.gov|[a-z]+\.wikipedia\.org|api\.gdeltproject\.org|eonet\.gsfc\.nasa\.gov|api\.adsb\.lol|api\.airplanes\.live|opensky-network\.org|meri\.digitraffic\.fi)\//;
+const ALLOWED = /^https:\/\/(nominatim\.openstreetmap\.org|photon\.komoot\.io|api\.open-meteo\.com|archive-api\.open-meteo\.com|marine-api\.open-meteo\.com|climate-api\.open-meteo\.com|air-quality-api\.open-meteo\.com|query\.wikidata\.org|overpass-api\.de|api\.inaturalist\.org|macrostrat\.org|api\.worldbank\.org|restcountries\.com|services\.swpc\.noaa\.gov|earthquake\.usgs\.gov|[a-z]+\.wikipedia\.org|api\.gdeltproject\.org|eonet\.gsfc\.nasa\.gov|api\.adsb\.lol|api\.airplanes\.live|opensky-network\.org|meri\.digitraffic\.fi)\//;
 
 /** How long answers keep, by service (seconds). */
 function ttl(url) {
-  if (/open-meteo\.com\/v1\/(forecast|marine)/.test(url)) return 600;
+  if (/open-meteo\.com\/v1\/(forecast|marine|air-quality)/.test(url)) return 600;
   if (/swpc\.noaa\.gov|earthquake\.usgs\.gov/.test(url)) return 300;
   if (/inaturalist\.org/.test(url)) return 3600;
   // Live traffic: a few seconds, so a crowd shares one poll without seeing stale positions.

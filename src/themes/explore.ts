@@ -262,24 +262,25 @@ export function exploreTheme(app: App, feeds: Feeds, overlays: Overlays, openSit
         h("span", { class: "list-text" }, h("span", { class: "list-title" }, st.title), h("span", { class: "list-sub" }, `${st.author.name} · ${st.slideCount} places`)),
         h("span", { class: "chev", html: "&rsaquo;" }))))), ] : [];
     });
-    // What's flying over this place right now (one look; "Watch live" switches the planes on).
+    // Right now, here: weather, air, sun, what's overhead, quakes and events nearby. Also as data (a
+    // "world state" an agent or robot can read before acting at this spot).
     asyncBlock(app, body, "", async () => {
-      const { planesAround } = await import("../live/traffic");
-      const { tracks } = await planesAround(place.lon, place.lat, 40).catch(() => ({ tracks: [] as import("../live/traffic").Track[] }));
-      const up = tracks.filter((t) => !t.ground);
-      if (!up.length) return [];
-      const high = [...up].sort((a, b) => b.alt - a.alt)[0];
-      const low = [...up].sort((a, b) => a.alt - b.alt)[0];
-      const ftOf = (m: number) => `${(Math.round(m / 0.3048 / 100) * 100).toLocaleString()} ft`;
-      return [section("Overhead right now",
-        h("div", { class: "overhead" },
-          h("span", { class: "overhead-n" }, String(up.length)),
-          h("span", { class: "overhead-text" }, `plane${up.length === 1 ? "" : "s"} in the sky within 40 km.`, h("br"),
-            h("span", { class: "muted small" }, up.length > 1 ? `Highest ${high.label} at ${ftOf(high.alt)}; lowest ${low.label} at ${ftOf(low.alt)}.` : `${high.label} at ${ftOf(high.alt)}.`)),
-          h("button", { class: "pill-btn primary", onclick: () => {
-            app.actions.get("live:planes")?.run();
-            app.globe.viewer.camera.flyTo({ destination: Cartesian3.fromDegrees(place.lon, place.lat - 0.9, 90_000), orientation: { heading: 0, pitch: CesiumMath.toRadians(-40), roll: 0 }, duration: 2 });
-          } }, "Watch live")))];
+      const { nowHere, nowSentences } = await import("../live/nowHere");
+      const n = await nowHere({ name: place.name?.title, context: place.name?.context, lon: place.lon, lat: place.lat });
+      const lines = nowSentences(n);
+      if (!lines.length) return [];
+      const copy = h("button", { class: "pill-btn", title: "A JSON snapshot of this spot right now, for software and agents" }, "Copy as data") as HTMLButtonElement;
+      copy.onclick = () => void navigator.clipboard?.writeText(JSON.stringify(n, null, 2)).then(() => { copy.textContent = "Copied ✓"; setTimeout(() => (copy.textContent = "Copy as data"), 1800); }).catch(() => app.toast("Couldn't copy here; try again.", 3000));
+      return [section("Right now",
+        h("div", { class: "now-here" },
+          h("ul", { class: "now-lines" }, ...lines.map((l) => h("li", {}, l))),
+          h("div", { class: "now-actions" },
+            n.aircraft?.count ? h("button", { class: "pill-btn primary", onclick: () => {
+              app.actions.get("live:planes")?.run();
+              app.globe.viewer.camera.flyTo({ destination: Cartesian3.fromDegrees(place.lon, place.lat - 0.9, 90_000), orientation: { heading: 0, pitch: CesiumMath.toRadians(-40), roll: 0 }, duration: 2 });
+            } }, "Watch the planes live") : "",
+            copy),
+          n.missing.length ? h("p", { class: "fineprint" }, `Couldn't read ${n.missing.join(", ")} just now.`) : ""))];
     });
     // The week's news that mentions this place (named places only: a bare spot has no headlines).
     const named = place.name?.title && !/^-?\d/.test(place.name.title) ? place.name.title : null;

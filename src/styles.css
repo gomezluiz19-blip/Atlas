@@ -2459,8 +2459,10 @@ body.year-open .look-legend { display: none; }
   .tr-card { top: auto; bottom: calc(var(--gutter) + 78px + env(safe-area-inset-bottom, 0px)); left: var(--gutter); right: var(--gutter); width: auto; }
 }
 @media (prefers-reduced-motion: reduce) { .tr-card { animation: none; } }
-.overhead { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 14px; background: var(--material-strong); }
-.overhead-n { font-size: 30px; font-weight: 700; font-variant-numeric: tabular-nums; color: #5ac8fa; }
-.overhead-text { flex: 1; font-size: 14px; line-height: 1.35; }
+.now-here { display: flex; flex-direction: column; gap: 10px; padding: 12px 14px; border-radius: 14px; background: var(--material-strong); }
+.now-lines { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 6px; font-size: 14px; line-height: 1.4; }
+.now-lines li { padding-left: 14px; position: relative; }
+.now-lines li::before { content: ""; position: absolute; left: 0; top: 0.55em; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); opacity: 0.7; }
+.now-actions { display: flex; gap: 6px; flex-wrap: wrap; }
 /* Menus and panels open over a craft's card. */
 .popover:not([hidden]) { z-index: 40; }

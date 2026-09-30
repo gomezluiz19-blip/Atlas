@@ -33,14 +33,22 @@ export interface History {
 
 const ll = (lon: number, lat: number) => `latitude=${lat.toFixed(3)}&longitude=${lon.toFixed(3)}`;
 
-export function forecast(lon: number, lat: number): Promise<Forecast> {
+/** The week's forecast and the weather now (`live` fetches afresh instead of reusing this session's answer). */
+export function forecast(lon: number, lat: number, live = false): Promise<Forecast> {
   return getJson<Forecast>(
     "Open-Meteo",
     `https://api.open-meteo.com/v1/forecast?${ll(lon, lat)}` +
       "&current=temperature_2m,apparent_temperature,relative_humidity_2m,precipitation,weather_code,wind_speed_10m,wind_direction_10m,is_day" +
       "&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max,sunrise,sunset" +
       "&timezone=auto&forecast_days=7",
+    undefined, 25_000, live,
   );
+}
+
+export interface AirNow { current: { us_aqi?: number; european_aqi?: number; pm2_5?: number; pm10?: number; uv_index?: number; ozone?: number } }
+/** Air quality and UV now (Open-Meteo's CAMS-based air-quality model). */
+export function airNow(lon: number, lat: number): Promise<AirNow> {
+  return getJson<AirNow>("Open-Meteo", `https://air-quality-api.open-meteo.com/v1/air-quality?${ll(lon, lat)}&current=us_aqi,european_aqi,pm2_5,pm10,uv_index,ozone`, undefined, 15_000, true);
 }
 
 /** Daily mean temperature and precipitation from 1950 to the end of last year. */

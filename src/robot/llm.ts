@@ -60,12 +60,14 @@ function tools(app: App): Tool[] {
     { name: "open_tool", description: "Open one of Atlas's tools: plan (trips, events, sites, zones, routes), present (slides), video (record the globe), grow (fields and crops), build (construction projects), flock (animals), teach (lessons, quizzes, field trips), learn (games for students, places to learn), space (satellites, ISS, launches), solar (the solar system view), myplace (the person's saved places and today's brief there: frost, heat, storms, animals and tasks due).", input_schema: { type: "object", properties: { tool: { type: "string", enum: [...WORK_TOOLS, "space", "solar", "myplace"] } }, required: ["tool"] } },
     { name: "today_brief", description: "Read today's brief for the person's own saved place (home, farm or site): weather to act on, animals due, fields to harvest or irrigate, projects behind. Use it for questions like 'what do I need to do today?' or 'anything due on the farm?'.", input_schema: { type: "object", properties: {} } },
     { name: "log_record", description: "Record something that happened at the person's place, as ONE plain sentence per call that names the animal (by name or tag), field or building project, e.g. 'Daisy had twins', 'weighed 101 at 590 kg', 'wormed all the sheep with Cydectin', 'sprayed Top field with fungicide', 'Oak Street: poured the slab, 14 crew'. Split a sentence about several animals into several calls.", input_schema: { type: "object", properties: { line: { type: "string" } }, required: ["line"] } },
+    { name: "now_here", description: "Read what the selected place is like right now (fly_to first): weather, air quality and UV, the sun, how many planes are overhead and the highest, the strongest earthquake nearby this week, natural events nearby (fires, storms, volcanoes), and news mentioning it. Use it for 'what's it like in X now', 'what's flying over me', 'is the air OK in X'.", input_schema: { type: "object", properties: {} } },
+    { name: "world_news", description: "Read the world's biggest stories today (Wikipedia's editors' picks) and the latest wire headlines, and open World now for the person. Use it for 'what's happening in the world', 'news', 'headlines'.", input_schema: { type: "object", properties: {} } },
     { name: "open_lens", description: `Look at the selected feature (fly_to it first) through a lens. Lenses: ${lenses.map((l) => `${l.id} = ${l.label}: ${l.blurb}`).join(" | ")}.`, input_schema: { type: "object", properties: { lens: { type: "string", enum: lenses.map((l) => l.id) } }, required: ["lens"] } },
   ];
 }
 
 const SYSTEM = `You are the assistant inside Atlas, a 3D globe with real satellite imagery and terrain. People type requests in its search box.
-Act by calling tools: fly to places, switch on layers, open views, look at a feature through a lens, show historical borders, open tools, read the brief for the person's own place, and log what happened there. Chain several calls for multi-part requests (place first, then layers, then a view).
+Act by calling tools: fly to places, switch on layers (including live planes and ships), read what a place is like right now, read the world's news, open views, look at a feature through a lens, show historical borders, open tools, read the brief for the person's own place, and log what happened there. Chain several calls for multi-part requests (place first, then layers, then a view).
 Then reply in at most three short sentences: what you showed and one interesting, accurate fact. Plain text, no markdown, no lists.
 Only use the layers, views and tools listed. If something isn't available, say so briefly and show the closest thing that is.
 Never invent data. If you aren't sure of a fact, don't state it. Keep it friendly and suitable for all ages.`;
@@ -157,6 +159,8 @@ function describeUse(app: App, u: Extract<Block, { type: "tool_use" }>): string 
     case "open_tool": return `Open ${String(i.tool)}`;
     case "today_brief": return "Read today's brief";
     case "log_record": return `Log: ${String(i.line)}`;
+    case "now_here": return "Read what it's like there right now";
+    case "world_news": return "Read the world's news";
     case "open_lens": return `Look through the ${LENSES.find((l) => l.id === i.lens)?.label ?? String(i.lens)} lens`;
     default: return u.name;
   }
@@ -211,6 +215,22 @@ async function runTool(app: App, deps: AiDeps, u: Extract<Block, { type: "tool_u
       const r = await deps.logLine(String(i.line));
       if (!r) throw new Error(`Couldn't tell which animal, field or project "${i.line}" is about. Ask the person to name it.`);
       return `Saved: ${r}`;
+    }
+    case "now_here": {
+      const p = app.place ?? (deps.resolver.centre() ? { ...deps.resolver.centre()!, name: null } : null);
+      if (!p) throw new Error("Choose a place first (fly_to).");
+      const { nowHere, nowSentences } = await import("../live/nowHere");
+      const n = await nowHere({ name: p.name?.title, context: p.name?.context, lon: p.lon, lat: p.lat });
+      return [...nowSentences(n), n.news ? `In the news: ${n.news.title} (${n.news.source}).` : ""].filter(Boolean).join(" ");
+    }
+    case "world_news": {
+      const { worldStories, wireHeadlines } = await import("../live/news");
+      const [f, w] = await Promise.all([worldStories().catch(() => null), wireHeadlines().catch(() => [])]);
+      app.actions.get("news:open")?.run();
+      const top = (f?.stories ?? []).slice(0, 4).map((x) => `- ${x.text}`);
+      const heads = w.slice(0, 5).map((x) => `- ${x.title} (${x.source})`);
+      if (!top.length && !heads.length) throw new Error("The news sources couldn't be reached just now.");
+      return `Top stories:\n${top.join("\n")}\nLatest headlines:\n${heads.join("\n")}`;
     }
     case "open_lens": {
       const a = app.actions.get(`lens:${String(i.lens)}`);
