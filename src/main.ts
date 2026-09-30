@@ -42,11 +42,17 @@ import { createSearch, flyToPlace, freeArea, geocode, type Command, type Place a
 import { createRobot } from "./ui/robotCard";
 import { createAiSettings } from "./ui/aiSettings";
 import { aiOn, looksLikeAsk } from "./robot/llm";
-import { PlaceStore } from "./myplaces/store";
+import { PlaceStore, type MyPlace } from "./myplaces/store";
+import type { DockItem } from "./myplaces/holo";
+import { packageSummary, readPackages } from "./myplaces/packages";
+import { localRecords, type TodayItem } from "./myplaces/today";
+import { forecast } from "./data/openmeteo";
 import { PlaceScene } from "./myplaces/scene";
 import { createMyPlaces } from "./myplaces/panel";
 import { createPro } from "./pro/panel";
 import { createWork, type WorkCtx, type WorkTool } from "./work/hub";
+import { workMap } from "./work/workMap";
+import type { Station } from "./work/workLines";
 import { createModeBar, type Mode } from "./ui/modes";
 import { briefFor, todayCard } from "./myplaces/todayUi";
 import { backupRow, keepStorage } from "./myplaces/backup";
@@ -189,9 +195,13 @@ const myScene = new PlaceScene(globe.viewer);
 const tool = (id: string, label: string, about: string, color: string, icon: string, open: (ctx: WorkCtx) => void): WorkTool => ({ id, label, about, color, icon, open });
 const PLACE_TOOLS: WorkTool[] = [
   tool("myplans", "My plans", "Everything you've planned across Atlas on one map: the darker the blue, the sooner", "#1f6fe5", icons.flag, (ctx) => void import("./plans/ui").then((m) => m.openPlans(ctx))),
+  tool("packages", "Packages", "What's on the way to you: paste a tracking number or the shipping email", "#bf5af2", icons.suitcase, (ctx) => void import("./myplaces/packagesUi").then((m) => m.openPackages(ctx))),
   tool("grow", "Grow", "Fields and crops: growth stage, harvest, water and frost", "#30d158", icons.sprout, openGrow),
   tool("flock", "Flock", "Animals in your care: farms, vets, rescues and adoption", "#8bd346", icons.paw, openFlock),
   tool("build", "Build", "Model a building on its site and track construction; worksite tools (Pro)", "#ff9f0a", icons.crane, openBuild),
+];
+const WORK_TOOLS: WorkTool[] = [
+  tool("buildpro", "Build Pro", "For builders and contractors: every site's schedule and critical path, the weather against the plan, the money as earned value, deliveries, neighbours and permits", "#ff9f0a", icons.crane, (ctx) => void import("./pro/build/ui").then((m) => m.openBuildPro(ctx))),
   tool("occupancy", "Live occupancy", "Rooms, floors and bookings from your booking system (Pro)", "#ff375f", icons.building, () => app.actions.get("pro:occupancy")?.run()),
   tool("office", "Politics Pro", "Run a legislative office: the district and its people, casework, events, and the whip count on your bills", "#5e5ce6", icons.flag, (ctx) => void import("./pro/office/ui").then((m) => m.openOffice(ctx))),
   tool("network", "Business network", "Your sites, suppliers, partners and customers, and the goods, people and money moving between them", "#ff9f0a", icons.route, (ctx) => void import("./pro/network/ui").then((m) => m.openNetwork(ctx))),
@@ -273,7 +283,7 @@ function logBox(): HTMLElement {
 }
 
 const placeHub = createWork(app, PLACE_TOOLS, {
-  title: "My Places",
+  title: "My Place",
   intro: "Your home, farm, site or business: what matters there today, and the tools to run it.",
   top: () => {
     const main = savedPlaceHere();
@@ -307,6 +317,17 @@ const makeHub = createWork(app, MAKE_TOOLS, {
   title: "Create",
   intro: "Make something from the map: a trip, a story, a video or a lesson.",
 });
+/** Work: every pro tool as a station on its industry's line (the Work map). */
+const openStation = (st: Station) => {
+  const ctx = workHub.ctx;
+  if (st.tool.startsWith("services:")) { void import("./pro/services/ui").then((m) => m.openServices(ctx, st.tool.slice(9) as Parameters<typeof m.openServices>[1])); return; }
+  [...WORK_TOOLS, ...PLACE_TOOLS].find((t) => t.id === st.tool)?.open(ctx);
+};
+const workHub = createWork(app, [], {
+  title: "Work",
+  intro: "Tools for the work you do, on the map. Each line is an industry; follow it out to the people who serve it.",
+  top: () => [workMap(openStation)],
+});
 const lookHub = createWork(app, LOOK_TOOLS, {
   title: "Explore more",
   intro: "What's happening in the world now, ask the map a question, watch the seasons turn, learn with games, and look up at space.",
@@ -320,15 +341,82 @@ const myPlaces = createMyPlaces(app, myStore, myScene, {
 $("ui").append(myPlaces.panel);
 // Atlas Pro: live operations (bookings from a CRM or booking system) for a saved building.
 const pro = createPro(app, myStore, myScene, (id) => { myPlaces.open(id); myPlaces.close(); });
+
+// ---- My Place, booted: your place as a hologram, with a dock of what you do there -------------------
+let holo: import("./myplaces/holo").Holo | null = null;
+const closeHolo = () => { holo?.close(); holo = null; };
+function dockFor(place: MyPlace, brief?: TodayItem[]): DockItem[] {
+  const rec = localRecords(), pk = packageSummary(readPackages(), new Date().toISOString().slice(0, 10));
+  const cams = place.devices.filter((d) => d.type === "camera").length;
+  const urgent = brief?.filter((b) => b.urgency !== "fyi").length ?? 0;
+  const n = (x: number) => (x ? String(x) : undefined);
+  return [
+    { id: "today", label: "Today", icon: icons.sun, color: "#ffd60a", badge: n(urgent), alert: !!brief?.some((b) => b.urgency === "now") },
+    { id: "packages", label: "Packages", icon: icons.suitcase, color: "#bf5af2", badge: n(pk.coming), alert: pk.today > 0 || pk.problems > 0 },
+    { id: "cameras", label: "Cameras", icon: icons.video, color: "#ff375f", badge: n(cams) },
+    { id: "events", label: "What's on", icon: icons.music, color: "#ff9f0a" },
+    { id: "myplans", label: "Plans", icon: icons.flag, color: "#1f6fe5" },
+    { id: "grow", label: "Grow", icon: icons.sprout, color: "#30d158", badge: n(rec.fields.length) },
+    { id: "flock", label: "Flock", icon: icons.paw, color: "#8bd346", badge: n(rec.flock?.animals.length ?? 0) },
+    { id: "build", label: "Build", icon: icons.crane, color: "#ff9f0a", badge: n(rec.builds.length) },
+    { id: "energy", label: "Energy & water", icon: icons.pylon, color: "#64d2ff" },
+  ];
+}
+function pickDock(place: MyPlace, id: string) {
+  holo?.minimize();
+  const ctx = placeHub.ctx;
+  const inHub = (f: () => void) => { closePanels(placeHub.panel); ctx.open(); f(); };
+  if (id === "today") inHub(() => ctx.home());
+  else if (id === "packages") inHub(() => void import("./myplaces/packagesUi").then((m) => m.openPackages(ctx)));
+  else if (id === "events") inHub(() => void import("./myplaces/eventsHere").then((m) => m.openEventsHere(ctx, place)));
+  else if (id === "cameras" || id === "energy") {
+    closePanels(myPlaces.panel);
+    myPlaces.open(place.id);
+    const want = id === "cameras" ? /Cameras/ : /Energy/;
+    setTimeout(() => [...myPlaces.panel.querySelectorAll(".group-title")].find((e) => want.test(e.textContent ?? ""))?.scrollIntoView({ behavior: "smooth", block: "start" }), 350);
+  } else inHub(() => PLACE_TOOLS.find((t) => t.id === id)?.open(ctx));
+}
+async function bootMyPlace(id?: string) {
+  const all = myStore.all(), place = id ? all.find((x) => x.id === id) : savedPlaceHere();
+  if (!place) { closeHolo(); placeHub.ctx.open(); placeHub.ctx.home(); return; }
+  closeHolo();
+  closePanels();
+  const m = await import("./myplaces/holo");
+  const h0 = m.bootPlace({
+    place, places: all, dock: dockFor(place),
+    onPick: (d) => pickDock(place, d),
+    onSwitch: (x) => void bootMyPlace(x),
+    onGlobe: () => { closeHolo(); void flyToPlace(globe, { name: place.name, lon: place.lon, lat: place.lat, radius: 600 }); },
+    onClose: () => closeHolo(),
+    onAdd: () => { holo?.minimize(); closePanels(placeHub.panel); placeHub.ctx.open(); placeHub.ctx.home(); app.toast("Search for the address, or tap the spot on the map, then Save.", 5000); },
+  });
+  holo = h0;
+  modes.set("place");
+  // What's going on there now: the weather, the light, and the day's most pressing thing.
+  void forecast(place.lon, place.lat).then((f) => {
+    if (holo !== h0) return;
+    const c = f.current, sunset = f.daily.sunset?.[0]?.slice(11, 16), sunrise = f.daily.sunrise?.[0]?.slice(11, 16);
+    const local = new Date().toLocaleTimeString(undefined, { timeZone: f.timezone, hour: "2-digit", minute: "2-digit" });
+    h0.setHud([
+      { k: "Local time", v: local },
+      { k: "Now", v: `${Math.round(c.temperature_2m)}° · feels ${Math.round(c.apparent_temperature)}°` },
+      { k: "Wind", v: `${Math.round(c.wind_speed_10m)} km/h` },
+      { k: "Today", v: `${Math.round(f.daily.temperature_2m_min[0])}° to ${Math.round(f.daily.temperature_2m_max[0])}°${f.daily.precipitation_sum[0] ? `, ${f.daily.precipitation_sum[0]} mm` : ""}` },
+      ...(sunrise && sunset ? [{ k: c.is_day ? "Sunset" : "Sunrise", v: c.is_day ? sunset : sunrise }] : []),
+    ]);
+  }).catch(() => {});
+  void briefFor(place).then((b) => { if (holo !== h0) return; h0.setDock(dockFor(place, b)); const top = b[0]; if (top) h0.setHud([...h0.el.querySelectorAll(".holo-hud div")].map((d) => ({ k: d.querySelector("dt")?.textContent ?? "", v: d.querySelector("dd")?.textContent ?? "" })), `${top.icon} ${top.title}`); }).catch(() => {});
+}
+app.actions.set("myplace:boot", { label: "Boot my place", run: (id) => void bootMyPlace(id || undefined) });
 $("ui").append(pro.panel);
 // Space: satellites, the ISS, launches and the solar system.
 const space = createSpace(app);
 app.addTheme(spaceTheme(space));
 // Topics (Money & trade, Sports, Fashion, Food, Arts & music) live under "More" on the theme bar.
 for (const t of topicThemes()) app.addTheme(t);
-$("ui").append(space.panel, placeHub.panel, makeHub.panel, lookHub.panel);
+$("ui").append(space.panel, placeHub.panel, makeHub.panel, workHub.panel, lookHub.panel);
 space.button.addEventListener("space:opened", () => closePanels(space.panel));
-for (const hub of [placeHub, makeHub, lookHub]) hub.button.addEventListener("work:opened", () => closePanels(hub.panel));
+for (const hub of [placeHub, makeHub, workHub, lookHub]) hub.button.addEventListener("work:opened", () => closePanels(hub.panel));
 app.actions.set("space:open", { label: "Space", run: () => space.open() });
 app.actions.set("news:open", { label: "World now: the news", run: () => { lookHub.ctx.open(); openWorldNow(lookHub.ctx); } });
 app.actions.set("space:solar", { label: "Solar system", run: () => space.toSolar() });
@@ -338,6 +426,7 @@ app.actions.set("work:ndvi", ndviAction(app));
 function closePanels(keep?: HTMLElement) {
   if (keep !== placeHub.panel) placeHub.ctx.close();
   if (keep !== makeHub.panel) makeHub.ctx.close();
+  if (keep !== workHub.panel) workHub.ctx.close();
   if (keep !== lookHub.panel) lookHub.ctx.close();
   if (keep !== myPlaces.panel) myPlaces.close();
   if (keep !== pro.panel) pro.close();
@@ -348,8 +437,14 @@ function closePanels(keep?: HTMLElement) {
 /** Profile pages and Lens Studio step aside when another panel opens (set up once they exist). */
 let hideSocial = () => {};
 function openMode(m: Mode) {
+  if (m !== "place") closeHolo();
   if (m === "look") { closePanels(); modes.set("look"); return; }
-  const hub = m === "place" ? placeHub : makeHub;
+  // My Place: boot the place as a model (or bring the puck back); with nothing saved, the first-run card.
+  if (m === "place" && myStore.all().length) {
+    if (holo?.el.classList.contains("mini")) { closePanels(); holo.restore(); return; }
+    if (!holo) { void bootMyPlace(); return; }
+  }
+  const hub = m === "place" ? placeHub : m === "work" ? workHub : makeHub;
   // Tapping the current mode again goes back to its home screen.
   hub.ctx.open();
   hub.ctx.home();
@@ -364,6 +459,7 @@ function openMode(m: Mode) {
 const modes = createModeBar(openMode);
 app.actions.set("mode:place", { label: "My Places", run: () => openMode("place") });
 app.actions.set("mode:make", { label: "Create", run: () => openMode("make") });
+app.actions.set("mode:work", { label: "Work", run: () => openMode("work") });
 app.actions.set("myplace:report", {
   label: "About your place",
   run: () => {
@@ -377,20 +473,22 @@ $("layers-btn").parentElement!.before(modes.el);
 // The switch follows whichever panel is showing.
 const syncMode = () => {
   const shown = (el: HTMLElement) => !el.hidden;
-  modes.set([placeHub.panel, myPlaces.panel, pro.panel].some(shown) ? "place" : shown(makeHub.panel) ? "make" : "look");
+  // Everything closed while your place was a puck: it comes back.
+  if (holo?.el.classList.contains("mini") && ![placeHub.panel, myPlaces.panel].some(shown)) holo.restore();
+  modes.set([placeHub.panel, myPlaces.panel].some(shown) ? "place" : [workHub.panel, pro.panel].some(shown) ? "work" : shown(makeHub.panel) ? "make" : "look");
   // Phones have room for one panel: the place card steps aside while a mode panel is open.
-  document.body.dataset.panel = [placeHub.panel, myPlaces.panel, pro.panel, makeHub.panel, lookHub.panel, space.panel].some(shown) ? "open" : "";
+  document.body.dataset.panel = [placeHub.panel, myPlaces.panel, pro.panel, makeHub.panel, workHub.panel, lookHub.panel, space.panel].some(shown) ? "open" : "";
   // Working in My Places or Make: the empty Explore card steps aside so the mode has the screen.
-  document.body.dataset.work = [placeHub.panel, myPlaces.panel, pro.panel, makeHub.panel].some(shown) ? "1" : "";
+  document.body.dataset.work = [placeHub.panel, myPlaces.panel, pro.panel, makeHub.panel, workHub.panel].some(shown) ? "1" : "";
 };
 const watcher = new MutationObserver(syncMode);
-for (const el of [placeHub.panel, myPlaces.panel, pro.panel, makeHub.panel, lookHub.panel, space.panel]) watcher.observe(el, { attributes: true, attributeFilter: ["hidden"] });
+for (const el of [placeHub.panel, myPlaces.panel, pro.panel, makeHub.panel, workHub.panel, lookHub.panel, space.panel]) watcher.observe(el, { attributes: true, attributeFilter: ["hidden"] });
 
 const HUB_OF: Record<string, { hub: typeof placeHub; open: (ctx: WorkCtx) => void }> = {};
-for (const [hub, tools] of [[placeHub, PLACE_TOOLS], [makeHub, MAKE_TOOLS], [lookHub, LOOK_TOOLS]] as const)
+for (const [hub, tools] of [[placeHub, PLACE_TOOLS], [makeHub, MAKE_TOOLS], [workHub, WORK_TOOLS], [lookHub, LOOK_TOOLS]] as const)
   for (const t of tools) if (t.id !== "occupancy" && t.id !== "space" && t.id !== "year") HUB_OF[t.id] = { hub, open: t.open };
 for (const [t, { hub, open }] of Object.entries(HUB_OF))
-  app.actions.set(`work:${t}`, { label: `${hub === placeHub ? "My Places" : hub === makeHub ? "Create" : "Explore"} › ${t}`, run: () => { hub.ctx.open(); open(hub.ctx); } });
+  app.actions.set(`work:${t}`, { label: `${hub === placeHub ? "My Place" : hub === makeHub ? "Create" : hub === workHub ? "Work" : "Explore"} › ${t}`, run: () => { hub.ctx.open(); open(hub.ctx); } });
 // Place pages: #/p/nile (or /p/nile/, which forwards here) opens the Nile's page.
 const openPlace = async (slug: string, theme?: string) => {
   const r = await resolvePlace(slug).catch(() => null);

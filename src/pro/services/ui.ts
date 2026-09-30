@@ -33,7 +33,9 @@ import {
 } from "./network";
 
 const store = new ListStore<Company>("atlas.pro.services.v1");
-const current = () => store.all()[0];
+/** The company for the sector being looked at (one per sector), else the most recent. */
+let sector: Vertical | null = null;
+const current = () => (sector ? store.all().find((c) => (c.vertical ?? "mining") === sector) : store.all()[0]);
 const save = (c: Company) => store.save(c);
 let map: OpsMap | null = null;
 type View = "fleet" | "service" | "sites" | "market" | "risk";
@@ -143,8 +145,9 @@ function loadProspects(app: App, c: Company) {
 
 // ---- Screens ---------------------------------------------------------------------------------------
 
-export function openServices(ctx: WorkCtx) {
+export function openServices(ctx: WorkCtx, v?: Vertical) {
   ctxRef = ctx;
+  if (v && v !== sector) { sector = v; chosen = v; loading = false; view = "fleet"; }
   const c = current();
   if (!c) return start(ctx);
   loadAll(c);
@@ -159,7 +162,7 @@ function start(ctx: WorkCtx) {
   ctx.show("Field Network", ctx.home,
     h("p", {}, "For companies that sell to and service many sites: each customer site with its conditions filled in (altitude, climate and wet season, grid, ports and airports), your equipment there and when it needs service, your technicians and how long they really take to get there, jobs and who to send, parts, where a new base helps most, prospects scored, your pipeline, and the risks across it all."),
     title("Your sector"),
-    h("div", { class: "chips wrap" }, ...Object.values(SECTORS).map((x) => h("button", { class: "chip" + (x.id === chosen ? " on" : ""), onclick: () => { chosen = x.id; start(ctx); } }, `${x.emoji} ${x.label}`))),
+    h("div", { class: "chips wrap" }, ...Object.values(SECTORS).map((x) => h("button", { class: "chip" + (x.id === chosen ? " on" : ""), onclick: () => { chosen = x.id; sector = x.id; start(ctx); } }, `${x.emoji} ${x.label}`))),
     h("p", { class: "muted small" }, `For ${def.who}. ${def.market.label}.`),
     name,
     h("button", { class: "primary-btn", onclick: () => { save({ id: newId(), name: name.value.trim() || "My company", vertical: chosen, offer: { types: Object.keys(def.types), methods: def.methods, commodities: def.focus }, accounts: [], assets: [], techs: [], depots: [], jobs: [], opps: [], slaHours: 24, created: Date.now() }); openServices(ctx); } }, "Start"),
