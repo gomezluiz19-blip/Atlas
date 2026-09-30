@@ -2647,3 +2647,8 @@ body.year-open .look-legend { display: none; }
 
 /* ---- Pro tools: the active view chip ---- */
 .chip.on { background: var(--c, var(--theme, #0a84ff)); color: #fff; }
+/* Mining Pro: grievances received each month */
+.gm-months { display: grid; grid-template-columns: repeat(12, 1fr); gap: 4px; align-items: end; height: 72px; margin: 6px 0 2px; }
+.gm-months span { display: flex; flex-direction: column; justify-content: flex-end; align-items: center; height: 100%; gap: 3px; }
+.gm-months i { display: block; width: 100%; height: max(2px, calc(var(--h) * 0.78)); border-radius: 3px 3px 0 0; background: #ac8e68; }
+.gm-months small { font-size: 9.5px; color: var(--secondary); }

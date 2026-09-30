@@ -4,7 +4,8 @@
 // and people around it (and those downhill of the tailings dam), the groups it
 // answers to with their grievances, the permits that keep it open, and recent
 // earthquakes nearby. Pure functions; the screens in ui.ts.
-import { kmBetween, type Dated, type Issue, type Move, type Party, type Site } from "../kit/ops";
+import { kmBetween, type Dated, type Move, type Party, type Site } from "../kit/ops";
+import type { Commitment, Grievance } from "./social";
 
 export interface Economics {
   /** Ore mined and processed, million tonnes a year. */
@@ -23,7 +24,8 @@ export interface Economics {
 }
 export interface Mine {
   id: string; name: string; commodity: string; country?: string;
-  sites: Site[]; moves: Move[]; parties: Party[]; issues: Issue[]; permits: Dated[];
+  sites: Site[]; moves: Move[]; parties: Party[]; issues: Grievance[]; permits: Dated[];
+  commitments?: Commitment[];
   econ: Economics;
   created: number; demo?: boolean;
 }

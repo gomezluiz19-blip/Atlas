@@ -15,20 +15,24 @@ import type { WorkFeature } from "../../work/layer";
 import { ListStore, newId } from "../../work/store";
 import { note } from "../../themes/common";
 import { addDays, dueSoon, fmt, issueQueue, kmBetween, kmText, moodCounts, moodOf, moveFacts, ring, today, type Dated, type Party } from "../kit/ops";
-import { ageBadge, empty, field, frame, hoursText, input, issueScreen, kpis, lines, list, moveScreen, OpsMap, partyScreen, row, select, siteAdder, stream, title } from "../kit/ui";
+import { ageBadge, empty, field, frame, hoursText, input, kpis, lines, list, moveScreen, OpsMap, partyScreen, row, select, siteAdder, stream, title } from "../kit/ui";
 import { demoMine } from "./demo";
+import { zoomForSpacing } from "../../analysis/profile";
+import { downstream, flowPath, gistmClass, pathKm, stageOf, sla } from "./social";
+import { boardReport, coldLines, commitmentsPanel, grievancePanel, grievanceScreen } from "./grievanceUi";
 import { downhill, economics, mainSite, PARTY_KINDS, PERMIT_KINDS, quakesNear, SITE_KINDS, townsNear, usd, usdShort, type Economics, type Mine } from "./model";
 
 const mines = new ListStore<Mine>("atlas.pro.mines.v1");
 const current = () => mines.all()[0];
 const save = (m: Mine) => mines.save(m);
 let map: OpsMap | null = null;
-type View = "chain" | "community" | "tailings" | "hazards";
+type View = "chain" | "community" | "grievances" | "tailings" | "hazards";
 let view: View = "chain";
 const K = (k: string) => SITE_KINDS[k as keyof typeof SITE_KINDS];
 
 /** What the async looks found, kept so redraws don't refetch. */
-const found: { towns?: ReturnType<typeof townsNear>; below?: ReturnType<typeof downhill<{ lon: number; lat: number; people: number; km: number; name?: string }>>; quakes?: ReturnType<typeof quakesNear<{ lon: number; lat: number; mag: number; place: string; time: number }>>; for?: string } = {};
+type Flow = { path: [number, number][]; down: { name: string; people?: number; along: number; km: number }[]; par: number; partial: boolean; km: number };
+const found: { flow?: Flow | null; towns?: ReturnType<typeof townsNear>; below?: ReturnType<typeof downhill<{ lon: number; lat: number; people: number; km: number; name?: string }>>; quakes?: ReturnType<typeof quakesNear<{ lon: number; lat: number; mag: number; place: string; time: number }>>; for?: string } = {};
 
 function draw(app: App, m: Mine) {
   map ??= new OpsMap(app, "pro:mining", "#ac8e68");
@@ -48,9 +52,13 @@ function draw(app: App, m: Mine) {
       for (const i of issueQueue(m.issues, today())) { const s = i.site ? byId.get(i.site) : undefined, p = m.parties.find((x) => x.id === i.party); const pt = p?.lon !== undefined ? [p.lon, p.lat!] : s ? [s.lon, s.lat] : null; if (pt) fs.push({ id: `i${i.id}`, kind: "point", pts: [[pt[0] + 0.004, pt[1] + 0.003]], color: "#ff3b30" }); }
     } else if (view === "tailings") {
       const dam = m.sites.find((s) => s.kind === "tailings");
-      if (dam) {
-        fs.push({ id: "reach", kind: "area", pts: ring(dam.lon, dam.lat, 30), color: "#0a84ff", fill: 0.05 });
-        for (const t of found.below?.places ?? []) fs.push({ id: `d${t.lon},${t.lat}`, kind: "line", pts: [[dam.lon, dam.lat], [t.lon, t.lat]], color: "#ff453a", dashed: true }, { id: `b${t.lon},${t.lat}`, kind: "point", pts: [[t.lon, t.lat]], color: "#ff453a", label: `${t.name ? t.name.replace(/ \(demo\)/, "") : `${fmt(t.people)} people`} · ${Math.round(t.drop)} m below` });
+      if (dam && found.flow) {
+        const f = found.flow;
+        fs.push({ id: "path", kind: "line", pts: f.path, color: "#ff453a" });
+        const byName = new Map(f.down.map((d) => [d.name, d]));
+        for (const p of flowPlaces(m)) { const d = byName.get(p.name); if (d) fs.push({ id: `dn${p.name}`, kind: "point", pts: [[p.lon, p.lat]], color: "#ff453a", label: `${p.name.replace(/ \(demo\)/, "")} · ${kmText(d.along)} down` }); }
+      } else if (dam && found.below) {
+        for (const t of found.below.places) fs.push({ id: `b${t.lon},${t.lat}`, kind: "point", pts: [[t.lon, t.lat]], color: "#ff453a", label: `${t.name ? t.name.replace(/ \(demo\)/, "") : `${fmt(t.people)} people`} · ${Math.round(t.drop)} m below` });
       }
     } else {
       fs.push({ id: "q300", kind: "line", pts: [...ring(at.lon, at.lat, 300), ring(at.lon, at.lat, 300)[0]], color: "#ff9f0a", dashed: true });
@@ -83,6 +91,7 @@ async function look(ctx: WorkCtx, m: Mine) {
       const near: { lon: number; lat: number; people: number; km: number; name?: string }[] = [...townsNear(await populationPoints().catch(() => []), dam, 30), ...mapped];
       const hs = await elevation.sample([[dam.lon, dam.lat], ...near.map((t) => [t.lon, t.lat] as [number, number])], 11).catch(() => null);
       found.below = hs ? downhill(hs[0], near, Array.from(hs.slice(1))) : undefined;
+      found.flow = await traceFlow(m, dam, near).catch(() => null);
     }
   }
   if (view === "hazards") found.quakes = quakesNear(await recentQuakes().catch(() => []), at, 300);
@@ -134,9 +143,10 @@ function home(ctx: WorkCtx, m: Mine) {
     kpis(
       [usdShort(e.revenue), "revenue a year"],
       [usdShort(e.margin), "margin a year", e.margin < 0],
-      [String(q.length), "open grievances", q.some((x) => x.stale), () => issuesScreen(ctx, m)],
+      [String(q.length), "open grievances", m.issues.some((g) => stageOf(g) !== "closed" && (sla(g, t).lateAck || sla(g, t).lateResponse)), () => { view = "grievances"; draw(app, m); home(ctx, m); }],
       [String(urgent.length), "permits due in 30 d", urgent.length > 0, () => permitsScreen(ctx, m)]),
-    h("div", { class: "chips wrap" }, tab("chain", "Value chain"), tab("community", "Communities"), tab("tailings", "Tailings"), tab("hazards", "Earthquakes")),
+    h("div", { class: "chips wrap" }, tab("chain", "Value chain"), tab("community", "Communities"), tab("grievances", "Grievances"), tab("tailings", "Tailings"), tab("hazards", "Earthquakes")),
+    h("button", { class: "pill-btn", onclick: () => boardReport(m, tailingsSummary()) }, "Board report"),
     view === "chain" ? h("div", {},
       lines(...chainLines(m)),
       title("What moves"),
@@ -149,10 +159,14 @@ function home(ctx: WorkCtx, m: Mine) {
       found.towns ? lines(...[10, 25, 50].map((km) => { const ts = found.towns!.filter((x) => x.km <= km); return `Within ${km} km: ${ts.length} ${ts.length === 1 ? "town" : "towns"}, ${fmt(ts.reduce((s, x) => s + x.people, 0))} people.`; }),
         found.towns[0] ? `Nearest town: ${kmText(found.towns[0].km)} away, ${fmt(found.towns[0].people)} people.` : "No mapped towns within 50 km (villages may not be in the data).") : h("p", { class: "muted small" }, "Finding the towns around…"),
       h("div", { class: "pol-legend" }, ...moodCounts(m.parties).filter((x) => x.n).map((x) => h("span", {}, h("i", { style: `background:${x.color}` }), `${x.label} ${x.n}`))),
+      coldLines(m),
       list(...m.parties.map((p) => row({ color: moodOf(p.mood).color }, p.name, `${PARTY_KINDS[p.kind as keyof typeof PARTY_KINDS]?.label ?? p.kind} · ${moodOf(p.mood).label}${p.log[0] ? ` · ${p.log[0].text}` : ""}`, () => partyEdit(ctx, m, p)))),
-      partyAdder(ctx, m)) :
+      partyAdder(ctx, m),
+      commitmentsPanel(ctx, m, () => save(m), () => openMining(ctx))) :
+    view === "grievances" ? grievancePanel(ctx, m, () => save(m), () => openMining(ctx)) :
     view === "tailings" ? h("div", {},
       !m.sites.some((s) => s.kind === "tailings") ? empty("Add the tailings dam as a site to see who lives downhill of it.") :
+      found.flow ? tailingsLines(found.flow) :
       found.below ? lines(
         found.below.places.length ? `${found.below.places.length} ${found.below.places.length === 1 ? "place lies" : "places lie"} lower than the dam within 30 km${found.below.people ? `, with ${fmt(found.below.people)} people in the towns among them` : ""}${found.below.places.some((x) => x.name) ? `: ${found.below.places.filter((x) => x.name).map((x) => x.name!.replace(/ \(demo\)/, "")).join(", ")}` : ""}.` : "No mapped towns or communities lower than the dam within 30 km.",
         found.below.nearest ? `Nearest: ${kmText(found.below.nearest.km)} away and ${Math.round(found.below.nearest.drop)} m below the dam.` : "",
@@ -163,10 +177,10 @@ function home(ctx: WorkCtx, m: Mine) {
         found.quakes.some((x) => x.mag >= 5 && x.km < 100) ? "⚠️ A magnitude 5+ within 100 km: inspect the tailings dam and pit walls." : "") : h("p", { class: "muted small" }, "Checking this week's earthquakes…")),
     title("What a year is worth"),
     econPanel(ctx, m),
-    title("Grievances"),
-    q.length ? list(...q.slice(0, 4).map((i) => issueRow(ctx, m, i))) : empty("No open grievances."),
-    h("div", { class: "row" }, h("button", { class: "link-btn", onclick: () => issueScreen(ctx, null, m.parties, m.sites, (x) => { m.issues.push(x); save(m); openMining(ctx); }, () => openMining(ctx), "grievance") }, "+ A grievance"),
-      q.length > 4 ? h("button", { class: "link-btn", onclick: () => issuesScreen(ctx, m) }, `All ${q.length}`) : ""),
+    view !== "grievances" ? h("div", {}, title("Grievances"),
+      q.length ? list(...q.slice(0, 3).map((i) => issueRow(ctx, m, i))) : empty("No open grievances."),
+      h("div", { class: "row" }, h("button", { class: "link-btn", onclick: () => grievanceScreen(ctx, m, null, () => save(m), () => openMining(ctx)) }, "+ Log a grievance"),
+        h("button", { class: "link-btn", onclick: () => { view = "grievances"; draw(app, m); home(ctx, m); } }, "The register"))) : "",
     title("Permits"),
     due.length ? list(...due.map((d) => permitRow(ctx, m, d))) : empty("Nothing due in the next four months."),
     h("button", { class: "link-btn", onclick: () => permitsScreen(ctx, m) }, "All permits"),
@@ -221,13 +235,7 @@ function econPanel(ctx: WorkCtx, m: Mine) {
 function issueRow(ctx: WorkCtx, m: Mine, i: ReturnType<typeof issueQueue>[number]) {
   const p = m.parties.find((x) => x.id === i.party);
   return row({ color: i.severity === 3 ? "#ff453a" : i.severity === 2 ? "#ff9f0a" : "#8e8e93" }, i.title, [p?.name, i.status === "waiting" ? "waiting on someone" : "", i.stale ? "no update in 2 weeks" : ""].filter(Boolean).join(" · "),
-    () => issueScreen(ctx, i, m.parties, m.sites, (x) => { Object.assign(m.issues.find((y) => y.id === x.id)!, x); save(m); openMining(ctx); }, () => openMining(ctx), "grievance"), ageBadge(i.age, "days", i.stale));
-}
-
-function issuesScreen(ctx: WorkCtx, m: Mine) {
-  const q = issueQueue(m.issues, today());
-  ctx.show("Grievances", () => openMining(ctx), q.length ? list(...q.map((i) => issueRow(ctx, m, i))) : empty("No open grievances."),
-    h("p", { class: "muted small" }, `${m.issues.filter((i) => i.status === "closed").length} closed.`));
+    () => grievanceScreen(ctx, m, m.issues.find((y) => y.id === i.id) ?? null, () => save(m), () => openMining(ctx)), ageBadge(i.age, "days", i.stale));
 }
 
 function permitRow(ctx: WorkCtx, m: Mine, d: Dated & { left: number }) {
@@ -253,4 +261,52 @@ function partyAdder(ctx: WorkCtx, m: Mine) {
 
 function partyEdit(ctx: WorkCtx, m: Mine, p: Party) {
   partyScreen(ctx, p, PARTY_KINDS, () => save(m), () => { m.parties = m.parties.filter((x) => x !== p); save(m); openMining(ctx); }, () => openMining(ctx));
+}
+
+// ---- Tailings: the flow path ---------------------------------------------------------------------
+
+const GRID = 81, HALF_KM = 20;
+
+/** Every place that could be downstream: towns, mapped communities and the mine's own camp and villages. */
+function flowPlaces(m: Mine) {
+  const towns = (found.towns ?? []).map((t) => ({ name: `${fmt(t.people)} people (town)`, lon: t.lon, lat: t.lat, people: t.people as number | undefined }));
+  const mapped = m.parties.filter((p) => p.lon !== undefined && ["community", "landholder", "leader"].includes(p.kind)).map((p) => ({ name: p.name, lon: p.lon!, lat: p.lat!, people: undefined as number | undefined }));
+  const own = m.sites.filter((s) => ["camp", "community", "office"].includes(s.kind) || s.people).filter((s) => s.kind !== "tailings").map((s) => ({ name: s.name, lon: s.lon, lat: s.lat, people: s.people }));
+  return [...towns, ...mapped, ...own];
+}
+
+/** The steepest way down from the dam over a 40 km square of elevation, and who lives within 2 km of it. */
+async function traceFlow(m: Mine, dam: { lon: number; lat: number }, _near: unknown): Promise<Flow | null> {
+  const step = (2 * HALF_KM) / (GRID - 1), kx = 111.32 * Math.cos((dam.lat * Math.PI) / 180), ky = 110.54;
+  const pts: [number, number][] = [];
+  for (let j = 0; j < GRID; j++) for (let i = 0; i < GRID; i++) pts.push([dam.lon + (-HALF_KM + i * step) / kx, dam.lat + (HALF_KM - j * step) / ky]);
+  const hs = await elevation.sample(pts, Math.min(13, zoomForSpacing(step * 1000, dam.lat)));
+  const c = (GRID - 1) / 2;
+  const cells = flowPath(hs, GRID, [c, c]);
+  const path = cells.map(([i, j]) => pts[j * GRID + i]);
+  found.towns ??= townsNear(await populationPoints().catch(() => []), dam, 50);
+  const down = downstream(flowPlaces(m), path, 2);
+  const par = down.reduce((s, d) => s + (d.p.people ?? 0), 0);
+  return { path, down: down.map((d) => ({ name: d.p.name, people: d.p.people, along: d.along, km: d.km })), par, partial: down.some((d) => d.p.people === undefined), km: pathKm(path) };
+}
+
+function tailingsSummary() {
+  const f = found.flow;
+  if (!f) return undefined;
+  const cls = gistmClass(f.partial ? Math.max(f.par, 11) : f.par);
+  return { cls: cls.label, par: f.par, partial: f.partial, places: f.down.map((d) => `${d.name.replace(/ \(demo\)/, "")} (${kmText(d.along)})`) };
+}
+
+function tailingsLines(f: Flow) {
+  const cls = gistmClass(f.partial ? Math.max(f.par, 11) : f.par);
+  return h("div", {},
+    h("div", { class: "po-kpis" },
+      h("div", { class: "po-kpi" }, h("strong", { style: `color:${cls.color}` }, cls.label), h("span", {}, "GISTM consequence (population)")),
+      h("div", { class: "po-kpi" }, h("strong", {}, fmt(f.par)), h("span", {}, f.partial ? "people counted (some unknown)" : "people at risk")),
+      h("div", { class: "po-kpi" }, h("strong", {}, String(f.down.length)), h("span", {}, "places within 2 km")),
+      h("div", { class: "po-kpi" }, h("strong", {}, kmText(f.km)), h("span", {}, "path traced"))),
+    lines(
+      f.down.length ? `Downstream along the path, nearest first: ${f.down.map((d) => `${d.name.replace(/ \(demo\)/, "")} (${kmText(d.along)} down${d.people ? `, ${fmt(d.people)} people` : ""})`).join("; ")}.` : "No mapped towns, communities or camps within 2 km of the path.",
+      f.partial ? "Some communities have no population recorded, so the class is at least High until they're counted." : "",
+      "The red line is the steepest way down from the dam on elevation sampled every 500 m: where released tailings would head first. A screening view for siting sirens, drills and evacuation routes, not a dam-break study."));
 }

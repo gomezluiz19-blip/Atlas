@@ -395,6 +395,18 @@ elevation data. Permits running out, and this week's earthquakes within 300 km. 
 mines in the Minerals list, or the demo: a made-up copper mine in Zambia shipping via Dar es Salaam and the
 Lobito corridor.
 
+Built for a site's community-relations team and its board. The **grievance mechanism** follows IFC Performance
+Standard 1 and ICMM practice: each grievance has a category, the channel it came by, who raised it (or anonymous) and
+where, and moves through received, acknowledged, investigating, response given and closed (or appealed), each step
+dated and kept in its history. It's measured against the mine's own promises: the share acknowledged within 7 days
+and answered within 30, median days to close, satisfaction asked at closing, the late ones flagged, the last twelve
+months by month and by category, and any group raising three or more in a year called out as a pattern. The register
+exports to CSV and imports from a spreadsheet or another system. A **commitments register** tracks what was
+promised, to whom, by when and whether it was kept on time; stakeholders nobody has spoken to in 90 days are listed.
+For the **tailings dam**, Atlas traces the steepest way down from it across a 40 km square of elevation and counts the
+towns, mapped communities, camps and workplaces within 2 km of that path, nearest first, giving the GISTM consequence
+class by population at risk (Low to Extreme). A one-click **board report** brings it together, printable or as a PDF.
+
 **Field Ops.** A humanitarian or development programme on the map. The communities served (people, and what
 they need) and the warehouses, clinics, water points, schools and distribution points serving them. For
 each service, who is further than the set distance ("too far is 5 km to water, 15 km to a clinic") and
