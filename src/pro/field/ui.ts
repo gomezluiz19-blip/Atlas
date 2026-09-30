@@ -16,13 +16,15 @@ import { note } from "../../themes/common";
 import { addDays, dueSoon, fmt, issueQueue, kmText, moodOf, moveFacts, ring, today, type Party } from "../kit/ops";
 import { ageBadge, empty, field, frame, hoursText, input, issueScreen, kpis, lines, list, moveScreen, OpsMap, partyScreen, row, siteAdder, stream, title } from "../kit/ui";
 import { demoProgramme } from "./demo";
+import { donorReport, importCommunities, planBlock, responsePanel, suppliesPanel, walkText } from "./mneUi";
+import { gapMatrix, stockCover } from "./mne";
 import { bestNextSite, defaultReach, gaps, hazardsNear, needsTally, PARTY_KINDS, SERVICES, SITE_KINDS, type Community, type Programme, type Service } from "./model";
 
 const programmes = new ListStore<Programme>("atlas.pro.field.v1");
 const current = () => programmes.all()[0];
 const save = (p: Programme) => programmes.save(p);
 let map: OpsMap | null = null;
-type View = "coverage" | "supply" | "hazards";
+type View = "coverage" | "response" | "supplies" | "supply" | "hazards";
 let view: View = "coverage";
 let service: Service = "health";
 const K = (k: string) => SITE_KINDS[k as keyof typeof SITE_KINDS];
@@ -42,6 +44,10 @@ function draw(app: App, p: Programme) {
     const biggest = Math.max(1, ...p.moves.filter((m) => m.kind === "goods").map((m) => m.amount));
     for (const m of p.moves) { const a = byId.get(m.from), b = byId.get(m.to); if (!a || !b) continue; const s = stream(a, b, m, m.kind === "goods" ? biggest : m.amount); fs.push(s.line); flows.push(s.flow); }
     for (const s of p.sites) fs.push({ id: s.id, kind: "point", pts: [[s.lon, s.lat]], color: "#30d158", label: `${K(s.kind)?.emoji ?? "•"} ${s.name}` });
+  } else if (view === "response" || view === "supplies") {
+    const gm = gapMatrix(p, p.activities ?? []);
+    for (const r of gm.rows) { const missing = r.cells.filter((x) => x.gap).map((x) => x.sector); fs.push({ id: r.c.id, kind: "point", pts: [[r.c.lon, r.c.lat]], color: missing.length ? "#ff453a" : "#30d158", label: `${r.c.name}${missing.length ? ` · no ${missing.join(", ").toLowerCase()}` : ""}` }); }
+    if (view === "supplies") for (const { s, weeks } of stockCover(p.stock ?? [])) { const site = p.sites.find((x) => x.id === s.site); if (site) fs.push({ id: `st${s.id}`, kind: "point", pts: [[site.lon + 0.01, site.lat + 0.01]], color: weeks < 2 ? "#ff453a" : weeks < 4 ? "#ff9f0a" : "#30d158", label: `${s.item} · ${Number.isFinite(weeks) ? `${weeks.toFixed(1)} wk` : "—"}` }); }
   } else {
     for (const c of p.communities) fs.push({ id: c.id, kind: "point", pts: [[c.lon, c.lat]], color: "#8e8e93", label: c.name });
     for (const [i, r] of (hazards?.list ?? []).entries()) fs.push({ id: `h${i}`, kind: "point", pts: [[r.x.lon, r.x.lat]], color: "#ff9f0a", label: `${r.x.title} · ${kmText(r.km)}` });
@@ -93,8 +99,11 @@ function home(ctx: WorkCtx, p: Programme) {
       [worst ? fmt(worst.g.missed) : "—", worst ? `too far from ${SERVICES[worst.s].label.toLowerCase()}` : "beyond reach", !!worst?.g.missed, () => { if (worst) { service = worst.s; view = "coverage"; draw(app, p); home(ctx, p); } }],
       [String(q.length), "open incidents", q.some((x) => x.severity === 3)],
       [String(late.length || due.length), late.length ? "deliveries late" : "due in 14 days", late.length > 0]),
-    h("div", { class: "chips wrap" }, tab("coverage", "Coverage"), tab("supply", "Supply lines"), tab("hazards", "Hazards nearby")),
+    h("div", { class: "chips wrap" }, tab("coverage", "Coverage"), tab("response", "Response (4W)"), tab("supplies", "Supplies"), tab("supply", "Supply lines"), tab("hazards", "Hazards nearby")),
+    h("button", { class: "pill-btn", onclick: () => donorReport(p) }, "Donor report"),
     view === "coverage" ? coveragePanel(ctx, p) : view === "supply" ? supplyPanel(ctx, p) :
+    view === "response" ? responsePanel(ctx, p, () => save(p), () => openField(ctx)) :
+    view === "supplies" ? suppliesPanel(p, () => save(p), () => openField(ctx)) :
       hazards?.for === p.id ? h("div", {}, lines(hazards.list.length ? `${hazards.list.length} natural events and earthquakes within 400 km of the people you serve.` : "No open natural events or recent earthquakes within 400 km."),
         list(...hazards.list.slice(0, 8).map((r) => row({ color: "#ff9f0a" }, r.x.title, `${r.x.kind.replace(/([A-Z])/g, " $1").toLowerCase()} · ${kmText(r.km)} from the nearest community or site`, () => void flyToPlace(app.globe, { name: r.x.title, lon: r.x.lon, lat: r.x.lat, radius: 60_000 }))))) : h("p", { class: "muted small" }, "Checking NASA's natural events and this week's earthquakes…"),
     title("Incidents"),
@@ -125,11 +134,13 @@ function coveragePanel(ctx: WorkCtx, p: Programme) {
       best ? `💡 A new ${K(sv.site)?.label.toLowerCase() ?? "site"} at ${best.at.name} would bring ${fmt(best.people)} more people within ${p.reach[service]} km${best.reaches.length > 1 ? ` (${best.reaches.map((c) => c.name).join(", ")})` : ""}.` : g.missed ? "" : "Everyone is within reach."),
     field("Too far is", input(p.reach[service], (v) => { p.reach[service] = Math.max(0.5, Number(v) || p.reach[service]); save(p); draw(ctx.app, p); openField(ctx); }, { type: "number", min: 0.5, step: 0.5, title: "kilometres" })),
     title("Beyond reach"),
-    g.out.length ? list(...g.out.map((r) => row({ color: "#ff453a" }, r.c.name, `${fmt(r.c.people)} people · ${Number.isFinite(r.km) ? `${kmText(r.km)} to ${r.site?.name}` : "no site yet"}`, () => communityScreen(ctx, p, r.c)))) : empty("No one."),
+    g.out.length ? list(...g.out.map((r) => row({ color: "#ff453a" }, r.c.name, `${fmt(r.c.people)} people · ${Number.isFinite(r.km) ? `${kmText(r.km)} (${walkText(r.km)}) to ${r.site?.name}` : "no site yet"}`, () => communityScreen(ctx, p, r.c)))) : empty("No one."),
     best ? h("button", { class: "pill-btn", onclick: () => { p.sites.push({ id: newId(), name: `${K(sv.site)?.label ?? "Site"}, ${best.at.name} (planned)`, kind: sv.site, lon: best.at.lon, lat: best.at.lat }); save(p); draw(ctx.app, p); openField(ctx); } }, `Plan the ${K(sv.site)?.label.toLowerCase() ?? "site"} at ${best.at.name}`) : "",
+    best ? planBlock(p, service, (ats) => { for (const at of ats) p.sites.push({ id: newId(), name: `${K(sv.site)?.label ?? "Site"}, ${at.name} (planned)`, kind: sv.site, lon: at.lon, lat: at.lat }); save(p); draw(ctx.app, p); openField(ctx); }) : "",
     title("Communities"),
     list(...[...p.communities].sort((a, b) => b.people - a.people).map((c) => row("🏘", c.name, `${fmt(c.people)} people · needs ${c.needs.map((n) => SERVICES[n].label.toLowerCase()).join(", ") || "not recorded"}`, () => communityScreen(ctx, p, c)))),
     communityAdder(ctx, p),
+    h("button", { class: "link-btn", onclick: () => void importCommunities(ctx, p, () => save(p), () => { draw(ctx.app, p); openField(ctx); }) }, "Import communities (Kobo, ODK or a spreadsheet)"),
     title("Sites"),
     list(...p.sites.map((s) => row(K(s.kind)?.emoji ?? "•", s.name, K(s.kind)?.label ?? s.kind, () => void flyToPlace(ctx.app.globe, { name: s.name, lon: s.lon, lat: s.lat, radius: 3000 })))),
     siteAdder(ctx, SITE_KINDS, (s) => { p.sites.push(s); save(p); draw(ctx.app, p); openField(ctx); }));

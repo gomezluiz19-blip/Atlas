@@ -27,6 +27,7 @@ export interface Community { id: string; name: string; lon: number; lat: number;
 export interface Programme {
   id: string; name: string; sites: Site[]; communities: Community[]; moves: Move[]; parties: Party[];
   incidents: Issue[]; deliveries: Dated[];
+  activities?: import("./mne").Activity[]; indicators?: import("./mne").Indicator[]; stock?: import("./mne").Stock[];
   /** How far is too far, km, per service. */
   reach: Record<Service, number>;
   created: number; demo?: boolean;

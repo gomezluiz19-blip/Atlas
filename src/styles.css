@@ -2652,3 +2652,17 @@ body.year-open .look-legend { display: none; }
 .gm-months span { display: flex; flex-direction: column; justify-content: flex-end; align-items: center; height: 100%; gap: 3px; }
 .gm-months i { display: block; width: 100%; height: max(2px, calc(var(--h) * 0.78)); border-radius: 3px 3px 0 0; background: #ac8e68; }
 .gm-months small { font-size: 9.5px; color: var(--secondary); }
+/* Field Ops: indicators, gap matrix */
+.fo-inds { display: flex; flex-direction: column; gap: 10px; }
+.fo-ind { display: flex; flex-direction: column; gap: 4px; font-size: 13px; }
+.fo-ind small { color: var(--secondary); font-size: 11.5px; }
+.fo-bar { display: block; height: 8px; border-radius: 4px; background: var(--fill); overflow: hidden; }
+.fo-bar i { display: block; height: 100%; border-radius: 4px; }
+.fo-matrix { display: grid; gap: 3px; font-size: 10.5px; align-items: center; }
+.fo-matrix b { font-weight: 600; color: var(--secondary); text-align: center; writing-mode: vertical-rl; transform: rotate(180deg); justify-self: center; max-height: 64px; }
+.fo-matrix b:first-child { writing-mode: initial; transform: none; }
+.fo-mrow { font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fo-matrix i { display: grid; place-items: center; height: 20px; border-radius: 4px; background: var(--fill); font-style: normal; font-weight: 700; color: #fff; }
+.fo-matrix i.on { background: #30d158; }
+.fo-matrix i.overlap { background: #ffd60a; color: #1b1b1a; }
+.fo-matrix i.gap { background: #ff453a; }

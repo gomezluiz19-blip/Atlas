@@ -415,6 +415,16 @@ to warehouse to clinic as living streams, incidents, deliveries and reports due,
 NASA's open natural events and recent earthquakes near the communities. The demo is a made-up programme in
 Turkana, northern Kenya, supplied from Mombasa and Kitale.
 
+It speaks the language of coordination. The **response** is kept as a 4W (who does what, where and when) with people
+reached split by women, men, girls and boys, and exports in the column layout clusters collect. **Indicators** track
+against targets, from the people reached in their sector or as entered. The **gap matrix** lays communities against
+sectors (WASH, health, education, food security, nutrition, protection, shelter, livelihoods): green where someone is
+working, yellow where two or more overlap, red where a stated need has no one. **Supplies** show weeks of cover at the
+current rate, with anything under four weeks flagged before the pipeline breaks. Coverage plans **several new sites at
+once** (each placed where it reaches the most people still too far) and gives walking times, not just kilometres.
+Communities come in from **Kobo, ODK or a spreadsheet** (name, GPS, population or households, needs), and a one-click
+**donor report** puts reach, indicators, gaps, supplies and incidents on a printable page.
+
 **Business network.** Also in My Places: map a business as it runs. Its sites (head office, shops,
 warehouses, factories) and its partners (farms, suppliers, ports, customers), and what moves between them:
 goods, people, money and data, how much and how often, by truck, van, rail, ship, air, public transport, on
