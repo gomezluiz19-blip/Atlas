@@ -629,6 +629,11 @@ const traffic = createTraffic(app);
 const LIVE: LiveSwitch[] = [
   { label: "Planes", about: "Every aircraft in view, live over ADS-B, flying at its real height. Tap one for its card; follow it.", on: () => traffic.isOn("plane"), set: (v) => traffic.set("plane", v), status: () => (traffic.count("plane") ? `${traffic.count("plane").toLocaleString()} live` : traffic.note("plane")) },
   { label: "Ships", about: "Vessels live over AIS: cargo, tankers, ferries, fishing boats. Tap one for its card.", on: () => traffic.isOn("ship"), set: (v) => traffic.set("ship", v), status: () => (traffic.count("ship") ? `${traffic.count("ship").toLocaleString()} live` : traffic.note("ship")) },
+  // The other live overlays, so everything happening now is switched from one place.
+  ...(["quakes", "radar", "aurora"] as const).map((id) => {
+    const o = OVERLAYS.find((x) => x.id === id)!;
+    return { label: o.label, about: o.about, on: () => overlays.isOn(id), set: (v: boolean) => void overlays.set(id, v) } satisfies LiveSwitch;
+  }),
 ];
 for (const kind of ["plane", "ship"] as const)
   app.actions.set(`live:${kind}s`, { label: kind === "plane" ? "Live planes" : "Live ships", run: () => traffic.set(kind, true), isOn: () => traffic.isOn(kind), stop: () => traffic.set(kind, false) });

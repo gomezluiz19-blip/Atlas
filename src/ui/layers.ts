@@ -146,7 +146,7 @@ export function createLayersPanel(globe: Globe, live: LiveSwitch[] = []): HTMLEl
   const liveRows = live.map((l) => {
     const status = h("span", { class: "layer-status" }, l.on() ? l.status?.() ?? "" : "");
     return h("label", { class: "layer-row", title: l.about },
-      h("input", { type: "checkbox", checked: l.on(), onchange: (e: Event) => { const v = (e.target as HTMLInputElement).checked; l.set(v); status.textContent = v ? "finding…" : ""; } }),
+      h("input", { type: "checkbox", checked: l.on(), onchange: (e: Event) => { const v = (e.target as HTMLInputElement).checked; l.set(v); status.textContent = v && l.status ? "finding…" : ""; } }),
       h("span", {}, l.label), status);
   });
 
