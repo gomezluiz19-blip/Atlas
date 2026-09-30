@@ -436,6 +436,13 @@ once** (each placed where it reaches the most people still too far) and gives wa
 Communities come in from **Kobo, ODK or a spreadsheet** (name, GPS, population or households, needs), and a one-click
 **donor report** puts reach, indicators, gaps, supplies and incidents on a printable page.
 
+**My plans.** Everything you've planned anywhere in Atlas, on one map in one colour: the darker the blue, the sooner it
+happens, and past plans turn grey. It gathers trip stops and journeys, events, field trips, building phases, and from the
+Pro tools office events, fixtures, permit expiries, open commitments, deliveries and deal close dates. A trip's stops are
+joined leg by leg, each leg in the shade of where it arrives. Beside the map is a timeline (Today, This week, This month,
+Later, and Past folded away), a "Next" line, a 30-day, 90-day or one-year scale, and a chip per kind of plan to show or hide.
+Tap any plan to go there.
+
 **Field Network (for mining equipment, technology and services companies).** There are far more companies selling
 to and servicing mines than there are mine operators, and their work is geographic: machines spread across remote sites,
 technicians who have to reach them, parts, and a market of every mine on Earth. Field Network puts it on one map.

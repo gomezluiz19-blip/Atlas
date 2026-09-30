@@ -2683,3 +2683,10 @@ body.year-open .look-legend { display: none; }
 .fn-climate span { display: flex; flex-direction: column; justify-content: flex-end; align-items: center; height: 100%; gap: 2px; }
 .fn-climate i { display: block; width: 100%; min-height: 2px; border-radius: 3px 3px 0 0; background: #0a84ff; }
 .fn-climate small { font-size: 9.5px; color: var(--secondary); }
+
+/* My plans: one blue, darker is sooner */
+.mp-scale { display: flex; align-items: center; gap: 8px; margin: 8px 0; font-size: 11.5px; color: var(--secondary); }
+.mp-scale i { flex: 1; height: 10px; border-radius: 5px; }
+.mp-dot { flex: none; width: 12px; height: 12px; border-radius: 50%; margin-right: 10px; box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.7); }
+.mp-next { margin: 10px 0; padding: 10px 12px; border-radius: 10px; background: rgba(31, 111, 229, 0.1); font-size: 13px; }
+.empty-state { padding: 18px 4px; text-align: center; }

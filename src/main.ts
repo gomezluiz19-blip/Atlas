@@ -188,6 +188,7 @@ const myStore = new PlaceStore();
 const myScene = new PlaceScene(globe.viewer);
 const tool = (id: string, label: string, about: string, color: string, icon: string, open: (ctx: WorkCtx) => void): WorkTool => ({ id, label, about, color, icon, open });
 const PLACE_TOOLS: WorkTool[] = [
+  tool("myplans", "My plans", "Everything you've planned across Atlas on one map: the darker the blue, the sooner", "#1f6fe5", icons.flag, (ctx) => void import("./plans/ui").then((m) => m.openPlans(ctx))),
   tool("grow", "Grow", "Fields and crops: growth stage, harvest, water and frost", "#30d158", icons.sprout, openGrow),
   tool("flock", "Flock", "Animals in your care: farms, vets, rescues and adoption", "#8bd346", icons.paw, openFlock),
   tool("build", "Build", "Model a building on its site and track construction; worksite tools (Pro)", "#ff9f0a", icons.crane, openBuild),
