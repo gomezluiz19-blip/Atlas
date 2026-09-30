@@ -20,7 +20,8 @@ Atlas does three things, switched at the top of the screen:
 **Overview (the default).** Just move the map. Atlas labels what's worth knowing as you go: seas, mountain
 ranges and cities when zoomed out; rivers, landmarks, stadiums, parks and museums when zoomed in (the Hudson,
 the Empire State Building and Madison Square Garden in Manhattan; the Thames, Big Ben and Wembley in London).
-Places are ranked by how many Wikipedia language editions write about them. The card follows the map with
+Places are ranked by how many Wikipedia language editions write about them; where that bar leaves a view thin
+(much of Africa, South Asia and Latin America is written about in fewer languages) it's lowered until the view fills. The card follows the map with
 "Worth knowing here": whether you're in the northern-lights zone (with tonight's live chance and Kp), midnight
 sun and daylight, nearby plate boundaries, this week's earthquakes, World Heritage sites. One-touch toggles
 show labels, the live aurora forecast, earthquakes, plate boundaries, night lights, rain radar and wildlife
@@ -375,10 +376,12 @@ their ports, Port Newark, a Red Hook roastery and three cafés) shows it moving.
 
 **World now.** The first tile in Explore (and the "Right now" line as Atlas opens) gathers what's happening
 on Earth: the day's biggest stories as Wikipedia's editors pick them, each pinned where it's happening; the
-latest headlines from the big wire services (via GDELT); natural events still going on (wildfires, storms,
+latest headlines from the big wire services and regional ones (Africanews, AllAfrica, The Hindu, Dawn, SCMP,
+The Straits Times, Arab News, MercoPress, via GDELT; no more than two from any one outlet); natural events still going on (wildfires, storms,
 volcanoes, floods, from NASA's EONET), filterable by kind; the week's strongest earthquakes; the next launch;
 what the world is reading today; and this day in history. Everything with a place goes on the globe: tap it to
-go there. A place's Overview adds **In the news**: the week's coverage that mentions it.
+go there. A place's Overview adds **In the news**: the week's coverage that mentions it, in the local press's own
+language where English coverage is thin.
 
 **Live planes and ships.** Switch them on at the top of **Layers** (or type "planes"). Every aircraft in view
 appears where it is, at its real height, pointing the way it's flying, coloured by height (yellow near the

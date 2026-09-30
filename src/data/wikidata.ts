@@ -34,9 +34,27 @@ export function sitelinkThreshold(spanDeg: number): number {
   return 45;
 }
 
+/**
+ * The bar for the next try when a view came back thin: places in much of Africa, South Asia and
+ * Latin America are written about in fewer languages, so one bar for the whole world leaves them
+ * empty. Halve it (not below 3) until the view has enough to show.
+ */
+export function lowerBar(min: number, got: number, limit: number): number | null {
+  if (got >= Math.min(40, limit / 4) || min <= 3) return null;
+  return Math.max(3, Math.floor(min / 2));
+}
+
 export async function notablePlaces(west: number, south: number, east: number, north: number, limit = 200): Promise<Notable[]> {
   const span = Math.max(east - west, north - south);
-  const min = sitelinkThreshold(span);
+  let min: number | null = sitelinkThreshold(span), out: Notable[] = [];
+  for (let tries = 0; min !== null && tries < 3; tries++) {
+    out = await notableAbove(west, south, east, north, limit, min);
+    min = lowerBar(min, out.length, limit);
+  }
+  return out;
+}
+
+async function notableAbove(west: number, south: number, east: number, north: number, limit: number, min: number): Promise<Notable[]> {
   const f = (v: number) => v.toFixed(4);
   const query = `SELECT ?item ?itemLabel ?itemDescription ?coord ?sl ?typeLabel ?image ?article ?heritage WHERE {
   SERVICE wikibase:box {

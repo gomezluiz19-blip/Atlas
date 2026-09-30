@@ -170,6 +170,17 @@ export function playIntro(p: IntroPlace, onCut: () => void): () => void {
     let zmin = 0, zmax = 0;
     if (heights) { zmin = Infinity; zmax = -Infinity; for (const v of heights) { zmin = Math.min(zmin, v); zmax = Math.max(zmax, v); } }
     g0 = Math.max(0, ground(0, 0));
+    // A built landmark stands on a level pad (elevation data carries tree canopy and noise), eased
+    // back into the real ground beyond it.
+    if (heights && p.forms?.length) {
+      const pad = formReach(p.forms) * 1.15 + 10, fade = pad * 0.8;
+      for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) {
+        const d = Math.hypot((i / (N - 1) - 0.5) * p.size, (j / (N - 1) - 0.5) * p.size);
+        const u = Math.min(1, Math.max(0, (d - pad) / fade)), t = u * u * (3 - 2 * u);
+        const q = j * N + i;
+        if (heights[q] > 0) heights[q] = Math.max(0.5, g0 + (heights[q] - g0) * t);
+      }
+    }
     // Natural places are lifted so their shape reads; built ones stay true to scale.
     const relief = Math.max(1, zmax - Math.max(zmin, 0));
     ex = p.forms?.length ? 1 : Math.min(3, Math.max(1, Math.round(((0.2 * p.size) / relief) * 2) / 2));

@@ -131,15 +131,41 @@ const gdelt = (query: string, max: number, timespan: string) =>
     .then((b) => readHeadlines(b.articles ?? []));
 
 const WIRES = ["reuters.com", "apnews.com", "bbc.co.uk", "aljazeera.com", "france24.com", "dw.com"];
-/** The latest from the big international news services (last 12 hours). */
-export function wireHeadlines(): Promise<Headline[]> {
-  return cached("news:wires", 15 * 60_000, () => gdelt(`(${WIRES.map((d) => `domainis:${d}`).join(" OR ")}) sourcelang:english`, 40, "12h").then((l) => l.slice(0, 12)));
+// Regional services, so the world's news isn't only what the big Western wires pick.
+const REGIONAL = ["africanews.com", "allafrica.com", "nation.africa", "thehindu.com", "dawn.com", "scmp.com", "straitstimes.com", "arabnews.com", "mercopress.com", "channelnewsasia.com"];
+
+/** Keeps a list from being one outlet's: at most `per` stories from any one source, in order. */
+export function balanced<T extends { source: string }>(list: T[], n: number, per = 2): T[] {
+  const count = new Map<string, number>(), out: T[] = [];
+  for (const h of list) {
+    const c = count.get(h.source) ?? 0;
+    if (c >= per) continue;
+    count.set(h.source, c + 1);
+    out.push(h);
+    if (out.length >= n) break;
+  }
+  return out;
 }
 
-/** News mentioning a place in the past week (by name, with its country to keep it on topic). */
+/** The latest from international and regional news services (last 12 hours). */
+export function wireHeadlines(): Promise<Headline[]> {
+  return cached("news:wires", 15 * 60_000, () => gdelt(`(${[...WIRES, ...REGIONAL].map((d) => `domainis:${d}`).join(" OR ")}) sourcelang:english`, 75, "12h").then((l) => balanced(l, 12)));
+}
+
+/**
+ * News mentioning a place in the past week (by name, with its country to keep it on topic). Where
+ * English-language coverage is thin (much of Latin America and francophone Africa), the local press
+ * in any language fills in.
+ */
 export function newsAbout(name: string, country?: string): Promise<Headline[]> {
-  const q = `"${name.replace(/"/g, "")}"${country && country !== name ? ` "${country.replace(/"/g, "")}"` : ""} sourcelang:english`;
-  return cached(`news:about:${q}`, 30 * 60_000, () => gdelt(q, 15, "7d").then((l) => l.slice(0, 6)));
+  const q = `"${name.replace(/"/g, "")}"${country && country !== name ? ` "${country.replace(/"/g, "")}"` : ""}`;
+  return cached(`news:about:${q}`, 30 * 60_000, async () => {
+    const en = (await gdelt(`${q} sourcelang:english`, 15, "7d")).slice(0, 6);
+    if (en.length >= 3) return en;
+    const any = await gdelt(q, 15, "7d").catch(() => [] as Headline[]);
+    const seen = new Set(en.map((h) => h.url));
+    return [...en, ...any.filter((h) => !seen.has(h.url))].slice(0, 6);
+  });
 }
 
 // ---- NASA EONET -------------------------------------------------------------

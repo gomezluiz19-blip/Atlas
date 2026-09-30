@@ -38,3 +38,12 @@ describe("world news", () => {
     expect(ago(Date.now() - 3 * 3_600_000)).toBe("3 h ago");
   });
 });
+
+describe("balanced headlines", () => {
+  it("caps each outlet so regional services get a look-in", async () => {
+    const { balanced } = await import("../src/live/news");
+    const l = [..."aaaabbbcd"].map((source, i) => ({ source, i }));
+    expect(balanced(l, 12).map((h) => h.source).join("")).toBe("aabbcd");
+    expect(balanced(l, 3).length).toBe(3);
+  });
+});

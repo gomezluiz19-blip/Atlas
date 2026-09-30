@@ -278,6 +278,15 @@ const CAPITALS = [
   { name: "Madrid", lon: -3.7, lat: 40.42, when: "Feb and Sep" },
   { name: "Mexico City", lon: -99.13, lat: 19.43, when: "Apr and Oct" },
   { name: "Santo Domingo", lon: -69.93, lat: 18.49, when: "Dominicana Moda, in the autumn" },
+  { name: "Johannesburg", lon: 28.05, lat: -26.2, when: "South African Fashion Week, twice a year" },
+  { name: "Dakar", lon: -17.45, lat: 14.69, when: "Dakar Fashion Week, each year since 2002" },
+  { name: "Accra", lon: -0.19, lat: 5.6, when: "Accra Fashion Week, each year" },
+  { name: "Addis Ababa", lon: 38.76, lat: 9.01, when: "Hub of Africa Fashion Week, each year" },
+  { name: "Lahore", lon: 74.34, lat: 31.55, when: "PFDC fashion weeks, through the year" },
+  { name: "Jakarta", lon: 106.82, lat: -6.2, when: "Jakarta Fashion Week, in October" },
+  { name: "Medellín", lon: -75.57, lat: 6.25, when: "Colombiamoda, in July" },
+  { name: "Istanbul", lon: 28.98, lat: 41.01, when: "Istanbul Fashion Week, twice a year" },
+  { name: "Dubai", lon: 55.27, lat: 25.2, when: "Arab Fashion Week, twice a year" },
 ];
 const km = kmBetween;
 

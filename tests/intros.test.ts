@@ -73,3 +73,13 @@ describe("landmark intros: the massing forms", () => {
     expect(formReach([{ f: "box", w: 10, d: 10, h: 5, dx: 20 }])).toBeGreaterThan(24);
   });
 });
+
+describe("notable places: a fairer bar", () => {
+  it("lowers the sitelink bar where a view comes back thin, and stops at 3", async () => {
+    const { lowerBar } = await import("../src/data/wikidata");
+    expect(lowerBar(30, 4, 160)).toBe(15);
+    expect(lowerBar(30, 80, 160)).toBeNull();
+    expect(lowerBar(5, 2, 160)).toBe(3);
+    expect(lowerBar(3, 0, 160)).toBeNull();
+  });
+});
