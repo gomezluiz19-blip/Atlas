@@ -461,6 +461,25 @@ published distances. Ships over about 15,000 TEU can't use the Panama Canal's lo
 - **Import and export.** Bookings come in by CSV (port names or UN/LOCODEs), and every shipment goes out with its
   estimated ETA, delay, distance and CO₂. Arrivals also show up in My plans.
 
+**Relief Pipeline (for humanitarian logisticians).** Port to people: ports of entry, hubs, field warehouses and
+distribution points, joined by roads, Nile-style barge routes and air links, each with its speed, handling, checkpoint
+and border delays, trucks or flights a day, and cost per tonne-km.
+
+- **Pipeline.** When each distribution point runs out of each thing (a general ration per person, or RUTF cartons a
+  day), counting what's on the way. It names the nearest place holding two weeks' worth, how long that takes, and the
+  last day to send, so a break that sending now can't prevent is told apart from one that must go out this week.
+- **Before the roads close.** For places served only by dry-season roads, what they need in stock by the first wet
+  month to last the whole season.
+- **Access.** Every route open, slow or cut: by you, by the rains (roads run at half speed, dry-season roads close), or
+  near an incident in the last 14 days. Places that can only be reached by air, or not at all, are listed first. Each
+  place's rainy season can be filled in from ten years of ERA5 rainfall.
+- **Moves.** What's on the way and what's overdue. Planning a move compares the fastest, cheapest and ground-only
+  routes: path, arrival, trucks, barges or flights, cost and CO₂. Mark it arrived and the stock lands.
+- **Sitrep.** A printable logistics situation report, and stock and pipeline as CSV.
+
+The demo runs from Mombasa up the Northern Corridor through Kampala to Juba, then out to Bor, Rumbek, Wau, Malakal and
+Bentiu, and on to Pibor, Akobo, Leer, Aweil, Maban and Kapoeta in the rains.
+
 **My plans.** Everything you've planned anywhere in Atlas, on one map in one colour: the darker the blue, the sooner it
 happens, and past plans turn grey. It gathers trip stops and journeys, events, field trips, building phases, and from the
 Pro tools office events, fixtures, permit expiries, open commitments, deliveries and deal close dates. A trip's stops are

@@ -7,6 +7,7 @@ import { dateOf, timeline, type Journey } from "../work/journeyModel";
 import type { Plan } from "../work/planModel";
 import type { FieldTrip } from "../work/tripModel";
 import { eta as shipEta, type Desk } from "../pro/shipping/model";
+import { itemOf } from "../pro/relief/model";
 
 export interface Planned {
   id: string; title: string; sub: string; date: string; lon: number; lat: number;
@@ -68,6 +69,8 @@ export function gatherAll(): Planned[] {
       try { when = shipEta(d, sh).eta; } catch { /* keep the promised date */ }
       out.push({ id: sh.id, title: `${sh.ref} arrives`, sub: `${d.name} · ${sh.cargo} · ${sh.dest.name}`, date: when, lon: sh.dest.lon, lat: sh.dest.lat, source: "Shipment" });
     }
+  for (const r of read<{ id: string; name: string; hubs: { id: string; name: string; lon: number; lat: number }[]; moves: { id: string; item: string; qty: number; to: string; arrives: string; status: string }[] }>("atlas.pro.relief.v1"))
+    for (const m of (r.moves ?? []).filter((x) => x.status !== "delivered")) { const to = r.hubs.find((x) => x.id === m.to); if (to) out.push({ id: m.id, title: `${itemOf(m.item)?.name ?? m.item} reaches ${to.name}`, sub: `${r.name} · ${m.qty} ${itemOf(m.item)?.unit ?? ""}`, date: m.arrives, lon: to.lon, lat: to.lat, source: "Relief" }); }
   return out.filter((x) => /^\d{4}-\d{2}-\d{2}$/.test(x.date) && Number.isFinite(x.lon) && Number.isFinite(x.lat)).sort((a, b) => a.date.localeCompare(b.date));
 }
 

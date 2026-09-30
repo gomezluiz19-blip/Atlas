@@ -27,7 +27,7 @@ export const ITEMS: Item[] = [
   { id: "pulses", name: "Pulses", unit: "t", t: 1, perPersonDay: 0.00006 },
   { id: "oil", name: "Vegetable oil", unit: "t", t: 1, perPersonDay: 0.000025 },
   { id: "rutf", name: "RUTF (therapeutic food)", unit: "carton", t: 0.015, perPersonDay: 0 },
-  { id: "hygiene", name: "Hygiene kits", unit: "kit", t: 0.012, perPersonDay: 0, lastsDays: 30 },
+  { id: "hygiene", name: "Hygiene kits", unit: "kit", t: 0.012, perPersonDay: 0, lastsDays: 90 },
   { id: "shelter", name: "Shelter kits", unit: "kit", t: 0.03, perPersonDay: 0 },
   { id: "medkit", name: "Emergency health kits", unit: "kit", t: 1, perPersonDay: 0 },
 ];
@@ -166,6 +166,8 @@ export interface Break {
   cover: number; runsOut: string;
   /** Where to send from, how long it takes, and the last day to send. */
   source?: Hub; path?: Path | null; sendBy?: string;
+  /** When nothing gets through now: the first day a way opens (the rains ending, say). */
+  opens?: string;
   level: 1 | 2 | 3;
 }
 
@@ -188,9 +190,20 @@ export function breaks(n: Network, today: string, month = new Date(ms(today)).ge
         const p = bestPath(n, s.id, h.id, month);
         if (p && (!path || p.days < path.days)) { source = s; path = p; }
       }
-      const sendBy = path ? addDays(runsOut, -Math.ceil(path.days)) : undefined;
+      let sendBy = path ? addDays(runsOut, -Math.ceil(path.days)) : undefined, opens: string | undefined;
+      if (!path) {
+        // Nothing gets through now: when does a way open (the rains ending), and is that soon enough?
+        for (let k = 1; k <= 6 && !path; k++) {
+          const first = new Date(ms(today)); first.setUTCDate(1); first.setUTCMonth(first.getUTCMonth() + k);
+          for (const s of n.hubs.filter((x) => x.id !== h.id && (x.stock[item.id] ?? 0) >= perDay * 14)) {
+            const p = bestPath(n, s.id, h.id, (month + k) % 12);
+            if (p && (!path || p.days < path.days)) { source = s; path = p; }
+          }
+          if (path) { opens = isoDay(first.getTime()); const last = addDays(runsOut, -Math.ceil(path.days)); sendBy = last >= opens ? last : undefined; }
+        }
+      }
       const slack = sendBy ? daysBetween(today, sendBy) : -1;
-      out.push({ hub: h, item, perDay, stock, coming, cover, runsOut, source, path, sendBy, level: slack < 0 ? 3 : slack <= 7 ? 2 : 1 });
+      out.push({ hub: h, item, perDay, stock, coming, cover, runsOut, source, path, sendBy, opens, level: slack < 0 ? 3 : slack <= 7 ? 2 : 1 });
     }
   }
   return out.sort((a, b) => b.level - a.level || a.cover - b.cover);
