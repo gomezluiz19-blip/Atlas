@@ -374,6 +374,17 @@ The players being scouted worldwide, by status, with scouting reports. And the s
 police and league the club deals with, each with a mood and a log. The demo is a made-up club in Belo
 Horizonte whose away games run from Porto Alegre to Belém: 17,800 km, 10 flights and four tight turnarounds.
 
+Start from a real team. **Baseball comes in live from MLB's Stats API**: every MLB club and every minor-league
+affiliate (Triple-A, Double-A, High-A, Single-A and the complex leagues) with its ballpark. Pick one and its season's
+schedule loads, its league rivals appear on the map, and its **farm system** is drawn with the parent club and each
+affiliate, how far apart they are, and the call-ups, options and assignments of the last 60 days flowing between them.
+**Any other league** (NBA and the G League, NHL, AHL and ECHL, NFL, MLS, USL, the NWSL, the Premier League, La Liga,
+Liga MX, Brazil's Série A, the IPL, Nigeria's and South Africa's top flights…) comes from Wikidata: its current clubs and
+grounds, with partner and feeder clubs added by name, and the schedule brought in from the club's calendar file (.ics).
+Every club gets the **league view** (travel if every club visited every other once, most to least, with the club's
+place and nearest rival), the shape of its schedule (road trips, back-to-backs in different places, clock changes by
+longitude) and a printable **travel report**.
+
 **Mining Pro.** A mine and its licence to operate. The value chain from pit to plant to rail to port to
 smelter as living streams, with each export route compared per tonne (distance, time, carbon). What a year is
 worth (contained and recovered metal, revenue, cost, margin and break-even price; percent or grams-a-tonne

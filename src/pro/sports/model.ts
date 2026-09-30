@@ -21,6 +21,12 @@ export interface Club {
   sites: Site[]; fixtures: Fixture[]; fans: FanGroup[]; targets: Target[]; parties: Party[];
   /** Who travels to an away game. */
   party: number;
+  /** The league it plays in (Wikidata id or "baseball"), to see it among its rivals. */
+  league?: { id: string; name: string };
+  /** Baseball: the club's Stats API id and level, for live schedules, affiliates and moves. */
+  mlbId?: number; sportId?: number; level?: string;
+  /** Affiliates and partner clubs (a farm system, a feeder club, a women's or reserve side). */
+  affiliates?: { id: string; name: string; venue: string; lon: number; lat: number; level?: string; mlbId?: number; sportId?: number }[];
   created: number; demo?: boolean;
 }
 
@@ -67,7 +73,8 @@ export function seasonTravel(club: Club) {
   const tight: Turnaround[] = [];
   for (let i = 0; i + 1 < games.length; i++) {
     const a = games[i], b = games[i + 1], d = dayGap(a.date, b.date), km = kmBetween(a.home ? club.ground : a.venue, b.home ? club.ground : b.venue);
-    if (d <= 3 && km > 800) tight.push({ a, b, days: d, km });
+    // Tight: the next day with a real journey, or three days or fewer for a long one.
+    if ((d <= 1 && km > 800) || (d <= 3 && km > 2500)) tight.push({ a, b, days: d, km });
   }
   const aways = legs.filter((l) => l.fixture);
   return {
@@ -78,6 +85,40 @@ export function seasonTravel(club: Club) {
     flights: legs.filter((l) => l.mode === "air").length,
     furthest: [...aways].sort((a, b) => b.km - a.km)[0],
   };
+}
+
+/**
+ * The shape of the schedule (pure): road trips (runs of away games), games on
+ * back-to-back days in different places, and the clock shifts travel brings,
+ * estimated from longitude (15 degrees an hour; real time zones differ).
+ */
+export function scheduleShape(club: Club) {
+  const games = [...club.fixtures].sort((a, b) => a.date.localeCompare(b.date));
+  const where = (f: Fixture) => (f.home ? club.ground : f.venue);
+  const trips: { games: Fixture[]; km: number; days: number }[] = [];
+  let run: Fixture[] = [];
+  const close = () => {
+    if (!run.length) return;
+    let km = kmBetween(club.ground, run[0].venue) + kmBetween(run[run.length - 1].venue, club.ground);
+    for (let i = 1; i < run.length; i++) km += kmBetween(run[i - 1].venue, run[i].venue);
+    trips.push({ games: run, km, days: dayGap(run[0].date, run[run.length - 1].date) + 1 });
+    run = [];
+  };
+  for (let i = 0; i < games.length; i++) {
+    const g = games[i];
+    if (g.home) { close(); continue; }
+    if (run.length && dayGap(run[run.length - 1].date, g.date) > 4) close();
+    run.push(g);
+  }
+  close();
+  let backToBack = 0, east = 0, west = 0;
+  for (let i = 1; i < games.length; i++) {
+    const a = games[i - 1], b = games[i], pa = where(a), pb = where(b);
+    if (dayGap(a.date, b.date) <= 1 && kmBetween(pa, pb) > 50) backToBack++;
+    const h = Math.round((pb.lon - pa.lon) / 15);
+    if (h > 0) east += h; else west -= h;
+  }
+  return { trips: trips.sort((a, b) => b.km - a.km), backToBack, east, west, longestTrip: trips.reduce((m, t) => Math.max(m, t.games.length), 0) };
 }
 
 /** Where the fans are: shares within 25, 100 and 250 km of the ground, and the furthest group (pure). */

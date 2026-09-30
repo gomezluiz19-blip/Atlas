@@ -11,7 +11,7 @@
 // maps for a week), so a crowd of visitors looks like one polite client. Only the
 // site's own origins may call it, and each visitor is rate-limited.
 
-const ALLOWED = /^https:\/\/(nominatim\.openstreetmap\.org|photon\.komoot\.io|api\.open-meteo\.com|archive-api\.open-meteo\.com|marine-api\.open-meteo\.com|climate-api\.open-meteo\.com|air-quality-api\.open-meteo\.com|query\.wikidata\.org|overpass-api\.de|api\.inaturalist\.org|macrostrat\.org|api\.worldbank\.org|restcountries\.com|services\.swpc\.noaa\.gov|earthquake\.usgs\.gov|[a-z]+\.wikipedia\.org|api\.gdeltproject\.org|eonet\.gsfc\.nasa\.gov|api\.adsb\.lol|api\.airplanes\.live|opensky-network\.org|meri\.digitraffic\.fi|api\.census\.gov|tigerweb\.geo\.census\.gov)\//;
+const ALLOWED = /^https:\/\/(nominatim\.openstreetmap\.org|photon\.komoot\.io|api\.open-meteo\.com|archive-api\.open-meteo\.com|marine-api\.open-meteo\.com|climate-api\.open-meteo\.com|air-quality-api\.open-meteo\.com|query\.wikidata\.org|overpass-api\.de|api\.inaturalist\.org|macrostrat\.org|api\.worldbank\.org|restcountries\.com|services\.swpc\.noaa\.gov|earthquake\.usgs\.gov|[a-z]+\.wikipedia\.org|api\.gdeltproject\.org|eonet\.gsfc\.nasa\.gov|api\.adsb\.lol|api\.airplanes\.live|opensky-network\.org|meri\.digitraffic\.fi|api\.census\.gov|tigerweb\.geo\.census\.gov|statsapi\.mlb\.com|www\.wikidata\.org)\//;
 
 /** How long answers keep, by service (seconds). */
 function ttl(url) {
@@ -22,6 +22,9 @@ function ttl(url) {
   if (/adsb\.lol|airplanes\.live|opensky-network\.org/.test(url)) return 5;
   if (/digitraffic\.fi/.test(url)) return 20;
   if (/gdeltproject\.org|eonet\.gsfc|rest_v1\/feed/.test(url)) return 900;
+  // Baseball: rosters move daily (transactions), schedules and ballparks rarely.
+  if (/statsapi\.mlb\.com\/api\/v1\/transactions/.test(url)) return 1800;
+  if (/statsapi\.mlb\.com/.test(url)) return 21600;
   return 7 * 86400;
 }
 

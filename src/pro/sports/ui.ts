@@ -14,16 +14,22 @@ import { note } from "../../themes/common";
 import { days, fmt, kmBetween, kmText, moodOf, ring, today, type Party } from "../kit/ops";
 import { ageBadge, arcFlow, empty, field, frame, hoursText, input, kpis, lines, list, OpsMap, partyScreen, row, select, siteAdder, title } from "../kit/ui";
 import { demoClub } from "./demo";
-import { blankClub, fanReach, matchDay, PARTY_KINDS, pipeline, seasonTravel, SITE_KINDS, TARGET_STATUS, type Club, type Fixture, type Target, type TargetStatus } from "./model";
+import { blankClub, fanReach, matchDay, PARTY_KINDS, pipeline, scheduleShape, seasonTravel, SITE_KINDS, TARGET_STATUS, type Club, type Fixture, type Target, type TargetStatus } from "./model";
+import { forget, leagueMap, leaguePanel, loadSchedule, orgMap, orgPanel, startFromTeam } from "./leagueUi";
+import { findLeague } from "./leagues";
+import { printReport } from "../kit/report";
 
 const clubs = new ListStore<Club>("atlas.pro.clubs.v1");
 const current = () => clubs.all()[0];
 const save = (c: Club) => clubs.save(c);
 let map: OpsMap | null = null;
-type View = "travel" | "fans" | "matchday" | "scouting";
+type View = "travel" | "league" | "org" | "fans" | "matchday" | "scouting";
+let needFrame = false;
 let view: View = "travel";
 const fmtDate = (iso: string) => new Date(iso + "T12:00:00").toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short" });
-const COLORS = { travel: "#0a84ff", fans: "#bf5af2", matchday: "#ff375f", scouting: "#ff9f0a" };
+/** "Maracanã, Rio de Janeiro" → "Rio de Janeiro"; a name without a town stays whole. */
+const short = (name: string) => name.split(",")[1]?.trim() || name;
+const COLORS = { travel: "#0a84ff", league: "#5e5ce6", org: "#ff9f0a", fans: "#bf5af2", matchday: "#ff375f", scouting: "#ff9f0a" };
 
 function draw(app: App, c: Club) {
   map ??= new OpsMap(app, "pro:sports", "#ff375f");
@@ -35,8 +41,13 @@ function draw(app: App, c: Club) {
     s.legs.forEach((l, i) => {
       const a = arcFlow(`leg${i}`, l.from, l.to, l.mode === "air" ? "#0a84ff" : "#64d2ff", 0.5);
       fs.push(a.line); flows.push(a.flow);
-      if (l.fixture && !seen.has(l.to.name)) { seen.add(l.to.name); fs.push({ id: `v${i}`, kind: "point", pts: [[l.to.lon, l.to.lat]], color: "#0a84ff", label: `${fmtDate(l.fixture.date)} · ${l.to.name.split(",")[1]?.trim() ?? l.to.name}` }); }
+      if (l.fixture && !seen.has(l.to.name)) { seen.add(l.to.name); fs.push({ id: `v${i}`, kind: "point", pts: [[l.to.lon, l.to.lat]], color: "#0a84ff", label: `${fmtDate(l.fixture.date)} · ${short(l.to.name)}` }); }
     });
+  } else if (view === "league" || view === "org") {
+    const redraw = () => { if (current()?.id === c.id) { draw(app, c); if (ctxRef) home(ctxRef, c); } };
+    const got = view === "league" ? leagueMap(c, redraw) : orgMap(c, redraw);
+    fs.push(...got.features); flows.push(...got.flows);
+    if (needFrame && got.features.length) { needFrame = false; frame(app, c.name, got.features.filter((f) => f.kind === "point").map((f) => ({ lon: f.pts[0][0], lat: f.pts[0][1] })), 20_000); }
   } else if (view === "fans") {
     for (const km of [25, 100, 250]) fs.push({ id: `r${km}`, kind: "line", pts: [...ring(c.ground.lon, c.ground.lat, km), ring(c.ground.lon, c.ground.lat, km)[0]], color: "#bf5af2", dashed: true });
     for (const f of c.fans) fs.push({ id: f.id, kind: "point", pts: [[f.lon, f.lat]], color: "#bf5af2", label: `${f.name} · ${fmt(f.members)}` });
@@ -54,11 +65,15 @@ function draw(app: App, c: Club) {
 }
 
 function show(app: App, c: Club) {
+  if (view === "league" || view === "org") { needFrame = true; draw(app, c); return; }
   const pts = view === "travel" ? [c.ground, ...c.fixtures.map((f) => f.venue)] : view === "fans" ? [c.ground, ...c.fans.filter((f) => kmBetween(c.ground, f) < 400)] : view === "matchday" ? [c.ground, ...matchDay(c).flows.filter((x) => x.km < 150).map((x) => x.f)] : [c.ground, ...c.targets];
   frame(app, c.name, pts, 8000);
 }
 
+let ctxRef: WorkCtx | null = null;
+
 export function openSports(ctx: WorkCtx) {
+  ctxRef = ctx;
   const c = current();
   if (!c) return start(ctx);
   draw(ctx.app, c);
@@ -79,7 +94,11 @@ function start(ctx: WorkCtx) {
     h("p", {}, "Run a club on the map: the season's fixtures and what the travel costs, where your fans live and how they reach the ground on match day, the players you're scouting worldwide, and the sponsors, supporters and officials you deal with."),
     name, ground, cap,
     h("button", { class: "primary-btn", onclick: () => void go() }, "Start the club"),
-    h("button", { class: "pill-btn", onclick: () => { const c = demoClub(); save(c); view = "travel"; openSports(ctx); show(ctx.app, c); } }, "Or try a demo: a football club in Belo Horizonte"));
+    h("button", { class: "pill-btn", onclick: () => { const c = demoClub(); save(c); view = "travel"; openSports(ctx); show(ctx.app, c); } }, "Or try a demo: a football club in Belo Horizonte"),
+    h("button", { class: "pill-btn", onclick: () => startFromTeam(ctx, (c) => {
+      save(c); view = "travel"; openSports(ctx); show(ctx.app, c);
+      if (c.mlbId) void loadSchedule(c).then((n) => { save(c); ctx.app.toast(`${n} games this season, live from MLB.`, 3500); if (current()?.id === c.id) { openSports(ctx); show(ctx.app, c); } }).catch(() => ctx.app.toast("The schedule couldn't be loaded; add games by hand or try again.", 4000));
+    }, () => start(ctx)) }, "Or start from a real team: MLB and the minors, NBA, NHL, NFL, MLS, the Premier League and more"));
 }
 
 function home(ctx: WorkCtx, c: Club) {
@@ -102,8 +121,9 @@ function home(ctx: WorkCtx, c: Club) {
       [fmt(s.km), "km of travel"],
       [fmt(fr.total), "fans mapped"],
       [String(pl.active), "players scouted"]),
-    h("div", { class: "chips wrap" }, tab("travel", "Season travel"), tab("fans", "Fans"), tab("matchday", "Match day"), tab("scouting", "Scouting")),
-    view === "travel" ? travelPanel(ctx, c, s) : view === "fans" ? h("div", {},
+    h("div", { class: "chips wrap" }, tab("travel", "Season travel"), tab("league", "League"), tab("org", c.mlbId ? "Farm system" : "Organisation"), tab("fans", "Fans"), tab("matchday", "Match day"), tab("scouting", "Scouting")),
+    view === "travel" ? travelPanel(ctx, c, s) : view === "league" ? leaguePanel(c, () => { draw(app, c); home(ctx, c); }, () => chooseLeague(ctx, c))
+      : view === "org" ? orgPanel(ctx, c, () => { draw(app, c); home(ctx, c); }, () => { save(c); forget(`org:${c.id}`); }) : view === "fans" ? h("div", {},
       lines(
         `${Math.round(fr.local * 100)}% of mapped members live within 25 km of the ground, ${Math.round(fr.region * 100)}% within 100 km, ${Math.round(fr.wide * 100)}% within 250 km.`,
         `On average a member lives ${kmText(fr.meanKm)} away.`,
@@ -136,7 +156,11 @@ function travelPanel(ctx: WorkCtx, c: Club, s: ReturnType<typeof seasonTravel>) 
       `${fmt(s.km)} km on the road and in the air this season, about ${hoursText(s.hours)} travelling, ${s.flights} flights.`,
       `${fmt(s.co2t, 1)} t CO₂ for a travelling party of ${c.party}.`,
       s.furthest ? `Longest trip: ${s.furthest.to.name}, ${kmText(s.furthest.km)} (${s.furthest.how.toLowerCase()}).` : "",
-      ...s.tight.map((x) => `⚠️ ${fmtDate(x.a.date)} to ${fmtDate(x.b.date)}: ${x.days} days to cover ${kmText(x.km)} (${x.a.home ? "home" : x.a.venue.name.split(",")[1]?.trim()} → ${x.b.home ? "home" : x.b.venue.name.split(",")[1]?.trim()}).`)),
+      ...s.tight.map((x) => `⚠️ ${fmtDate(x.a.date)} to ${fmtDate(x.b.date)}: ${x.days} days to cover ${kmText(x.km)} (${x.a.home ? "home" : short(x.a.venue.name)} → ${x.b.home ? "home" : short(x.b.venue.name)}).`)),
+    shapeLines(c),
+    h("div", { class: "row" },
+      h("button", { class: "pill-btn", onclick: () => void loadSchedule(c).then((n) => { if (!n) return; save(c); openSports(ctx); show(ctx.app, c); ctx.app.toast(`${n} games in.`, 3000); }).catch(() => ctx.app.toast("Couldn't load the schedule.", 3500)) }, c.mlbId ? "Load this season, live" : "Import a calendar (.ics)"),
+      h("button", { class: "pill-btn", onclick: () => report(c) }, "Travel report")),
     title("Fixtures"),
     up.length ? list(...up.map((f) => row(f.home ? "🏟" : "✈️", `${f.home ? "Home" : "Away"} vs ${f.opponent}${f.comp && f.comp !== "League" ? ` (${f.comp})` : ""}`,
       `${fmtDate(f.date)}${f.home ? "" : ` · ${f.venue.name} · ${kmText(kmBetween(c.ground, f.venue))}`}`,
@@ -230,4 +254,36 @@ function partyAdder(ctx: WorkCtx, c: Club) {
 
 function partyEdit(ctx: WorkCtx, c: Club, p: Party) {
   partyScreen(ctx, p, PARTY_KINDS, () => save(c), () => { c.parties = c.parties.filter((x) => x !== p); save(c); openSports(ctx); }, () => openSports(ctx));
+}
+
+function shapeLines(c: Club) {
+  const sh = scheduleShape(c);
+  return lines(
+    sh.trips.length ? `${sh.trips.length} road ${sh.trips.length === 1 ? "trip" : "trips"}; the longest has ${sh.longestTrip} ${sh.longestTrip === 1 ? "game" : "games"}, the furthest covers ${kmText(sh.trips[0].km)} over ${sh.trips[0].days} days.` : "",
+    sh.backToBack ? `${sh.backToBack} back-to-backs: games on consecutive days in different places.` : "",
+    sh.east + sh.west ? `About ${sh.east} hours of eastward and ${sh.west} of westward clock change across the season (by longitude).` : "");
+}
+
+async function chooseLeague(ctx: WorkCtx, c: Club) {
+  const q = prompt("Which league does the club play in?", c.league?.name ?? "");
+  if (!q) return;
+  const [hit] = await findLeague(q).catch(() => []);
+  if (!hit) { ctx.app.toast("Couldn't find that league.", 3000); return; }
+  c.league = { id: hit.id, name: hit.label };
+  save(c); forget("league:"); draw(ctx.app, c); openSports(ctx);
+}
+
+function report(c: Club) {
+  const s = seasonTravel(c), sh = scheduleShape(c), fr = fanReach(c), md = matchDay(c);
+  const fx = [...c.fixtures].sort((a, b) => a.date.localeCompare(b.date));
+  printReport(`${c.name}: season travel`, [c.ground.name, c.league?.name, c.level].filter(Boolean).join(" · "), [
+    { heading: "The season", kpis: [[fmt(s.km), "km travelled"], [String(s.flights), "flights"], [hoursText(s.hours), "travelling"], [`${fmt(s.co2t, 1)} t`, `CO₂ (party of ${c.party})`]] },
+    { heading: "Watch points", lines: [
+      ...s.tight.map((x) => `${x.a.date} to ${x.b.date}: ${x.days} days for ${kmText(x.km)}.`),
+      ...(sh.backToBack ? [`${sh.backToBack} back-to-backs in different places.`] : []),
+      ...(sh.trips[0] ? [`Longest road trip: ${sh.trips[0].games.length} games, ${kmText(sh.trips[0].km)}, ${sh.trips[0].days} days.`] : []),
+      `Clock change: about ${sh.east} h eastward, ${sh.west} h westward (by longitude).`] },
+    { heading: "Fixtures", table: { head: ["Date", "Opponent", "Where", "Distance from home"], rows: fx.map((f) => [f.date, f.opponent, f.home ? "Home" : f.venue.name, f.home ? "—" : kmText(kmBetween(c.ground, f.venue))]) } },
+    ...(c.fans.length ? [{ heading: "Fans", lines: [`${fmt(fr.total)} mapped; ${Math.round(fr.local * 100)}% within 25 km, ${Math.round(fr.region * 100)}% within 100 km.`, `Expected at a home game: about ${fmt(md.expected)} of ${fmt(md.capacity)}.`] }] : []),
+  ], "Travel assumes a coach under 500 km and a flight beyond. Clock change is estimated from longitude.");
 }
