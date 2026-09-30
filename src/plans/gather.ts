@@ -6,6 +6,7 @@
 import { dateOf, timeline, type Journey } from "../work/journeyModel";
 import type { Plan } from "../work/planModel";
 import type { FieldTrip } from "../work/tripModel";
+import { eta as shipEta, type Desk } from "../pro/shipping/model";
 
 export interface Planned {
   id: string; title: string; sub: string; date: string; lon: number; lat: number;
@@ -61,6 +62,12 @@ export function gatherAll(): Planned[] {
     for (const d of p.deliveries ?? []) { const s = p.sites.find((x) => x.id === d.site) ?? p.sites[0]; if (s) out.push({ id: d.id, title: d.title, sub: `${p.name} · ${s.name}`, date: d.date, lon: s.lon, lat: s.lat, source: "Delivery" }); }
   for (const c of read<{ id: string; name: string; accounts: { id: string; site: string; lon: number; lat: number }[]; opps: { id: string; product: string; close: string; stage: string; account?: string; prospect?: { name: string; lon: number; lat: number } }[] }>("atlas.pro.services.v1"))
     for (const o of (c.opps ?? []).filter((x) => x.stage !== "won" && x.stage !== "lost")) { const a = c.accounts.find((x) => x.id === o.account); const at = a ?? o.prospect; if (at) out.push({ id: o.id, title: `${o.product} closes`, sub: `${c.name} · ${a?.site ?? o.prospect?.name}`, date: o.close, lon: at.lon, lat: at.lat, source: "Deal" }); }
+  for (const d of read<Desk>("atlas.pro.shipping.v1"))
+    for (const sh of (d.shipments ?? []).filter((x) => x.stage !== "delivered")) {
+      let when = sh.eta;
+      try { when = shipEta(d, sh).eta; } catch { /* keep the promised date */ }
+      out.push({ id: sh.id, title: `${sh.ref} arrives`, sub: `${d.name} · ${sh.cargo} · ${sh.dest.name}`, date: when, lon: sh.dest.lon, lat: sh.dest.lat, source: "Shipment" });
+    }
   return out.filter((x) => /^\d{4}-\d{2}-\d{2}$/.test(x.date) && Number.isFinite(x.lon) && Number.isFinite(x.lat)).sort((a, b) => a.date.localeCompare(b.date));
 }
 

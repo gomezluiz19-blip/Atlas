@@ -436,6 +436,31 @@ once** (each placed where it reaches the most people still too far) and gives wa
 Communities come in from **Kobo, ODK or a spreadsheet** (name, GPS, population or households, needs), and a one-click
 **donor report** puts reach, indicators, gaps, supplies and incidents on a printable page.
 
+**Freight Desk (for freight forwarders, shipping agents and shippers).** Every shipment on its sea route, with the ship
+where it is now and when the cargo really arrives. Routes come from a graph of the straits, canals and capes ships
+actually pass: Singapore–Rotterdam comes out at 8,343 nm and Santos–Rotterdam at 5,519 nm, within a few percent of
+published distances. Ships over about 15,000 TEU can't use the Panama Canal's locks, so they go the long way.
+
+- **The board.** Open shipments ranked by what needs a look: running late against the promised date, a ship gone quiet
+  on AIS, free time ending, demurrage accruing, papers not done. Each shipment has a stage, a log and a plain update for
+  the customer to copy. Each customer gets a printable status report.
+- **Routes.** The chokepoints your cargo passes (Red Sea, Suez, Panama, Hormuz, Malacca, Taiwan Strait, Bosporus,
+  Gibraltar) and how many shipments use each. Pick one to see what closing it would do: each affected shipment's detour
+  in miles, days and CO₂, drawn in orange. Mark it closed and every ETA follows.
+- **Ports.** What's arriving where over the next 30 days, and how long ships are waiting to berth: from your agents, or
+  counted live from ships at anchor where there's AIS coverage. The wait goes into every ETA there.
+- **Carbon.** CO₂ per shipment and per customer from distance, cargo and ship type, scaled by the square of speed. Shows
+  the EU ETS bill (40% of emissions in 2024, 70% in 2025, all from 2026; half of a voyage to or from outside Europe) and
+  what sailing 2 knots slower would save.
+- **Risk.** Areas with standing security warnings (southern Red Sea and Gulf of Aden, Somali Basin, Gulf of Guinea,
+  Hormuz, Black Sea, Singapore Strait), ports in sanctioned countries (a prompt to screen, not legal advice), and wave
+  heights along each ship's next five days (Open-Meteo Marine).
+- **Live positions.** Give a ship its MMSI and Atlas finds it on AIS near where it should be: Digitraffic in the Baltic,
+  anywhere else through the edge's AISStream relay. Or paste a position from the carrier's tracking page. Without one,
+  the position is worked out from when it sailed and its speed.
+- **Import and export.** Bookings come in by CSV (port names or UN/LOCODEs), and every shipment goes out with its
+  estimated ETA, delay, distance and CO₂. Arrivals also show up in My plans.
+
 **My plans.** Everything you've planned anywhere in Atlas, on one map in one colour: the darker the blue, the sooner it
 happens, and past plans turn grey. It gathers trip stops and journeys, events, field trips, building phases, and from the
 Pro tools office events, fixtures, permit expiries, open commitments, deliveries and deal close dates. A trip's stops are

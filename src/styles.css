@@ -2690,3 +2690,6 @@ body.year-open .look-legend { display: none; }
 .mp-dot { flex: none; width: 12px; height: 12px; border-radius: 50%; margin-right: 10px; box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.7); }
 .mp-next { margin: 10px 0; padding: 10px 12px; border-radius: 10px; background: rgba(31, 111, 229, 0.1); font-size: 13px; }
 .empty-state { padding: 18px 4px; text-align: center; }
+
+/* Freight Desk */
+.fd-update { margin: 6px 0 8px; padding: 10px 12px; border-radius: 10px; background: var(--fill, rgba(120, 120, 128, 0.12)); font-size: 13px; line-height: 1.45; }
