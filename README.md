@@ -365,6 +365,33 @@ the House or Senate as a dot in their state across the country, and the stakehol
 "Start from party lines" fills a first guess only where nothing is set. A demo office (a made-up member for
 Colorado's 2nd) shows it all; no real member is given a stance.
 
+**Sports Pro.** A club run on the map. The season's fixtures and what the travel costs (kilometres, hours,
+flights and carbon for the travelling party, going straight on between away games four days or less apart),
+with turnarounds flagged when there are three days or fewer to cover more than 800 km. Where the fans are, with
+rings at 25, 100 and 250 km, their share within each, and how many members there are per 1,000 people living
+nearby. Match day with crowds flowing in from each group (turnout falls with distance) against the capacity.
+The players being scouted worldwide, by status, with scouting reports. And the sponsors, supporters' groups,
+police and league the club deals with, each with a mood and a log. The demo is a made-up club in Belo
+Horizonte whose away games run from Porto Alegre to Belém: 17,800 km, 10 flights and four tight turnarounds.
+
+**Mining Pro.** A mine and its licence to operate. The value chain from pit to plant to rail to port to
+smelter as living streams, with each export route compared per tonne (distance, time, carbon). What a year is
+worth (contained and recovered metal, revenue, cost, margin and break-even price; percent or grams-a-tonne
+grades). The towns within 10, 25 and 50 km, and the groups the mine answers to (communities, traditional
+leaders, landholders, regulators, NGOs, unions) with their mood, a log and their grievances, oldest and most
+serious first. Who lives lower than the tailings dam within 30 km, towns and mapped communities, from the
+elevation data. Permits running out, and this week's earthquakes within 300 km. Start from any of the 60+
+mines in the Minerals list, or the demo: a made-up copper mine in Zambia shipping via Dar es Salaam and the
+Lobito corridor.
+
+**Field Ops.** A humanitarian or development programme on the map. The communities served (people, and what
+they need) and the warehouses, clinics, water points, schools and distribution points serving them. For
+each service, who is further than the set distance ("too far is 5 km to water, 15 km to a clinic") and
+where one more site would bring the most people within reach, with a button to plan it. Supply lines from port
+to warehouse to clinic as living streams, incidents, deliveries and reports due, the people worked with, and
+NASA's open natural events and recent earthquakes near the communities. The demo is a made-up programme in
+Turkana, northern Kenya, supplied from Mombasa and Kitale.
+
 **Business network.** Also in My Places: map a business as it runs. Its sites (head office, shops,
 warehouses, factories) and its partners (farms, suppliers, ports, customers), and what moves between them:
 goods, people, money and data, how much and how often, by truck, van, rail, ship, air, public transport, on

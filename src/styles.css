@@ -2644,3 +2644,6 @@ body.year-open .look-legend { display: none; }
 @media (prefers-reduced-motion: reduce) { .lmi.cut { animation: none; opacity: 0; } .lmi-line { transition: none; } }
 .lmi-replay { position: fixed; left: 50%; bottom: calc(100px + env(safe-area-inset-bottom)); transform: translateX(-50%); z-index: 20; background: var(--material-strong); -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px); color: var(--label); border: 1px solid var(--separator); border-radius: 999px; padding: 7px 14px; font: inherit; font-size: 13px; font-weight: 600; box-shadow: 0 4px 16px rgba(0,0,0,.14); cursor: pointer; }
 .lmi-replay span { font-size: 10px; margin-right: 2px; }
+
+/* ---- Pro tools: the active view chip ---- */
+.chip.on { background: var(--c, var(--theme, #0a84ff)); color: #fff; }
