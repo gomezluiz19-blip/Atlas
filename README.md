@@ -328,6 +328,32 @@ map's labels come from Natural Earth's detailed (10 m) data: seas, bays, straits
 ice fields and salt flats, then about 7,800 towns, lakes and reservoirs as you zoom in, and detailed rivers
 for the area in view. The Built theme adds famous streets and squares and the world's metro systems.
 
+**World now.** The first tile in Explore (and the "Right now" line as Atlas opens) gathers what's happening
+on Earth: the day's biggest stories as Wikipedia's editors pick them, each pinned where it's happening; the
+latest headlines from the big wire services (via GDELT); natural events still going on (wildfires, storms,
+volcanoes, floods, from NASA's EONET), filterable by kind; the week's strongest earthquakes; the next launch;
+what the world is reading today; and this day in history. Everything with a place goes on the globe: tap it to
+go there. A place's Overview adds **In the news**: the week's coverage that mentions it.
+
+**Live planes and ships.** Switch them on at the top of **Layers** (or type "planes"). Every aircraft in view
+appears where it is, at its real height, pointing the way it's flying, coloured by height (yellow near the
+ground, orange climbing, blue in between, near-white at cruise), and keeps gliding between reports along its
+heading at its speed and climb. Tap one for its card: callsign, airline, aircraft type and registration, the
+route (JFK → MIA) where it's known, live height, speed, heading and climb, and a warning if it's squawking an
+emergency. Its trail is drawn behind it and a dashed line shows where it will be in four minutes. **Follow**
+puts the camera behind it and keeps it there as it flies; **Share** makes a link that opens Atlas following it.
+Ships work the same (name, type, status, destination; 20 minutes ahead). Planes come from volunteer ADS-B
+networks (adsb.lol, then airplanes.live, then the OpenSky Network, which also gives the whole world when you're
+zoomed out). Ships come from AIS: Finland's Digitraffic shares the Baltic openly; anywhere else needs a free
+AISStream key on Atlas's edge (AISStream refuses browsers, so the edge relays the stream).
+
+**Right now, here.** Every place's Overview says what it's like there at this moment: the weather and the
+air (AQI, UV), where the sun is, how many planes are overhead and the highest, the strongest earthquake nearby
+this week, and natural events nearby. **Copy as data** gives the same as a small JSON "world state", for
+software that needs to know conditions at a point before acting there (a drone planner, a robot, an agent).
+The task robot can read it too ("what's flying over Denver right now?", "is the air OK in Delhi?"), and the
+world's news ("what's happening in the world?").
+
 **More: topics beyond the land.** The last tab on the theme bar, **More**, holds eight topics that look at a
 place through what people do there, each opening on the streets around it and widening to its country:
 **Money & trade** (today's exchange rate, inflation, borrowing costs, unemployment, trade, remittances and

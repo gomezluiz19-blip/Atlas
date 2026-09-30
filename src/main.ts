@@ -632,6 +632,13 @@ const LIVE: LiveSwitch[] = [
 ];
 for (const kind of ["plane", "ship"] as const)
   app.actions.set(`live:${kind}s`, { label: kind === "plane" ? "Live planes" : "Live ships", run: () => traffic.set(kind, true), isOn: () => traffic.isOn(kind), stop: () => traffic.set(kind, false) });
+// A shared flight or ship (#follow=p:a1b2c3@lon,lat): open Atlas following it.
+const followHash = () => {
+  const m = /^#follow=([ps]:[\w-]+)@(-?[\d.]+),(-?[\d.]+)/.exec(location.hash);
+  if (m) setTimeout(() => traffic.openShared(m[1], Number(m[2]), Number(m[3])), 2500);
+};
+followHash();
+addEventListener("hashchange", followHash);
 let layers = createLayersPanel(globe, LIVE);
 $("ui").append(layers);
 layersBtn.innerHTML = icons.layers;
@@ -866,7 +873,7 @@ const pageSlug = (window as { ATLAS_PAGE?: string }).ATLAS_PAGE;
 // Places by name answer the first keystroke.
 setTimeout(warmPlaces, 1500);
 document.querySelector(".seo-page")?.remove();
-const pageLinked = /^#\/p\//.test(location.hash) || (!!pageSlug && !location.hash);
+const pageLinked = /^#\/p\//.test(location.hash) || /^#follow=/.test(location.hash) || (!!pageSlug && !location.hash);
 if (shared.camera) {
   const c = shared.camera;
   globe.viewer.camera.setView({

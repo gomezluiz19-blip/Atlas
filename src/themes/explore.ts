@@ -83,10 +83,14 @@ export function exploreTheme(app: App, feeds: Feeds, overlays: Overlays, openSit
   };
 
   /** The live "what's in view" card. */
-  /** Explore more, one tap from the Earth card: ask the map, the year, space and learning. */
+  /** Explore more, one tap from the Earth card: the world now, ask the map, the year, space and learning. */
   const lookFurther = (app: App) => {
     const go = (id: string) => () => app.actions.get(id)?.run();
+    // World now leads, with the day's biggest story as its line once it arrives.
+    const lead = h("small", { class: "world-lead" }, "The biggest stories, fires, storms and quakes going on");
+    void import("../live/worldNow").then((m) => m.leadStory()).then((st) => { if (st) lead.textContent = st.text; }).catch(() => {});
     return h("div", { class: "look-further" },
+      h("button", { class: "look-tile surprise-tile world-tile", onclick: go("news:open") }, h("span", { class: "look-tile-icon", style: "--c:#ff375f", html: icons.globe }), h("span", {}, h("strong", {}, h("span", { class: "pulse-dot" }), " World now"), lead)),
       h("button", { class: "look-tile", onclick: go("work:ask") }, h("span", { class: "look-tile-icon", style: "--c:#ffb04a", html: icons.sparkle }), h("span", {}, h("strong", {}, "Ask the map"), h("small", {}, "Where fits many things at once"))),
       h("button", { class: "look-tile", onclick: go("rhythms:year") }, h("span", { class: "look-tile-icon", style: "--c:#30d158", html: icons.sprout }), h("span", {}, h("strong", {}, "The year breathes"), h("small", {}, "The seasons sweep the planet"))),
       h("button", { class: "look-tile", onclick: () => app.setTheme("space") }, h("span", { class: "look-tile-icon", style: "--c:#5e5ce6", html: icons.saturn }), h("span", {}, h("strong", {}, "Space"), h("small", {}, "Satellites, the ISS, launches, planets"))),

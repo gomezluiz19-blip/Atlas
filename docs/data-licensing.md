@@ -51,6 +51,15 @@ relies on the browser's normal cache until a licence allows storing it.
 
 | Source | Used for | Status | What to do |
 |---|---|---|---|
+| Wikipedia REST feed (In the news, most read, on this day) | World now | ✅ attribution | Text CC BY-SA 4.0: credit Wikipedia and link the articles (Atlas links every story). |
+| GDELT DOC API | World now headlines, In the news | ✅ | Free and open, with attribution ("GDELT Project"); headlines link to the publishers' own pages, which Atlas never copies. |
+| NASA EONET | Natural events | ✅ | Public domain (US government); credit NASA EONET. |
+| adsb.lol | Live planes, flight routes | ✅ | Data under ODbL; attribution required. Free, no key; be polite (Atlas polls every 10 s per viewer, 5 s edge cache). |
+| airplanes.live | Live planes (fallback) | ⚠️ non-commercial | Free for non-commercial use; commercial use needs their permission. |
+| OpenSky Network | Live planes (fallback; the whole world when zoomed out) | ⚠️ non-commercial | Anonymous access is rate-limited and for research/non-commercial use; commercial use needs a licence from OpenSky. |
+| Finland Digitraffic (AIS) | Live ships in the Baltic | ✅ | CC BY 4.0 (Fintraffic). |
+| AISStream | Live ships worldwide (optional, via the edge) | ⚠️ key | Free key, fair use; check their terms for commercial volume. For a commercial product consider a paid AIS provider (Spire, MarineTraffic, Kpler). |
+| Open-Meteo air quality | Right now: AQI, UV | ❌ free tier | Same terms as the Open-Meteo forecast: non-commercial on the free tier; the data (CAMS) is open. |
 | Wikidata query service | Notable places | ✅ | CC0; respect the query service limits and cache. |
 | Wikipedia REST | Place summaries | ✅ | CC BY-SA text: attribute (already linked). |
 | Wikimedia Commons | Place photos | ⚠️ | Every image has its own licence and author: show the credit and licence with each photo. |

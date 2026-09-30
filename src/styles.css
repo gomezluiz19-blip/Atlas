@@ -2457,6 +2457,8 @@ body.year-open .look-legend { display: none; }
 .panel-sub .pulse-dot { display: inline-block; vertical-align: middle; margin-right: 2px; }
 @media (max-width: 820px) {
   .tr-card { top: auto; bottom: calc(var(--gutter) + 78px + env(safe-area-inset-bottom, 0px)); left: var(--gutter); right: var(--gutter); width: auto; }
+  /* One thing at a time on a phone: the craft's card, with the map above it. */
+  #ui:has(.tr-card:not([hidden])) .sheet { visibility: hidden; }
 }
 @media (prefers-reduced-motion: reduce) { .tr-card { animation: none; } }
 .now-here { display: flex; flex-direction: column; gap: 10px; padding: 12px 14px; border-radius: 14px; background: var(--material-strong); }
@@ -2466,3 +2468,7 @@ body.year-open .look-legend { display: none; }
 .now-actions { display: flex; gap: 6px; flex-wrap: wrap; }
 /* Menus and panels open over a craft's card. */
 .popover:not([hidden]) { z-index: 40; }
+.world-tile .pulse-dot { display: inline-block; vertical-align: middle; }
+.world-lead { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.look-further .world-tile { order: -1; }
+.look-further .world-tile { background: linear-gradient(120deg, color-mix(in srgb, #ff375f 14%, transparent), color-mix(in srgb, #5e5ce6 12%, transparent)); }
