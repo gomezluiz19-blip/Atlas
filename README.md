@@ -462,6 +462,24 @@ technicians who have to reach them, parts, and a market of every mine on Earth. 
   telemetry export, and the fleet exports back. The demo is a made-up equipment maker with 57 machines at 12 real mines
   from the Andes to the Copperbelt, Mongolia, the Bushveld, the Pilbara and Lapland.
 
+**Field Network, sector by sector.** The same engine serves any company that sells to and services many sites; pick
+the sector and it brings its own equipment and service intervals, the site condition that matters most, where
+prospects come from, and a demo:
+
+| Sector | Equipment | What each site's conditions tell you | Prospects |
+|---|---|---|---|
+| Mining equipment and services | haul trucks, drills, loaders, crushers, automation | diesel derating by altitude, battery-electric readiness | every mine (Atlas + Wikidata) |
+| Farm machinery and irrigation | tractors, harvesters, planters, pivots | the growing season, planting with the rains, and the month to service before the rush | farmyards in the map view (OpenStreetMap) |
+| Wind, solar and power plant O&M | turbines, inverters, transformers | the dry, workable months for planned maintenance; heat and icing | every power station (Global Power Plant Database) |
+| Medical equipment | MRI, CT, X-ray, ventilators, vaccine fridges | grid reliability (backup power for scanners and cold chains), heat | hospitals on Wikidata |
+| Telecom towers | generators, batteries, rectifiers, radios | on or off grid, and how many days a tank of diesel lasts | towers and masts in the map view |
+| Construction and crane rental | tower and mobile cranes, excavators, pumps | weeks a year lost to rain, heat and frost | construction sites in the map view |
+| Sports facilities and equipment | turf pitches, floodlights, scoreboards, gym kit | playing months, and where artificial turf keeps pitches open | pitches (with their surface) in the map view |
+
+Demos: a soy-belt dealer in Mato Grosso, a wind and solar O&M firm from Lake Turkana to Noor Ouarzazate and De Aar, a
+medical equipment servicer across Kenya, Uganda and Tanzania, a tower company across Nigeria, a crane rental firm in
+Texas, and a turf installer in Mexico. Every company and its equipment is made up; the places are real.
+
 **Business network.** Also in My Places: map a business as it runs. Its sites (head office, shops,
 warehouses, factories) and its partners (farms, suppliers, ports, customers), and what moves between them:
 goods, people, money and data, how much and how often, by truck, van, rail, ship, air, public transport, on
