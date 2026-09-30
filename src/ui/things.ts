@@ -40,6 +40,7 @@ const TOOL: Record<string, { emoji: string; words: string }> = {
   video: { emoji: "🎬", words: "record film movie studio" }, teach: { emoji: "🎓", words: "lesson quiz class students" },
   ask: { emoji: "✨", words: "find search suitable conditions land where" }, learn: { emoji: "🏛️", words: "games museums quiz challenge" },
   space: { emoji: "🪐", words: "satellites iss launches" },
+  news: { emoji: "🗞️", words: "news headlines world now happening today stories current events wildfires storms" },
   year: { emoji: "🌱", words: "seasons year months greening spring summer autumn winter solstice equinox rhythm" },
 };
 

@@ -75,6 +75,7 @@ watchForProblems();
 import { allProfiles, searchProfiles } from "./social/store";
 import { allLenses, myLenses } from "./lenses/library";
 import { topicThemes } from "./topics/themes";
+import { openWorldNow } from "./live/worldNow";
 
 const $ = (id: string) => document.getElementById(id)!;
 
@@ -183,6 +184,7 @@ const MAKE_TOOLS: WorkTool[] = [
   tool("teach", "Teach", "Lessons, quizzes, games, a world politics simulation and field trips", "#bf5af2", icons.graduate, openTeach),
 ];
 const LOOK_TOOLS: WorkTool[] = [
+  tool("news", "World now", "The biggest stories, the latest headlines, fires, storms and quakes going on, and what the world is reading", "#ff375f", icons.globe, (ctx) => openWorldNow(ctx)),
   tool("year", "The year breathes", "Spin through the seasons: the sun, polar night and the planet greening week by week", "#30d158", icons.sprout, (ctx) => { ctx.close(); app.actions.get("rhythms:year")?.run(); }),
   tool("ask", "Ask the map", "Find places that meet many things at once: ground, climate, towns, access, rivers, hazards", "#ffb04a", icons.sparkle, openAsk),
   tool("learn", "Learn", "Games, a daily challenge, your passport, and museums and libraries near you", "#30d158", icons.book, openLearn),
@@ -282,7 +284,7 @@ const makeHub = createWork(app, MAKE_TOOLS, {
 });
 const lookHub = createWork(app, LOOK_TOOLS, {
   title: "Explore more",
-  intro: "Ask the map a question, watch the seasons turn, learn with games, and look up at space.",
+  intro: "What's happening in the world now, ask the map a question, watch the seasons turn, learn with games, and look up at space.",
 });
 
 const myPlaces = createMyPlaces(app, myStore, myScene, {
@@ -303,6 +305,7 @@ $("ui").append(space.panel, placeHub.panel, makeHub.panel, lookHub.panel);
 space.button.addEventListener("space:opened", () => closePanels(space.panel));
 for (const hub of [placeHub, makeHub, lookHub]) hub.button.addEventListener("work:opened", () => closePanels(hub.panel));
 app.actions.set("space:open", { label: "Space", run: () => space.open() });
+app.actions.set("news:open", { label: "World now: the news", run: () => { lookHub.ctx.open(); openWorldNow(lookHub.ctx); } });
 app.actions.set("space:solar", { label: "Solar system", run: () => space.toSolar() });
 app.actions.set("work:ndvi", ndviAction(app));
 

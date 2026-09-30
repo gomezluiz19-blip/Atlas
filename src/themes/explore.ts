@@ -261,6 +261,18 @@ export function exploreTheme(app: App, feeds: Feeds, overlays: Overlays, openSit
         h("span", { class: "list-text" }, h("span", { class: "list-title" }, st.title), h("span", { class: "list-sub" }, `${st.author.name} · ${st.slideCount} places`)),
         h("span", { class: "chev", html: "&rsaquo;" }))))), ] : [];
     });
+    // The week's news that mentions this place (named places only: a bare spot has no headlines).
+    const named = place.name?.title && !/^-?\d/.test(place.name.title) ? place.name.title : null;
+    if (named) asyncBlock(app, body, "", async () => {
+      const { newsAbout, ago } = await import("../live/news");
+      const country = place.name?.context?.split(",").pop()?.trim();
+      const list = await newsAbout(named, country).catch(() => []);
+      return list.length ? [section(`In the news`, h("div", { class: "list" }, ...list.slice(0, 4).map((x) =>
+        h("button", { class: "list-row", onclick: () => window.open(x.url, "_blank", "noopener") },
+          h("span", { class: "list-text" }, h("span", { class: "list-title wn-head" }, x.title), h("span", { class: "list-sub" }, `${x.source} · ${ago(x.time)}`)),
+          h("span", { class: "chev", html: "&rsaquo;" })))),
+        h("button", { class: "link-btn", onclick: () => app.actions.get("news:open")?.run() }, "What's happening in the world ›"))] : [];
+    });
     nearbyPages(app, place, body, (slug) => app.actions.get("place:open")?.run(slug));
     body.append(
       section("See it through a theme",

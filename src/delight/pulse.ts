@@ -1,11 +1,12 @@
-// "Right now on Earth": a few live lines for the opening. The biggest recent
-// earthquake, the aurora when it's out, and the next rocket launch; whatever
+// "Right now on Earth": a few live lines for the opening. The day's biggest
+// story, the biggest recent earthquake, the aurora when it's out, and the next rocket launch; whatever
 // answers in time, in plain words.
 import { recentQuakes, type Quake } from "../data/quakes";
 import { latestKp } from "../data/space";
 import { upcoming, type Launch } from "../space/launches";
+import { worldStories, type Story } from "../live/news";
 
-export interface PulseLine { text: string; lon?: number; lat?: number; kind: "quake" | "aurora" | "launch" }
+export interface PulseLine { text: string; lon?: number; lat?: number; kind: "news" | "quake" | "aurora" | "launch" }
 
 const ago = (ms: number) => {
   const h = Math.round(ms / 3_600_000);
@@ -19,8 +20,10 @@ const until = (ms: number) => {
 const where = (place: string) => place.replace(/^\d+\s*km\s+[NSEW]{1,3}\s+of\s+/i, "near ");
 
 /** The lines, strongest first (pure: data in, words out). */
-export function pulseLines(d: { quakes?: Quake[]; kp?: number | null; launches?: Launch[] }, now = Date.now()): PulseLine[] {
+export function pulseLines(d: { quakes?: Quake[]; kp?: number | null; launches?: Launch[]; story?: Story | null }, now = Date.now()): PulseLine[] {
   const out: PulseLine[] = [];
+  // The biggest story in the world today leads.
+  if (d.story) out.push({ kind: "news", text: d.story.text.length > 110 ? `${d.story.text.slice(0, 108).replace(/\s+\S*$/, "")}…` : d.story.text, lon: d.story.lon, lat: d.story.lat });
   const week = (d.quakes ?? []).filter((q) => now - q.time < 7 * 86_400_000);
   const big = [...week].sort((a, b) => b.mag - a.mag)[0];
   if (big && big.mag >= 5) out.push({ kind: "quake", text: `A magnitude ${big.mag.toFixed(1)} earthquake ${where(big.place)}, ${ago(now - big.time)}`, lon: big.lon, lat: big.lat });
@@ -34,6 +37,6 @@ export function pulseLines(d: { quakes?: Quake[]; kp?: number | null; launches?:
 /** Whatever answers within a few seconds. */
 export async function earthNow(timeoutMs = 4000): Promise<PulseLine[]> {
   const soon = <T,>(p: Promise<T>) => Promise.race([p.catch(() => undefined), new Promise<undefined>((r) => setTimeout(() => r(undefined), timeoutMs))]);
-  const [quakes, kp, launches] = await Promise.all([soon(recentQuakes()), soon(latestKp()), soon(upcoming())]);
-  return pulseLines({ quakes: quakes ?? [], kp: kp?.kp ?? null, launches: launches ?? [] });
+  const [quakes, kp, launches, feed] = await Promise.all([soon(recentQuakes()), soon(latestKp()), soon(upcoming()), soon(worldStories())]);
+  return pulseLines({ quakes: quakes ?? [], kp: kp?.kp ?? null, launches: launches ?? [], story: feed?.stories[0] ?? null });
 }

@@ -106,6 +106,7 @@ function showPulse(app: App, lines: PulseLine[]) {
     if (l.kind === "quake") app.actions.get("overlay:quakes")?.run();
     if (l.kind === "aurora") app.actions.get("overlay:aurora")?.run();
     if (l.kind === "launch") app.actions.get("space:open")?.run();
+    if (l.kind === "news") app.actions.get("news:open")?.run();
     close();
   });
   (document.getElementById("ui") ?? document.body).append(pill);
