@@ -1,5 +1,6 @@
 // Infrastructure: the built systems around a point (roads, rail, power,
 // pipelines, water and transport hubs), drawn on the terrain and totalled.
+import { note } from "../themes/common";
 import {
   Cartesian3,
   Color,
@@ -201,7 +202,7 @@ out tags geom 6000;`;
       bySource.size
         ? h("p", { class: "fineprint" }, h("strong", {}, "Power by source: "), [...bySource].sort((a, b) => b[1].mw - a[1].mw || b[1].n - a[1].n).map(([k, v]) => `${k} ${v.n}${v.mw ? ` (${Math.round(v.mw)} MW)` : ""}`).join(", "))
         : "",
-      h("p", { class: "fineprint" }, "Click a category to show or hide it. OpenStreetMap coverage is excellent for roads and rail and patchier for pipelines and utilities; some features are deliberately left unmapped."),
+      note("Click a category to show or hide it. OpenStreetMap coverage is excellent for roads and rail and patchier for pipelines and utilities; some features are deliberately left unmapped."),
     );
   }
 }

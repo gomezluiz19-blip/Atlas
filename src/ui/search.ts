@@ -4,6 +4,7 @@ import { BoundingSphere, Cartesian3, HeadingPitchRange, Math as CesiumMath } fro
 import { elevation } from "../data/elevation";
 import type { Globe } from "../globe/viewer";
 import { h } from "./dom";
+import { viaEdge } from "../data/http";
 import { icons } from "./icons";
 import { decodePlusCode, formatCoordinates, parseLocation, recoverPlusCode } from "../data/locationParse";
 
@@ -78,8 +79,9 @@ export async function flyToPlace(globe: Globe, place: Place) {
   const dx = (pad.left - pad.right) / 2 * mppAtHeight, dy = (pad.top - pad.bottom) / 2 * mppAtHeight;
   const cosLat = Math.max(0.05, Math.cos(CesiumMath.toRadians(place.lat)));
   const lon = place.lon - dx / (111_320 * cosLat), lat = place.lat + dy / 110_540;
-  const small = place.radius < 1500;
-  const pitch = small ? CesiumMath.toRadians(-52) : CesiumMath.toRadians(-89.5);
+  // 3D by default: the closer in, the more the camera tilts toward the horizon.
+  const small = place.radius < 20_000;
+  const pitch = CesiumMath.toRadians(place.radius < 1500 ? -38 : place.radius < 20_000 ? -55 : -89.5);
   // Tilted views shift sideways only (north-south shifts don't map simply onto a tilted view).
   const target = Cartesian3.fromDegrees(lon, small ? place.lat : lat, ground * globe.state.exaggeration);
   const distance = Cartesian3.distance(camera.positionWC, target);
@@ -152,7 +154,7 @@ interface PhotonFeature {
 async function photon(q: string, bias: { lat: number; lon: number } | null, signal: AbortSignal): Promise<SearchResult[]> {
   let url = `https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&limit=8`;
   if (bias) url += `&lat=${bias.lat.toFixed(3)}&lon=${bias.lon.toFixed(3)}&location_bias_scale=0.3`;
-  const res = await fetch(url, { signal });
+  const res = await fetch(viaEdge(url), { signal });
   if (!res.ok) throw new Error(`Search failed (HTTP ${res.status})`);
   const body = (await res.json()) as { features: PhotonFeature[] };
   return body.features.map((f) => {
@@ -173,7 +175,7 @@ async function photon(q: string, bias: { lat: number; lon: number } | null, sign
 /** One-off search (Nominatim), used as a fallback when Photon is unavailable. */
 async function nominatim(q: string, signal: AbortSignal): Promise<SearchResult[]> {
   const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=6&q=${encodeURIComponent(q)}`;
-  const res = await fetch(url, { signal, headers: { "Accept-Language": navigator.language } });
+  const res = await fetch(viaEdge(url), { signal, headers: { "Accept-Language": navigator.language } });
   if (!res.ok) throw new Error(`Search failed (HTTP ${res.status})`);
   const rows = (await res.json()) as { display_name: string; lat: string; lon: string; boundingbox: string[]; type: string }[];
   return rows.map((r) => {
@@ -227,7 +229,8 @@ export interface SearchOptions {
   /** Instant matches from data already on the device (labels, curated places). */
   local?: (q: string) => SearchResult[];
   /** What Atlas can show and do that matches ("railways", "homeowners", "plan a trip"), by group. */
-  things?: (q: string) => { heading: string; items: SearchResult[] }[];
+  /** Atlas's own things for a query; a group marked lead is so plainly what was meant that it goes first. */
+  things?: (q: string) => { heading: string; items: SearchResult[]; lead?: boolean }[];
   /** The front door, shown when the box is empty (after recent searches and examples). */
   frontDoor?: () => { heading: string; items: SearchResult[] }[];
   /** Bias address results toward what's on screen. */
@@ -331,9 +334,13 @@ export function createSearch(globe: Globe, opts: SearchOptions = {}): HTMLElemen
     const cmd = parsed.shortCode ? null : opts.command?.(raw) ?? null;
     const cmdItems: SearchResult[] = cmd ? [{ name: cmd.title, detail: cmd.steps.join(" → "), lat: 0, lon: 0, radius: 0, icon: "sparkle", source: "command", run: cmd.run }] : [];
     const local = parsed.shortCode ? [] : opts.local?.(parsed.text) ?? [];
-    const things = parsed.shortCode || cmd ? [] : opts.things?.(parsed.text) ?? [];
-    const thingGroups = () => things.map((g) => ({ heading: g.heading, items: g.items }));
-    render([{ heading: cmd ? "Do it" : undefined, items: cmdItems }, { heading: local.length ? "Places" : undefined, items: local.slice(0, 4) }, ...thingGroups()], "Searching…");
+    const allThings = parsed.shortCode ? [] : opts.things?.(parsed.text) ?? [];
+    const leads = allThings.filter((g) => g.lead);
+    // A command hides the rest unless one of them is plainly what was asked for.
+    const things = cmd && !leads.length ? [] : allThings;
+    const thingGroups = () => things.filter((g) => !g.lead).map((g) => ({ heading: g.heading, items: g.items }));
+    const leadGroups = leads.map((g) => ({ heading: g.heading, items: g.items }));
+    render([...leadGroups, { heading: cmd ? "Do it" : undefined, items: cmdItems }, { heading: local.length ? "Places" : undefined, items: local.slice(0, 4) }, ...thingGroups()], "Searching…");
     timer = window.setTimeout(async () => {
       controller = new AbortController();
       const signal = controller.signal;
@@ -353,11 +360,11 @@ export function createSearch(globe: Globe, opts: SearchOptions = {}): HTMLElemen
         const seen = new Set(local.map((l) => l.name.toLowerCase()));
         const addresses = results.filter((r) => !seen.has(r.name.toLowerCase()));
         render(
-          [{ heading: cmd ? "Do it" : undefined, items: cmdItems }, { heading: local.length ? "Places" : undefined, items: local.slice(0, 4) }, ...thingGroups(), { heading: local.length || cmd || things.length ? "Addresses" : undefined, items: cmd || things.length ? addresses.slice(0, 3) : addresses }],
+          [...leadGroups, { heading: cmd ? "Do it" : undefined, items: cmdItems }, { heading: local.length ? "Places" : undefined, items: local.slice(0, 4) }, ...thingGroups(), { heading: local.length || cmd || things.length ? "Addresses" : undefined, items: cmd || things.length ? addresses.slice(0, 3) : addresses }],
           local.length + addresses.length + cmdItems.length + things.length ? undefined : "No matches. Try adding a town or country.",
         );
       } catch (err) {
-        if ((err as Error).name !== "AbortError") render([{ items: [...cmdItems, ...local] }, ...thingGroups()], cmd || local.length || things.length ? undefined : "Address search is unavailable right now.");
+        if ((err as Error).name !== "AbortError") render([...leadGroups, { items: [...cmdItems, ...local] }, ...thingGroups()], cmd || local.length || things.length ? undefined : "Address search is unavailable right now.");
       }
     }, 220);
   };

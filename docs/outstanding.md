@@ -2,7 +2,13 @@
 
 Things agreed and pinned for later. Ask "what's outstanding?" and this is the list.
 
-## Back end to a workable state (pinned 2026-09-29)
+## Back end to a workable state (pinned 2026-09-29; built 2026-09-29, waiting on accounts)
+
+Built: Supabase schema and client (sign-in by emailed code, pages, guestbooks, follows, lenses, guides,
+private sync), and the edge Worker (cache + keys). To switch on: `docs/backend.md` (about 25 minutes).
+Still to build once Supabase is connected: the scheduled job that sends push alerts for watches.
+
+The original plan, for reference:
 
 Atlas is a static site; every figure comes from the browser calling ~30 public services directly, and
 everything people make lives only in their browser. Before real users:
@@ -17,6 +23,9 @@ everything people make lives only in their browser. Before real users:
 3. **Accounts and sync** (Supabase: auth, Postgres, storage). Saved places, trips, farms, stories, follows kept
    on the server so they survive devices; publishing stories for the network effect (`stories-backend.sql`
    is written for it). Build sign-in behind a switch that stays on-device until Supabase is connected.
+   The preview sign-in (`src/social/`) already has the shape: accounts, profiles (Top 8, spots, journal,
+   guestbook, follows) and made lenses (`src/lenses/library.ts`) all go through small stores that can swap
+   localStorage for the server without touching the UI. Guestbooks and follows only become shared then.
 4. **Nightly data jobs** (GitHub Actions on a schedule): refresh place pages and the sitemap; pre-fetch
    politics snapshots, next elections, governors and country figures into static files, so pages load
    instantly and survive outages.
@@ -29,5 +38,10 @@ checklist for connecting Supabase and Cloudflare.
 
 ## Also pending
 
+- Switch on the back end: connect Supabase and deploy the edge Worker (`docs/backend.md`); then the
+  scheduled job that sends push alerts for watches while Atlas is closed.
+- A pass on real phones and a school Chromebook against live data (this environment can only use
+  stand-in data), including the people detector loading for cameras.
+- Nightly data jobs (place pages refresh, politics and country snapshots) and privacy-friendly analytics.
 - Campuses and standard places in My Places (on hold).
 - Party seat splits for other countries' legislatures (Wikidata doesn't hold them reliably).

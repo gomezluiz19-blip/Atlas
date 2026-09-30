@@ -7,6 +7,7 @@ import { reverseGeocode } from "../data/geocode";
 import { h } from "../ui/dom";
 import { icons } from "../ui/icons";
 import { placeReport } from "./report";
+import { createCameraSection } from "../pro/vision/cameras";
 import { roofHarvestLitres, solarByMonth, sunAndRain, type SunAndRain } from "./estimates";
 import { footprintM2, type PlaceScene } from "./scene";
 import { blankPlace, DEVICES, KIND_LABEL, newId, type Device, type DeviceType, type MyPlace, type PlaceKind, type PlaceStore } from "./store";
@@ -50,13 +51,13 @@ export interface MyPlacesUi {
   close(): void;
   /** Redraws the list (e.g. when the selected spot changes). */
   refresh(): void;
-  /** The saved places and the save/locate actions, for embedding in the My Place home. */
+  /** The saved places and the save/locate actions, for embedding in the My Places home. */
   listBody(): (Node | string)[];
   /** Opens the save form for a spot. */
   add(lon: number, lat: number, name?: string): void;
 }
 
-export function createMyPlaces(app: App, store: PlaceStore, scene: PlaceScene, opts: { onPro?: (id: string) => void; /** The My Place home to return to, if there is one. */ home?: () => void; /** Called when the panel is shown. */ onShow?: () => void } = {}): MyPlacesUi {
+export function createMyPlaces(app: App, store: PlaceStore, scene: PlaceScene, opts: { onPro?: (id: string) => void; /** The My Places home to return to, if there is one. */ home?: () => void; /** Called when the panel is shown. */ onShow?: () => void } = {}): MyPlacesUi {
   const button = h("button", { id: "myplaces-btn", class: "round-btn", "aria-label": "My Places", "aria-expanded": "false", title: "My Places", html: icons.home }) as HTMLButtonElement;
   const panel = h("div", { class: "popover myplaces", hidden: true, role: "dialog", "aria-label": "My Places" });
   let current: string | null = null;
@@ -120,7 +121,7 @@ export function createMyPlaces(app: App, store: PlaceStore, scene: PlaceScene, o
       h("p", { class: "mp-intro" }, "Save the places you care about, like home, a family hotel or a farm. See them in 3D, and keep track of their solar power, water and security."),
       ...listBody());
   };
-  /** Back to the list, or to the My Place home when there is one. */
+  /** Back to the list, or to the My Places home when there is one. */
   const backHome = () => {
     current = null;
     if (opts.home) { ui.close(); opts.home(); } else render();
@@ -155,7 +156,7 @@ export function createMyPlaces(app: App, store: PlaceStore, scene: PlaceScene, o
     const name = h("input", { type: "text", value: suggested ?? "", placeholder: "e.g. Hotel Yaluma", maxlength: 80 }) as HTMLInputElement;
     const kind = h("select", {}, ...(Object.keys(KIND_LABEL) as PlaceKind[]).map((k) => h("option", { value: k }, KIND_LABEL[k]))) as HTMLSelectElement;
     panel.replaceChildren(
-      h("div", { class: "mp-head" }, h("button", { class: "link-btn", onclick: () => (current ? render() : backHome()) }, opts.home && !current ? "‹ My Place" : "‹ My Places"), h("button", { class: "icon-btn", "aria-label": "Close", html: icons.close, onclick: () => ui.close() })),
+      h("div", { class: "mp-head" }, h("button", { class: "link-btn", onclick: () => (current ? render() : backHome()) }, "‹ My Places"), h("button", { class: "icon-btn", "aria-label": "Close", html: icons.close, onclick: () => ui.close() })),
       h("h2", { class: "mp-title" }, "Save this place"),
       h("label", { class: "mp-field wide" }, h("span", {}, "Name"), name),
       h("label", { class: "mp-field wide" }, h("span", {}, "What is it?"), kind),
@@ -260,7 +261,7 @@ export function createMyPlaces(app: App, store: PlaceStore, scene: PlaceScene, o
     const watched = cams.reduce((a, d) => a + (Math.PI * (d.range ?? 25) ** 2 * (d.fov ?? 90)) / 360, 0);
 
     panel.replaceChildren(
-      h("div", { class: "mp-head" }, h("button", { class: "link-btn", onclick: backHome }, opts.home ? "‹ My Place" : "‹ My Places"), h("button", { class: "icon-btn", "aria-label": "Close", html: icons.close, onclick: () => ui.close() })),
+      h("div", { class: "mp-head" }, h("button", { class: "link-btn", onclick: backHome }, "‹ My Places"), h("button", { class: "icon-btn", "aria-label": "Close", html: icons.close, onclick: () => ui.close() })),
       h("input", { class: "mp-name", value: p.name, "aria-label": "Place name", onchange: (e: Event) => set({ name: (e.target as HTMLInputElement).value.trim() || p.name }) }),
       h("div", { class: "mp-sub" },
         h("select", { "aria-label": "Kind of place", onchange: (e: Event) => set({ kind: (e.target as HTMLSelectElement).value as PlaceKind }) },
@@ -298,7 +299,9 @@ export function createMyPlaces(app: App, store: PlaceStore, scene: PlaceScene, o
 
       h("section", { class: "group" }, h("h2", { class: "group-title" }, "Cameras & security"),
         cams.length ? h("p", { class: "muted small" }, `${cams.length} camera${cams.length === 1 ? "" : "s"} watching up to ${Math.round(watched).toLocaleString()} m² (overlaps counted twice). Their views are drawn on the ground in pink.`) : h("p", { class: "muted small" }, "Place cameras to see what they cover, and spot the gaps. Add a feed link to open a camera's live view."),
-        deviceRows(p, "security"), addButtons(p, ["camera", "gate", "alarm", "light", "sensor"])),
+        deviceRows(p, "security"), addButtons(p, ["camera", "gate", "alarm", "light", "sensor"]),
+        cams.length ? h("h3", { class: "mp-sub-title" }, "Live") : "",
+        cams.length ? createCameraSection(app, scene, store).el(p) : ""),
 
       h("section", { class: "group" }, h("h2", { class: "group-title" }, "Notes"),
         h("textarea", { class: "mp-notes", rows: 3, placeholder: "Anything worth remembering: when the tank was cleaned, the inverter model…", onchange: (e: Event) => set({ notes: (e.target as HTMLTextAreaElement).value }) }, p.notes ?? "")),
@@ -346,7 +349,7 @@ export function createMyPlaces(app: App, store: PlaceStore, scene: PlaceScene, o
             .catch(() => { if (loadedFor === id) { buildingsFailed = id; if (current === id && !panel.hidden) render(); } });
           scene.frame(p);
           app.canvas.put({
-            id: "myplace", label: `My Place · ${p.name}`, color: "#ff9f0a", scope: "world", pinned: true,
+            id: "myplace", label: `My Places · ${p.name}`, color: "#ff9f0a", scope: "world", pinned: true,
             show: (v) => { scene.ds.show = v; scene.floorDs.show = v; },
             remove: () => { scene.clear(); loadedFor = ""; },
           });

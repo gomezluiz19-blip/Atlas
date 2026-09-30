@@ -16,6 +16,7 @@ import {
 } from "./journeyModel";
 import { newId } from "./store";
 import { iconFor, labelled } from "../ui/glyph";
+import { animateLeg } from "./tripPlay";
 
 export interface JourneyHost {
   ctx: WorkCtx;
@@ -133,6 +134,9 @@ export async function playJourney(app: App, j: Journey, onStep: (i: number) => v
     if (r.step.kind === "move") {
       const from = (r as MoveRow).from;
       await frame(app, from ?? r.step.to, from ? r.step.to : undefined, r.step.to.name);
+      if (run !== playing) break;
+      // The vehicle travels the leg while its route draws in.
+      if (from) await animateLeg(app, from, r.step.to, r.step.mode, () => run === playing);
       if (run !== playing) break;
       await frame(app, r.step.to);
     } else {
@@ -385,8 +389,20 @@ export function journeyEditor(host: JourneyHost): HTMLElement {
     pending = [];
     host.save();
     host.rerender();
+    // New legs play out as they're added: framed, then travelled.
+    const added = new Set(ok.map((p) => p.step?.id).filter(Boolean));
+    const legs = timeline(j).rows.filter((r): r is MoveRow => r.step.kind === "move" && added.has(r.step.id) && !!(r as MoveRow).from);
     const last = [...ok].reverse().find((p) => p.step || p.visit);
-    if (last?.step) void frame(app, last.step.kind === "move" ? last.step.to : last.step.place);
+    if (legs.length) void (async () => {
+      const run = ++playing;
+      for (const r of legs) {
+        if (run !== playing) return;
+        await frame(app, r.from!, r.step.to, r.step.to.name);
+        if (run !== playing) return;
+        await animateLeg(app, r.from!, r.step.to, r.step.mode, () => run === playing);
+      }
+    })();
+    else if (last?.step) void frame(app, last.step.kind === "move" ? last.step.to : last.step.place);
   };
   const understand = async () => {
     const text = input.value.trim();

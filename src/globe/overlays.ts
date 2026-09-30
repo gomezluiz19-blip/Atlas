@@ -38,6 +38,28 @@ export class Overlays {
 
   constructor(private viewer: Viewer, private toast: (m: string) => void, private canvas: Canvas) {
     canvas.subscribe(() => this.listeners.forEach((fn) => fn()));
+    // Live overlays are redrawn from fresh data every ten minutes while they're on.
+    setInterval(() => { if (!document.hidden) void this.refreshLive(); }, 10 * 60_000);
+  }
+
+  /** Redraws the live overlays that are showing (earthquakes, aurora, rain radar) from new data. */
+  async refreshLive() {
+    for (const id of ["quakes", "aurora", "radar"] as const) {
+      if (!this.state.get(id)) continue;
+      if (id === "quakes") {
+        const old = this.quakes;
+        this.quakes = null;
+        await this.setQuakes(true).catch(() => { this.quakes = old; });
+        if (old && this.quakes !== old) this.viewer.dataSources.remove(old, true);
+      } else {
+        const old = this.layers.get(id);
+        const fresh = await this.create(id).catch(() => undefined);
+        if (!fresh) continue;
+        this.viewer.imageryLayers.add(fresh);
+        this.layers.set(id, fresh);
+        if (old) this.viewer.imageryLayers.remove(old, true);
+      }
+    }
   }
 
   isOn(id: OverlayId) {

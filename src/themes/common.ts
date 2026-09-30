@@ -34,8 +34,10 @@ export function failure(err: unknown): HTMLElement {
   return h("p", { class: "error" }, `${(err as Error)?.message ?? String(err)}. Check your connection and try again.`);
 }
 
-export function note(text: string): HTMLElement {
-  return h("p", { class: "fineprint" }, text);
+/** Where figures come from. Short notes show as they are; longer ones fold behind "About this data". */
+export function note(text: string, label = "About this data"): HTMLElement {
+  if (text.length <= 110) return h("p", { class: "fineprint" }, text);
+  return h("details", { class: "about-data" }, h("summary", {}, label), h("p", { class: "fineprint" }, text));
 }
 
 export function action(label: string, onclick: () => void, icon?: string): HTMLButtonElement {

@@ -1,7 +1,7 @@
 // Draws Work-mode features (stops, routes, zones, fields, proposed lines) on the
 // globe: lines and areas as map tiles that drape over the terrain, points as
 // markers with labels. Each layer is an item on the shared canvas.
-import { Cartesian2, Cartesian3, Color, CustomDataSource, HeightReference, LabelStyle, VerticalOrigin, type ImageryLayer } from "cesium";
+import { ArcType, Cartesian2, Cartesian3, Color, CustomDataSource, PolylineDashMaterialProperty, HeightReference, LabelStyle, VerticalOrigin, type ImageryLayer } from "cesium";
 import type { App } from "../app";
 import { canvasLayer, tracePath } from "../globe/networkLayer";
 import type { LonLat } from "./geo";
@@ -15,6 +15,8 @@ export interface WorkFeature {
   dashed?: boolean;
   /** Area fill opacity (0–1). */
   fill?: number;
+  /** Lines: draw as a crisp geodesic polyline in exactly this colour, instead of on the map tiles (best for long, sparse legs). */
+  solid?: boolean;
 }
 
 export class WorkLayer {
@@ -40,11 +42,14 @@ export class WorkLayer {
             heightReference: HeightReference.CLAMP_TO_GROUND, disableDepthTestDistance: Number.POSITIVE_INFINITY,
           } : undefined,
         });
+    for (const f of features.filter((x) => x.kind === "line" && x.solid && x.pts.length > 1))
+      this.ds.entities.add({ polyline: { positions: Cartesian3.fromDegreesArray(f.pts.flat()), width: 4, arcType: ArcType.GEODESIC, clampToGround: true,
+        material: f.dashed ? new PolylineDashMaterialProperty({ color: Color.fromCssColorString(f.color), dashLength: 18 }) : Color.fromCssColorString(f.color) } });
     // Lines and areas: rebuild the tile layer (it's small).
     const viewer = this.app.globe.viewer;
     if (this.tiles) viewer.imageryLayers.remove(this.tiles, true);
     this.tiles = null;
-    const shapes = features.filter((f) => f.kind !== "point" && f.pts.length > 1).map((f) => {
+    const shapes = features.filter((f) => f.kind !== "point" && !f.solid && f.pts.length > 1).map((f) => {
       let w = 180, s = 90, e = -180, n = -90;
       for (const [x, y] of f.pts) { w = Math.min(w, x); e = Math.max(e, x); s = Math.min(s, y); n = Math.max(n, y); }
       const xy = new Float32Array((f.kind === "area" ? [...f.pts, f.pts[0]] : f.pts).flat());

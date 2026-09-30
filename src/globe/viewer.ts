@@ -55,7 +55,7 @@ export class Globe {
     },
     exaggeration: 1,
     bathymetry: false,
-    photorealistic: false,
+    photorealistic: Boolean(config.googleMapsKey),
     streets: true,
   };
   readonly hasPhotoreal = Boolean(config.googleMapsKey);

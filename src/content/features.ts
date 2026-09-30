@@ -265,6 +265,13 @@ export const FEATURES: Feature[] = [
   lake("Lake Tahoe", 39.1, -120.04, "about 490 km²", "about 501 m", "So clear that a white disc stays visible about 20 m down."),
   lake("Crater Lake", 42.94, -122.1, "about 53 km²", "about 594 m", "Fills the caldera of Mount Mazama, which collapsed about 7,700 years ago: the deepest lake in the United States."),
   lake("Aral Sea", 45.0, 60.0, "about a tenth of its 1960 size", "about 40 m (north basin)", "Once the fourth-largest lake; river water diverted for cotton shrank it to remnants."),
+  lake("Lake Chad", 13.2, 14.4, "varies, 1,500–25,000 km²", "about 11 m", "A shallow lake that has swelled and shrunk dramatically; millions depend on it."),
+  lake("Lake Volta", 7.3, -0.1, "about 8,500 km²", "about 75 m", "One of the world's largest reservoirs by area, behind the Akosombo Dam."),
+  lake("Lake Turkana", 3.6, 36.1, "about 6,400 km²", "about 109 m", "The world's largest desert lake, the 'Jade Sea', where early human fossils were found."),
+  lake("Lake Toba", 2.6, 98.83, "about 1,130 km²", "about 505 m", "Fills the caldera of a supervolcano that erupted about 74,000 years ago."),
+  lake("Tonlé Sap", 12.9, 104.1, "2,700–16,000 km²", "about 10 m", "Its river reverses each monsoon, and the lake grows up to six times its size."),
+  lake("Lake Maracaibo", 9.8, -71.55, "about 13,200 km²", "about 60 m", "South America's largest lake, lit almost nightly by Catatumbo lightning."),
+  lake("Lake Nicaragua", 11.6, -85.4, "about 8,300 km²", "about 26 m", "Central America's largest lake, with volcano islands and freshwater sharks."),
 
   // ---- Waterfalls ------------------------------------------------------------------------------
   fall("Angel Falls", 5.967, -62.535, "979 m (807 m unbroken)", null, "The world's tallest uninterrupted waterfall, falling from the table mountain Auyán-tepui.", ["Kerepakupai Merú", "Salto Ángel"]),
@@ -280,6 +287,12 @@ export const FEATURES: Feature[] = [
   fall("Khone Phapheng Falls", 13.95, 105.93, "about 21 m", "about 10.8 km (the whole cataract)", "The widest waterfall system in the world, on the Mekong: the reason ships can't sail up it.", ["Khone Falls"]),
   fall("Plitvice Lakes", 44.88, 15.62, "up to 78 m", null, "Sixteen terraced lakes joined by waterfalls over travertine dams that keep growing."),
   fall("Seljalandsfoss", 63.616, -19.989, "60 m", null, "You can walk behind the curtain of water."),
+  fall("Blue Nile Falls", 11.49, 37.587, "about 42 m", "up to 400 m in the rains", "Called Tis Abay, 'great smoke', by Ethiopians; much of its water now feeds a power station.", ["Tis Abay"]),
+  fall("Murchison Falls", 2.278, 31.686, "43 m", "7 m", "The whole Victoria Nile forces itself through a gap seven metres wide."),
+  fall("Kalambo Falls", -8.597, 31.243, "221 m", null, "One of Africa's tallest single drops, where some of the oldest wooden structures were found."),
+  fall("Jog Falls", 14.229, 74.812, "253 m", null, "India's second-highest plunge, fullest in the monsoon."),
+  fall("Ban Gioc–Detian Falls", 22.855, 106.723, "about 60 m", "about 200 m", "A wide terraced fall on the border of Vietnam and China."),
+  fall("Salto del Laja", -37.28, -72.37, "35 m", null, "Chile's horseshoe of four falls on the Laja River."),
 
   // ---- Canyons ---------------------------------------------------------------------------------
   canyon("Grand Canyon", 36.1, -112.1, "up to about 1,860 m", "about 446 km", "The Colorado River cut it through nearly two billion years of rock layers in about 5–6 million years.", ["Grand Canyon National Park"]),
@@ -333,6 +346,19 @@ export const FEATURES: Feature[] = [
   metro("Copenhagen Metro", "Copenhagen", 55.676, 12.568, 2002, "Fully automatic, running around the clock."),
   metro("Santiago Metro", "Santiago", -33.44, -70.65, 1975, "One of the most extensive in Latin America."),
   metro("Cairo Metro", "Cairo", 30.044, 31.236, 1987, "Africa's first full metro system."),
+  metro("Caracas Metro", "Caracas", 10.5, -66.91, 1983, "Built with art in its stations, from a time of oil wealth."),
+  metro("Manila LRT", "Manila", 14.6, 120.98, 1984, "The first light rail line in Southeast Asia.", ["LRT Manila"]),
+  metro("Medellín Metro", "Medellín", 6.25, -75.57, 1995, "Colombia's only metro, linked by cable cars to the hillside barrios.", ["Metro de Medellín"]),
+  metro("Tehran Metro", "Tehran", 35.69, 51.39, 1999, "The largest metro in the Middle East, with women-only carriages."),
+  metro("Bogotá TransMilenio", "Bogotá", 4.65, -74.08, 2000, "A bus rapid transit system run like a metro, copied worldwide.", ["TransMilenio"]),
+  metro("Lima Metro", "Lima", -12.05, -77.04, 2011, "An elevated line across the city, with more lines being built.", ["Metro de Lima"]),
+  metro("Algiers Metro", "Algiers", 36.75, 3.06, 2011, "Planned in the 1970s, finally opened three decades later."),
+  metro("Mumbai Metro", "Mumbai", 19.08, 72.88, 2014, "Growing fast to relieve the world's most crowded suburban trains."),
+  metro("Addis Ababa Light Rail", "Addis Ababa", 9.01, 38.76, 2015, "Sub-Saharan Africa's first light rail metro.", ["Addis Light Rail"]),
+  metro("Jakarta MRT", "Jakarta", -6.2, 106.82, 2019, "Indonesia's first metro, under Jalan Sudirman.", ["MRT Jakarta"]),
+  metro("Dhaka Metro Rail", "Dhaka", 23.81, 90.41, 2022, "Cut hour-long journeys across one of the world's densest cities to minutes.", ["Dhaka MRT"]),
+  metro("Lagos Rail Mass Transit", "Lagos", 6.45, 3.39, 2023, "The Blue Line: West Africa's first urban rail in a megacity.", ["Lagos Blue Line"]),
+  metro("Ho Chi Minh City Metro", "Ho Chi Minh City", 10.77, 106.7, 2024, "Line 1 runs from Bến Thành out to Suối Tiên.", ["Saigon Metro"]),
 ];
 
 const norm = (s: string) => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/^(the|mount|mt\.?|lake|river)\s+/g, "").replace(/\s+(river|trench|crater|forest|rainforest|volcano|metro|subway)$/g, "").replace(/[^a-z0-9]+/g, " ").trim();

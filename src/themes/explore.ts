@@ -1,6 +1,7 @@
 // Explore: the default mode. The card follows the map: what's in view and
 // worth knowing, and one-touch map layers. Tapping a label or the ground
 // opens a card about that feature or spot.
+import { Cartesian3, Math as CesiumMath } from "cesium";
 import type { App, Place, Subtab, Theme } from "../app";
 import { distanceKm } from "../analysis/insights";
 import { CATEGORIES, KIND_INFO, type PlaceKind } from "../analysis/placeKinds";
@@ -22,6 +23,9 @@ import { action, asyncBlock, hero, note, section, stats } from "./common";
 import { acrossLayers, nearbyPages, pageHead, placesLike } from "../place/page";
 import { throughTime } from "../time/placeTime";
 import { iconSvg } from "../ui/glyph";
+
+/** Whether this person has chosen a place before (then "how to start" hints step aside). */
+const tapped = () => { try { return localStorage.getItem("atlas.tapped") === "1"; } catch { return false; } };
 
 const INSIGHT_ICON: Record<Insight["icon"], string> = {
   aurora: icons.sparkle, sun: icons.sun, moon: icons.moon, plates: icons.plates, quake: icons.activity, heritage: icons.heritage, globe: icons.globe,
@@ -79,10 +83,16 @@ export function exploreTheme(app: App, feeds: Feeds, overlays: Overlays, openSit
   };
 
   /** The live "what's in view" card. */
-  /** Space and Learn, one tap from the Earth card. */
+  /** Explore more, one tap from the Earth card: the world now, ask the map, the year, space and learning. */
   const lookFurther = (app: App) => {
     const go = (id: string) => () => app.actions.get(id)?.run();
+    // World now leads, with the day's biggest story as its line once it arrives.
+    const lead = h("small", { class: "world-lead" }, "The biggest stories, fires, storms and quakes going on");
+    void import("../live/worldNow").then((m) => m.leadStory()).then((st) => { if (st) lead.textContent = st.text; }).catch(() => {});
     return h("div", { class: "look-further" },
+      h("button", { class: "look-tile surprise-tile world-tile", onclick: go("news:open") }, h("span", { class: "look-tile-icon", style: "--c:#ff375f", html: icons.globe }), h("span", {}, h("strong", {}, h("span", { class: "pulse-dot" }), " World now"), lead)),
+      h("button", { class: "look-tile", onclick: go("work:ask") }, h("span", { class: "look-tile-icon", style: "--c:#ffb04a", html: icons.sparkle }), h("span", {}, h("strong", {}, "Ask the map"), h("small", {}, "Where fits many things at once"))),
+      h("button", { class: "look-tile", onclick: go("rhythms:year") }, h("span", { class: "look-tile-icon", style: "--c:#30d158", html: icons.sprout }), h("span", {}, h("strong", {}, "The year breathes"), h("small", {}, "The seasons sweep the planet"))),
       h("button", { class: "look-tile", onclick: () => app.setTheme("space") }, h("span", { class: "look-tile-icon", style: "--c:#5e5ce6", html: icons.saturn }), h("span", {}, h("strong", {}, "Space"), h("small", {}, "Satellites, the ISS, launches, planets"))),
       h("button", { class: "look-tile", onclick: go("work:learn") }, h("span", { class: "look-tile-icon", style: "--c:#30d158", html: icons.book }), h("span", {}, h("strong", {}, "Learn"), h("small", {}, "Games, daily challenge, places to learn"))),
       h("button", { class: "look-tile surprise-tile", onclick: go("surprise") }, h("span", { class: "look-tile-icon", style: "--c:#ff9f0a", html: iconSvg("🎲", 18) ?? icons.sparkle }), h("span", {}, h("strong", {}, "Show me something amazing"), h("small", {}, "Somewhere unexpected, and why"))));
@@ -98,9 +108,9 @@ export function exploreTheme(app: App, feeds: Feeds, overlays: Overlays, openSit
     card.append(
       h("div", { class: "welcome-head" }, h("strong", {}, "Welcome to Atlas"), h("button", { class: "icon-btn", "aria-label": "Dismiss", html: icons.close, onclick: done })),
       h("p", {}, "The whole Earth, and your own corner of it. Three ways in:"),
-      h("button", { class: "welcome-row", onclick: go("mode:place") }, h("span", { class: "welcome-icon", style: "--c:#ff9f0a", html: icons.home }), h("span", {}, h("strong", {}, "My Place"), h("small", {}, "Save your home, farm or site for a daily brief and the tools to run it"))),
-      h("button", { class: "welcome-row", onclick: done }, h("span", { class: "welcome-icon", style: "--c:#0a84ff", html: icons.eye }), h("span", {}, h("strong", {}, "Look"), h("small", {}, "Tap any mountain, sea, river or city and look at it through a lens"))),
-      h("button", { class: "welcome-row", onclick: go("mode:make") }, h("span", { class: "welcome-icon", style: "--c:#bf5af2", html: icons.pencil }), h("span", {}, h("strong", {}, "Make"), h("small", {}, "Plans, presentations, videos and lessons from the map"))),
+      h("button", { class: "welcome-row", onclick: go("mode:place") }, h("span", { class: "welcome-icon", style: "--c:#ff9f0a", html: icons.home }), h("span", {}, h("strong", {}, "My Places"), h("small", {}, "Save your home, farm or site for a daily brief and the tools to run it"))),
+      h("button", { class: "welcome-row", onclick: done }, h("span", { class: "welcome-icon", style: "--c:#0a84ff", html: icons.eye }), h("span", {}, h("strong", {}, "Explore"), h("small", {}, "Tap any mountain, sea, river or city and look at it through a lens"))),
+      h("button", { class: "welcome-row", onclick: go("mode:make") }, h("span", { class: "welcome-icon", style: "--c:#bf5af2", html: icons.pencil }), h("span", {}, h("strong", {}, "Create"), h("small", {}, "Trips, stories, videos and lessons from the map"))),
       h("p", { class: "muted small" }, "Or just type what you want in the search box: \u201cslice open Mount Fuji\u201d, \u201cfrost at my farm\u201d, \u201csubway map of Tokyo\u201d."));
     return card;
   };
@@ -111,7 +121,8 @@ export function exploreTheme(app: App, feeds: Feeds, overlays: Overlays, openSit
     const start = siteBrowser(SITES.explore, openSite, { color: "#0a84ff" });
     body.append(
       welcome(app),
-      h("div", { class: "empty-hint compact" }, h("span", { class: "empty-icon", html: icons.compass }), h("span", {}, h("strong", {}, "Move the map to explore"), h("span", {}, "Labels appear as you zoom in. Tap a mountain, sea, river or city to look at it through a lens."))),
+      // How to start, until someone has: after their first tap it's just clutter.
+      tapped() ? "" : h("div", { class: "empty-hint compact" }, h("span", { class: "empty-icon", html: icons.compass }), h("span", {}, h("strong", {}, "Move the map to explore"), h("span", {}, "Labels appear as you zoom in. Tap a mountain, sea, river or city to look at it through a lens."))),
       lookFurther(app),
       insightsBox,
       storiesBox,
@@ -255,10 +266,44 @@ export function exploreTheme(app: App, feeds: Feeds, overlays: Overlays, openSit
         h("span", { class: "list-text" }, h("span", { class: "list-title" }, st.title), h("span", { class: "list-sub" }, `${st.author.name} · ${st.slideCount} places`)),
         h("span", { class: "chev", html: "&rsaquo;" }))))), ] : [];
     });
+    // Right now, here: weather, air, sun, what's overhead, quakes and events nearby. Also as data (a
+    // "world state" an agent or robot can read before acting at this spot).
+    asyncBlock(app, body, "", async () => {
+      const { nowHere, nowSentences } = await import("../live/nowHere");
+      const n = await nowHere({ name: place.name?.title, context: place.name?.context, lon: place.lon, lat: place.lat });
+      const lines = nowSentences(n);
+      if (!lines.length) return [];
+      const copy = h("button", { class: "pill-btn", title: "A JSON snapshot of this spot right now, for software and agents" }, "Copy as data") as HTMLButtonElement;
+      copy.onclick = () => void navigator.clipboard?.writeText(JSON.stringify(n, null, 2)).then(() => { copy.textContent = "Copied ✓"; setTimeout(() => (copy.textContent = "Copy as data"), 1800); }).catch(() => app.toast("Couldn't copy here; try again.", 3000));
+      return [section("Right now",
+        h("div", { class: "now-here" },
+          h("ul", { class: "now-lines" }, ...lines.map((l) => h("li", {}, l))),
+          h("div", { class: "now-actions" },
+            n.aircraft?.count ? h("button", { class: "pill-btn primary", onclick: () => {
+              app.actions.get("live:planes")?.run();
+              app.globe.viewer.camera.flyTo({ destination: Cartesian3.fromDegrees(place.lon, place.lat - 0.9, 90_000), orientation: { heading: 0, pitch: CesiumMath.toRadians(-40), roll: 0 }, duration: 2 });
+            } }, "Watch the planes live") : "",
+            copy),
+          n.missing.length ? h("p", { class: "fineprint" }, `Couldn't read ${n.missing.join(", ")} just now.`) : ""))];
+    });
+    // The week's news that mentions this place (named places only: a bare spot has no headlines).
+    const named = place.name?.title && !/^-?\d/.test(place.name.title) ? place.name.title : null;
+    if (named) asyncBlock(app, body, "", async () => {
+      const { newsAbout, ago } = await import("../live/news");
+      const country = place.name?.context?.split(",").pop()?.trim();
+      const list = await newsAbout(named, country).catch(() => []);
+      return list.length ? [section(`In the news`, h("div", { class: "list" }, ...list.slice(0, 4).map((x) =>
+        h("button", { class: "list-row", onclick: () => window.open(x.url, "_blank", "noopener") },
+          h("span", { class: "list-text" }, h("span", { class: "list-title wn-head" }, x.title), h("span", { class: "list-sub" }, `${x.source} · ${ago(x.time)}`)),
+          h("span", { class: "chev", html: "&rsaquo;" })))),
+        h("button", { class: "link-btn", onclick: () => app.actions.get("news:open")?.run() }, "What's happening in the world ›"))] : [];
+    });
     nearbyPages(app, place, body, (slug) => app.actions.get("place:open")?.run(slug));
     body.append(
       section("See it through a theme",
-        ...app.themes.filter((t) => t.id !== "explore").map((t) => action(t.label, () => app.setTheme(t.id), t.icon))),
+        ...app.themes.filter((t) => t.id !== "explore" && !t.more).map((t) => action(t.label, () => app.setTheme(t.id), t.icon)),
+        h("div", { class: "chips wrap topic-chips" }, h("span", { class: "chips-label" }, "More:"),
+          ...app.themes.filter((t) => t.more).map((t) => h("button", { class: "chip", onclick: () => app.setTheme(t.id) }, t.label)))),
       note("Places and descriptions from Wikidata and Wikipedia; importance is how many language editions write about a place."),
     );
   };
@@ -277,7 +322,7 @@ export function exploreTheme(app: App, feeds: Feeds, overlays: Overlays, openSit
 
   return {
     id: "explore",
-    label: "Explore",
+    label: "Overview",
     icon: icons.compass,
     color: "#0a84ff",
     intro: "Move the map; tap anything to learn about it.",

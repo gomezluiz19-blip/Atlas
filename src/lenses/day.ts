@@ -5,6 +5,7 @@
 // midsummer or midwinter and watch the same valley in a different light;
 // the summit catches first light before the valley floor, and the panel
 // says by how much.
+import { note } from "../themes/common";
 import { CallbackProperty, Color, CustomDataSource, ImageMaterialProperty, JulianDate, Rectangle, ClassificationType, HeadingPitchRange, BoundingSphere, Cartesian3, Math as CesiumMath } from "cesium";
 import { zoomForSpacing } from "../analysis/profile";
 import { elevation } from "../data/elevation";
@@ -197,7 +198,7 @@ export const dayLens: Lens = {
     host.body.replaceChildren(
       h("div", { class: "day-top" }, playBtn, h("div", { class: "day-now" }, big, sub)),
       dialBox, slider, chips, facts, firsts,
-      h("p", { class: "fineprint" }, "Sun time (the sun is highest at 12:00). Shadows are worked out from the ground's shape (Terrain Tiles on AWS); clouds and trees aren't included."));
+      note("Sun time (the sun is highest at 12:00). Shadows are worked out from the ground's shape (Terrain Tiles on AWS); clouds and trees aren't included."));
     describe();
     frame(true);
     setPlay(true);

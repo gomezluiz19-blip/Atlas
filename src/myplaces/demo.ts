@@ -1,4 +1,4 @@
-// A demo farm to try My Place with: a smallholding in the Cotswolds with
+// A demo farm to try My Places with: a smallholding in the Cotswolds with
 // sheep, cattle and hens, three fields at different stages, and a paddock,
 // all dated relative to today so the daily brief has something to say.
 // Everything it adds is marked "demo-" and can be removed in one go.

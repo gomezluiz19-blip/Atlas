@@ -1,5 +1,6 @@
 // Rock section: slice through the landscape and see the rock layers inside,
 // built from Macrostrat's stratigraphic column and bedrock map.
+import { note } from "../themes/common";
 import type { CustomDataSource } from "cesium";
 import type { App, GeoPoint, Tool } from "../app";
 import { buildStack, fitStructure, type StackLayer, type SurfaceObservation } from "../analysis/geosection";
@@ -199,7 +200,7 @@ export class RockSectionTool implements Tool {
         stat("Oldest layer", oldest.unit_name),
         stat("Youngest layer", youngest.unit_name)),
       h("p", { class: "fineprint" }, fitText),
-      h("p", { class: "fineprint" }, "The model assumes layers are flat sheets of constant thickness (a “layer cake”). That suits plateaus like the Grand Canyon; it misses folds, faults and layers that thin out."),
+      note("The model assumes layers are flat sheets of constant thickness (a “layer cake”). That suits plateaus like the Grand Canyon; it misses folds, faults and layers that thin out."),
       h("div", { class: "row" }, threeD, h("button", { class: "btn", onclick: () => this.app.restartLine(this) }, "New slice"), png, csv),
     );
 

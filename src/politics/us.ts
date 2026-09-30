@@ -141,3 +141,62 @@ export async function districtAt(lon: number, lat: number): Promise<District | n
   const polys = g?.type === "Polygon" ? [g.coordinates as [number, number][][]] : g?.type === "MultiPolygon" ? (g.coordinates as [number, number][][][]) : [];
   return { state: p.STATE, district: Number.isFinite(num) && num < 98 ? num : 0, name: p.NAME ?? p.BASENAME ?? "", rings: polys.map((poly) => poly[0]) };
 }
+
+/** A House district's outline by state (postal code) and number (0 = at large). */
+export async function districtByNumber(state: string, num: number): Promise<District | null> {
+  const fips = (await import("./model")).US_STATES[state]?.[0];
+  if (!fips) return null;
+  const id = await districtLayer();
+  const fc = await getJson<{ features: { properties: Record<string, string>; geometry: { type: string; coordinates: unknown } | null }[] }>("Census TIGERweb",
+    `${TIGER}/${id}/query?where=${encodeURIComponent(`STATE='${fips}'`)}&outFields=*&returnGeometry=true&outSR=4326&maxAllowableOffset=0.002&f=geojson`);
+  const numOf = (p: Record<string, string>) => { const k = Object.keys(p).find((x) => /^CD\d{3}$/i.test(x)); const n = Number(k ? p[k] : p.BASENAME); return Number.isFinite(n) && n < 98 ? n : 0; };
+  const f = fc.features.length === 1 ? fc.features[0] : fc.features.find((x) => numOf(x.properties) === num);
+  if (!f) return null;
+  const g = f.geometry;
+  const polys = g?.type === "Polygon" ? [g.coordinates as [number, number][][]] : g?.type === "MultiPolygon" ? (g.coordinates as [number, number][][][]) : [];
+  return { state: f.properties.STATE, district: numOf(f.properties), name: f.properties.NAME ?? f.properties.BASENAME ?? "", rings: polys.map((p) => p[0]) };
+}
+
+// ---- State legislative districts -------------------------------------------------------------------
+
+let sldLayers: Promise<{ upper?: number; lower?: number }> | null = null;
+
+/** The newest state legislative district layers (upper and lower chambers). */
+function stateLayers() {
+  sldLayers ??= getJson<{ layers: { id: number; name: string }[] }>("Census TIGERweb", `${TIGER}?f=json`).then((m) => {
+    const pick = (re: RegExp) => m.layers.filter((l) => re.test(l.name) && !/label/i.test(l.name)).sort((a, b) => Number(/\d{4}/.exec(b.name)?.[0] ?? 0) - Number(/\d{4}/.exec(a.name)?.[0] ?? 0))[0]?.id;
+    return { upper: pick(/State Legislative Districts.*Upper/i), lower: pick(/State Legislative Districts.*Lower/i) };
+  });
+  sldLayers.catch(() => (sldLayers = null));
+  return sldLayers;
+}
+
+/** The state senate (upper) or house/assembly (lower) district at a point, with its outline. */
+export async function legislativeDistrictAt(lon: number, lat: number, chamber: "upper" | "lower"): Promise<District | null> {
+  const id = (await stateLayers())[chamber];
+  if (id === undefined) return null;
+  const fc = await getJson<{ features: { properties: Record<string, string>; geometry: { type: string; coordinates: unknown } | null }[] }>("Census TIGERweb",
+    `${TIGER}/${id}/query?geometry=${lon},${lat}&geometryType=esriGeometryPoint&inSR=4326&spatialRel=esriSpatialRelIntersects&outFields=*&returnGeometry=true&outSR=4326&f=geojson`);
+  const f = fc.features[0];
+  if (!f) return null;
+  const p = f.properties, g = f.geometry;
+  const polys = g?.type === "Polygon" ? [g.coordinates as [number, number][][]] : g?.type === "MultiPolygon" ? (g.coordinates as [number, number][][][]) : [];
+  const num = Number(p.BASENAME ?? p.SLDUST ?? p.SLDLST);
+  return { state: p.STATE, district: Number.isFinite(num) ? num : 0, name: p.NAME ?? p.BASENAME ?? "", rings: polys.map((x) => x[0]) };
+}
+
+/** A district boundary from a GeoJSON file (a council ward, a county, a custom area; pure). */
+export function districtFromGeoJson(text: string, name = "My district"): District | null {
+  try {
+    const j = JSON.parse(text) as { type: string; features?: { geometry: { type: string; coordinates: unknown } | null; properties?: Record<string, unknown> }[]; geometry?: { type: string; coordinates: unknown }; coordinates?: unknown };
+    const geoms = j.type === "FeatureCollection" ? (j.features ?? []).map((f) => f.geometry) : j.type === "Feature" ? [j.geometry] : [j as { type: string; coordinates: unknown }];
+    const rings: [number, number][][] = [];
+    for (const g of geoms) {
+      if (g?.type === "Polygon") rings.push((g.coordinates as [number, number][][])[0]);
+      else if (g?.type === "MultiPolygon") for (const p of g.coordinates as [number, number][][][]) rings.push(p[0]);
+    }
+    if (!rings.length) return null;
+    const label = j.type === "FeatureCollection" ? (j.features?.[0]?.properties?.name as string | undefined) : undefined;
+    return { state: "", district: 0, name: label ?? name, rings };
+  } catch { return null; }
+}

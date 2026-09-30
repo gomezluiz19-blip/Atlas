@@ -5,8 +5,10 @@
 //   places you visit still shows offline. Satellite imagery is left to the
 //   browser's own cache: its providers' terms limit storing tiles (see
 //   docs/data-licensing.md); add the host here once a licence allows it.
-const VERSION = "atlas-v1";
-const APP = `${VERSION}-app`, TILES = `${VERSION}-tiles`;
+// The build stamps VERSION (vite.config.ts), so each deploy starts a fresh app cache and clears the
+// last one; the terrain tile cache is kept across deploys.
+const VERSION = "atlas-dev";
+const APP = `${VERSION}-app`, TILES = "atlas-tiles";
 const TILE_HOSTS = /(^|\.)(s3\.amazonaws\.com)$/;
 const MAX_TILES = 4000;
 
@@ -15,7 +17,7 @@ self.addEventListener("install", (e) => {
 });
 
 self.addEventListener("activate", (e) => {
-  e.waitUntil(caches.keys().then((keys) => Promise.all(keys.filter((k) => !k.startsWith(VERSION)).map((k) => caches.delete(k)))).then(() => self.clients.claim()));
+  e.waitUntil(caches.keys().then((keys) => Promise.all(keys.filter((k) => k !== APP && k !== TILES).map((k) => caches.delete(k)))).then(() => self.clients.claim()));
 });
 
 async function trim(cache, max) {
@@ -40,10 +42,16 @@ self.addEventListener("fetch", (e) => {
   }
 
   if (url.origin === self.location.origin) {
+    // Built files carry a content hash in their name, so a cached copy is always right: cache first.
+    // Everything else (bundled data, Cesium, styles) could have changed: fresh from the network when
+    // it answers quickly, the cached copy when it doesn't or when offline.
+    const hashed = /\/assets\/.+-[\w-]{8,}\.\w+$/.test(url.pathname);
     e.respondWith(caches.open(APP).then(async (c) => {
       const hit = await c.match(req);
-      const net = fetch(req).then((res) => { if (res.ok) c.put(req, res.clone()); return res; }).catch(() => hit);
-      return hit || net;
+      const net = fetch(req).then((res) => { if (res.ok) c.put(req, res.clone()); return res; });
+      if (hashed && hit) return hit;
+      if (!hit) return net;
+      return Promise.race([net.catch(() => hit), new Promise((r) => setTimeout(() => r(hit), 2500))]);
     }));
     return;
   }
@@ -61,4 +69,15 @@ self.addEventListener("fetch", (e) => {
       }
     }));
   }
+});
+
+// A watch's notification: open (or focus) Atlas on that watch.
+self.addEventListener("notificationclick", (e) => {
+  e.notification.close();
+  const url = e.notification.data?.url ?? "./";
+  e.waitUntil((async () => {
+    const wins = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+    for (const w of wins) if ("focus" in w) { await w.focus(); if ("navigate" in w) await w.navigate(url); return; }
+    await self.clients.openWindow(url);
+  })());
 });

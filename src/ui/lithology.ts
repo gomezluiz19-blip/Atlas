@@ -81,7 +81,7 @@ export function patternCss(kind: PatternKind): string {
   if (!url) {
     const c = document.createElement("canvas");
     c.width = c.height = 16;
-    const g = c.getContext("2d")!;
+    const g = c.getContext("2d", { willReadFrequently: true })!;
     const p = lithPattern(g, kind);
     if (p) { g.fillStyle = p; g.fillRect(0, 0, 16, 16); }
     url = c.toDataURL();

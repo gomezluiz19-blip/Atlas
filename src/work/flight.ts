@@ -33,7 +33,7 @@ export function bearing(a: [number, number], b: [number, number]): { deg: number
 function planeIcon(): string {
   const c = document.createElement("canvas");
   c.width = c.height = 96;
-  const g = c.getContext("2d")!;
+  const g = c.getContext("2d", { willReadFrequently: true })!;
   g.translate(48, 48);
   g.fillStyle = "#fff";
   g.strokeStyle = "#0a84ff";

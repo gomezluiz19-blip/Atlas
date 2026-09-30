@@ -3,7 +3,7 @@
 import { Cartesian2, Cartesian3, Color, HeightReference, ScreenSpaceEventHandler, ScreenSpaceEventType, type Entity } from "cesium";
 import { Canvas } from "./canvas";
 import { reverseGeocode, type PlaceName } from "./data/geocode";
-import { pickFeature } from "./globe/pickables";
+import { pickFeature, tapHandler } from "./globe/pickables";
 import type { Globe } from "./globe/viewer";
 import { Chart, type ChartData, type ChartOptions } from "./ui/chart";
 import { formatDms } from "./data/locationParse";
@@ -117,6 +117,8 @@ export interface Theme {
   leave?(app: App): void;
   /** Content before a place is chosen; defaults to the app's empty state. */
   renderEmpty?(app: App, body: HTMLElement): void;
+  /** A topic: kept off the main bar, under "More". */
+  more?: boolean;
 }
 
 /** The place card: header, theme subtabs and content. */
@@ -158,6 +160,11 @@ export class App {
   subtab!: Subtab;
   private tabbar: HTMLElement;
   private tabButtons = new Map<string, HTMLButtonElement>();
+  /** "More": the topics that aren't on the main bar, plus whatever main adds (your lenses). */
+  private moreBtn: HTMLButtonElement | null = null;
+  private moreMenu = h("div", { class: "more-menu", role: "menu", hidden: true });
+  /** Extra rows for the More menu (set by main). */
+  moreExtras?: () => (Node | string)[];
   private tools = new Map<string, { tool: Tool; panel: Panel; placeKey: string; active: boolean }>();
   private toolHome = new Map<string, [string, string]>();
   private interaction: Tool | null = null;
@@ -211,7 +218,10 @@ export class App {
     const clickHandler = (e: { position: Cartesian2 }) => {
       const tool = this.interaction;
       if (!tool?.wantsClicks?.()) {
-        const f = pickFeature(globe.viewer.scene.pick(e.position));
+        const picked = globe.viewer.scene.pick(e.position);
+        const tap = tapHandler(picked);
+        if (tap) { tap(); return; }
+        const f = pickFeature(picked);
         if (f) {
           this.select({ lon: f.lon, lat: f.lat, height: 0 }, { title: f.title, context: f.context }, f.feature);
           return;
@@ -255,12 +265,14 @@ export class App {
         return;
       }
       const n = Number(e.key);
-      if (n >= 1 && n <= this.themes.length) this.setTheme(this.themes[n - 1].id);
+      const bar = this.themes.filter((t) => !t.more);
+      if (n >= 1 && n <= bar.length) this.setTheme(bar[n - 1].id);
     });
   }
 
   addTheme(theme: Theme) {
     this.themes.push(theme);
+    if (theme.more) { this.moreButton(); return; }
     const btn = h(
       "button",
       {
@@ -274,8 +286,35 @@ export class App {
       h("span", { class: "tab-label" }, theme.label),
     );
     this.tabButtons.set(theme.id, btn);
-    this.tabbar.append(btn);
+    this.tabbar.insertBefore(btn, this.moreBtn);
     if (!this.theme) this.setTheme(theme.id);
+  }
+
+  /** The last tab: the topics that aren't on the main bar. */
+  private moreButton() {
+    if (this.moreBtn) return;
+    this.moreBtn = h("button", { class: "tab more-tab", role: "tab", "aria-selected": "false", "aria-haspopup": "menu", "aria-expanded": "false", style: "--tab-color:var(--accent)", onclick: () => this.toggleMore() },
+      h("span", { class: "tab-icon", html: icons.grid }), h("span", { class: "tab-label" }, "More"));
+    this.tabbar.append(this.moreBtn);
+    this.tabbar.after(this.moreMenu);
+    document.addEventListener("pointerdown", (e) => {
+      if (!this.moreMenu.hidden && !this.moreMenu.contains(e.target as Node) && !this.moreBtn!.contains(e.target as Node)) this.toggleMore(false);
+    });
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !this.moreMenu.hidden) this.toggleMore(false); });
+  }
+
+  toggleMore(open = this.moreMenu.hidden) {
+    if (open) {
+      this.moreMenu.replaceChildren(
+        h("p", { class: "more-title" }, "More ways to see a place"),
+        h("div", { class: "more-grid" }, ...this.themes.filter((t) => t.more).map((t) =>
+          h("button", { class: "more-item", role: "menuitem", style: `--tab-color:${t.color}`, "aria-current": String(t === this.theme), onclick: () => { this.toggleMore(false); this.setTheme(t.id); } },
+            h("span", { class: "more-icon", html: t.icon }),
+            h("span", { class: "more-text" }, h("strong", {}, t.label), h("span", {}, t.intro))))),
+        ...(this.moreExtras?.() ?? []));
+    }
+    this.moreMenu.hidden = !open;
+    this.moreBtn?.setAttribute("aria-expanded", String(open));
   }
 
   /** Remembers which theme/subtab hosts a tool, so tools can link to each other. */
@@ -296,6 +335,13 @@ export class App {
       this.theme = theme;
       this.subtab = theme.subtabs[0];
       for (const [tid, b] of this.tabButtons) b.setAttribute("aria-selected", String(tid === id));
+      // A topic shows on the More tab while it's open.
+      if (this.moreBtn) {
+        this.moreBtn.setAttribute("aria-selected", String(!!theme.more));
+        this.moreBtn.style.setProperty("--tab-color", theme.more ? theme.color : "var(--accent)");
+        this.moreBtn.querySelector(".tab-icon")!.innerHTML = theme.more ? theme.icon : icons.grid;
+        this.moreBtn.querySelector(".tab-label")!.textContent = theme.more ? theme.label.split(" ")[0] : "More";
+      }
       document.documentElement.style.setProperty("--theme", theme.color);
       theme.enter?.(this);
       this.canvas.setTheme(theme.id);
@@ -323,6 +369,7 @@ export class App {
   }
 
   select(p: GeoPoint, name?: PlaceName | null, feature?: unknown) {
+    this.lastPlace = null;
     this.setInteraction(null);
     this.subtab?.leave?.(this);
     this.canvas.newPlace();
@@ -348,7 +395,27 @@ export class App {
     }
   }
 
+  /** The place the card let go of when the map moved away from it (for "Back to …"). */
+  lastPlace: Place | null = null;
+  /** Called to go back to a place the card let go of. */
+  onReturn?: (p: Place) => void;
+
+  /** True while a tool is waiting for clicks on the globe (drawing a line, picking a point). */
+  get interacting(): boolean {
+    return this.interaction !== null;
+  }
+
+  /** Lets go of the chosen place because the map has moved away from it; the card follows the map. */
+  release() {
+    const p = this.place;
+    if (!p) return;
+    this.clearPlace();
+    this.lastPlace = p;
+    this.render();
+  }
+
   clearPlace() {
+    this.lastPlace = null;
     this.subtab?.leave?.(this);
     this.setInteraction(null);
     this.canvas.newPlace();
@@ -389,10 +456,11 @@ export class App {
         this.toast((await copyText(text())) ? done : "Couldn't copy. Select and copy the text instead.");
       } }, label);
     menu.replaceChildren(
+      item("Copy link to this place", () => this.shareLink?.() ?? location.href, "Link copied"),
+      this.actions.has("place:card") ? h("button", { role: "menuitem", class: "share-item", onclick: () => { this.toggleShare(false); this.actions.get("place:card")?.run(); } }, "Make a picture card") : "",
       item("Copy coordinates", () => `${p.lat.toFixed(6)}, ${p.lon.toFixed(6)}`, "Coordinates copied"),
       item("Copy as degrees, minutes, seconds", () => formatDms(p.lat, p.lon), "Coordinates copied"),
       address ? item("Copy name and area", () => address, "Copied") : "",
-      item("Copy link to this place", () => this.shareLink?.() ?? location.href, "Link copied"),
       h("a", { role: "menuitem", class: "share-item", href: `https://www.google.com/maps/search/?api=1&query=${p.lat.toFixed(6)},${p.lon.toFixed(6)}`, target: "_blank", rel: "noopener" }, "Open in Google Maps"),
       h("a", { role: "menuitem", class: "share-item", href: `https://maps.apple.com/?ll=${p.lat.toFixed(6)},${p.lon.toFixed(6)}&q=${encodeURIComponent(name ?? "Dropped pin")}`, target: "_blank", rel: "noopener" }, "Open in Apple Maps"),
     );
@@ -441,6 +509,9 @@ export class App {
     body.replaceChildren(content);
     body.scrollTop = 0;
     if (!this.place) {
+      // The place the map moved away from, one tap back.
+      const last = this.lastPlace;
+      if (last) content.append(h("button", { class: "back-to", onclick: () => this.onReturn?.(last) }, h("span", { class: "back-to-arrow", html: "&larr;" }), h("span", {}, "Back to ", h("strong", {}, last.name?.title ?? "the place you chose"))));
       if (theme.renderEmpty) theme.renderEmpty(this, content);
       else content.append(this.emptyState?.(theme) ?? h("p", {}, "Tap anywhere on Earth."));
       // The theme's own switches for the map, just under the first hint.

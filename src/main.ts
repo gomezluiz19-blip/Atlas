@@ -2,7 +2,7 @@ import "./styles.css";
 // Cesium loads its web workers and assets relative to this URL.
 (window as unknown as { CESIUM_BASE_URL: string }).CESIUM_BASE_URL = new URL("./cesium/", document.baseURI).href;
 
-import { Cartesian2, Cartesian3, Math as CesiumMath } from "cesium";
+import { BoundingSphere, Cartesian2, Cartesian3, HeadingPitchRange, Math as CesiumMath, SceneTransforms } from "cesium";
 import { createMapControls, homeRegion } from "./globe/controls";
 import { Looks } from "./globe/looks";
 import { featureChips } from "./explore/featureLayers";
@@ -25,10 +25,11 @@ import { formatElevation, formatLonLat, h } from "./ui/dom";
 import { icons } from "./ui/icons";
 import { describe as describeCriterion, looksLikeSearch, parseQuery, type Criterion } from "./answers/criteria";
 import { resolvePlace, searchPlaces, slugOfPlace, warmPlaces } from "./place/places";
-import { findThings, type Thing } from "./ui/frontDoor";
+import { findThings, scoreThing, tokens, type Thing } from "./ui/frontDoor";
 import { buildThings } from "./ui/things";
 import { TimeBar } from "./time/bar";
 import { arrive, stopArriving } from "./delight/arrive";
+import { introFor, shouldPlay, type IntroPlace } from "./intros/places";
 import { playIntro } from "./delight/intro";
 import { setSound, soundOn } from "./delight/sound";
 import { startTour, tourDone } from "./delight/tour";
@@ -36,8 +37,8 @@ import { firstSentence, headline } from "./place/headline";
 import { measureAt } from "./place/measure";
 import { yearName } from "./time/model";
 import { iconSvg } from "./ui/glyph";
-import { createLayersPanel } from "./ui/layers";
-import { createSearch, flyToPlace, geocode, type Command, type Place as SearchPlace, type SearchResult } from "./ui/search";
+import { createLayersPanel, type LiveSwitch } from "./ui/layers";
+import { createSearch, flyToPlace, freeArea, geocode, type Command, type Place as SearchPlace, type SearchResult } from "./ui/search";
 import { createRobot } from "./ui/robotCard";
 import { createAiSettings } from "./ui/aiSettings";
 import { aiOn, looksLikeAsk } from "./robot/llm";
@@ -69,6 +70,15 @@ import { createCanvasTray } from "./ui/canvasTray";
 import { SITES, sitesFor, type Site } from "./content/sites";
 import { MINES } from "./content/minerals";
 import { LINKS } from "./content/links";
+import { wireSocial } from "./social/wire";
+import { watchForProblems } from "./ui/errors";
+watchForProblems();
+import { allProfiles, searchProfiles } from "./social/store";
+import { allLenses, myLenses } from "./lenses/library";
+import { topicThemes } from "./topics/themes";
+import { openWorldNow } from "./live/worldNow";
+import { createTraffic } from "./live/tracks";
+import { createCityLife } from "./city/life";
 
 const $ = (id: string) => document.getElementById(id)!;
 
@@ -112,8 +122,20 @@ labels.onClick = (l) => {
   app.select({ lon: l.lon, lat: l.lat, height: 0 }, { title: l.name, context: d?.notable?.description ?? (detail ? detail[0].toUpperCase() + detail.slice(1) : undefined) ?? l.sub ?? KIND_INFO[l.kind].label }, { ...((l.data as object | undefined) ?? { source: "world" }), kind: l.kind, name: l.name });
 };
 
-const pick = (p: SearchPlace | SearchResult) =>
-  app.select({ lon: p.lon, lat: p.lat, height: 0 }, "named" in p && p.named === false ? undefined : { title: p.name, context: p.detail ?? "" });
+// Landmark intros: the first time in a visit that a well-known place is opened, it's shown as a white model
+// with a few lines about it, then the view cuts to the real place.
+const withIntro = (name: string | undefined, lon: number, lat: number, then: (ip?: IntroPlace) => void, force = false) => {
+  const ip = introFor(name, lon, lat);
+  if (!ip || (!force && !shouldPlay(ip))) { then(); return; }
+  void import("./intros/intro").then((m) => m.playIntro(ip, () => then(ip))).catch(() => then());
+};
+const arriveAt = (ip: IntroPlace) => void arrive(app, { name: ip.name, kicker: ip.where, lon: ip.lon, lat: ip.lat, radius: Math.max(150, ip.size / 3), fact: ip.lines[0] });
+
+const pick = (p: SearchPlace | SearchResult) => {
+  const named = !("named" in p && p.named === false) && !("source" in p && p.source === "coords");
+  app.select({ lon: p.lon, lat: p.lat, height: 0 }, named ? { title: p.name, context: p.detail ?? "" } : undefined);
+  if (named) withIntro(p.name, p.lon, p.lat, (ip) => ip && arriveAt(ip));
+};
 
 app.emptyState = (theme: Theme) =>
   h("div", { class: "empty" },
@@ -123,6 +145,7 @@ app.emptyState = (theme: Theme) =>
 const openSite = (s: Site) => {
   void flyToPlace(globe, s);
   app.select({ lon: s.lon, lat: s.lat, height: 0 }, { title: s.name, context: s.where });
+  withIntro(s.name, s.lon, s.lat, (ip) => ip && arriveAt(ip));
 };
 
 app.addTheme(exploreTheme(app, feeds, overlays, openSite));
@@ -156,8 +179,8 @@ const siteMatches = (q: string): SearchResult[] => {
     .map((s) => ({ name: s.name, detail: `${s.where} · ${s.why}`, lon: s.lon, lat: s.lat, radius: s.radius, source: "local" as const, icon: "target" as const }));
 };
 
-// ---- The three modes: My Place, Look, Make -------------------------------------------------
-// My Place: saved places (home, a farm, a hotel…) with today's brief, 3D, energy, water and
+// ---- The three modes: My Places, Explore, Create -------------------------------------------------
+// My Places: saved places (home, a farm, a hotel…) with today's brief, 3D, energy, water and
 // security, and the tools to run them (Grow, Flock, Build, live occupancy).
 // Look: the Earth through themes and lenses (the place card), plus Space and Learn.
 // Make: Plan, Present, Video and Teach.
@@ -165,10 +188,19 @@ const myStore = new PlaceStore();
 const myScene = new PlaceScene(globe.viewer);
 const tool = (id: string, label: string, about: string, color: string, icon: string, open: (ctx: WorkCtx) => void): WorkTool => ({ id, label, about, color, icon, open });
 const PLACE_TOOLS: WorkTool[] = [
+  tool("myplans", "My plans", "Everything you've planned across Atlas on one map: the darker the blue, the sooner", "#1f6fe5", icons.flag, (ctx) => void import("./plans/ui").then((m) => m.openPlans(ctx))),
   tool("grow", "Grow", "Fields and crops: growth stage, harvest, water and frost", "#30d158", icons.sprout, openGrow),
   tool("flock", "Flock", "Animals in your care: farms, vets, rescues and adoption", "#8bd346", icons.paw, openFlock),
   tool("build", "Build", "Model a building on its site and track construction; worksite tools (Pro)", "#ff9f0a", icons.crane, openBuild),
   tool("occupancy", "Live occupancy", "Rooms, floors and bookings from your booking system (Pro)", "#ff375f", icons.building, () => app.actions.get("pro:occupancy")?.run()),
+  tool("office", "Politics Pro", "Run a legislative office: the district and its people, casework, events, and the whip count on your bills", "#5e5ce6", icons.flag, (ctx) => void import("./pro/office/ui").then((m) => m.openOffice(ctx))),
+  tool("network", "Business network", "Your sites, suppliers, partners and customers, and the goods, people and money moving between them", "#ff9f0a", icons.route, (ctx) => void import("./pro/network/ui").then((m) => m.openNetwork(ctx))),
+  tool("sports", "Sports Pro", "Run a club: fixtures and the season's travel, where the fans are, match-day crowds and the players you're scouting", "#ff375f", icons.trophy, (ctx) => void import("./pro/sports/ui").then((m) => m.openSports(ctx))),
+  tool("shipping", "Freight Desk", "For freight forwarders, shipping agents and shippers: every shipment on its sea route with its ship, real ETAs against promises, port waits and demurrage, chokepoint what-ifs (Suez, Red Sea, Panama), carbon and the EU ETS bill, and risks on the way", "#0a84ff", icons.globe, (ctx) => void import("./pro/shipping/ui").then((m) => m.openShipping(ctx))),
+  tool("relief", "Relief Pipeline", "For humanitarian logisticians: port to people. When each place runs out and the last day to send more, roads, rivers and air links cut by rains or incidents, what's on the way, and the fastest, cheapest or ground-only way to move the next load", "#30d158", icons.route, (ctx) => void import("./pro/relief/ui").then((m) => m.openRelief(ctx))),
+  tool("services", "Field Network", "For companies that sell to and service many sites (mining, farm machinery, wind and solar, medical equipment, telecom towers, cranes, sports facilities): site conditions, your equipment and its service, technicians and travel, parts, prospects and risk", "#ff9f0a", icons.gem, (ctx) => void import("./pro/services/ui").then((m) => m.openServices(ctx))),
+  tool("mining", "Mining Pro", "Run a mine: pit to smelter, what the year is worth, communities and grievances, permits, and who lives downhill of the dam", "#ac8e68", icons.pick, (ctx) => void import("./pro/mining/ui").then((m) => m.openMining(ctx))),
+  tool("field", "Field Ops", "Run an aid or development programme: who is too far from water, health or school, where one more site helps most, supplies and incidents", "#30d158", icons.medical, (ctx) => void import("./pro/field/ui").then((m) => m.openField(ctx))),
 ];
 const MAKE_TOOLS: WorkTool[] = [
   tool("plan", "Plan", "Trips told step by step, an event's running order, sites, zones and routes", "#0a84ff", icons.route, openPlans),
@@ -177,6 +209,7 @@ const MAKE_TOOLS: WorkTool[] = [
   tool("teach", "Teach", "Lessons, quizzes, games, a world politics simulation and field trips", "#bf5af2", icons.graduate, openTeach),
 ];
 const LOOK_TOOLS: WorkTool[] = [
+  tool("news", "World now", "The biggest stories, the latest headlines, fires, storms and quakes going on, and what the world is reading", "#ff375f", icons.globe, (ctx) => openWorldNow(ctx)),
   tool("year", "The year breathes", "Spin through the seasons: the sun, polar night and the planet greening week by week", "#30d158", icons.sprout, (ctx) => { ctx.close(); app.actions.get("rhythms:year")?.run(); }),
   tool("ask", "Ask the map", "Find places that meet many things at once: ground, climate, towns, access, rivers, hazards", "#ffb04a", icons.sparkle, openAsk),
   tool("learn", "Learn", "Games, a daily challenge, your passport, and museums and libraries near you", "#30d158", icons.book, openLearn),
@@ -240,20 +273,27 @@ function logBox(): HTMLElement {
 }
 
 const placeHub = createWork(app, PLACE_TOOLS, {
-  title: "My Place",
+  title: "My Places",
   intro: "Your home, farm, site or business: what matters there today, and the tools to run it.",
   top: () => {
     const main = savedPlaceHere();
-    return [
-      main ? todayCard(main, openBriefItem) : h("div", { class: "today-card first" },
+    // The places-only export is covered by "Back up everything" below.
+    const list = myPlaces.listBody().filter((n) => !(n instanceof HTMLElement && n.classList.contains("mp-foot")));
+    // Nothing saved yet: one card with every way in (address, this spot, where I am, a demo).
+    if (!main) return [
+      h("div", { class: "today-card first" },
         h("div", { class: "today-head" }, h("strong", {}, "Start with your place")),
-        h("p", { class: "small" }, "Type your address, or tap your place on the map, and save it. Atlas then gives you a daily brief there: frost, heat, storms, and what's due for your animals, fields and projects."),
+        h("p", { class: "small" }, "Save your home, farm, site or business and Atlas gives you a daily brief there: frost, heat, storms, and what's due for your animals, fields and projects."),
         addressBox(),
-        h("button", { class: "pill-btn", onclick: () => { loadDemo(myStore); openMode("place"); app.toast("Hillside Farm is a demo: sheep, cattle, hens and three fields. Remove it any time from the bottom of My Place.", 7000); } }, "Or try a demo farm")),
-      main ? logBox() : "",
+        ...list,
+        h("button", { class: "pill-btn", onclick: () => { loadDemo(myStore); openMode("place"); app.toast("Hillside Farm is a demo: sheep, cattle, hens and three fields. Remove it any time from the bottom of My Places.", 7000); } }, "Or try a demo farm")),
+      h("h2", { class: "group-title" }, "Run your place"),
+    ];
+    return [
+      todayCard(main, openBriefItem),
+      logBox(),
       h("h2", { class: "group-title" }, "Your places"),
-      // The places-only export is covered by "Back up everything" below.
-      ...myPlaces.listBody().filter((n) => !(n instanceof HTMLElement && n.classList.contains("mp-foot"))),
+      ...list,
       h("h2", { class: "group-title" }, "Run your place"),
     ];
   },
@@ -264,12 +304,12 @@ const placeHub = createWork(app, PLACE_TOOLS, {
 });
 keepStorage();
 const makeHub = createWork(app, MAKE_TOOLS, {
-  title: "Make",
-  intro: "Make something from the map: plan a trip or a new road, present a place's story, record a video, or teach a lesson.",
+  title: "Create",
+  intro: "Make something from the map: a trip, a story, a video or a lesson.",
 });
 const lookHub = createWork(app, LOOK_TOOLS, {
-  title: "Look further",
-  intro: "Beyond the themes and lenses in the place card: ask the map a question, games and places to learn, and everything above the Earth.",
+  title: "Explore more",
+  intro: "What's happening in the world now, ask the map a question, watch the seasons turn, learn with games, and look up at space.",
 });
 
 const myPlaces = createMyPlaces(app, myStore, myScene, {
@@ -284,10 +324,13 @@ $("ui").append(pro.panel);
 // Space: satellites, the ISS, launches and the solar system.
 const space = createSpace(app);
 app.addTheme(spaceTheme(space));
+// Topics (Money & trade, Sports, Fashion, Food, Arts & music) live under "More" on the theme bar.
+for (const t of topicThemes()) app.addTheme(t);
 $("ui").append(space.panel, placeHub.panel, makeHub.panel, lookHub.panel);
 space.button.addEventListener("space:opened", () => closePanels(space.panel));
 for (const hub of [placeHub, makeHub, lookHub]) hub.button.addEventListener("work:opened", () => closePanels(hub.panel));
 app.actions.set("space:open", { label: "Space", run: () => space.open() });
+app.actions.set("news:open", { label: "World now: the news", run: () => { lookHub.ctx.open(); openWorldNow(lookHub.ctx); } });
 app.actions.set("space:solar", { label: "Solar system", run: () => space.toSolar() });
 app.actions.set("work:ndvi", ndviAction(app));
 
@@ -300,14 +343,17 @@ function closePanels(keep?: HTMLElement) {
   if (keep !== pro.panel) pro.close();
   if (keep !== space.panel) space.close();
   toggleLayers(false);
+  hideSocial();
 }
+/** Profile pages and Lens Studio step aside when another panel opens (set up once they exist). */
+let hideSocial = () => {};
 function openMode(m: Mode) {
   if (m === "look") { closePanels(); modes.set("look"); return; }
   const hub = m === "place" ? placeHub : makeHub;
   // Tapping the current mode again goes back to its home screen.
   hub.ctx.open();
   hub.ctx.home();
-  // My Place takes you to your place when you're looking at somewhere far away.
+  // My Places takes you to your place when you're looking at somewhere far away.
   const main = m === "place" ? savedPlaceHere() : undefined;
   if (main) {
     const cam = globe.viewer.camera.positionCartographic;
@@ -316,8 +362,8 @@ function openMode(m: Mode) {
   }
 }
 const modes = createModeBar(openMode);
-app.actions.set("mode:place", { label: "My Place", run: () => openMode("place") });
-app.actions.set("mode:make", { label: "Make", run: () => openMode("make") });
+app.actions.set("mode:place", { label: "My Places", run: () => openMode("place") });
+app.actions.set("mode:make", { label: "Create", run: () => openMode("make") });
 app.actions.set("myplace:report", {
   label: "About your place",
   run: () => {
@@ -334,7 +380,7 @@ const syncMode = () => {
   modes.set([placeHub.panel, myPlaces.panel, pro.panel].some(shown) ? "place" : shown(makeHub.panel) ? "make" : "look");
   // Phones have room for one panel: the place card steps aside while a mode panel is open.
   document.body.dataset.panel = [placeHub.panel, myPlaces.panel, pro.panel, makeHub.panel, lookHub.panel, space.panel].some(shown) ? "open" : "";
-  // Working in My Place or Make: the empty Explore card steps aside so the mode has the screen.
+  // Working in My Places or Make: the empty Explore card steps aside so the mode has the screen.
   document.body.dataset.work = [placeHub.panel, myPlaces.panel, pro.panel, makeHub.panel].some(shown) ? "1" : "";
 };
 const watcher = new MutationObserver(syncMode);
@@ -344,7 +390,7 @@ const HUB_OF: Record<string, { hub: typeof placeHub; open: (ctx: WorkCtx) => voi
 for (const [hub, tools] of [[placeHub, PLACE_TOOLS], [makeHub, MAKE_TOOLS], [lookHub, LOOK_TOOLS]] as const)
   for (const t of tools) if (t.id !== "occupancy" && t.id !== "space" && t.id !== "year") HUB_OF[t.id] = { hub, open: t.open };
 for (const [t, { hub, open }] of Object.entries(HUB_OF))
-  app.actions.set(`work:${t}`, { label: `${hub === placeHub ? "My Place" : hub === makeHub ? "Make" : "Look"} › ${t}`, run: () => { hub.ctx.open(); open(hub.ctx); } });
+  app.actions.set(`work:${t}`, { label: `${hub === placeHub ? "My Places" : hub === makeHub ? "Create" : "Explore"} › ${t}`, run: () => { hub.ctx.open(); open(hub.ctx); } });
 // Place pages: #/p/nile (or /p/nile/, which forwards here) opens the Nile's page.
 const openPlace = async (slug: string, theme?: string) => {
   const r = await resolvePlace(slug).catch(() => null);
@@ -355,10 +401,10 @@ const openPlace = async (slug: string, theme?: string) => {
   // Arrive: the camera comes in at an angle, the name is set over the map with the one fact worth knowing.
   const what = r.what ?? KIND_WORDS[r.kind] ?? "";
   const kicker = [what && what.charAt(0).toUpperCase() + what.slice(1), r.context && !r.context.includes(":") ? r.context : ""].filter(Boolean).join(" · ");
-  void arrive(app, {
+  withIntro(r.name, r.lon, r.lat, (ip) => void arrive(app, {
     name: r.name || "This spot", kicker, lon: r.lon, lat: r.lat, radius: r.radius,
-    fact: r.blurb ? firstSentence(r.blurb) : measureAt(r.lon, r.lat).then((m) => headline(m.v, r.kind)),
-  });
+    fact: ip ? ip.lines[0] : r.blurb ? firstSentence(r.blurb) : measureAt(r.lon, r.lat).then((m) => headline(m.v, r.kind)),
+  }));
 };
 const KIND_WORDS: Partial<Record<string, string>> = {
   city: "town or city", capital: "capital city", water: "lake or water", sea: "sea", island: "island", peak: "mountain", range: "mountain range",
@@ -398,7 +444,7 @@ app.actions.set("pro:occupancy", {
   run: () => {
     const p = savedPlaceHere();
     if (p) pro.open(p.id);
-    else { app.toast("Save the building in My Place first, then connect its bookings.", 6000); openMode("place"); }
+    else { app.toast("Save the building in My Places first, then connect its bookings.", 6000); openMode("place"); }
   },
 });
 
@@ -526,7 +572,26 @@ $("search-slot").replaceWith(createSearch(globe, {
     const time: SearchResult[] = Number.isFinite(year) && year >= -3000 && year <= 2100 && (Math.abs(year) >= 100 || y![2])
       ? [{ name: `Go to ${yearName(year)}`, detail: year < 2000 ? "The world's borders at the time" : year < new Date().getUTCFullYear() ? "The Earth from space that year" : "Projections for places", lon: 0, lat: 0, radius: 0, source: "thing", svg: iconSvg("⏳", 18) ?? icons.sparkle, run: () => timeBar.goToYear(year) }]
       : [];
-    return [{ heading: "Time", items: time }, ...(["Show on the map", "Open", "Stories"] as const).map((g) => ({ heading: g, items: found.filter((t) => t.group === g).slice(0, 3).map(as) }))].filter((g) => g.items.length);
+    // One word that names an Atlas thing outright ("tour", "seasons", "railways"), and no place
+    // is called exactly that: the thing leads, ahead of places and commands.
+    const words = tokens(q);
+    const lead = found[0] && words.length === 1 && scoreThing(found[0], q) >= 3 && !searchPlaces(q, 4).some((p) => tokens(p.name).join(" ") === words[0]) ? found[0] : null;
+    // People by name or @handle, and lenses people have made.
+    const people: SearchResult[] = searchProfiles(q).slice(0, 3).map((p) => ({ name: p.name, detail: `@${p.handle}${p.now ? ` · ${p.now}` : ""}`, lon: 0, lat: 0, radius: 0, source: "thing", svg: iconSvg(p.avatar.emoji, 18) ?? icons.people, run: () => app.actions.get("profile:open")?.run(p.handle) }));
+    const qw = words.filter((w) => w.length > 2);
+    const made: SearchResult[] = qw.length ? allLenses().filter((d) => qw.every((w) => `${d.name} ${d.blurb}`.toLowerCase().includes(w)) || qw.some((w) => d.name.toLowerCase().startsWith(w))).slice(0, 2)
+      .map((d) => ({ name: `${d.name} lens`, detail: d.blurb, lon: 0, lat: 0, radius: 0, source: "thing", svg: iconSvg(d.icon, 18) ?? icons.sparkle, run: () => app.actions.get("lens:custom")?.run(d.id) })) : [];
+    const guides: SearchResult[] = qw.length ? allProfiles().flatMap((p) => (p.guides ?? []).map((g) => ({ p, g })))
+      .filter(({ g }) => qw.every((w) => `${g.title} ${g.blurb}`.toLowerCase().includes(w))).slice(0, 2)
+      .map(({ p, g }) => ({ name: g.title, detail: `A guide by ${p.name} · ${g.stops.length} stops`, lon: 0, lat: 0, radius: 0, source: "thing", svg: iconSvg("🧭", 18) ?? icons.compass, run: () => { location.hash = `#/g/${p.handle}/${g.id}`; } })) : [];
+    return [
+      ...(lead ? [{ heading: "Best match", items: [as(lead)], lead: true }] : []),
+      { heading: "People", items: people },
+      { heading: "Guides", items: guides },
+      { heading: "Lenses people made", items: made },
+      { heading: "Time", items: time },
+      ...(["Show on the map", "Open", "Stories"] as const).map((g) => ({ heading: g, items: found.filter((t) => t.group === g && t !== lead).slice(0, 3).map(as) })),
+    ].filter((g) => g.items.length);
   },
   frontDoor: () => {
     const go = (name: string, slug: string, detail: string, emoji: string): SearchResult => ({ name, detail, lon: 0, lat: 0, radius: 0, source: "thing", svg: iconSvg(emoji, 18) ?? icons.target, run: () => void openPlace(slug) });
@@ -583,13 +648,53 @@ $("ui").append(createCanvasTray(app));
 
 // Map style popover.
 const layersBtn = $("layers-btn");
-let layers = createLayersPanel(globe);
+// Live traffic: planes and ships moving on the globe.
+const traffic = createTraffic(app);
+// The living city: buildings, trees, and simulated cars and people on the real streets, once zoomed in.
+const cityLife = createCityLife(app);
+app.actions.set("city:life", { label: "Living city (3D, simulated movement)", run: () => cityLife.set(true), isOn: () => cityLife.isOn(), stop: () => cityLife.set(false) });
+// 3D by default: coming down into a place, the camera tilts toward the horizon once (unless you've tilted it yourself).
+{
+  let tilted = false;
+  const cam = globe.viewer.camera;
+  cam.moveEnd.addEventListener(() => {
+    const hgt = cam.positionCartographic.height;
+    if (hgt > 30_000) { tilted = false; return; }
+    if (tilted || hgt > 6000 || CesiumMath.toDegrees(cam.pitch) > -75) { if (CesiumMath.toDegrees(cam.pitch) > -75) tilted = true; return; }
+    tilted = true;
+    const c = globe.viewer.canvas, ray = cam.getPickRay(new Cartesian2(c.clientWidth / 2, c.clientHeight / 2));
+    const target = ray ? globe.viewer.scene.globe.pick(ray, globe.viewer.scene) : undefined;
+    if (!target) return;
+    const range = Cartesian3.distance(cam.positionWC, target);
+    cam.flyToBoundingSphere(new BoundingSphere(target, 1), { offset: new HeadingPitchRange(cam.heading, CesiumMath.toRadians(-40), range * 1.05), duration: 1.4 });
+  });
+}
+const LIVE: LiveSwitch[] = [
+  { label: "Planes", about: "Every aircraft in view, live over ADS-B, flying at its real height. Tap one for its card; follow it.", on: () => traffic.isOn("plane"), set: (v) => traffic.set("plane", v), status: () => (traffic.count("plane") ? `${traffic.count("plane").toLocaleString()} live` : traffic.note("plane")) },
+  { label: "Ships", about: "Vessels live over AIS: cargo, tankers, ferries, fishing boats. Tap one for its card.", on: () => traffic.isOn("ship"), set: (v) => traffic.set("ship", v), status: () => (traffic.count("ship") ? `${traffic.count("ship").toLocaleString()} live` : traffic.note("ship")) },
+  { label: "Living city", about: "Close in over a town: its buildings and trees in 3D, and simulated cars and people moving on the real streets, as many as usual for the hour.", on: () => cityLife.isOn(), set: (v) => cityLife.set(v), status: () => { const n = cityLife.counts(); return n.buildings ? `${n.cars} cars, ${n.people} people` : "zoom in to a town"; } },
+  // The other live overlays, so everything happening now is switched from one place.
+  ...(["quakes", "radar", "aurora"] as const).map((id) => {
+    const o = OVERLAYS.find((x) => x.id === id)!;
+    return { label: o.label, about: o.about, on: () => overlays.isOn(id), set: (v: boolean) => void overlays.set(id, v) } satisfies LiveSwitch;
+  }),
+];
+for (const kind of ["plane", "ship"] as const)
+  app.actions.set(`live:${kind}s`, { label: kind === "plane" ? "Live planes" : "Live ships", run: () => traffic.set(kind, true), isOn: () => traffic.isOn(kind), stop: () => traffic.set(kind, false) });
+// A shared flight or ship (#follow=p:a1b2c3@lon,lat): open Atlas following it.
+const followHash = () => {
+  const m = /^#follow=([ps]:[\w-]+)@(-?[\d.]+),(-?[\d.]+)/.exec(location.hash);
+  if (m) setTimeout(() => traffic.openShared(m[1], Number(m[2]), Number(m[3])), 2500);
+};
+followHash();
+addEventListener("hashchange", followHash);
+let layers = createLayersPanel(globe, LIVE);
 $("ui").append(layers);
 layersBtn.innerHTML = icons.layers;
 const toggleLayers = (open = layers.hidden) => {
   if (open) {
     // Rebuilt on open so it matches the canvas (layers can be removed from the tray).
-    const fresh = createLayersPanel(globe);
+    const fresh = createLayersPanel(globe, LIVE);
     layers.replaceWith(fresh);
     layers = fresh;
   }
@@ -642,11 +747,10 @@ about.innerHTML = icons.info;
 const soundBtn = h("button", { class: "pill-btn sound-toggle", "aria-pressed": String(soundOn()) }, soundOn() ? "Sounds on" : "Sounds off") as HTMLButtonElement;
 soundBtn.addEventListener("click", () => { const on = !soundOn(); setSound(on); soundBtn.textContent = on ? "Sounds on" : "Sounds off"; soundBtn.setAttribute("aria-pressed", String(on)); });
 const aboutPanel = h("div", { class: "popover about", hidden: true },
-  h("h2", { class: "group-title" }, "About Atlas"),
-  h("div", { class: "about-row" }, h("span", { class: "muted small" }, "Soft sounds when you arrive somewhere (and taps on phones)."), soundBtn),
-  h("div", { class: "about-row" }, h("span", { class: "muted small" }, "A one-minute walk through what Atlas can do."), h("button", { class: "pill-btn", onclick: () => { aboutPanel.hidden = true; startTour(app); } }, "Take the tour")),
-  h("p", {}, "Atlas does three things, switched at the top. My Place: your home, farm, site or business, with a daily brief and the tools to run it (Grow, Flock, Build, live occupancy). Look: the whole Earth and space; tap anything, then flip through the themes or look at it through a lens. Make: plans, presentations, videos and lessons made from the map."),
+  h("div", { class: "about-head" }, h("h2", { class: "group-title" }, "About Atlas"), h("button", { class: "icon-btn", "aria-label": "Close", html: icons.close, onclick: () => (aboutPanel.hidden = true) })),
+  h("p", {}, "Atlas does three things, switched at the top. Explore: the whole Earth and space; tap anything, then flip through the themes or look at it through a lens. Create: trips, stories, videos and lessons made from the map. My Places: your home, farm, site or business, with a daily brief and the tools to run it."),
   h("p", {}, "You can also type a request into the search box, like \u201cstorm drains and railways in Chicago\u201d, and Atlas will plan the steps and do them."),
+  h("p", {}, "People have pages here too: the places they love, a journal, and lenses they've made. Make your own from the account button, and a lens of your own in Lens Studio."),
   h("button", { class: "pill-btn about-ai", onclick: () => { aboutPanel.hidden = true; aiSettings.open(); } }, aiOn() ? "Atlas AI: connected · settings" : "Connect Atlas AI (Claude)…"),
   h("p", {}, "The themes are lenses on one shared map. What you add stays as you switch (see \"On the map\" at the top), and every view ends with Connected links to related views of the same place."),
   h("h2", { class: "group-title" }, "Where the data comes from"),
@@ -659,9 +763,25 @@ const aboutPanel = h("div", { class: "popover about", hidden: true },
     h("li", {}, "Aurora and geomagnetic activity: NOAA Space Weather Prediction Center. Earthquakes: USGS. Plates: Bird (2003)."),
     h("li", {}, "Place names: OpenStreetMap Nominatim.")),
   h("p", { class: "fineprint" }, "Every dataset is a record of what's been measured or mapped. None of them is complete, so treat gaps as unknowns, not absences."),
-  h("p", { class: "fineprint" }, "Keyboard: 1–9 switch themes · / searches · + and − zoom · Esc cancels a line or closes a chart. Double-click to zoom in on a spot."));
+  h("h2", { class: "group-title" }, "Your privacy"),
+  h("p", { class: "fineprint" }, "What you make in Atlas (your page, places, lenses, farm records, plans) stays in this browser; there are no ads and no tracking. To answer you, Atlas asks public services about the places you look at (for example OpenStreetMap for names and Open-Meteo for weather), which sends them the coordinates, not who you are. With Atlas AI on, your requests go to Anthropic."),
+  h("p", { class: "fineprint" }, "Keyboard: 1–9 switch themes · / searches · + and − zoom · Esc cancels a line or closes a chart. Double-click to zoom in on a spot."),
+  // Showing Atlas to people one after another on the same computer.
+  (() => {
+    const row = h("div", { class: "about-row" }, h("span", { class: "muted small" }, "Showing Atlas to people one after another? Start fresh for the next visitor: the opening, the tour and a clean slate (Atlas AI and feedback notes are kept)."));
+    const btn = h("button", { class: "pill-btn" }, "Start fresh") as HTMLButtonElement;
+    btn.addEventListener("click", () => {
+      if (btn.dataset.sure !== "1") { btn.dataset.sure = "1"; btn.textContent = "Tap again to clear"; setTimeout(() => { btn.dataset.sure = ""; btn.textContent = "Start fresh"; }, 4000); return; }
+      try {
+        for (const k of Object.keys(localStorage)) if (k.startsWith("atlas.") && k !== "atlas.ai.v1" && k !== "atlas.feedback.v1") localStorage.removeItem(k);
+        sessionStorage.clear();
+      } catch { /* storage blocked */ }
+      location.replace(location.pathname);
+    });
+    row.append(btn);
+    return row;
+  })());
 $("ui").append(aboutPanel);
-about.addEventListener("click", () => (aboutPanel.hidden = !aboutPanel.hidden));
 
 // Status bar: cursor position.
 const readout = $("readout");
@@ -695,17 +815,60 @@ const syncHash = () => {
 };
 // Lenses: ways of looking at whatever was tapped, offered in the place card.
 const lenses = createLenses(app, LENSES);
+// "More" also holds the lenses you've made or kept, one tap from any place.
+app.moreExtras = () => {
+  const mine = myLenses();
+  return [
+    h("p", { class: "more-title" }, "Your lenses"),
+    h("div", { class: "chips wrap more-lenses" },
+      ...mine.map((d) => h("button", { class: "chip", title: d.blurb, onclick: () => { app.toggleMore(false); app.actions.get("lens:custom")?.run(d.id); } }, `${d.icon} ${d.name}`)),
+      h("button", { class: "chip", onclick: () => { app.toggleMore(false); app.actions.get("lens:studio")?.run(); } }, mine.length ? "✨ Make another" : "✨ Make a lens")),
+  ];
+};
 app.sheet.el.querySelector(".share-menu")!.after(lenses.strip);
 $("ui").append(lenses.panel);
 app.onName = (p) => lenses.rename(p);
 for (const l of LENSES) app.actions.set(`lens:${l.id}`, { label: l.label, run: () => void lenses.openWhenReady(l.id).then((ok) => { if (!ok) app.toast("Tap a place first, then choose a lens.", 4000); }) });
+
+// People: accounts, pages about the places people love, and lenses anyone can make.
+const soundRow = h("div", { class: "am-row am-static" }, h("span", {}, "Sounds and taps"), soundBtn);
+const social = wireSocial(app, {
+  lensList: LENSES,
+  lenses,
+  openPlace: (slug) => openPlace(slug),
+  closePanels: () => closePanels(),
+  extras: () => [
+    { label: `Watching${social ? ` (${social.watch.count()})` : ""}`, icon: iconSvg("🔔", 18) ?? icons.sparkle, run: () => app.actions.get("watch:open")?.run() },
+    { label: "Take the tour", icon: icons.compass, run: () => startTour(app) },
+    { label: aiOn() ? "Atlas AI: connected" : "Connect Atlas AI", icon: icons.sparkle, run: () => aiSettings.open() },
+    { label: "Send feedback", icon: icons.pencil, run: () => void import("./ui/feedback").then((m) => m.openFeedback(app)) },
+    { label: "About Atlas and its data", icon: icons.info, run: () => { aboutPanel.hidden = false; } },
+    soundRow,
+  ],
+});
+about.replaceWith(social.account.button);
+$("ui").append(social.account.menu);
+hideSocial = () => { if (social.profiles.isOpen) social.profiles.close(); if (social.studio.isOpen) social.studio.close(); };
+// A landmark with an intro gets a small chip to play it again.
+const introChip = h("button", { class: "lmi-replay", hidden: true });
+$("ui").append(introChip);
+const syncIntroChip = (p: typeof app.place) => {
+  const ip = p ? introFor(p.name?.title, p.lon, p.lat) : null;
+  introChip.hidden = !ip;
+  if (!ip) return;
+  introChip.replaceChildren(h("span", { "aria-hidden": "true" }, "▶"), ` ${ip.name}: the intro`);
+  introChip.onclick = () => withIntro(ip.name, ip.lon, ip.lat, (x) => x && arriveAt(x), true);
+};
+app.actions.set("intro:play", { label: "Play this landmark's intro", run: () => { const p = app.place; if (p) withIntro(p.name?.title, p.lon, p.lat, (x) => x && arriveAt(x), true); } });
 app.onPlace = (p) => {
+  syncIntroChip(p);
+  if (p) try { localStorage.setItem("atlas.tapped", "1"); } catch { /* private mode */ }
   // A new place ends the slow circling around the last one.
   stopArriving();
   void lenses.update(p);
   // Its page address, for the link in the URL.
   if (p && !p.slug) void slugOfPlace(p).then((s) => { if (app.place === p) { p.slug = s; syncHash(); } }).catch(() => {});
-  // My Place's home lists "Save this spot": keep it in step with the selection.
+  // My Places's home lists "Save this spot": keep it in step with the selection.
   if (!placeHub.panel.hidden && placeHub.panel.querySelector(".today-card")) placeHub.ctx.home();
   syncHash();
   myPlaces.refresh();
@@ -726,6 +889,44 @@ app.looks = looks;
 app.onTheme = (id) => { looks.set(id); syncHash(); };
 globe.viewer.camera.moveEnd.addEventListener(syncHash);
 
+// The card follows the map. After you move the map yourself (drag, scroll, pinch, the zoom buttons), if the
+// place you chose has left the part of the map you can see (or you've pulled right out to the whole planet),
+// the card lets go of it and shows what's in view instead, with "Back to …" one tap away. Atlas's own camera
+// moves (arriving somewhere, time travel, framing an answer) never do this, nor do moves while a lens or a
+// drawing tool is working on the place.
+{
+  const canvas = globe.viewer.scene.canvas;
+  let byHand = false;
+  const mark = () => { byHand = true; };
+  for (const ev of ["pointerdown", "wheel", "touchstart"]) canvas.addEventListener(ev, mark, { passive: true });
+  document.addEventListener("click", (e) => { if ((e.target as Element | null)?.closest?.(".map-zoom, .map-ctl")) mark(); }, true);
+  const inView = (p: { lon: number; lat: number; height: number }) => {
+    const scene = globe.viewer.scene, pos = Cartesian3.fromDegrees(p.lon, p.lat, 0);
+    // Behind the globe?
+    const cam = scene.camera.positionWC, n = Cartesian3.normalize(pos, new Cartesian3());
+    if (Cartesian3.dot(Cartesian3.subtract(cam, pos, new Cartesian3()), n) < 0) return false;
+    const w = SceneTransforms.worldToWindowCoordinates(scene, pos);
+    if (!w) return false;
+    const pad = freeArea(canvas), W = canvas.clientWidth, H = canvas.clientHeight, m = 12;
+    return w.x >= pad.left - m && w.x <= W - pad.right + m && w.y >= pad.top - m && w.y <= H - pad.bottom + m;
+  };
+  globe.viewer.camera.moveEnd.addEventListener(() => {
+    if (!byHand) return;
+    byHand = false;
+    const p = app.place;
+    if (!p || !lenses.panel.hidden || app.interacting) return;
+    const far = globe.viewer.camera.positionCartographic.height > 6_000_000;
+    if (!inView(p) || far) app.release();
+  });
+  // "Back to …": fly back and open it again, as it was.
+  app.onReturn = (p) => {
+    const slug = p.slug;
+    if (slug && !slug.startsWith("@")) { void openPlace(slug); return; }
+    void flyToPlace(globe, { name: p.name?.title ?? "", lon: p.lon, lat: p.lat, radius: 1500 });
+    app.select({ lon: p.lon, lat: p.lat, height: p.height }, p.name, p.feature);
+  };
+}
+
 // Opening view: a shared link's view, or the whole planet.
 const shared = parseHash(location.hash);
 // Opened from a place's own page (p/nile/), or a link to one (#/p/nile).
@@ -733,7 +934,7 @@ const pageSlug = (window as { ATLAS_PAGE?: string }).ATLAS_PAGE;
 // Places by name answer the first keystroke.
 setTimeout(warmPlaces, 1500);
 document.querySelector(".seo-page")?.remove();
-const pageLinked = /^#\/p\//.test(location.hash) || (!!pageSlug && !location.hash);
+const pageLinked = /^#\/p\//.test(location.hash) || /^#follow=/.test(location.hash) || (!!pageSlug && !location.hash);
 if (shared.camera) {
   const c = shared.camera;
   globe.viewer.camera.setView({
@@ -767,7 +968,7 @@ else if (!shared.camera && !pageLinked && myStore.all().length) {
   setTimeout(() => {
     void flyToPlace(globe, { name: home.name, lon: home.lon, lat: home.lat, radius: 400 });
     app.select({ lon: home.lon, lat: home.lat, height: 0 }, { title: home.name, context: home.address ?? "My place" });
-    app.toast(`Welcome back to ${home.name}. My Place (top right) has today's brief and its dashboard.`, 6000);
+    app.toast(`Welcome back to ${home.name}. My Places (top right) has today's brief and its dashboard.`, 6000);
   }, 1200);
 }
 
@@ -777,6 +978,6 @@ if (import.meta.env.PROD && "serviceWorker" in navigator)
 
 // Handy for debugging from the browser console during development.
 if (import.meta.env.DEV) {
-  Object.assign(window, { atlas: { app, globe, labels, overlays, feeds } });
+  Object.assign(window, { atlas: { app, globe, labels, overlays, feeds, traffic, cityLife, cart: (lon: number, lat: number, h: number) => Cartesian3.fromDegrees(lon, lat, h) } });
   void import("cesium").then((Cesium) => Object.assign(window, { Cesium }));
 }

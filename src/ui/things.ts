@@ -12,7 +12,15 @@ import type { WorkTool } from "../work/hub";
 import type { Thing } from "./frontDoor";
 
 const THEME: Record<string, { emoji: string; words: string }> = {
-  explore: { emoji: "🧭", words: "discover browse" },
+  explore: { emoji: "🧭", words: "overview discover browse explore" },
+  money: { emoji: "💰", words: "money finance commerce trade business economy companies currency exchange rate dollar inflation interest banks stock market shopping malls markets" },
+  sports: { emoji: "🏟️", words: "sport stadium arena teams football soccer baseball basketball athletes gym pitch" },
+  fashion: { emoji: "👗", words: "clothes boutique designers brands labels style fashion week tailor shoes" },
+  food: { emoji: "🍲", words: "restaurants cafes eat cuisine dishes dining markets bakery" },
+  tourism: { emoji: "🧳", words: "tourism tourists visitors hotels stay sights attractions heritage unesco travel" },
+  education: { emoji: "🎓", words: "education schools universities colleges literacy libraries students" },
+  health: { emoji: "🏥", words: "health hospitals clinics doctors pharmacy medical life expectancy" },
+  arts: { emoji: "🎭", words: "music musicians bands artists theatre galleries venues concerts culture" },
   land: { emoji: "⛰️", words: "earth ground terrain rocks geology minerals mountains soil" },
   water: { emoji: "🌊", words: "rivers lakes oceans sea flood" },
   climate: { emoji: "🌦️", words: "weather temperature rain forecast" },
@@ -32,6 +40,9 @@ const TOOL: Record<string, { emoji: string; words: string }> = {
   video: { emoji: "🎬", words: "record film movie studio" }, teach: { emoji: "🎓", words: "lesson quiz class students" },
   ask: { emoji: "✨", words: "find search suitable conditions land where" }, learn: { emoji: "🏛️", words: "games museums quiz challenge" },
   space: { emoji: "🪐", words: "satellites iss launches" },
+  office: { emoji: "🏛️", words: "politics pro congress district office constituents casework whip count bill staff crm legislature campaign town hall" },
+  network: { emoji: "🔗", words: "business network supply chain logistics suppliers partners customers shipping goods flows carbon" },
+  news: { emoji: "🗞️", words: "news headlines world now happening today stories current events wildfires storms" },
   year: { emoji: "🌱", words: "seasons year months greening spring summer autumn winter solstice equinox rhythm" },
 };
 
@@ -48,6 +59,12 @@ export function buildThings(app: App, overlays: Overlays, tools: WorkTool[]): Th
       out.push({ title: l.label, detail: l.about, emoji: l.emoji, group: "Show on the map", words: themeId, on: () => layerIsOn(app, themeId, l),
         run: () => void switchLayer(app, themeId, l, true).then(() => app.toast(`${l.label} on the map. Switch it off from “On the map”.`, 3000)) });
     }
+  for (const [id, title, emoji, detail, words] of [
+    ["live:planes", "Live planes", "✈️", "Every aircraft in view, moving live at its real height", "planes flights aircraft flying overhead air traffic adsb flight tracker"],
+    ["city:life", "Living city", "🏙️", "3D buildings and trees, with cars and people moving on the real streets", "3d city buildings traffic people pedestrians cars simulation streets living"],
+    ["live:ships", "Live ships", "🚢", "Vessels moving live over AIS: cargo, tankers, ferries", "ships boats vessels marine traffic ais shipping ferries"],
+  ] as const)
+    out.push({ title, detail, emoji, group: "Show on the map", words, on: () => !!app.actions.get(id)?.isOn?.(), run: act(id) });
   for (const n of NETWORKS)
     if (!seen.has(n.label)) {
       seen.add(n.label);

@@ -10,17 +10,18 @@ themes) and goes deep when you want it to: rock sections, watersheds, life zones
 
 Atlas does three things, switched at the top of the screen:
 
-- **My Place**: your home, farm, site or business. A daily brief ("Today at Hillside Farm": frost tonight,
+- **My Places**: your home, farm, site or business. A daily brief ("Today at Hillside Farm": frost tonight,
   a ewe due to lamb, a vaccination due, a project running behind), your saved places with their 3D view,
   energy, water and security, and the tools to run them: **Grow**, **Flock**, **Build** and live occupancy (Pro).
-- **Look**: the whole Earth and space. Tap anything, flip through the themes, or look at it through a lens.
+- **Explore**: the whole Earth and space. Tap anything, flip through the themes, or look at it through a lens.
   **Space** and **Learn** are one tap away on the Earth card.
-- **Make**: **Plan**, **Present**, **Video** and **Teach**: things made from the map to share.
+- **Create**: **Plan**, **Present**, **Video** and **Teach**: things made from the map to share.
 
-**Explore (the default).** Just move the map. Atlas labels what's worth knowing as you go: seas, mountain
+**Overview (the default).** Just move the map. Atlas labels what's worth knowing as you go: seas, mountain
 ranges and cities when zoomed out; rivers, landmarks, stadiums, parks and museums when zoomed in (the Hudson,
 the Empire State Building and Madison Square Garden in Manhattan; the Thames, Big Ben and Wembley in London).
-Places are ranked by how many Wikipedia language editions write about them. The card follows the map with
+Places are ranked by how many Wikipedia language editions write about them; where that bar leaves a view thin
+(much of Africa, South Asia and Latin America is written about in fewer languages) it's lowered until the view fills. The card follows the map with
 "Worth knowing here": whether you're in the northern-lights zone (with tonight's live chance and Kp), midnight
 sun and daylight, nearby plate boundaries, this week's earthquakes, World Heritage sites. One-touch toggles
 show labels, the live aurora forecast, earthquakes, plate boundaries, night lights, rain radar and wildlife
@@ -66,7 +67,7 @@ ground, and offers the lenses that suit it, best first. Each lens is designed on
 The task robot opens lenses too: "slice open Mount Rainier", "drain the ocean around Britain", "true size
 of Greenland", "subway map of Tokyo", "ocean currents in the Atlantic", "where was London during Pangaea".
 
-**Today at your place.** My Place opens on a daily brief for your main place, most urgent first: frost,
+**Today at your place.** My Places opens on a daily brief for your main place, most urgent first: frost,
 heat, heavy rain or gales in the next four days (with what to do about them for crops, animals or a
 building site), animals due to give birth or due a vaccination (overdue first), fields ready to harvest or
 within two weeks of it, how much to irrigate this week (mm and litres for the field), projects running
@@ -89,11 +90,11 @@ wheat"* (Grow's field diary, which also sets the crop and planting date), *"Oak 
 slab, 14 crew, structure 60%"* or *"Oak Street delivery of steel on Friday"* (Build's site log, progress and
 deliveries). It shows what it will save first, and the search box accepts the same lines.
 
-**Try a demo farm.** With nothing saved yet, My Place offers Hillside Farm, a demo smallholding with sheep
+**Try a demo farm.** With nothing saved yet, My Places offers Hillside Farm, a demo smallholding with sheep
 (six about to lamb), cattle, hens, paddocks and three fields, all dated from today, so the brief and the tools
 are alive at once. One tap removes it.
 
-**My Place.** The My Place mode (top right) keeps the places you care about: home, a family hotel, a farm.
+**My Places.** The My Places mode (top right) keeps the places you care about: home, a family hotel, a farm.
 Save a spot you tapped or searched for, or start from where you are. Each place gets a dashboard:
 a **3D view** of the buildings around it (OpenStreetMap footprints extruded to their mapped height or
 number of floors, yours in orange, with an orbit), **energy** (solar panels, battery, generator: expected
@@ -175,8 +176,8 @@ track from OpenRailwayMap when zoomed in), highways and ferries, shipping lanes,
 airports, 35,000 power plants coloured by fuel and sized by capacity, and the undersea cables that carry
 the internet. Tap a dot for the plant, port or airport.
 
-**The tools.** Grow, Flock, Build and live occupancy live under **My Place**; Plan, Present, Video and Teach
-under **Make**; Learn under **Look**. All of them are open to anyone:
+**The tools.** Grow, Flock, Build and live occupancy live under **My Places**; Plan, Present, Video and Teach
+under **Create**; Learn under **Explore**. All of them are open to anyone:
 
 - **Politics** (Countries › Politics): who governs the place you're looking at. For every country: who holds
   power (head of state and of government, with their parties and portraits), the legislature (chambers and
@@ -191,11 +192,11 @@ under **Make**; Learn under **Look**. All of them are open to anyone:
   face it, ridges throw real shadows across the valleys (worked out from the ground's shape), the light warms at
   dawn and dusk, and night falls. Pick midsummer, the equinox or midwinter; the dial gives sunrise, sunset,
   daylight and golden hour, and says when the summit catches first light and how long the valley floor waits
-  ("158 minutes later" in Yosemite). **The year breathes** (Look): spin a dial through the year and watch the
+  ("158 minutes later" in Yosemite). **The year breathes** (Explore): spin a dial through the year and watch the
   planet change: the sun where it is on that day, with polar night and the midnight sun, and NASA's satellite
   greenness week by week, with a line on what the planet is doing that month. Play loops it.
 - **The tour.** A step-by-step introduction shown once, after the first opening: one box for everything, a
-  place's page, lenses, themes, time, and Look, Make and My Place, ending with "Finished". Replay it from
+  place's page, lenses, themes, time, and Explore, Create and My Places, ending with "Finished". Replay it from
   About or by typing "tour".
 - **Delight.** Atlas opens like a film: from black, a few words faded in and out ("Every place on Earth has a
   story."), the name, then the Earth fades up in real sunlight with its night side dark, and a live line on
@@ -228,7 +229,7 @@ under **Make**; Learn under **Look**. All of them are open to anyone:
   the sea, rivers, flood risk; plate edges and volcanoes; country figures), each figure opening its theme, with
   **Places like this** (its own figures as conditions, answered across the region), stories that pass through,
   and pages nearby.
-- **Ask the map** (in Look, or typed into the search box) answers questions no single layer can: "flat,
+- **Ask the map** (in Explore, or typed into the search box) answers questions no single layer can: "flat,
   south-facing land under 800 m, near an airport, low flood risk". The sentence becomes conditions you can see
   and tune with sliders (height, slope, which way it faces, warmth, coldest month, frost, rain, sunshine, the
   nearest big city, people nearby, airports, seaports, rail, main roads, rivers, the sea, a flood proxy,
@@ -317,7 +318,7 @@ The task robot opens these too: "Europe in 1914", "the Roman Empire in 100 AD", 
 
 **Works offline, installs as an app.** Add Atlas to a phone's home screen. The app, its bundled data and
 the terrain you've looked at stay cached, so Atlas opens in a field with no signal, with your records on the
-device (satellite imagery follows the browser's own cache until an imagery licence allows storing it). **Back up everything** (in My Place) saves all your places, animals, fields,
+device (satellite imagery follows the browser's own cache until an imagery licence allows storing it). **Back up everything** (in My Places) saves all your places, animals, fields,
 projects, plans, decks and quizzes to one file to keep or to restore on another device.
 
 **Worth knowing.** Tap a notable feature and the place card says something true about it: about 270 rivers,
@@ -328,7 +329,264 @@ map's labels come from Natural Earth's detailed (10 m) data: seas, bays, straits
 ice fields and salt flats, then about 7,800 towns, lakes and reservoirs as you zoom in, and detailed rivers
 for the area in view. The Built theme adds famous streets and squares and the world's metro systems.
 
-**Space** (from the Earth card in Look, or "satellites" in the search box) shows satellites computed live from CelesTrak's orbital elements (space
+**3D by default, and a living city.** Coming down toward the ground, the camera tilts toward the horizon
+(straight down from space, about 55° over a region, about 38° at street level; once per descent, and never
+against your own tilt). Below about 3 km over a town, Atlas builds the city around you from OpenStreetMap and
+sets it going: buildings rise to their mapped height in soft clay tones with deeper-toned roofs, trees stand in
+the parks (the mapped ones, and more scattered through green spaces), small toy-like cars drive the real street
+network (keeping to their side, following one-ways, turning at junctions, at each road's speed), and figurine
+people walk the pavements and footpaths, thickest near shops, cafés and stations. How many are out follows
+the local hour: rush hours busy, nights quiet. Figures are life-size close up and grow with distance so they
+still read from above. It's a simulation on real streets (there is no public feed of individual cars and
+people), labelled as such; switch it under Layers › Live › Living city. With a Google key, the photorealistic
+3D city is on by default and the figures move through it.
+
+**Landmark intros.** The first time in a visit that you open one of about 120 of the world's most-searched
+places (from search, a place link or a curated list), it's introduced before you arrive. The place stands
+as a white architect's model on a plinth in a white studio: the ground shaped from the real terrain (sea in
+pale blue), the buildings around it from OpenStreetMap, and the landmark itself as a simple massing model
+that rises into place piece by piece. A few lines and the figures worth knowing sit beside it; the camera
+moves in and callouts point out its parts (the Statue of Liberty's torch, crown, pedestal and Fort Wood's
+star walls). Then it cuts to the real place on the globe, where the camera circles it. Drag to turn the model
+(the clock waits), **Go there** to cut early, **Skip**, or switch intros off. A chip on the map plays it again.
+The list is spread on purpose: Djenné, Lalibela, Great Zimbabwe, Aksum, Meroë, Chichén Itzá, Machu Picchu,
+Borobudur, Angkor Wat and Lagos stand beside the Eiffel Tower and the Empire State Building.
+
+**Politics Pro.** In My Places, a legislative office runs on the map. Start from the member (the whole of
+Congress is searchable) and the district is outlined from the Census Bureau, with its people from the American
+Community Survey (population, age, income, home values, veterans, poverty, born abroad, degrees). Add the
+office's locations; the people it serves and works with (constituents, stakeholders, organisations, press,
+officials), each with topics, a contact log and a stance on each bill, placed on the map from their address;
+casework by agency, oldest first, flagged when it's gone two weeks without an update; and events on a calendar
+and the map. **Import a CSV** from any CRM or spreadsheet (the usual columns are understood, and addresses are
+put on the map) and **export** it back with stances. Each bill gets a **whip count**: the chamber as a parliament
+arc coloured from yes to no, likely yeses against the votes needed ("208 of 218, 10 short"), every member of
+the House or Senate as a dot in their state across the country, and the stakeholders' stances on the map.
+"Start from party lines" fills a first guess only where nothing is set. A demo office (a made-up member for
+Colorado's 2nd) shows it all; no real member is given a stance.
+
+Not only Congress: a **state legislator** finds their senate or house district from any address (Census TIGERweb, all
+50 states), and a **council or any other body** brings its boundary as a GeoJSON file. The **mailbag** logs every
+email, letter, call and form by topic and position (support, oppose, comment, request), charts the last eight weeks,
+flags a topic that's rising, and keeps the reply queue against a two-week promise. **Form letters** are written once
+per topic and merged per person ({first}, {name}, {topic}); reply one by one (copy, or straight into an email) or to
+everyone on a topic at once as a merged file for the mail system. Mail comes in from any mail system's CSV export and
+goes back out. **Casework** shows turnaround by agency (median days open, median to close) and flags open cases
+without a privacy release. Each **event** builds its invite list: people within 5 to 60 km, optionally only those who
+care about a topic, exported for the invitation. A one-click **weekly report** puts mail, casework, bills, events and
+stakeholder positions on one printable page.
+
+**Sports Pro.** A club run on the map. The season's fixtures and what the travel costs (kilometres, hours,
+flights and carbon for the travelling party, going straight on between away games four days or less apart),
+with turnarounds flagged when there are three days or fewer to cover more than 800 km. Where the fans are, with
+rings at 25, 100 and 250 km, their share within each, and how many members there are per 1,000 people living
+nearby. Match day with crowds flowing in from each group (turnout falls with distance) against the capacity.
+The players being scouted worldwide, by status, with scouting reports. And the sponsors, supporters' groups,
+police and league the club deals with, each with a mood and a log. The demo is a made-up club in Belo
+Horizonte whose away games run from Porto Alegre to Belém: 17,800 km, 10 flights and four tight turnarounds.
+
+Start from a real team. **Baseball comes in live from MLB's Stats API**: every MLB club and every minor-league
+affiliate (Triple-A, Double-A, High-A, Single-A and the complex leagues) with its ballpark. Pick one and its season's
+schedule loads, its league rivals appear on the map, and its **farm system** is drawn with the parent club and each
+affiliate, how far apart they are, and the call-ups, options and assignments of the last 60 days flowing between them.
+**Any other league** (NBA and the G League, NHL, AHL and ECHL, NFL, MLS, USL, the NWSL, the Premier League, La Liga,
+Liga MX, Brazil's Série A, the IPL, Nigeria's and South Africa's top flights…) comes from Wikidata: its current clubs and
+grounds, with partner and feeder clubs added by name, and the schedule brought in from the club's calendar file (.ics).
+Every club gets the **league view** (travel if every club visited every other once, most to least, with the club's
+place and nearest rival), the shape of its schedule (road trips, back-to-backs in different places, clock changes by
+longitude) and a printable **travel report**.
+
+**Mining Pro.** A mine and its licence to operate. The value chain from pit to plant to rail to port to
+smelter as living streams, with each export route compared per tonne (distance, time, carbon). What a year is
+worth (contained and recovered metal, revenue, cost, margin and break-even price; percent or grams-a-tonne
+grades). The towns within 10, 25 and 50 km, and the groups the mine answers to (communities, traditional
+leaders, landholders, regulators, NGOs, unions) with their mood, a log and their grievances, oldest and most
+serious first. Who lives lower than the tailings dam within 30 km, towns and mapped communities, from the
+elevation data. Permits running out, and this week's earthquakes within 300 km. Start from any of the 60+
+mines in the Minerals list, or the demo: a made-up copper mine in Zambia shipping via Dar es Salaam and the
+Lobito corridor.
+
+Built for a site's community-relations team and its board. The **grievance mechanism** follows IFC Performance
+Standard 1 and ICMM practice: each grievance has a category, the channel it came by, who raised it (or anonymous) and
+where, and moves through received, acknowledged, investigating, response given and closed (or appealed), each step
+dated and kept in its history. It's measured against the mine's own promises: the share acknowledged within 7 days
+and answered within 30, median days to close, satisfaction asked at closing, the late ones flagged, the last twelve
+months by month and by category, and any group raising three or more in a year called out as a pattern. The register
+exports to CSV and imports from a spreadsheet or another system. A **commitments register** tracks what was
+promised, to whom, by when and whether it was kept on time; stakeholders nobody has spoken to in 90 days are listed.
+For the **tailings dam**, Atlas traces the steepest way down from it across a 40 km square of elevation and counts the
+towns, mapped communities, camps and workplaces within 2 km of that path, nearest first, giving the GISTM consequence
+class by population at risk (Low to Extreme). A one-click **board report** brings it together, printable or as a PDF.
+
+**Field Ops.** A humanitarian or development programme on the map. The communities served (people, and what
+they need) and the warehouses, clinics, water points, schools and distribution points serving them. For
+each service, who is further than the set distance ("too far is 5 km to water, 15 km to a clinic") and
+where one more site would bring the most people within reach, with a button to plan it. Supply lines from port
+to warehouse to clinic as living streams, incidents, deliveries and reports due, the people worked with, and
+NASA's open natural events and recent earthquakes near the communities. The demo is a made-up programme in
+Turkana, northern Kenya, supplied from Mombasa and Kitale.
+
+It speaks the language of coordination. The **response** is kept as a 4W (who does what, where and when) with people
+reached split by women, men, girls and boys, and exports in the column layout clusters collect. **Indicators** track
+against targets, from the people reached in their sector or as entered. The **gap matrix** lays communities against
+sectors (WASH, health, education, food security, nutrition, protection, shelter, livelihoods): green where someone is
+working, yellow where two or more overlap, red where a stated need has no one. **Supplies** show weeks of cover at the
+current rate, with anything under four weeks flagged before the pipeline breaks. Coverage plans **several new sites at
+once** (each placed where it reaches the most people still too far) and gives walking times, not just kilometres.
+Communities come in from **Kobo, ODK or a spreadsheet** (name, GPS, population or households, needs), and a one-click
+**donor report** puts reach, indicators, gaps, supplies and incidents on a printable page.
+
+**Freight Desk (for freight forwarders, shipping agents and shippers).** Every shipment on its sea route, with the ship
+where it is now and when the cargo really arrives. Routes come from a graph of the straits, canals and capes ships
+actually pass: Singapore–Rotterdam comes out at 8,343 nm and Santos–Rotterdam at 5,519 nm, within a few percent of
+published distances. Ships over about 15,000 TEU can't use the Panama Canal's locks, so they go the long way.
+
+- **The board.** Open shipments ranked by what needs a look: running late against the promised date, a ship gone quiet
+  on AIS, free time ending, demurrage accruing, papers not done. Each shipment has a stage, a log and a plain update for
+  the customer to copy. Each customer gets a printable status report.
+- **Routes.** The chokepoints your cargo passes (Red Sea, Suez, Panama, Hormuz, Malacca, Taiwan Strait, Bosporus,
+  Gibraltar) and how many shipments use each. Pick one to see what closing it would do: each affected shipment's detour
+  in miles, days and CO₂, drawn in orange. Mark it closed and every ETA follows.
+- **Ports.** What's arriving where over the next 30 days, and how long ships are waiting to berth: from your agents, or
+  counted live from ships at anchor where there's AIS coverage. The wait goes into every ETA there.
+- **Carbon.** CO₂ per shipment and per customer from distance, cargo and ship type, scaled by the square of speed. Shows
+  the EU ETS bill (40% of emissions in 2024, 70% in 2025, all from 2026; half of a voyage to or from outside Europe) and
+  what sailing 2 knots slower would save.
+- **Risk.** Areas with standing security warnings (southern Red Sea and Gulf of Aden, Somali Basin, Gulf of Guinea,
+  Hormuz, Black Sea, Singapore Strait), ports in sanctioned countries (a prompt to screen, not legal advice), and wave
+  heights along each ship's next five days (Open-Meteo Marine).
+- **Live positions.** Give a ship its MMSI and Atlas finds it on AIS near where it should be: Digitraffic in the Baltic,
+  anywhere else through the edge's AISStream relay. Or paste a position from the carrier's tracking page. Without one,
+  the position is worked out from when it sailed and its speed.
+- **Import and export.** Bookings come in by CSV (port names or UN/LOCODEs), and every shipment goes out with its
+  estimated ETA, delay, distance and CO₂. Arrivals also show up in My plans.
+
+**Relief Pipeline (for humanitarian logisticians).** Port to people: ports of entry, hubs, field warehouses and
+distribution points, joined by roads, Nile-style barge routes and air links, each with its speed, handling, checkpoint
+and border delays, trucks or flights a day, and cost per tonne-km.
+
+- **Pipeline.** When each distribution point runs out of each thing (a general ration per person, or RUTF cartons a
+  day), counting what's on the way. It names the nearest place holding two weeks' worth, how long that takes, and the
+  last day to send, so a break that sending now can't prevent is told apart from one that must go out this week.
+- **Before the roads close.** For places served only by dry-season roads, what they need in stock by the first wet
+  month to last the whole season.
+- **Access.** Every route open, slow or cut: by you, by the rains (roads run at half speed, dry-season roads close), or
+  near an incident in the last 14 days. Places that can only be reached by air, or not at all, are listed first. Each
+  place's rainy season can be filled in from ten years of ERA5 rainfall.
+- **Moves.** What's on the way and what's overdue. Planning a move compares the fastest, cheapest and ground-only
+  routes: path, arrival, trucks, barges or flights, cost and CO₂. Mark it arrived and the stock lands.
+- **Sitrep.** A printable logistics situation report, and stock and pipeline as CSV.
+
+The demo runs from Mombasa up the Northern Corridor through Kampala to Juba, then out to Bor, Rumbek, Wau, Malakal and
+Bentiu, and on to Pibor, Akobo, Leer, Aweil, Maban and Kapoeta in the rains.
+
+**My plans.** Everything you've planned anywhere in Atlas, on one map in one colour: the darker the blue, the sooner it
+happens, and past plans turn grey. It gathers trip stops and journeys, events, field trips, building phases, and from the
+Pro tools office events, fixtures, permit expiries, open commitments, deliveries and deal close dates. A trip's stops are
+joined leg by leg, each leg in the shade of where it arrives. Beside the map is a timeline (Today, This week, This month,
+Later, and Past folded away), a "Next" line, a 30-day, 90-day or one-year scale, and a chip per kind of plan to show or hide.
+Tap any plan to go there.
+
+**Field Network (for mining equipment, technology and services companies).** There are far more companies selling
+to and servicing mines than there are mine operators, and their work is geographic: machines spread across remote sites,
+technicians who have to reach them, parts, and a market of every mine on Earth. Field Network puts it on one map.
+
+- **Every customer site fills itself in**: altitude and air density (at Collahuasi's 4,400 m the air is 59% of sea
+  level and diesels lose roughly a quarter of their power), ten years of climate (monthly temperatures, records, rain
+  and the wet months), the nearest large power station, port and airport, a **battery-electric readiness** screen
+  (grid close by, altitude where electric drives keep their power, long diesel supply lines, battery-unfriendly cold or
+  heat), and a flag where 3TG minerals meet a Dodd-Frank covered country.
+- **The installed base**: every machine with its hours (projected from the last reading), next service, warranty and
+  design life, so the fleet view shows what's down, overdue, due this week, and the **sales triggers**: warranties
+  ending (offer a service contract) and machines near the end of their life (start the replacement deal).
+- **Service**: jobs, and for each the technicians with the skill, available first, ranked by how long they'd really take
+  to get there, driving or flying to the airport nearest the site and driving the rest, with a connection or charter
+  for small airports and roads half as slow again in the site's wet months. Parts come from the nearest depot that has
+  them, with weeks of cover for each. Every site is checked against its contracted response time (and again with only
+  the technicians free right now), and Atlas suggests where one more base would bring the most machines back within it.
+- **Market**: Atlas's major mines plus every operating mine on Wikidata, each scored for fit (commodity, open pit or
+  underground, and whether it can be serviced from an existing base), with the good fits too far from any base called
+  out as a market a new base would open. Deals by stage, value weighted by stage, win rate.
+- **Risk**: how concentrated the installed base is by commodity and country (a copper price fall hits service hours
+  and new orders together), natural events and earthquakes near customers, conflict-minerals flags.
+- A **visit brief** for any site and a **monthly report**; customer sites and machines import from a CRM, ERP or
+  telemetry export, and the fleet exports back. The demo is a made-up equipment maker with 57 machines at 12 real mines
+  from the Andes to the Copperbelt, Mongolia, the Bushveld, the Pilbara and Lapland.
+
+**Field Network, sector by sector.** The same engine serves any company that sells to and services many sites; pick
+the sector and it brings its own equipment and service intervals, the site condition that matters most, where
+prospects come from, and a demo:
+
+| Sector | Equipment | What each site's conditions tell you | Prospects |
+|---|---|---|---|
+| Mining equipment and services | haul trucks, drills, loaders, crushers, automation | diesel derating by altitude, battery-electric readiness | every mine (Atlas + Wikidata) |
+| Farm machinery and irrigation | tractors, harvesters, planters, pivots | the growing season, planting with the rains, and the month to service before the rush | farmyards in the map view (OpenStreetMap) |
+| Wind, solar and power plant O&M | turbines, inverters, transformers | the dry, workable months for planned maintenance; heat and icing | every power station (Global Power Plant Database) |
+| Medical equipment | MRI, CT, X-ray, ventilators, vaccine fridges | grid reliability (backup power for scanners and cold chains), heat | hospitals on Wikidata |
+| Telecom towers | generators, batteries, rectifiers, radios | on or off grid, and how many days a tank of diesel lasts | towers and masts in the map view |
+| Construction and crane rental | tower and mobile cranes, excavators, pumps | weeks a year lost to rain, heat and frost | construction sites in the map view |
+| Sports facilities and equipment | turf pitches, floodlights, scoreboards, gym kit | playing months, and where artificial turf keeps pitches open | pitches (with their surface) in the map view |
+
+Demos: a soy-belt dealer in Mato Grosso, a wind and solar O&M firm from Lake Turkana to Noor Ouarzazate and De Aar, a
+medical equipment servicer across Kenya, Uganda and Tanzania, a tower company across Nigeria, a crane rental firm in
+Texas, and a turf installer in Mexico. Every company and its equipment is made up; the places are real.
+
+**Business network.** Also in My Places: map a business as it runs. Its sites (head office, shops,
+warehouses, factories) and its partners (farms, suppliers, ports, customers), and what moves between them:
+goods, people, money and data, how much and how often, by truck, van, rail, ship, air, public transport, on
+foot or digitally. Each flow is drawn as a living stream along its route (orange goods, blue people, green
+money, purple data; busier for bigger flows; arcing off the globe for long hops), with its distance, time
+door to door and yearly carbon. The network sums up: sites, partners, tonne-km, CO₂ a year, the longest and
+slowest legs and the flows that make most of the carbon. A demo coffee roaster (Colombian and Ethiopian farms,
+their ports, Port Newark, a Red Hook roastery and three cafés) shows it moving.
+
+**World now.** The first tile in Explore (and the "Right now" line as Atlas opens) gathers what's happening
+on Earth: the day's biggest stories as Wikipedia's editors pick them, each pinned where it's happening; the
+latest headlines from the big wire services and regional ones (Africanews, AllAfrica, The Hindu, Dawn, SCMP,
+The Straits Times, Arab News, MercoPress, via GDELT; no more than two from any one outlet); natural events still going on (wildfires, storms,
+volcanoes, floods, from NASA's EONET), filterable by kind; the week's strongest earthquakes; the next launch;
+what the world is reading today; and this day in history. Everything with a place goes on the globe: tap it to
+go there. A place's Overview adds **In the news**: the week's coverage that mentions it, in the local press's own
+language where English coverage is thin.
+
+**Live planes and ships.** Switch them on at the top of **Layers** (or type "planes"). Every aircraft in view
+appears where it is, at its real height, pointing the way it's flying, coloured by height (yellow near the
+ground, orange climbing, blue in between, near-white at cruise), and keeps gliding between reports along its
+heading at its speed and climb. Tap one for its card: callsign, airline, aircraft type and registration, the
+route (JFK → MIA) where it's known, live height, speed, heading and climb, and a warning if it's squawking an
+emergency. Its trail is drawn behind it and a dashed line shows where it will be in four minutes. **Follow**
+puts the camera behind it and keeps it there as it flies; **Share** makes a link that opens Atlas following it.
+Ships work the same (name, type, status, destination; 20 minutes ahead). Planes come from volunteer ADS-B
+networks (adsb.lol, then airplanes.live, then the OpenSky Network, which also gives the whole world when you're
+zoomed out). Ships come from AIS: Finland's Digitraffic shares the Baltic openly; anywhere else needs a free
+AISStream key on Atlas's edge (AISStream refuses browsers, so the edge relays the stream).
+
+**Right now, here.** Every place's Overview says what it's like there at this moment: the weather and the
+air (AQI, UV), where the sun is, how many planes are overhead and the highest, the strongest earthquake nearby
+this week, and natural events nearby. **Copy as data** gives the same as a small JSON "world state", for
+software that needs to know conditions at a point before acting there (a drone planner, a robot, an agent).
+The task robot can read it too ("what's flying over Denver right now?", "is the air OK in Delhi?"), and the
+world's news ("what's happening in the world?").
+
+**More: topics beyond the land.** The last tab on the theme bar, **More**, holds eight topics that look at a
+place through what people do there, each opening on the streets around it and widening to its country:
+**Money & trade** (today's exchange rate, inflation, borrowing costs, unemployment, trade, remittances and
+what the economy runs on; the central bank and stock exchange; the companies based nearby and the country's
+best known; and where people shop, bank and send money), **Sports** (stadiums and arenas with their seats and
+home teams, what people play on local pitches, the country's sports stars), **Fashion** (boutiques, tailors
+and shoe shops around, the nearest fashion week, the country's labels and designers), **Food** (what people
+eat here by cuisine, cafés, bars, bakeries and markets, the country's dishes) and **Arts & music** (theatres,
+venues, cinemas and galleries, and the musicians, bands and artists who came from there), **Tourism**
+(hotels, guest houses and sights around; visitors a year, what they spend and the World Heritage Sites),
+**Education** (schools, nurseries, colleges and libraries around; literacy, enrolment, pupils per teacher,
+spending and the best-known universities) and **Health** (the nearest hospital, even beyond the streets read,
+with its distance and whether it has an emergency department; clinics, doctors, dentists and pharmacies;
+life expectancy, doctors and hospital beds per 1,000, health spending and what patients pay themselves).
+Street-level figures come from OpenStreetMap (read once, shared by all eight), names from Wikidata, figures from the World
+Bank, and exchange rates from open.er-api.com. The same menu lists your lenses, so the views you've made are
+one tap from any place.
+
+**Space** (from the Earth card in Explore, or "satellites" in the search box) shows satellites computed live from CelesTrak's orbital elements (space
 stations, the brightest, science, weather, GPS, geostationary and Starlink), the ISS with its orbit and a
 "ride along" camera, when the ISS will pass over your place, rocket launches with countdowns from Launch
 Library 2 (a rocket in flight gets an illustrative climb, labelled as such), tonight's Moon and planets,

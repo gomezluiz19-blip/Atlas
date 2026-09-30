@@ -1,16 +1,16 @@
 // The three things Atlas is for, as one switch at the top:
-//   My Place: your home, farm, site or business, and the tools to run it;
-//   Look: the whole Earth (and space) through themes and lenses;
-//   Make: plans, presentations, videos and lessons made from the map.
+//   Explore: the whole Earth (and space) through themes and lenses;
+//   Create: plans, stories, videos and lessons made from the map;
+//   My Places: your home, farm, site or business, and the tools to run it.
 import { h } from "./dom";
 import { icons } from "./icons";
 
 export type Mode = "place" | "look" | "make";
 
 const MODES: { id: Mode; label: string; icon: string; title: string }[] = [
-  { id: "place", label: "My Place", icon: icons.home, title: "My Place: your home, farm or site, today and the tools to run it" },
-  { id: "look", label: "Look", icon: icons.eye, title: "Look: explore the Earth and space through themes and lenses" },
-  { id: "make", label: "Make", icon: icons.pencil, title: "Make: plans, presentations, videos and lessons" },
+  { id: "look", label: "Explore", icon: icons.compass, title: "Explore the Earth and space: tap anything, flip through the themes, look through a lens" },
+  { id: "make", label: "Create", icon: icons.pencil, title: "Create from the map: trips, stories, videos and lessons" },
+  { id: "place", label: "My Places", icon: icons.home, title: "My Places: your home, farm, site or business, with today's brief and the tools to run it" },
 ];
 
 export function createModeBar(onPick: (m: Mode) => void) {

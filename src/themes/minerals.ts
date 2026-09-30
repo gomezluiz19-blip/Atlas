@@ -32,7 +32,7 @@ function commodityMarker(c: Commodity, size = 34): string {
     const canvas = document.createElement("canvas");
     const s = size * 2;
     canvas.width = canvas.height = s;
-    const ctx = canvas.getContext("2d")!;
+    const ctx = canvas.getContext("2d", { willReadFrequently: true })!;
     ctx.beginPath();
     ctx.arc(s / 2, s / 2, s / 2 - 3, 0, Math.PI * 2);
     ctx.fillStyle = c.color;
