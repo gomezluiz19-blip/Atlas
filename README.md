@@ -365,6 +365,17 @@ the House or Senate as a dot in their state across the country, and the stakehol
 "Start from party lines" fills a first guess only where nothing is set. A demo office (a made-up member for
 Colorado's 2nd) shows it all; no real member is given a stance.
 
+Not only Congress: a **state legislator** finds their senate or house district from any address (Census TIGERweb, all
+50 states), and a **council or any other body** brings its boundary as a GeoJSON file. The **mailbag** logs every
+email, letter, call and form by topic and position (support, oppose, comment, request), charts the last eight weeks,
+flags a topic that's rising, and keeps the reply queue against a two-week promise. **Form letters** are written once
+per topic and merged per person ({first}, {name}, {topic}); reply one by one (copy, or straight into an email) or to
+everyone on a topic at once as a merged file for the mail system. Mail comes in from any mail system's CSV export and
+goes back out. **Casework** shows turnaround by agency (median days open, median to close) and flags open cases
+without a privacy release. Each **event** builds its invite list: people within 5 to 60 km, optionally only those who
+care about a topic, exported for the invitation. A one-click **weekly report** puts mail, casework, bills, events and
+stakeholder positions on one printable page.
+
 **Sports Pro.** A club run on the map. The season's fixtures and what the travel costs (kilometres, hours,
 flights and carbon for the travelling party, going straight on between away games four days or less apart),
 with turnarounds flagged when there are three days or fewer to cover more than 800 km. Where the fans are, with

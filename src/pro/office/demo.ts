@@ -4,6 +4,7 @@
 // given a stance: the whip count starts empty for you to fill in.
 import { newId } from "../../work/store";
 import type { Contact, Office } from "./model";
+import type { Message, Position } from "./mail";
 
 const day = (d: number) => new Date(Date.now() + d * 86_400_000).toISOString().slice(0, 10);
 const at = (d: number) => new Date(Date.now() + d * 86_400_000).toISOString();
@@ -49,12 +50,39 @@ export function demoOffice(): Office {
       { id: newId(), title: "Press call: housing", kind: "press", date: day(2), time: "11:00", place: { name: "Boulder district office", lon: -105.2790, lat: 40.0180 } },
     ],
     cases: [
-      { id: newId(), subject: "VA disability claim delayed", agency: "VA", contact: find("Sgt."), status: "open", opened: day(-58), updated: day(-20) },
-      { id: newId(), subject: "Wildfire mitigation grant", agency: "FEMA", contact: find("Tom"), status: "waiting", opened: day(-24), updated: day(-4) },
+      { id: newId(), subject: "VA disability claim delayed", agency: "VA", contact: find("Sgt."), status: "open", opened: day(-58), updated: day(-20), release: true },
+      { id: newId(), subject: "Wildfire mitigation grant", agency: "FEMA", contact: find("Tom"), status: "waiting", opened: day(-24), updated: day(-4), release: true },
       { id: newId(), subject: "Green card renewal", agency: "USCIS", contact: find("Grace"), status: "open", opened: day(-11), updated: day(-11) },
       { id: newId(), subject: "Tax refund missing", agency: "IRS", contact: find("Jamal"), status: "open", opened: day(-6), updated: day(-2) },
       { id: newId(), subject: "Social Security survivor benefits", agency: "SSA", contact: find("Helen"), status: "closed", opened: day(-70), updated: day(-15) },
     ],
+    messages: mailbag(contacts),
+    templates: [
+      { id: newId(), topic: "Broadband", body: "Dear {first},\n\nThank you for writing to me about broadband. Too many homes and shops in our district still can't get a reliable connection, and I'm working to pass the Rural Broadband Buildout Act to fund middle-mile fibre and co-op networks.\n\nI'll keep you posted as it moves.\n\nSincerely,\nJordan Ellis" },
+      { id: newId(), topic: "Housing", body: "Dear {first},\n\nThank you for contacting me about housing costs. I hear this from families across the district every week. My office can help you find local rental assistance; reply to this letter or call the Boulder office.\n\nSincerely,\nJordan Ellis" },
+      { id: newId(), topic: "*", body: "Dear {first},\n\nThank you for writing to me about {topic}. I read every message, and your views help shape my work in Congress.\n\nSincerely,\nJordan Ellis" },
+    ],
     bills: [{ id: bill, title: "Rural Broadband Buildout Act (demo)", number: "H.R. 2718", chamber: "house", sponsorParty: "Democrat", summary: "Grants for middle-mile fibre and co-op networks in rural districts.", members: {} }],
   };
+}
+
+/** Eight weeks of made-up mail: broadband surging with the town hall, housing steady, a wildfire spike. */
+function mailbag(contacts: Contact[]): Message[] {
+  const out: Message[] = [];
+  const names = ["Ana Lopez", "Chris Doyle", "Mei Chen", "Sam Patel", "Olivia Brown", "Diego Ramos", "Hannah Kim", "Noah Fischer", "Leila Haddad", "Ethan Moore", "Zoe Walker", "Omar Siddiqui"];
+  let k = 0;
+  const add = (topic: string, position: Position, daysAgo: number, replied?: number) => {
+    const c = contacts[k % contacts.length];
+    const useContact = k % 3 === 0 && c.kind === "constituent";
+    out.push({ id: newId(), contact: useContact ? c.id : undefined, name: useContact ? c.name : names[k % names.length], email: `person${k}@example.com`, topic, position, channel: ["Email", "Web form", "Phone", "Letter"][k % 4], received: day(-daysAgo),
+      replied: replied !== undefined ? day(-replied) : undefined, lon: useContact ? c.lon : -105.27 + ((k * 37) % 50) / 100 - 0.25, lat: useContact ? c.lat : 40.02 + ((k * 53) % 40) / 100 - 0.2 });
+    k++;
+  };
+  for (let d = 55; d > 0; d -= 3) { add("Housing", d % 2 ? "question" : "neutral", d, d > 20 ? d - 9 : undefined); }
+  for (let d = 50; d > 10; d -= 6) add("Broadband", "support", d, d - 12);
+  for (let d = 6; d >= 0; d--) { add("Broadband", "support", d); if (d % 2) add("Broadband", "oppose", d); }
+  for (let d = 30; d > 22; d--) add("Wildfire", "question", d, d > 25 ? d - 16 : undefined);
+  for (let d = 40; d > 0; d -= 10) add("Veterans", "question", d, d > 15 ? d - 5 : undefined);
+  for (let d = 20; d > 0; d -= 5) add("Immigration", d % 2 ? "support" : "oppose", d);
+  return out;
 }

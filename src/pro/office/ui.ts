@@ -16,6 +16,8 @@ import { mapLimit } from "../../data/http";
 import { note, stats } from "../../themes/common";
 import { districtPeople } from "./census";
 import { demoOffice } from "./demo";
+import { caseStatsBlock, districtFinder, inviteScreen, mailSummary, officeReport } from "./proUi";
+import { POSITIONS } from "./mail";
 import {
   blankOffice, caseQueue, CONTACT_KINDS, contactsCsv, contactsFromRows, parseCsv, partyLines, spreadAround, STANCES, STATE_CENTRE, stanceOf, tally, topTopics, votesNeeded,
   type Bill, type Case, type Contact, type ContactKind, type Office, type OfficeEvent, type Stance,
@@ -56,6 +58,7 @@ function draw(app: App, o: Office, members: Member[] = []) {
     for (const p of o.contacts.filter((x) => x.lon !== undefined)) fs.push({ id: p.id, kind: "point", pts: [[p.lon!, p.lat!]], color: CONTACT_KINDS[p.kind].color });
     const soon = o.events.filter((e) => e.place && e.date >= today()).sort((a, b) => a.date.localeCompare(b.date));
     for (const e of soon) fs.push({ id: e.id, kind: "point", pts: [[e.place!.lon, e.place!.lat]], color: "#ff9f0a", label: `📅 ${fmtDate(e.date)}` });
+    for (const msg of (o.messages ?? []).filter((x) => x.lon !== undefined && !x.replied)) fs.push({ id: `mg${msg.id}`, kind: "point", pts: [[msg.lon! - 0.002, msg.lat! - 0.0015]], color: POSITIONS.find((p) => p.id === msg.position)!.color });
     for (const k of caseQueue(o.cases, today())) { const p = o.contacts.find((x) => x.id === k.contact); if (p?.lon !== undefined) fs.push({ id: `c${k.id}`, kind: "point", pts: [[p.lon + 0.002, p.lat! + 0.0015]], color: "#ff3b30" }); }
   }
   layer.set(fs, `Politics Pro · ${o.name}`);
@@ -103,7 +106,8 @@ function start(ctx: WorkCtx) {
     h("h2", { class: "group-title" }, "Your office"),
     input, list,
     h("div", { class: "row" }, h("button", { class: "primary-btn", onclick: () => void create() }, "Start the office"), msg),
-    h("p", { class: "muted small" }, "Not in Congress? Type the office's name (a state legislature, a council, a campaign) and add the district's places yourself."),
+    h("button", { class: "pill-btn", onclick: () => districtFinder(ctx, (d, level, name) => { const o = blankOffice(name); o.district = d; o.level = level; save(o); openOffice(ctx); frameDistrict(app, o); }, () => start(ctx)) }, "A state legislator, council or other office"),
+    h("p", { class: "muted small" }, "Or type any office's name (a campaign, a board) and add its places yourself."),
     h("button", { class: "pill-btn", onclick: () => { const o = demoOffice(); save(o); openOffice(ctx); void districtByNumber("CO", 2).then((d) => { if (d) { o.district = d; save(o); draw(app, o); } frameDistrict(app, o); }).catch(() => frameDistrict(app, o)); } }, "Or try a demo office"),
     note("Members from the congress-legislators project (public domain); districts from the Census Bureau's TIGERweb; district figures from the American Community Survey. Your contacts, cases and whip counts stay in this browser."));
 }
@@ -128,8 +132,9 @@ function home(ctx: WorkCtx, o: Office) {
   ctx.show("Politics Pro", ctx.home,
     h("div", { class: "po-head" },
       m?.photo ? h("img", { class: "po-photo", src: m.photo, alt: "" }) : h("span", { class: "po-photo po-initial" }, (m?.name ?? o.name).replace(/^(Rep\.|Sen\.|Office of)\s*/, "")[0] ?? "•"),
-      h("div", {}, h("strong", {}, m?.name ?? o.name), h("span", {}, [m ? (m.chamber === "senate" ? `Senator, ${m.state}` : m.chamber === "house" ? `Representative, ${m.state}-${m.district === 0 ? "AL" : m.district}` : "") : "", m?.party].filter(Boolean).join(" · ") || "Your office"),
-        o.district ? h("button", { class: "link-btn", onclick: () => frameDistrict(app, o) }, "Show the district") : "")),
+      h("div", {}, h("strong", {}, m?.name ?? o.name), h("span", {}, [m ? (m.chamber === "senate" ? `Senator, ${m.state}` : m.chamber === "house" ? `Representative, ${m.state}-${m.district === 0 ? "AL" : m.district}` : "") : "", m?.party].filter(Boolean).join(" · ") || o.district?.name || "Your office"),
+        h("div", { class: "row" }, o.district ? h("button", { class: "link-btn", onclick: () => frameDistrict(app, o) }, "Show the district") : "",
+          h("button", { class: "link-btn", onclick: () => officeReport(o) }, "Weekly report")))),
     h("div", { class: "po-kpis" },
       kpi(String(o.contacts.length), "people", () => peopleScreen(ctx, o)), kpi(String(queue.length), "open cases", () => casesScreen(ctx, o), queue.some((c) => c.stale)),
       kpi(String(coming.length), "events ahead", () => eventsScreen(ctx, o)), kpi(String(o.bills.length), "bills", () => o.bills[0] ? billScreen(ctx, o, o.bills[0]) : addBill(ctx, o))),
@@ -137,11 +142,12 @@ function home(ctx: WorkCtx, o: Office) {
     ...o.bills.map((b) => billRow(ctx, o, b)),
     h("button", { class: "link-btn", onclick: () => addBill(ctx, o) }, "+ A bill"),
     h("h2", { class: "group-title" }, "Coming up"),
-    coming.length ? h("div", { class: "list" }, ...coming.slice(0, 4).map((e) => eventRow(app, e))) : h("p", { class: "muted small" }, "Nothing planned yet."),
+    coming.length ? h("div", { class: "list" }, ...coming.slice(0, 4).map((e) => eventRow(app, e, () => inviteScreen(ctx, o, e, again)))) : h("p", { class: "muted small" }, "Nothing planned yet."),
     h("button", { class: "link-btn", onclick: () => addEvent(ctx, o) }, "+ An event"),
     h("h2", { class: "group-title" }, "Casework"),
     queue.length ? h("div", { class: "list" }, ...queue.slice(0, 4).map((c) => caseRow(ctx, o, c))) : h("p", { class: "muted small" }, "No open cases."),
     h("button", { class: "link-btn", onclick: () => addCase(ctx, o) }, "+ A case"),
+    mailSummary(ctx, o, () => save(o), again),
     topics.length ? h("div", {}, h("h2", { class: "group-title" }, "What people raise most"), h("div", { class: "chips wrap" }, ...topics.map((t) => h("button", { class: "chip", onclick: () => peopleScreen(ctx, o, t.topic) }, `${t.topic} · ${t.count}`)))) : "",
     people,
     h("h2", { class: "group-title" }, "Offices"),
@@ -317,13 +323,15 @@ function caseRow(ctx: WorkCtx, o: Office, c: ReturnType<typeof caseQueue>[number
 
 function casesScreen(ctx: WorkCtx, o: Office) {
   const again = () => casesScreen(ctx, o);
-  const set = (c: Case, status: Case["status"]) => { c.status = status; c.updated = today(); save(o); again(); };
+  const set = (c: Case, status: Case["status"]) => { c.status = status; c.updated = today(); c.closed = status === "closed" ? today() : undefined; save(o); again(); };
   ctx.show("Casework", () => openOffice(ctx),
+    caseStatsBlock(o),
     ...o.cases.sort((a, b) => Number(a.status === "closed") - Number(b.status === "closed") || a.opened.localeCompare(b.opened)).map((c) => {
       const who = o.contacts.find((x) => x.id === c.contact);
       return h("div", { class: "po-case" + (c.status === "closed" ? " closed" : "") },
         h("div", {}, h("strong", {}, c.subject), h("span", { class: "muted small" }, [c.agency, who?.name, `opened ${fmtDate(c.opened)}`, `updated ${fmtDate(c.updated)}`].filter(Boolean).join(" · "))),
-        h("div", { class: "row" }, ...(["open", "waiting", "closed"] as const).map((s) => h("button", { class: "chip" + (c.status === s ? " on" : ""), onclick: () => set(c, s) }, s === "waiting" ? "Waiting on agency" : s[0].toUpperCase() + s.slice(1)))));
+        h("div", { class: "row" }, ...(["open", "waiting", "closed"] as const).map((s) => h("button", { class: "chip" + (c.status === s ? " on" : ""), onclick: () => set(c, s) }, s === "waiting" ? "Waiting on agency" : s[0].toUpperCase() + s.slice(1))),
+          h("button", { class: "chip" + (c.release ? " on" : ""), style: c.release ? "--c:#30d158" : "", onclick: () => { c.release = !c.release; save(o); again(); } }, c.release ? "✓ Privacy release" : "No privacy release")));
     }),
     h("button", { class: "pill-btn", onclick: () => addCase(ctx, o) }, "+ A case"));
 }
@@ -336,8 +344,8 @@ function addCase(ctx: WorkCtx, o: Office) {
     h("button", { class: "primary-btn", onclick: () => { if (!subject.value.trim()) return; o.cases.push({ id: newId(), subject: subject.value.trim(), agency: agency.value, contact: who.value || undefined, status: "open", opened: today(), updated: today() }); save(o); draw(ctx.app, o); casesScreen(ctx, o); } }, "Open the case"));
 }
 
-function eventRow(app: App, e: OfficeEvent): HTMLElement {
-  return h("button", { class: "list-row", onclick: () => e.place && void flyToPlace(app.globe, { name: e.place.name, lon: e.place.lon, lat: e.place.lat, radius: 800 }) },
+function eventRow(app: App, e: OfficeEvent, open?: () => void): HTMLElement {
+  return h("button", { class: "list-row", onclick: () => { if (e.place) void flyToPlace(app.globe, { name: e.place.name, lon: e.place.lon, lat: e.place.lat, radius: 800 }); open?.(); } },
     h("span", { class: "po-date" }, h("small", {}, new Date(e.date + "T12:00:00").toLocaleDateString(undefined, { month: "short" })), h("strong", {}, String(new Date(e.date + "T12:00:00").getDate()))),
     h("span", { class: "list-text" }, h("span", { class: "list-title" }, e.title), h("span", { class: "list-sub" }, [e.time, e.place?.name, e.expected ? `~${e.expected} expected` : ""].filter(Boolean).join(" · "))),
     h("span", { class: "chev", html: "&rsaquo;" }));
@@ -346,7 +354,7 @@ function eventRow(app: App, e: OfficeEvent): HTMLElement {
 function eventsScreen(ctx: WorkCtx, o: Office) {
   const sorted = [...o.events].sort((a, b) => a.date.localeCompare(b.date));
   ctx.show("Events", () => openOffice(ctx),
-    h("div", { class: "list" }, ...sorted.map((e) => eventRow(ctx.app, e))),
+    h("div", { class: "list" }, ...sorted.map((e) => eventRow(ctx.app, e, () => inviteScreen(ctx, o, e, () => eventsScreen(ctx, o))))),
     h("button", { class: "pill-btn", onclick: () => addEvent(ctx, o) }, "+ An event"));
 }
 

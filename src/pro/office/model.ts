@@ -37,7 +37,7 @@ export interface Contact {
 }
 export interface OfficeSite extends Spot { id: string; kind: "capitol" | "district" | "mobile"; address?: string; hours?: string }
 export interface OfficeEvent { id: string; title: string; kind: "town hall" | "visit" | "meeting" | "press" | "fundraiser" | "other"; date: string; time?: string; place?: Spot; notes?: string; expected?: number }
-export interface Case { id: string; subject: string; agency: string; contact?: string; status: "open" | "waiting" | "closed"; opened: string; updated: string; notes?: string }
+export interface Case { id: string; subject: string; agency: string; contact?: string; status: "open" | "waiting" | "closed"; opened: string; updated: string; notes?: string; release?: boolean; closed?: string; outcome?: string }
 export interface Bill {
   id: string; title: string; number?: string; chamber: "house" | "senate" | "local"; summary?: string;
   /** Members' stances by member key (bioguide id or name). */
@@ -49,6 +49,10 @@ export interface Office {
   member?: { name: string; party?: string; chamber: "house" | "senate" | "other"; state?: string; district?: number; photo?: string; key?: string };
   district?: { state: string; district: number; name: string; rings: [number, number][][] };
   sites: OfficeSite[]; contacts: Contact[]; events: OfficeEvent[]; cases: Case[]; bills: Bill[];
+  /** The mailbag and form letters. */
+  messages?: import("./mail").Message[]; templates?: import("./mail").Template[];
+  /** What kind of office: Congress, a state legislature, or a council or other local body. */
+  level?: "congress" | "state" | "local";
   created: number; demo?: boolean;
 }
 
