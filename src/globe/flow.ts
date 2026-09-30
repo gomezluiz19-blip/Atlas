@@ -16,6 +16,8 @@ export interface FlowLine {
   size?: number;
   /** Buried: drawn faint. */
   dim?: boolean;
+  /** Lifts the middle of the line off the ground (metres), for long hops. */
+  arc?: number;
 }
 
 interface Prepared { line: FlowLine; xyz: Cartesian3[]; cum: number[]; len: number }
@@ -43,7 +45,8 @@ export class FlowOverlay {
 
   set(lines: FlowLine[]) {
     this.lines = lines.filter((l) => l.pts.length > 1).map((line) => {
-      const xyz = line.pts.map(([lon, lat]) => Cartesian3.fromDegrees(lon, lat, 3));
+      const n = line.pts.length - 1;
+      const xyz = line.pts.map(([lon, lat], i) => Cartesian3.fromDegrees(lon, lat, 3 + (line.arc ? Math.sin((Math.PI * i) / Math.max(1, n)) * line.arc : 0)));
       const cum = [0];
       for (let i = 1; i < xyz.length; i++) cum.push(cum[i - 1] + Cartesian3.distance(xyz[i - 1], xyz[i]));
       return { line, xyz, cum, len: cum[cum.length - 1] };
@@ -77,7 +80,7 @@ export class FlowOverlay {
     ctx.fillStyle = this.moving ? "rgba(0,0,0,1)" : "rgba(0,0,0,0.16)";
     ctx.fillRect(0, 0, c.width, c.height);
     ctx.globalCompositeOperation = "lighter";
-    const scene = this.viewer.scene;
+    const scene = this.viewer.scene, cam = this.viewer.camera.positionWC, toCam = new Cartesian3();
     for (const drop of this.drops) {
       const p = drop.p;
       drop.d += p.line.speed * dt;
@@ -87,6 +90,8 @@ export class FlowOverlay {
       while (i < p.cum.length - 1 && p.cum[i] < drop.d) i++;
       const a = p.cum[i - 1], f = (drop.d - a) / Math.max(1e-6, p.cum[i] - a);
       Cartesian3.lerp(p.xyz[i - 1], p.xyz[i], f, this.scratch);
+      // Behind the Earth's curve: not drawn (matters when flows span continents).
+      if (Cartesian3.dot(this.scratch, Cartesian3.subtract(cam, this.scratch, toCam)) < 0) continue;
       const s = SceneTransforms.worldToWindowCoordinates(scene, this.scratch, this.win);
       if (!s || s.x < -4 || s.y < -4 || s.x > w + 4 || s.y > h + 4) continue;
       ctx.globalAlpha = p.line.dim ? 0.35 : 0.9;

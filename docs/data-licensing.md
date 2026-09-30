@@ -60,6 +60,8 @@ relies on the browser's normal cache until a licence allows storing it.
 | Finland Digitraffic (AIS) | Live ships in the Baltic | ✅ | CC BY 4.0 (Fintraffic). |
 | AISStream | Live ships worldwide (optional, via the edge) | ⚠️ key | Free key, fair use; check their terms for commercial volume. For a commercial product consider a paid AIS provider (Spire, MarineTraffic, Kpler). |
 | Open-Meteo air quality | Right now: AQI, UV | ❌ free tier | Same terms as the Open-Meteo forecast: non-commercial on the free tier; the data (CAMS) is open. |
+| Census Bureau (TIGERweb districts, ACS 5-year) | Politics Pro: district outlines and figures | ✅ | Public domain (US government). The ACS API works without a key at light use; add a free Census API key for volume. |
+| congress-legislators (@unitedstates) | Members of Congress | ✅ | Public domain (CC0). |
 | Wikidata query service | Notable places | ✅ | CC0; respect the query service limits and cache. |
 | Wikipedia REST | Place summaries | ✅ | CC BY-SA text: attribute (already linked). |
 | Wikimedia Commons | Place photos | ⚠️ | Every image has its own licence and author: show the credit and licence with each photo. |

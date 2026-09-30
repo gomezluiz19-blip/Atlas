@@ -40,6 +40,8 @@ const TOOL: Record<string, { emoji: string; words: string }> = {
   video: { emoji: "🎬", words: "record film movie studio" }, teach: { emoji: "🎓", words: "lesson quiz class students" },
   ask: { emoji: "✨", words: "find search suitable conditions land where" }, learn: { emoji: "🏛️", words: "games museums quiz challenge" },
   space: { emoji: "🪐", words: "satellites iss launches" },
+  office: { emoji: "🏛️", words: "politics pro congress district office constituents casework whip count bill staff crm legislature campaign town hall" },
+  network: { emoji: "🔗", words: "business network supply chain logistics suppliers partners customers shipping goods flows carbon" },
   news: { emoji: "🗞️", words: "news headlines world now happening today stories current events wildfires storms" },
   year: { emoji: "🌱", words: "seasons year months greening spring summer autumn winter solstice equinox rhythm" },
 };

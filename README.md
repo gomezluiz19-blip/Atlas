@@ -340,6 +340,28 @@ still read from above. It's a simulation on real streets (there is no public fee
 people), labelled as such; switch it under Layers › Live › Living city. With a Google key, the photorealistic
 3D city is on by default and the figures move through it.
 
+**Politics Pro.** In My Places, a legislative office runs on the map. Start from the member (the whole of
+Congress is searchable) and the district is outlined from the Census Bureau, with its people from the American
+Community Survey (population, age, income, home values, veterans, poverty, born abroad, degrees). Add the
+office's locations; the people it serves and works with (constituents, stakeholders, organisations, press,
+officials), each with topics, a contact log and a stance on each bill, placed on the map from their address;
+casework by agency, oldest first, flagged when it's gone two weeks without an update; and events on a calendar
+and the map. **Import a CSV** from any CRM or spreadsheet (the usual columns are understood, and addresses are
+put on the map) and **export** it back with stances. Each bill gets a **whip count**: the chamber as a parliament
+arc coloured from yes to no, likely yeses against the votes needed ("208 of 218, 10 short"), every member of
+the House or Senate as a dot in their state across the country, and the stakeholders' stances on the map.
+"Start from party lines" fills a first guess only where nothing is set. A demo office (a made-up member for
+Colorado's 2nd) shows it all; no real member is given a stance.
+
+**Business network.** Also in My Places: map a business as it runs. Its sites (head office, shops,
+warehouses, factories) and its partners (farms, suppliers, ports, customers), and what moves between them:
+goods, people, money and data, how much and how often, by truck, van, rail, ship, air, public transport, on
+foot or digitally. Each flow is drawn as a living stream along its route (orange goods, blue people, green
+money, purple data; busier for bigger flows; arcing off the globe for long hops), with its distance, time
+door to door and yearly carbon. The network sums up: sites, partners, tonne-km, CO₂ a year, the longest and
+slowest legs and the flows that make most of the carbon. A demo coffee roaster (Colombian and Ethiopian farms,
+their ports, Port Newark, a Red Hook roastery and three cafés) shows it moving.
+
 **World now.** The first tile in Explore (and the "Right now" line as Atlas opens) gathers what's happening
 on Earth: the day's biggest stories as Wikipedia's editors pick them, each pinned where it's happening; the
 latest headlines from the big wire services (via GDELT); natural events still going on (wildfires, storms,

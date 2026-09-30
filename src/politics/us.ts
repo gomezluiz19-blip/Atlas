@@ -141,3 +141,18 @@ export async function districtAt(lon: number, lat: number): Promise<District | n
   const polys = g?.type === "Polygon" ? [g.coordinates as [number, number][][]] : g?.type === "MultiPolygon" ? (g.coordinates as [number, number][][][]) : [];
   return { state: p.STATE, district: Number.isFinite(num) && num < 98 ? num : 0, name: p.NAME ?? p.BASENAME ?? "", rings: polys.map((poly) => poly[0]) };
 }
+
+/** A House district's outline by state (postal code) and number (0 = at large). */
+export async function districtByNumber(state: string, num: number): Promise<District | null> {
+  const fips = (await import("./model")).US_STATES[state]?.[0];
+  if (!fips) return null;
+  const id = await districtLayer();
+  const fc = await getJson<{ features: { properties: Record<string, string>; geometry: { type: string; coordinates: unknown } | null }[] }>("Census TIGERweb",
+    `${TIGER}/${id}/query?where=${encodeURIComponent(`STATE='${fips}'`)}&outFields=*&returnGeometry=true&outSR=4326&maxAllowableOffset=0.002&f=geojson`);
+  const numOf = (p: Record<string, string>) => { const k = Object.keys(p).find((x) => /^CD\d{3}$/i.test(x)); const n = Number(k ? p[k] : p.BASENAME); return Number.isFinite(n) && n < 98 ? n : 0; };
+  const f = fc.features.length === 1 ? fc.features[0] : fc.features.find((x) => numOf(x.properties) === num);
+  if (!f) return null;
+  const g = f.geometry;
+  const polys = g?.type === "Polygon" ? [g.coordinates as [number, number][][]] : g?.type === "MultiPolygon" ? (g.coordinates as [number, number][][][]) : [];
+  return { state: f.properties.STATE, district: numOf(f.properties), name: f.properties.NAME ?? f.properties.BASENAME ?? "", rings: polys.map((p) => p[0]) };
+}

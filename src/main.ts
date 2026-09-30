@@ -178,6 +178,8 @@ const PLACE_TOOLS: WorkTool[] = [
   tool("flock", "Flock", "Animals in your care: farms, vets, rescues and adoption", "#8bd346", icons.paw, openFlock),
   tool("build", "Build", "Model a building on its site and track construction; worksite tools (Pro)", "#ff9f0a", icons.crane, openBuild),
   tool("occupancy", "Live occupancy", "Rooms, floors and bookings from your booking system (Pro)", "#ff375f", icons.building, () => app.actions.get("pro:occupancy")?.run()),
+  tool("office", "Politics Pro", "Run a legislative office: the district and its people, casework, events, and the whip count on your bills", "#5e5ce6", icons.flag, (ctx) => void import("./pro/office/ui").then((m) => m.openOffice(ctx))),
+  tool("network", "Business network", "Your sites, suppliers, partners and customers, and the goods, people and money moving between them", "#ff9f0a", icons.route, (ctx) => void import("./pro/network/ui").then((m) => m.openNetwork(ctx))),
 ];
 const MAKE_TOOLS: WorkTool[] = [
   tool("plan", "Plan", "Trips told step by step, an event's running order, sites, zones and routes", "#0a84ff", icons.route, openPlans),
