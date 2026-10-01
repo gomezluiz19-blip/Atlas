@@ -35,7 +35,7 @@ export class FlowOverlay {
   private win = new Cartesian2();
   private remove: (() => void)[] = [];
 
-  constructor(private viewer: Viewer, private opts: { maxHeight?: number; maxDrops?: number } = {}) {
+  constructor(private viewer: Viewer, private opts: { maxHeight?: number; maxDrops?: number; /** How fast trails fade each frame (0–1): lower leaves longer streaks. */ fade?: number } = {}) {
     this.canvas.className = "flow-layer";
     viewer.canvas.after(this.canvas);
     this.remove.push(viewer.scene.postRender.addEventListener(() => this.frame()));
@@ -77,7 +77,7 @@ export class FlowOverlay {
     if (!this.visible || !this.drops.length || high || document.hidden) { if (this.drops.length) this.clear(); return; }
     // Fade what was drawn, so each drop leaves a short trail (none while the camera moves: it would smear).
     ctx.globalCompositeOperation = "destination-out";
-    ctx.fillStyle = this.moving ? "rgba(0,0,0,1)" : "rgba(0,0,0,0.16)";
+    ctx.fillStyle = this.moving ? "rgba(0,0,0,1)" : `rgba(0,0,0,${this.opts.fade ?? 0.16})`;
     ctx.fillRect(0, 0, c.width, c.height);
     ctx.globalCompositeOperation = "lighter";
     const scene = this.viewer.scene, cam = this.viewer.camera.positionWC, toCam = new Cartesian3();

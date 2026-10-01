@@ -45,6 +45,18 @@ export function forecast(lon: number, lat: number, live = false): Promise<Foreca
   );
 }
 
+export interface Hours { hourly: { time: string[]; temperature_2m: number[]; precipitation_probability: (number | null)[]; precipitation: number[]; weather_code: number[]; wind_speed_10m: number[]; is_day: number[]; cloud_cover: number[] }; utc_offset_seconds: number; timezone: string }
+/** The next 48 hours, hour by hour (local time). */
+export function hours48(lon: number, lat: number): Promise<Hours> {
+  return getJson<Hours>("Open-Meteo", `https://api.open-meteo.com/v1/forecast?${ll(lon, lat)}&hourly=temperature_2m,precipitation_probability,precipitation,weather_code,wind_speed_10m,is_day,cloud_cover&forecast_hours=48&timezone=auto`, undefined, 20_000);
+}
+
+export interface Projection { daily: { time: string[]; temperature_2m_max: (number | null)[]; temperature_2m_min: (number | null)[] } }
+/** Daily highs and lows from a climate model (CMIP6, EC-Earth3P-HR), 1991–2050. */
+export function projectedExtremes(lon: number, lat: number): Promise<Projection> {
+  return getJson<Projection>("Open-Meteo", `https://climate-api.open-meteo.com/v1/climate?${ll(lon, lat)}&start_date=1991-01-01&end_date=2050-12-31&models=EC_Earth3P_HR&daily=temperature_2m_max,temperature_2m_min`, undefined, 60_000);
+}
+
 export interface AirNow { current: { us_aqi?: number; european_aqi?: number; pm2_5?: number; pm10?: number; uv_index?: number; ozone?: number } }
 /** Air quality and UV now (Open-Meteo's CAMS-based air-quality model). */
 export function airNow(lon: number, lat: number): Promise<AirNow> {

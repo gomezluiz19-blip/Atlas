@@ -979,6 +979,7 @@ const syncIntroChip = (p: typeof app.place) => {
   introChip.replaceChildren(h("span", { "aria-hidden": "true" }, "▶"), ` ${ip.name}: the intro`);
   introChip.onclick = () => withIntro(ip.name, ip.lon, ip.lat, (x) => x && arriveAt(x), true);
 };
+app.actions.set("wind:toggle", { label: "Wind on the map", run: () => void import("./climate/windLayer").then((m) => app.toast(m.windLayer(app).toggle() ? "Wind on: the wind now, over the whole view." : "Wind off.", 3000)) });
 app.actions.set("intro:play", { label: "Play this landmark's intro", run: () => { const p = app.place; if (p) withIntro(p.name?.title, p.lon, p.lat, (x) => x && arriveAt(x), true); } });
 app.onPlace = (p) => {
   syncIntroChip(p);
