@@ -29,7 +29,7 @@ import { findThings, scoreThing, tokens, type Thing } from "./ui/frontDoor";
 import { buildThings } from "./ui/things";
 import { TimeBar } from "./time/bar";
 import { arrive, stopArriving } from "./delight/arrive";
-import { introFor, shouldPlay, type IntroPlace } from "./intros/places";
+import { introFor, introForAsync, loadWorldHeritage, shouldPlay, type IntroPlace } from "./intros/places";
 import { playIntro } from "./delight/intro";
 import { setSound, soundOn } from "./delight/sound";
 import { startTour, tourDone } from "./delight/tour";
@@ -79,6 +79,7 @@ import { MINES } from "./content/minerals";
 import { LINKS } from "./content/links";
 import { wireSocial } from "./social/wire";
 import { watchForProblems } from "./ui/errors";
+import { seamlessDeploys, warmUp } from "./ui/warm";
 watchForProblems();
 import { allProfiles, searchProfiles } from "./social/store";
 import { allLenses, myLenses } from "./lenses/library";
@@ -132,10 +133,13 @@ labels.onClick = (l) => {
 // Landmark intros: the first time in a visit that a well-known place is opened, it's shown as a white model
 // with a few lines about it, then the view cuts to the real place.
 const withIntro = (name: string | undefined, lon: number, lat: number, then: (ip?: IntroPlace) => void, force = false) => {
-  const ip = introFor(name, lon, lat);
-  if (!ip || (!force && !shouldPlay(ip))) { then(); return; }
-  void import("./intros/intro").then((m) => m.playIntro(ip, () => then(ip))).catch(() => then());
+  void introForAsync(name, lon, lat).then((ip) => {
+    if (!ip || (!force && !shouldPlay(ip))) { then(); return; }
+    void import("./intros/intro").then((m) => m.playIntro(ip, () => then(ip))).catch(() => then());
+  });
 };
+// The whole World Heritage List, once the globe has settled.
+setTimeout(() => void loadWorldHeritage().catch(() => {}), 6000);
 const arriveAt = (ip: IntroPlace) => void arrive(app, { name: ip.name, kicker: ip.where, lon: ip.lon, lat: ip.lat, radius: Math.max(150, ip.size / 3), fact: ip.lines[0] });
 
 const pick = (p: SearchPlace | SearchResult) => {
@@ -321,6 +325,9 @@ const makeHub = createWork(app, MAKE_TOOLS, {
 /** Work: every pro tool as a station on its industry's line (the Work map). */
 const openStation = (st: Station) => {
   const ctx = workHub.ctx;
+  if (st.tool.startsWith("explore:")) { void import("./work/scout").then((m) => m.openExplore(ctx, st.tool.slice(8))); return; }
+  if (st.tool.startsWith("source:")) { void import("./work/sourcingUi").then((m) => m.openSourcing(ctx, st.tool.slice(7))); return; }
+  if (st.tool.startsWith("scout:")) { void import("./work/scout").then((m) => m.openScout(ctx, st.tool.slice(6))); return; }
   if (st.tool.startsWith("services:")) { void import("./pro/services/ui").then((m) => m.openServices(ctx, st.tool.slice(9) as Parameters<typeof m.openServices>[1])); return; }
   [...WORK_TOOLS, ...PLACE_TOOLS].find((t) => t.id === st.tool)?.open(ctx);
 };
@@ -974,6 +981,7 @@ const syncIntroChip = (p: typeof app.place) => {
   introChip.replaceChildren(h("span", { "aria-hidden": "true" }, "▶"), ` ${ip.name}: the intro`);
   introChip.onclick = () => withIntro(ip.name, ip.lon, ip.lat, (x) => x && arriveAt(x), true);
 };
+app.actions.set("wind:toggle", { label: "Wind on the map", run: () => void import("./climate/windLayer").then((m) => app.toast(m.windLayer(app).toggle() ? "Wind on: the wind now, over the whole view." : "Wind off.", 3000)) });
 app.actions.set("intro:play", { label: "Play this landmark's intro", run: () => { const p = app.place; if (p) withIntro(p.name?.title, p.lon, p.lat, (x) => x && arriveAt(x), true); } });
 app.onPlace = (p) => {
   syncIntroChip(p);
@@ -1087,9 +1095,11 @@ else if (!shared.camera && !pageLinked && myStore.all().length) {
   }, 1200);
 }
 
-// Offline: the app, bundled data and the map tiles you've seen keep working without a connection.
-if (import.meta.env.PROD && "serviceWorker" in navigator)
-  addEventListener("load", () => void navigator.serviceWorker.register("./sw.js").catch(() => {}));
+// Offline: the app, bundled data and the map tiles you've seen keep working without a connection,
+// and a new deploy takes over without breaking an open tab (ui/warm.ts, public/sw.js).
+if (import.meta.env.PROD) seamlessDeploys();
+// What people open next, fetched while the browser is idle.
+warmUp(globe, [() => import("./intros/intro"), () => loadWorldHeritage(), () => import("./answers/ui")]);
 
 // Handy for debugging from the browser console during development.
 if (import.meta.env.DEV) {

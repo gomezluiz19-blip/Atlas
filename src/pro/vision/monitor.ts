@@ -7,6 +7,7 @@
 // Frames never leave the browser.
 import type { Device } from "../../myplaces/store";
 import { Analyzer, fromCoco, type Detection, type Tick } from "./analytics";
+import { linkKind } from "./connect";
 import { MotionMeter } from "./motion";
 
 type Model = { detect(el: HTMLVideoElement | HTMLImageElement | HTMLCanvasElement, max?: number, minScore?: number): Promise<{ class: string; score: number; bbox: [number, number, number, number] }[]> };
@@ -26,7 +27,7 @@ export function loadDetector(): Promise<Model> {
   return modelP;
 }
 
-export type FeedKind = "webcam" | "link" | "file";
+export type FeedKind = "webcam" | "link" | "file" | "screen";
 
 export interface Moment {
   /** Wall-clock time, ms. */
@@ -65,6 +66,16 @@ async function openFeed(kind: FeedKind, value: string | File): Promise<{ el: HTM
     await v.play();
     return { el: v, stop: () => stream.getTracks().forEach((t) => t.stop()) };
   }
+  if (kind === "screen") {
+    // Another window or tab (the camera's own app or website), shared by the person into Atlas.
+    const md = navigator.mediaDevices as MediaDevices & { getDisplayMedia?: (c: object) => Promise<MediaStream> };
+    if (!md.getDisplayMedia) throw new Error("this browser can't share another window (try a computer with Chrome, Edge, Firefox or Safari)");
+    const stream = await md.getDisplayMedia({ video: { frameRate: 15 }, audio: false, preferCurrentTab: false, selfBrowserSurface: "exclude" });
+    const v = document.createElement("video");
+    Object.assign(v, { srcObject: stream, muted: true, playsInline: true, autoplay: true });
+    await v.play();
+    return { el: v, stop: () => stream.getTracks().forEach((t) => t.stop()) };
+  }
   if (kind === "file") {
     const url = URL.createObjectURL(value as File);
     const v = document.createElement("video");
@@ -85,6 +96,8 @@ async function openFeed(kind: FeedKind, value: string | File): Promise<{ el: HTM
     await load();
     return { el: img, refresh: load, stop: () => {} };
   }
+  // WebRTC (go2rtc, MediaMTX, Scrypted…): offer to receive video, post it, play the answer. About a second behind live.
+  if (linkKind(url) === "webrtc") return openWebRtc(url);
   // An MJPEG stream (many IP cameras): an image that keeps updating itself.
   if (/mjpe?g|\.cgi|\/stream|faststream|videostream/i.test(url)) {
     const img = new Image();
@@ -106,6 +119,24 @@ async function openFeed(kind: FeedKind, value: string | File): Promise<{ el: HTM
   } else v.src = url;
   await v.play();
   return { el: v, stop: () => { hls?.destroy(); v.pause(); v.removeAttribute("src"); v.load(); } };
+}
+
+/** Plays a WebRTC stream by WHEP: post an offer to receive video, set the answer that comes back. */
+async function openWebRtc(url: string): Promise<{ el: HTMLVideoElement; stop: () => void }> {
+  const pc = new RTCPeerConnection({ iceServers: [{ urls: "stun:stun.l.google.com:19302" }] });
+  pc.addTransceiver("video", { direction: "recvonly" });
+  const v = document.createElement("video");
+  Object.assign(v, { muted: true, playsInline: true, autoplay: true });
+  pc.ontrack = (e) => { if (!v.srcObject) v.srcObject = e.streams[0] ?? new MediaStream([e.track]); };
+  await pc.setLocalDescription(await pc.createOffer());
+  // Wait briefly for ICE candidates so the offer carries them (many bridges don't trickle).
+  await new Promise<void>((res) => { if (pc.iceGatheringState === "complete") res(); else { pc.addEventListener("icegatheringstatechange", () => pc.iceGatheringState === "complete" && res()); setTimeout(res, 1500); } });
+  const r = await fetch(url, { method: "POST", headers: { "Content-Type": "application/sdp" }, body: pc.localDescription!.sdp });
+  if (!r.ok) { pc.close(); throw new Error(`the WebRTC link answered ${r.status}`); }
+  await pc.setRemoteDescription({ type: "answer", sdp: await r.text() });
+  await new Promise<void>((res, rej) => { const t = setTimeout(() => rej(new Error("no video arrived over WebRTC")), 8000); v.onloadeddata = () => { clearTimeout(t); res(); }; });
+  await v.play();
+  return { el: v, stop: () => { pc.close(); v.srcObject = null; } };
 }
 
 type HlsCtor = new (o?: object) => { loadSource(u: string): void; attachMedia(v: HTMLVideoElement): void; destroy(): void };

@@ -9,6 +9,7 @@ import {
   type Billboard, type Polyline,
 } from "cesium";
 import type { App } from "../app";
+import { everyFrame } from "../globe/motion";
 import { makeTappable } from "../globe/pickables";
 import { h } from "../ui/dom";
 import { icons } from "../ui/icons";
@@ -135,7 +136,7 @@ export function createTraffic(app: App) {
   };
 
   // ---- Every frame: move them on ----
-  scene.preRender.addEventListener(() => {
+  everyFrame(scene, () => {
     if (!entries.size || document.hidden) return;
     const now = Date.now();
     for (const e of entries.values()) {
@@ -151,7 +152,7 @@ export function createTraffic(app: App) {
       lastTarget = cur;
     }
     if (selected) drawPaths();
-  });
+  }, () => entries.size > 0 && !document.hidden);
 
   const toCart = (p: { lon: number; lat: number; alt: number }, ship: boolean) => Cartesian3.fromDegrees(p.lon, p.lat, ship ? 3 : p.alt);
   let pathsAt = 0;

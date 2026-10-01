@@ -1,7 +1,12 @@
 // Climate: the weather now, the long-term climate, and how it has changed.
 import type { Subtab, Theme } from "../app";
 import { annualMeans, koppen, linearTrend, monthlyNormals, weatherText } from "../analysis/climate";
-import { forecast, history } from "../data/openmeteo";
+import { anomalies, climateShift, decadeBars, decades, skyRing, skySentence, stripes } from "../climate/sky";
+import { windLayer } from "../climate/windLayer";
+import { beaufort } from "../climate/wind";
+import { forecast, history, hours48, projectedExtremes } from "../data/openmeteo";
+import { WorkLayer } from "../work/layer";
+import { offsetKm } from "../pro/kit/ops";
 import type { Overlays } from "../globe/overlays";
 import { climograph } from "../ui/climograph";
 import { h } from "../ui/dom";
@@ -26,7 +31,7 @@ export function climateTheme(overlays: Overlays): Theme {
     label: "Now",
     render({ app, place, body }) {
       asyncBlock(app, body, "Checking the weather…", async () => {
-        const f = await forecast(place.lon, place.lat);
+        const [f, hrs] = await Promise.all([forecast(place.lon, place.lat), hours48(place.lon, place.lat).catch(() => null)]);
         const c = f.current, d = f.daily;
         const w = weatherText(c.weather_code);
         const lo = Math.min(...d.temperature_2m_min), hi = Math.max(...d.temperature_2m_max);
@@ -46,7 +51,15 @@ export function climateTheme(overlays: Overlays): Theme {
           h("span", {}, h("strong", {}, "Rain radar on the map"), h("span", { class: "muted" }, "Live, updated every 10 minutes. Zoom out to see it.")),
           h("input", { type: "checkbox", class: "switch", checked: overlays.isOn("radar"), onchange: (e: Event) => void overlays.set("radar", (e.target as HTMLInputElement).checked) }));
         const sunrise = d.sunrise[0]?.slice(11, 16), sunset = d.sunset[0]?.slice(11, 16);
+        const wind = windLayer(app);
+        const windNote = h("span", { class: "muted" }, "Streamlines of the wind now over the whole view, drops running faster where it blows harder.");
+        wind.onChange = () => { if (wind.stats) windNote.textContent = `Strongest in view: ${Math.round(wind.stats.max)} km/h (${beaufort(wind.stats.max)}); average ${Math.round(wind.stats.mean)} km/h.`; };
+        const windToggle = h("label", { class: "switch-row" },
+          h("span", {}, h("strong", {}, "Wind on the map"), windNote),
+          h("input", { type: "checkbox", class: "switch", checked: wind.isOn, onchange: (e: Event) => wind.toggle((e.target as HTMLInputElement).checked) }));
         return [
+          hrs?.hourly.time.length ? h("div", { class: "sky-card" }, skyRing(hrs.hourly), h("p", { class: "sky-sentence" }, skySentence(hrs.hourly)),
+            h("p", { class: "fineprint" }, "The next 48 hours as a clock: inner ring today, outer tomorrow; noon at the top. Colour is temperature, blue bars the chance of rain, ticks the wind.")) : "",
           h("div", { class: "weather-now" },
             h("span", { class: "weather-icon", html: weatherIcon(c.weather_code, c.is_day === 1) }),
             h("div", {}, h("div", { class: "hero-value" }, deg(c.temperature_2m)), h("div", { class: "hero-label" }, `${w.text} · feels like ${deg(c.apparent_temperature)}`))),
@@ -57,6 +70,7 @@ export function climateTheme(overlays: Overlays): Theme {
           ),
           section("Next 7 days", h("div", { class: "days" }, ...days)),
           toggle,
+          windToggle,
           note(`Forecast from Open-Meteo, local time (${f.timezone}).`),
         ];
       });
@@ -97,7 +111,8 @@ export function climateTheme(overlays: Overlays): Theme {
     label: "Change",
     render({ app, place, body }) {
       asyncBlock(app, body, "Comparing decades…", async () => {
-        const hist = await history(place.lon, place.lat);
+        const [hist, proj] = await Promise.all([history(place.lon, place.lat), projectedExtremes(place.lon, place.lat).catch(() => null)]);
+        const ds = proj ? decades(proj.daily.time, proj.daily.temperature_2m_max, proj.daily.temperature_2m_min) : [];
         const years = annualMeans(hist.daily.time, hist.daily.temperature_2m_mean);
         if (years.length < 30) return [h("p", { class: "muted" }, "Not enough records here to show a trend.")];
         const xs = years.map((y) => y.year), ys = years.map((y) => y.mean);
@@ -111,7 +126,19 @@ export function climateTheme(overlays: Overlays): Theme {
         const diff = recent - then;
         const hottest = years.reduce((a, b) => (b.mean > a.mean ? b : a));
         const perDecade = slope * 10;
+        const shift = climateShift(diff, place.lat);
+        let arrow: WorkLayer | null = null;
+        const showShift = () => {
+          if (!shift.km) return;
+          const to = offsetKm(place.lon, place.lat, place.lat >= 0 ? 180 : 0, shift.km);
+          arrow ??= new WorkLayer(app, "climate-shift", "How far the climate has moved", "#ff6b3d");
+          arrow.set([{ id: "shift", kind: "line", pts: [[place.lon, place.lat], to], color: "#ff6b3d", solid: true }, { id: "shift-to", kind: "point", pts: [to], color: "#ff6b3d", label: `Its 1950s climate is now about here` }]);
+        };
         return [
+          h("div", { class: "stripes-card" }, stripes(years), h("div", { class: "stripes-years" }, h("span", {}, String(xs[0])), h("span", {}, String(last)))),
+          diff > 0.2 ? h("p", { class: "shift-line" },
+            shift.km ? `Warming of ${diff.toFixed(1)} °C is roughly like this place moving about ${shift.km.toLocaleString()} km towards the equator, or ${shift.metres.toLocaleString()} m downhill.` : `Warming of ${diff.toFixed(1)} °C is roughly like this place moving ${shift.metres.toLocaleString()} m downhill.`,
+            shift.km ? h("button", { class: "link-btn", onclick: showShift }, " Show on the map") : "") : "",
           hero(`${diff >= 0 ? "+" : "−"}${Math.abs(diff).toFixed(1)} °C`, diff >= 0 ? "warmer than in 1951–1980" : "cooler than in 1951–1980", `Comparing the average of ${last - 9}–${last} with 1951–1980`),
           h("div", { class: "chart-card" },
             inlineChart({ x: xs, y: ys }, {
@@ -123,7 +150,10 @@ export function climateTheme(overlays: Overlays): Theme {
             ["Warmest year on record here", `${hottest.year} (${hottest.mean.toFixed(1)} °C)`],
             ["Years of record", `${xs[0]}–${last}`],
           ),
-          note("Yearly average temperature from ERA5 (via Open-Meteo). The dashed line is the long-term trend. One place's record varies a lot from year to year; the trend is what matters."),
+          ds.length >= 4 ? section("Hot days and frosty nights, decade by decade", h("div", { class: "chart-card" }, decadeBars(ds),
+            h("div", { class: "legend-inline" }, h("span", { class: "key hot" }, "Days over 30 °C a year"), h("span", { class: "key frost" }, "Nights below 0 °C a year"))),
+            h("p", { class: "muted small" }, `In the 2040s: about ${Math.round(ds[ds.length - 1].hot)} days a year over 30 °C (${Math.round(ds[0].hot)} in the 1990s) and ${Math.round(ds[ds.length - 1].frost)} frosty nights (${Math.round(ds[0].frost)}).`)) : "",
+          note(`Yearly average temperature from ERA5 (via Open-Meteo). Decades to 2050 from one climate model (EC-Earth3P-HR, CMIP6, a high-emissions path), so read them as a likely direction, not a forecast. Stripes: each year against the 1961–1990 average (${anomalies(years).filter((y) => y.d > 0).length} of ${years.length} years warmer), after Ed Hawkins's #ShowYourStripes. The moves are rules of thumb: about 0.6 °C per degree of latitude, 6.5 °C per kilometre of height.`),
         ];
       });
     },

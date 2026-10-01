@@ -71,6 +71,23 @@ of their own. Type what you do ("we hire out cranes", "freight forwarder", "city
 fit light up, the best one pulsing. Stations you already use are filled in, and the last one you had open is one tap
 away.
 
+**The places people work: Food, Retail, Fashion, Art, Gaming, Sport, Real estate, Architecture and Tech.** Each of
+these lines starts with the consumer, then the pros, then the companies that serve them:
+
+- **Look round** (Eat & drink, Shop, Fashion streets, See art, Play, Stadiums and games, The neighbourhood, Buildings
+  worth seeing, Tech around you) shows what's within a 7-minute walk of the middle of the map. It's drawn as a radar,
+  north up with rings every 200 m, and the places sit on the map in their colours with chips to filter them. A list
+  runs nearest first, with cuisine and opening hours where OpenStreetMap has them. Below that are the industry's
+  signature places worldwide, and each opens with its intro.
+- **Scout** (Restaurant site scout, Store site scout, Boutique site scout, Gallery and studio scout, Venue site scout,
+  Gym and club scout, Property compare, Site context study, Office and lab scout) compares up to four candidate
+  addresses. Pick what you'd open, then tap addresses or use the middle of the map. Each address gets what's within a
+  walk: what brings people past (stations, offices, schools, sights and hotels), who else is there and the nearest
+  of them, a score and its own radar. The best address is ringed on the map, and the comparison downloads as CSV.
+  The score uses diminishing returns, so ten cafés don't count ten times one. In fashion, art, architecture and
+  tech, like attracts like, so neighbours of the same kind count in your favour; elsewhere they're rivals.
+- **The companies that serve them** are new Field Network sectors (below).
+
 **Build Pro (for builders and contractors).** Every site on the map, and for each:
 - **Schedule.** Tasks and what they wait for, worked out with the critical path method on working days. You see the
   float on each task, what's critical from today, and the forecast finish against the contract date.
@@ -397,6 +414,32 @@ the terrain you've looked at stay cached, so Atlas opens in a field with no sign
 device (satellite imagery follows the browser's own cache until an imagery licence allows storing it). **Back up everything** (in My Places) saves all your places, animals, fields,
 projects, plans, decks and quizzes to one file to keep or to restore on another device.
 
+**Fast on any device, seamless across deploys.** The globe draws on demand: full rate while anything moves
+(the camera, a touch, wind, traffic, a lens), a slow heartbeat otherwise, so a still map costs almost nothing.
+How hard it works is fitted to the device (memory, cores, screen, data saver, connection, battery): pixels,
+terrain detail, tile cache and idle redraws step from **Light** to **Balanced** to **Sharp**, a device that keeps
+dropping frames steps itself down and remembers, and a low battery eases off until it's charging (Layers ›
+Detail to choose by hand). Startup code, Cesium, libraries and bundled data ship as separate files, so a
+deploy that changes only the code leaves the rest cached; the service worker fetches the startup files at
+install, opens pages with navigation preload, keeps built files across deploys so an open tab never breaks,
+and keeps the last weather for offline. When idle, the screens people open next (landmark intros, the World
+Heritage List) are fetched ahead. The build prints what every visitor downloads and fails CI past a budget.
+
+**Connect a home camera, whatever it is.** Pick the brand (Ring, Nest, Arlo, Blink, Wyze, eufy, SimpliSafe,
+Reolink, Tapo, UniFi, Hikvision/Dahua, Amcrest, Home Assistant) and Atlas shows the ways that work for it,
+best first: share the camera app's window into Atlas now, open the camera's own app from the place, a home
+bridge (go2rtc config generated for you) for live WebRTC, a direct stream link, or the maker's official API
+(coming). See [docs/cameras.md](docs/cameras.md).
+
+**Weather you can see.** Wind alive on the globe (streamlines with drops of light, coloured by speed), a
+48-hour sky ring for any place, warming stripes, how far the local climate has shifted (in kilometres
+south and metres down the mountain), and decades of heat to the 2050s.
+
+**Made and grown nearby.** For chefs, a Foodshed: every farm, orchard, vineyard, dairy, boat and market
+within 50 km as a bloom at its true bearing, supply lines flowing into the restaurant, and a season wheel of
+what grows here when, from the local climate. The same for designers (mills, tanneries, workrooms),
+architects (quarries, sawmills, brickworks) and artists (foundries, studios, framers).
+
 **Worth knowing.** Tap a notable feature and the place card says something true about it: about 270 rivers,
 lakes, waterfalls, canyons, deserts, peaks, volcanoes, impact craters, ocean trenches, forests and metro
 systems, with their key figures (a
@@ -417,7 +460,7 @@ still read from above. It's a simulation on real streets (there is no public fee
 people), labelled as such; switch it under Layers › Live › Living city. With a Google key, the photorealistic
 3D city is on by default and the figures move through it.
 
-**Landmark intros.** The first time in a visit that you open one of about 120 of the world's most-searched
+**Landmark intros.** The first time in a visit that you open one of about 600 of the world's most-searched
 places (from search, a place link or a curated list), it's introduced before you arrive. The place stands
 as a white architect's model on a plinth in a white studio: the ground shaped from the real terrain (sea in
 pale blue), the buildings around it from OpenStreetMap, and the landmark itself as a simple massing model
@@ -426,7 +469,43 @@ moves in and callouts point out its parts (the Statue of Liberty's torch, crown,
 star walls). Then it cuts to the real place on the globe, where the camera circles it. Drag to turn the model
 (the clock waits), **Go there** to cut early, **Skip**, or switch intros off. A chip on the map plays it again.
 The list is spread on purpose: Djenné, Lalibela, Great Zimbabwe, Aksum, Meroë, Chichén Itzá, Machu Picchu,
-Borobudur, Angkor Wat and Lagos stand beside the Eiffel Tower and the Empire State Building.
+Borobudur, Angkor Wat and Lagos stand beside the Eiffel Tower and the Empire State Building. About 100 more
+are places people work and gather: about 40 stadiums and arenas (Yankee Stadium, Wembley, the Maracanã, the MCG),
+the towers that make skylines, museums (the Louvre, the Met, the Guggenheims), markets and shopping streets
+(Borough, Tsukiji, the Grand Bazaar, Ginza), and where technology and games come from (Apple Park, CERN, Bletchley
+Park, Akihabara, Nintendo in Kyoto, Gamescom's halls). Stadiums are modelled with raked stands in tiers; ballparks
+wrap their stands round home plate, with bleachers, a canopy over the grandstand and light masts. Each place is
+tagged by industry, so each Work line shows its own signature places.
+
+**Every World Heritage Site.** All 1,273 properties on UNESCO's World Heritage List have an intro. About 180 of the
+most visited that weren't already covered have full ones, with white models where they're buildings: Versailles,
+Pompeii, Florence's Duomo, Prague Castle, the Tower of London, Karnak, Petra's neighbours Baalbek and Hegra, Himeji,
+Tōdai-ji, the Temple of Heaven, the Red Fort, Humayun's Tomb, Prambanan and others. Every other site gets a plainer
+intro built from the List itself, played over the real ground and the buildings standing there: its name, where it
+is, the year it was inscribed, and whether it's cultural, natural or both. Where Atlas already had an intro for a
+place, its listing joins it instead, so that intro gains the UNESCO name and a "World Heritage since" year. A listing
+joins by its point, by a distinctive word in its name, or by an explicit claim; a few nearby but separate listings
+are kept apart on purpose. The List is a snapshot of whc.unesco.org/en/list from August 2026. It loads a few seconds
+after the globe, in its own file of about 45 kB gzipped, so first load doesn't wait for it.
+
+**A foothold in every kind of place.** About 140 more intros reach into the kinds of place people look up:
+national and state parks (Zion, Delicate Arch, Death Valley, Kruger, Custer State Park, Antelope Canyon), tourist
+sights (the Strip, Central Park, the Trevi Fountain, the Pantheon), amusement parks (the Disney parks with their
+castles, Cedar Point, Tivoli, Efteling), race tracks (Daytona, Le Mans, Monaco, Silverstone, the Nordschleife,
+Churchill Downs), the restaurants named best in the world year by year (elBulli, Noma, Osteria Francescana, Central,
+Disfrutar, Maido) and old institutions such as Botín and Katz's, fashion houses (Chanel's 31 rue Cambon, Hermès,
+Dior's 30 Avenue Montaigne, Savile Row), great factories (Boeing Everett, Volkswagen Wolfsburg, TSMC, ASML, Three
+Gorges) and the most impressive mines (Bingham Canyon, Chuquicamata, the Mir pit, Mponeng). Each is tagged by kind
+(park, attraction, amusement, racing, food, fashion, factory, mining), so a Work line or a lens can find its own.
+
+**The great feats of nature, alive.** Intros can now carry effects: the aurora's curtains rippling over a night sky,
+a herd crossing the plinth, a river running, clouds drifting over mountains, fireflies and glowing water. The scene
+and card turn to night for the ones that need it. The aurora borealis and australis, the Great Migration over the
+Mara River, monarch butterflies, Christmas Island's red crabs, the Porcupine caribou, the bats of Kasanka, gray
+whales, the Sardine Run and bears at Brooks Falls all move. A lion and an elephant stand as life-size white
+sculptures. The Amazon, the Himalaya, the Rockies, the Adirondacks, the Andes, Mont Blanc, Denali, K2, Mauna Kea,
+the Sahara, the Dead Sea, Challenger Deep, Lake Baikal, Antarctica, the General Sherman tree, the Avenue of the
+Baobabs, the synchronous fireflies, Mosquito Bay and Waitomo's glowworms round it out.
 
 **Politics Pro.** In Work, a legislative office runs on the map. Start from the member (the whole of
 Congress is searchable) and the district is outlined from the Census Bureau, with its people from the American
@@ -602,6 +681,14 @@ prospects come from, and a demo:
 | Telecom towers | generators, batteries, rectifiers, radios | on or off grid, and how many days a tank of diesel lasts | towers and masts in the map view |
 | Construction and crane rental | tower and mobile cranes, excavators, pumps | weeks a year lost to rain, heat and frost | construction sites in the map view |
 | Sports facilities and equipment | turf pitches, floodlights, scoreboards, gym kit | playing months, and where artificial turf keeps pitches open | pitches (with their surface) in the map view |
+| Art handling and installation | display cases, climate units, lighting, hanging systems | the seasonal swing and humid months collections must ride out, and the calm months to move works | museums, galleries and art shops in the map view |
+| Textile and sewing machinery | lockstitch, overlock and embroidery machines, auto cutters, boilers | hot months on the factory floor, weak power, monsoon damp | garment workshops, tailors and textile works in the map view |
+| Arcade and venue technology | arcade cabinets, crane games, VR pods, LED walls | power quality, hot months, and the busy weeks to service around | arcades, cinemas, bowling and casinos in the map view |
+| Property maintenance | chillers, elevators, rooftop units, fire panels, generators | the cooling and heating seasons and the month to service before each | office, apartment and commercial buildings in the map view |
+| Surveys and inspection | laser scanners, survey drones, total stations, façade access units | dry, workable months for drones and scanners; heat and thin air | construction sites and listed buildings in the map view |
+| Commercial kitchens and refrigeration | walk-in coolers, combi ovens, ice machines, fryers, dishwashers | peak heat (when compressors fail) and the month to service before it | restaurants, cafés and fast food in the map view |
+| Store fixtures, checkouts and refrigeration | refrigerated cases, self-checkouts, POS, shelf labels | peak heat for cold cases, weak power | supermarkets and stores in the map view |
+| Field IT and data centres | UPS, cooling units, generators, racks, fire suppression | peak heat, months of free cooling, weak power | data centres, exchanges and IT offices in the map view |
 
 Demos: a soy-belt dealer in Mato Grosso, a wind and solar O&M firm from Lake Turkana to Noor Ouarzazate and De Aar, a
 medical equipment servicer across Kenya, Uganda and Tanzania, a tower company across Nigeria, a crane rental firm in

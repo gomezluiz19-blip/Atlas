@@ -5,6 +5,7 @@ import {
   ArcType, CallbackProperty, Cartesian2, Cartesian3, Color, ConstantPositionProperty, CustomDataSource, LabelStyle, Matrix4, NearFarScalar,
   PointPrimitiveCollection, PolylineDashMaterialProperty, ScreenSpaceEventHandler, ScreenSpaceEventType, VerticalOrigin, type PointPrimitive, type Viewer,
 } from "cesium";
+import { everyFrame } from "../globe/motion";
 import { GROUPS, groundTrack, stateAt, type Sat } from "./orbits";
 import { ascent, countdown, inFlight, type Launch } from "./launches";
 
@@ -59,7 +60,7 @@ export class SpaceLayer {
         if (ent?._space?.launch) this.onLaunchPick?.(ent._space.launch);
       }
     }, ScreenSpaceEventType.LEFT_CLICK);
-    viewer.scene.preRender.addEventListener(() => this.tick());
+    everyFrame(viewer.scene, () => this.tick(), () => this.visible && this.sats.length > 0 && !document.hidden);
   }
 
   setGroup(group: string, sats: Sat[] | null) {

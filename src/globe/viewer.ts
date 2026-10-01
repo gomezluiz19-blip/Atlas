@@ -19,6 +19,7 @@ import { config } from "../config";
 import { GEOLOGIC_MAP_TILES } from "../data/macrostrat";
 import { GBIF_DENSITY_TILES } from "../data/inaturalist";
 import { createAnalyticLayer, type AnalyticKind } from "./analyticLayers";
+import { initMotion } from "./motion";
 import { createTerrariumTerrain, terrainOptions } from "./terrain";
 
 export type BaseMap = "satellite" | "plain";
@@ -84,20 +85,13 @@ export class Globe {
     });
     const { scene } = this.viewer;
     scene.globe.depthTestAgainstTerrain = true;
-    // 2 (Cesium's default) streams fewer, coarser-but-sharp-enough tiles than 1.5: faster to settle.
-    scene.globe.maximumScreenSpaceError = 2;
     scene.globe.preloadSiblings = false;
     scene.globe.baseColor = Color.fromCssColorString("#0b1d33");
     scene.globe.showGroundAtmosphere = true;
     scene.screenSpaceCameraController.enableCollisionDetection = true;
-    scene.postProcessStages.fxaa.enabled = true;
-    // Sharp on high-density screens without rendering 9x the pixels on 3x phones.
-    this.viewer.useBrowserRecommendedResolution = false;
-    const dpr = window.devicePixelRatio || 1;
-    this.viewer.resolutionScale = Math.min(dpr, 2) / dpr;
-    // Keep more tiles around so panning back doesn't reload them.
-    scene.globe.tileCacheSize = 400;
     this.keepRendering();
+    // Pixels, terrain detail, tile cache and redraws, fitted to this device (globe/quality.ts).
+    initMotion(this.viewer);
 
     // Offline fallback imagery bundled with Cesium, under the satellite layer.
     TileMapServiceImageryProvider.fromUrl(buildModuleUrl("Assets/Textures/NaturalEarthII")).then((p) =>

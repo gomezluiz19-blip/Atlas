@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { Conditions, Climate } from "../src/pro/services/conditions";
 import { demoCompany } from "../src/pro/services/demo";
 import { fleetHealth } from "../src/pro/services/network";
-import { clinicPower, farmSeason, fitProspect, lostWeeks, playSeason, SECTORS, sectorDemo, span, towerFuel, workWindow } from "../src/pro/services/sectors";
+import { artClimate, buildingSeasons, clinicPower, coolingLoad, factoryFloor, farmSeason, fitProspect, lostWeeks, playSeason, SECTORS, sectorDemo, span, surveyWindow, towerFuel, venueSeason, workWindow } from "../src/pro/services/sectors";
 
 const climate = (m: (i: number) => { tmax: number; tmin: number; rain: number }): Climate => {
   const months = Array.from({ length: 12 }, (_, i) => m(i));
@@ -51,5 +51,35 @@ describe("sector demos and fit", () => {
     const wind = { id: "1", name: "W", lon: 0, lat: 0, tags: ["wind", "large"] }, coal = { id: "2", name: "C", lon: 0, lat: 0, tags: ["coal"] };
     expect(fitProspect(c, wind, 5).score).toBeGreaterThan(fitProspect(c, coal, 5).score);
     expect(fitProspect(c, wind, 500).why.some((w) => w.includes("new base"))).toBe(true);
+  });
+});
+
+describe("the industries' service sectors", () => {
+  const months = (f: (i: number) => { tmax: number; tmin: number; rain: number }) => Array.from({ length: 12 }, (_, i) => f(i));
+  const cond = (ms: { tmax: number; tmin: number; rain: number }[], grid = 10) => ({
+    alt: 10, density: 1, derate: 0, port: null, airport: null, electric: { score: 50, reasons: [] }, conflict: false,
+    grid: grid ? { plant: { name: "P", lon: 0, lat: 0, mw: 500, fuel: "Gas", country: "X" }, km: grid } : null,
+    climate: { hottest: Math.max(...ms.map((m) => m.tmax)), coldest: Math.min(...ms.map((m) => m.tmin)), recordHigh: 40, recordLow: -10, annualRain: ms.reduce((s, m) => s + m.rain, 0), wetMonths: ms.map((m, i) => (m.rain > 100 ? i : -1)).filter((i) => i >= 0), months: ms },
+  }) as unknown as Parameters<typeof artClimate>[0];
+  const dhaka = cond(months((i) => ({ tmax: i >= 3 && i <= 8 ? 34 : 27, tmin: 15, rain: i >= 5 && i <= 8 ? 350 : 20 })), 0);
+  const london = cond(months((i) => ({ tmax: 8 + 14 * Math.sin((Math.PI * i) / 11), tmin: 2 + 10 * Math.sin((Math.PI * i) / 11), rain: 55 })));
+  it("reads each sector's one thing from a site's conditions", () => {
+    expect(factoryFloor(dhaka).value).toBe("6");
+    expect(factoryFloor(dhaka).lines.join(" ")).toMatch(/stabilisers/);
+    expect(buildingSeasons(london).lines[1]).toMatch(/Heating season/);
+    expect(coolingLoad(dhaka, "walk-ins").good).toBe(false);
+    expect(coolingLoad(london, "cooling units").lines.join(" ")).toMatch(/free cooling/);
+    expect(surveyWindow(london).value).toBe("12");
+    expect(artClimate(london).lines.at(-1)).toMatch(/Calmest months/);
+    expect(venueSeason(dhaka).value).toBe("backup");
+  });
+  it("has a demo at real places for each new sector", () => {
+    for (const v of ["art", "fashion", "gaming", "realestate", "architecture", "food", "retail", "tech"] as const) {
+      const c = SECTORS[v].demo();
+      expect(c.vertical).toBe(v);
+      expect(c.accounts.length).toBe(6);
+      expect(c.assets.length).toBeGreaterThan(10);
+      expect(c.assets.every((a) => SECTORS[v].types[a.type])).toBe(true);
+    }
   });
 });

@@ -1,5 +1,6 @@
 // Three lenses for places people use: Forest, Transit and True size.
 import { ArcType, CallbackProperty, Cartesian3, Color, CustomDataSource, PolygonHierarchy } from "cesium";
+import { demand } from "../globe/motion";
 import { countryAt } from "../data/countries";
 import { haversine } from "../data/mercator";
 import { speciesCounts } from "../data/inaturalist";
@@ -86,6 +87,7 @@ export const transitLens: Lens = {
     const viewer = app.globe.viewer;
     const ds = new CustomDataSource("lens-transit");
     void viewer.dataSources.add(ds);
+    demand(() => viewer.dataSources.contains(ds) && ds.show && ds.entities.values.length > 0);
     const R = Math.max(8000, Math.min(25_000, s.radius * 1.5));
     let under = false;
     const scene = viewer.scene;

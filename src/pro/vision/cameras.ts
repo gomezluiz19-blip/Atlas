@@ -11,6 +11,7 @@ import type { PlaceScene } from "../../myplaces/scene";
 import type { Device, MyPlace, PlaceStore } from "../../myplaces/store";
 import { h } from "../../ui/dom";
 import { groundPoint, type Kind } from "./analytics";
+import { BRANDS, brand, go2rtcConfig, go2rtcLinks, linkKind, linkProblem, WAYS, type Way } from "./connect";
 import { CameraMonitor, type FeedKind, type MonitorState } from "./monitor";
 
 const COLORS: Record<Kind, string> = { person: "#ff375f", vehicle: "#0a84ff", bike: "#ffd60a" };
@@ -241,25 +242,67 @@ function build(app: App, scene: PlaceScene, store?: PlaceStore) {
       } else {
         if (layout === "setup" && !s.error) return;
         layout = "setup";
-        const url = h("input", { type: "url", class: "pro-url", placeholder: "Paste the camera's link", value: cam.url ?? "", "aria-label": "Camera link" }) as HTMLInputElement;
         const file = h("input", { type: "file", accept: "video/*", hidden: true, onchange: (e: Event) => { const f = (e.target as HTMLInputElement).files?.[0]; if (f) start("file", f); } });
         const start = (kind: FeedKind, v: string | File) => {
           if (kind === "link" && store && place && cam.url !== v) { cam.url = v as string; saveCam(cam); }
           void mon.start(kind, v);
         };
+        const setBrand = (id?: string) => { cam.brand = id; saveCam(cam); layout = null; update(); };
+        const linkRow = (placeholder: string) => {
+          const url = h("input", { type: "url", class: "pro-url", placeholder, value: cam.url ?? "", "aria-label": "Camera link" }) as HTMLInputElement;
+          const warn = h("p", { class: "muted small cam-warn", hidden: true });
+          const check = () => { const p = linkProblem(url.value, location.protocol === "https:"); warn.textContent = p ?? ""; warn.hidden = !p || !url.value.trim(); };
+          url.addEventListener("input", check);
+          check();
+          return h("div", {}, h("div", { class: "pro-url-row" }, url, h("button", { class: "primary-btn", onclick: () => {
+            const v = url.value.trim(), k = linkKind(v);
+            if (k === "rtsp" || k === "page" || !/^https?:\/\//i.test(v)) { check(); warn.hidden = false; return; }
+            start("link", v);
+          } }, "Connect")), warn);
+        };
+        const quick = h("div", { class: "chips wrap cam-quick" },
+          h("button", { class: "chip", onclick: () => file.click() }, "🎞️ Try a recorded clip"),
+          "mediaDevices" in navigator ? h("button", { class: "chip", onclick: () => start("webcam", "") }, "📷 This device's camera") : "", file);
+        const b = brand(cam.brand);
+        if (!b) {
+          body.replaceChildren(
+            s.error ? h("p", { class: "error" }, s.error) : "",
+            h("p", { class: "cam-ask" }, "What camera is it?"),
+            h("div", { class: "cam-brands" }, ...BRANDS.map((x) => h("button", { class: "cam-brand", onclick: () => setBrand(x.id) }, h("strong", {}, x.name), h("small", {}, WAYS[x.ways[0]].label)))),
+            quick);
+          return;
+        }
+        const canShare = !!(navigator.mediaDevices as MediaDevices & { getDisplayMedia?: unknown } | undefined)?.getDisplayMedia;
+        const wayCard = (w: Way, i: number) => {
+          const info = WAYS[w];
+          const ready = w === "share" && !canShare ? "soon" : info.ready;
+          const badge = h("span", { class: `cam-ready ${ready}` }, ready === "now" ? "Works now" : ready === "setup" ? "Needs a bridge at home" : w === "share" ? "On a computer" : "Coming");
+          const steps: (Node | string)[] = [];
+          if (w === "share") steps.push(
+            h("ol", { class: "cam-steps" },
+              h("li", {}, b.web ? h("a", { href: b.web, target: "_blank", rel: "noopener noreferrer" }, `Open ${b.name}'s live view ↗`) : `Open the ${b.name} app on this computer`, " and start the camera's live view."),
+              h("li", {}, "Come back and tap Share; pick that window or tab.")),
+            h("button", { class: "primary-btn", disabled: !canShare, onclick: () => start("screen", "") }, "Share its window"));
+          if (w === "app") steps.push(h("a", { class: "primary-btn", href: b.web ?? "#", target: "_blank", rel: "noopener noreferrer" }, `Open ${b.name} ↗`), h("p", { class: "muted small" }, "On a phone this opens the app if it's installed."));
+          if (w === "bridge") steps.push(h("p", { class: "small" }, b.bridge ?? "Scrypted, Home Assistant or go2rtc at home can give Atlas a stream link."), h("p", { class: "muted small" }, "Give the bridge an https address (Home Assistant Cloud, Tailscale Funnel or a Cloudflare Tunnel), then paste its WebRTC, HLS or MJPEG link:"), linkRow("https://…/api/webrtc?src=front_door"));
+          if (w === "rtsp") {
+            const rtsp = h("input", { class: "pro-url", placeholder: b.rtsp && /^rtsp/.test(b.rtsp) ? b.rtsp : "rtsp://user:pass@camera-ip:554/…", "aria-label": "The camera's RTSP address" }) as HTMLInputElement;
+            const out = h("pre", { class: "cam-code" });
+            const show = () => { const name = (cam.label ?? "camera").toLowerCase().replace(/[^a-z0-9]+/g, "_"); const l = go2rtcLinks("https://YOUR-BRIDGE", name); out.textContent = `# go2rtc.yaml\n${go2rtcConfig(name, rtsp.value.trim() || rtsp.placeholder)}\n# then paste one of these into Atlas:\n${l.webrtc}\n${l.hls}`; };
+            rtsp.addEventListener("input", show); show();
+            steps.push(b.rtsp && !/^rtsp/.test(b.rtsp) ? h("p", { class: "small" }, b.rtsp) : "", h("p", { class: "muted small" }, "Run go2rtc (one small program) on a computer at home, give it this camera:"), rtsp, out, linkRow("https://…/api/webrtc?src=…"));
+          }
+          if (w === "link") steps.push(linkRow("https://… (.m3u8, MJPEG, snapshot or WebRTC link)"));
+          return h("details", { class: "cam-way" + (ready === "soon" ? " soon" : ""), ...(i === 0 ? { open: true } : {}) },
+            h("summary", {}, h("span", { class: "cam-way-emoji" }, info.emoji), h("span", { class: "cam-way-label" }, info.label), badge),
+            h("p", { class: "muted small" }, info.short), ...steps);
+        };
         body.replaceChildren(
           s.error ? h("p", { class: "error" }, s.error) : "",
-          h("div", { class: "pro-url-row" }, url, h("button", { class: "primary-btn", onclick: () => { const v = url.value.trim(); if (!/^https?:\/\//.test(v)) { app.toast("Paste the camera's web link (it starts with http)", 3500); return; } start("link", v); } }, "Connect")),
-          h("div", { class: "chips wrap" },
-            h("button", { class: "chip", onclick: () => file.click() }, "🎞️ Open a recorded clip"),
-            "mediaDevices" in navigator ? h("button", { class: "chip", onclick: () => start("webcam", "") }, "📷 Use this device's camera") : "", file),
-          h("details", { class: "cam-help" },
-            h("summary", {}, "Which link?"),
-            h("ul", {},
-              h("li", {}, "A live stream: an HLS link (ends in .m3u8) or an MJPEG link, from the camera's app or web page."),
-              h("li", {}, "A snapshot image the camera refreshes (…/snapshot.jpg); Atlas reloads it twice a second."),
-              h("li", {}, "RTSP cameras (most CCTV recorders): browsers can't open rtsp:// links directly. A small bridge on your network, like go2rtc or MediaMTX, turns them into an HLS link."),
-              h("li", {}, "A recorded clip (MP4 or MOV) exported from the recorder: Atlas watches it and sums it up."))));
+          h("div", { class: "cam-brand-head" }, h("strong", {}, b.name), h("button", { class: "link-btn", onclick: () => setBrand(undefined) }, "Change")),
+          b.note ? h("p", { class: "muted small" }, b.note) : "",
+          h("div", { class: "cam-ways" }, ...b.ways.map(wayCard)),
+          quick);
       }
     };
 

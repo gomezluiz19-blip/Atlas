@@ -6,6 +6,12 @@
 // Offsets are metres east (dx) and north (dy) of the place's point; heights
 // are metres above the ground there.
 
+import type { Fx } from "./fx";
+import { FOOTHOLD_INTROS } from "./footholds";
+import { HERITAGE_INTROS } from "./heritage";
+import { MORE_INTROS } from "./more";
+import { NATURE_INTROS } from "./nature";
+
 export type Form =
   | { f: "box"; w: number; d: number; h: number; dx?: number; dy?: number; z?: number; rot?: number }
   | { f: "frustum"; w: number; top: number; h: number; dx?: number; dy?: number; z?: number; rot?: number }
@@ -18,6 +24,8 @@ export type Form =
   | { f: "ring"; rx: number; ry: number; ix: number; iy: number; h: number; dx?: number; dy?: number; z?: number; rot?: number }
   | { f: "stones"; r: number; n: number; w: number; d: number; h: number; dx?: number; dy?: number }
   | { f: "arch"; span: number; h: number; t: number; dx?: number; dy?: number; rot?: number }
+  /** Raked stands: n tiers stepping up and out from the inner edge; `from`/`to` (degrees, 0 = east, 90 = north) for a part of the way round. */
+  | { f: "stand"; rx: number; ry: number; ix: number; iy: number; h: number; n?: number; from?: number; to?: number; dx?: number; dy?: number; z?: number; rot?: number }
   | { f: "shell"; rx: number; ry: number; h: number; dx?: number; dy?: number; z?: number; rot?: number };
 
 export interface Part { label: string; dx?: number; dy?: number; h: number }
@@ -36,12 +44,18 @@ export interface IntroPlace {
   facts: [string, string][];
   forms?: Form[];
   parts?: Part[];
+  /** What it's about (sport, art, fashion, food, retail, tech, gaming…), for the Work map's industries. */
+  tags?: string[];
+  /** What moves: aurora, a herd, a river, clouds, fireflies. */
+  fx?: Fx[];
+  /** Its id on UNESCO's World Heritage List, if it's on it. */
+  whc?: number;
 }
 
 const P = (id: string, name: string, where: string, lon: number, lat: number, size: number, lines: string[], facts: [string, string][], extra: Partial<IntroPlace> = {}): IntroPlace =>
   ({ id, name, where, lon, lat, size, lines, facts, ...extra });
 
-export const INTROS: IntroPlace[] = [
+const FIRST: IntroPlace[] = [
   // ---- The Americas ----------------------------------------------------------------------------------
   P("statue-of-liberty", "Statue of Liberty", "Liberty Island, New York Harbor", -74.0445, 40.68925, 700,
     ["A gift from the people of France, dedicated in 1886.", "Copper skin over an iron frame designed by Gustave Eiffel.", "It stands on the star-shaped walls of Fort Wood."],
@@ -233,7 +247,8 @@ export const INTROS: IntroPlace[] = [
     [["Statues", "about 20 m"], ["Moved", "1964–1968"]], { forms: Array.from({ length: 4 }, (_, i) => ({ f: "box" as const, w: 7, d: 5, h: 20, dx: -12 + i * 8 })) }),
   P("marrakech", "Jemaa el-Fnaa and the Koutoubia", "Marrakech, Morocco", -7.98917, 31.62585, 1200,
     ["The great square of Marrakech: storytellers, musicians and food stalls at night.", "The Koutoubia's minaret, from the 1100s, set the model for others across North Africa."],
-    [["Minaret", "77 m"], ["Built", "about 1150–1195"]], { forms: [{ f: "box", w: 12.8, d: 12.8, h: 69, dx: -415, dy: -200 }, { f: "box", w: 6, d: 6, h: 8, dx: -415, dy: -200, z: 69 }] }),
+    [["Minaret", "77 m"], ["Built", "about 1150–1195"]], { tags: ["food", "retail"], forms: [{ f: "box", w: 12.8, d: 12.8, h: 69, dx: -415, dy: -200 }, { f: "box", w: 6, d: 6, h: 8, dx: -415, dy: -200, z: 69 }, ...[0, 1, 2, 3, 4, 5].flatMap((i) => [0, 1, 2].map((j): Form => ({ f: "box", w: 8, d: 5, h: 3, dx: -50 + i * 20, dy: -20 + j * 20 })))],
+      parts: [{ label: "Evening food stalls", h: 4 }, { label: "Koutoubia minaret", dx: -415, dy: -200, h: 77 }] }),
   P("djenne-mosque", "Great Mosque of Djenné", "Djenné, Mali", -4.55556, 13.90528, 600,
     ["The largest mud-brick building in the world, rebuilt in 1907.", "Every year the town replasters it together in a festival."],
     [["Walls", "about 16 m"], ["Platform", "75 × 75 m"]], { forms: [{ f: "box", w: 75, d: 75, h: 3 }, { f: "box", w: 55, d: 50, h: 12, z: 3 }, ...[-15, 0, 15].map((dx) => ({ f: "box" as const, w: 7, d: 7, h: 16, dx, dy: 22, z: 3 }))] }),
@@ -451,19 +466,59 @@ export const INTROS: IntroPlace[] = [
     [["Mitre Peak", "1,692 m"], ["Length", "about 15 km"]]),
 ];
 
-const norm = (s: string) => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, " ").trim();
+// Later lists add places; an id already here wins.
+export const INTROS: IntroPlace[] = [...FIRST, ...MORE_INTROS, ...HERITAGE_INTROS, ...FOOTHOLD_INTROS, ...NATURE_INTROS].filter((p, i, all) => all.findIndex((q) => q.id === p.id) === i);
+
+/** The signature places tagged with any of these. */
+export const introsTagged = (...tags: string[]) => INTROS.filter((p) => p.tags?.some((t) => tags.includes(t)));
+
+const norm = (s: string) => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, " ").trim().replace(/^the /, "");
 
 /** The intro place for a name (as searched) or a point, if there is one. */
 export function introFor(name?: string | null, lon?: number, lat?: number): IntroPlace | null {
   const n = name ? norm(name) : "";
   if (n) {
-    const hit = INTROS.find((p) => norm(p.name) === n || p.also?.some((a) => norm(a) === n) || (n.length > 5 && norm(p.name).startsWith(n)));
+    const hit = INTROS.find((p) => norm(p.name) === n || p.also?.some((a) => norm(a) === n)) ?? listed.find((x) => x.n === n)?.p
+      ?? (n.length > 5 ? INTROS.find((p) => norm(p.name).startsWith(n)) : undefined);
     if (hit) return hit;
   }
   if (lon !== undefined && lat !== undefined)
     for (const p of INTROS) {
       const dx = (lon - p.lon) * 111_320 * Math.cos((p.lat * Math.PI) / 180), dy = (lat - p.lat) * 110_540;
       if (Math.hypot(dx, dy) < Math.min(1500, p.size / 3)) return p;
+    }
+  return listedFor(n, lon, lat);
+}
+
+// ---- The rest of the World Heritage List -----------------------------------------------------------
+// Loaded on first need (it's 1,273 places); until then only the intros above are found.
+let listed: { p: IntroPlace; n: string }[] = [];
+let listing: Promise<void> | null = null;
+
+/** Loads the World Heritage List, joining its sites onto the intros above and adding the rest. */
+export function loadWorldHeritage(): Promise<void> {
+  return (listing ??= import("./unesco").then((m) => { listed = m.worldHeritage(INTROS).map((p) => ({ p, n: norm(p.name) })); }));
+}
+export const worldHeritageCount = () => listed.length;
+
+/** Like introFor, after making sure the World Heritage List is loaded. */
+export async function introForAsync(name?: string | null, lon?: number, lat?: number): Promise<IntroPlace | null> {
+  // Wait a moment for the List, not longer: arriving at the place matters more.
+  await Promise.race([loadWorldHeritage().catch(() => {}), new Promise((r) => setTimeout(r, 1500))]);
+  return introFor(name, lon, lat);
+}
+
+function listedFor(n: string, lon?: number, lat?: number): IntroPlace | null {
+  if (n) {
+    const hit = (n.length > 5 ? listed.find((x) => x.n.startsWith(n)) : undefined) ?? (n.length >= 6 ? listed.find((x) => ` ${x.n} `.includes(` ${n} `)) : undefined);
+    if (hit) return hit.p;
+  }
+  // By point only for cultural sites, whose points sit on the place; natural sites' points are just somewhere inside them.
+  if (lon !== undefined && lat !== undefined)
+    for (const { p } of listed) {
+      if (p.size > 1200) continue;
+      const dx = (lon - p.lon) * 111_320 * Math.cos((p.lat * Math.PI) / 180), dy = (lat - p.lat) * 110_540;
+      if (Math.hypot(dx, dy) < 300) return p;
     }
   return null;
 }

@@ -10,7 +10,7 @@ describe("landmark intros: the places", () => {
     for (const p of INTROS) {
       expect(Math.abs(p.lon), p.id).toBeLessThanOrEqual(180);
       expect(Math.abs(p.lat), p.id).toBeLessThanOrEqual(90);
-      expect(p.size, p.id).toBeGreaterThan(50);
+      expect(p.size, p.id).toBeGreaterThan(p.tags?.includes("wildlife") && p.forms ? 4 : 50); // animals are modelled life-size
       expect(p.lines.length, p.id).toBeGreaterThan(0);
       expect(p.lines.length, p.id).toBeLessThanOrEqual(4);
       for (const l of p.lines) expect(l.length, p.id).toBeLessThan(140);

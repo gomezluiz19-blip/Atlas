@@ -4,6 +4,7 @@
 // about it, callouts on its parts, then a cut to the real place on the globe.
 // three.js is loaded only when an intro plays.
 import * as THREE from "three";
+import { isNight, makeFx, type FxScene } from "./fx";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import { zoomForSpacing } from "../analysis/profile";
@@ -43,6 +44,24 @@ export function formGeometry(f: Form): THREE.BufferGeometry {
       const s = new THREE.Shape().absellipse(0, 0, f.rx, f.ry, 0, Math.PI * 2, false, 0);
       s.holes.push(new THREE.Path().absellipse(0, 0, f.ix, f.iy, 0, Math.PI * 2, true, 0));
       g = new THREE.ExtrudeGeometry(s, { depth: f.h, bevelEnabled: false, curveSegments: 56 }).rotateX(-Math.PI / 2);
+      break;
+    }
+    case "stand": {
+      const n = Math.max(1, f.n ?? 3), full = f.from === undefined || f.to === undefined;
+      const a0 = (f.from ?? 0) * DEG, a1 = (f.to ?? 360) * DEG;
+      g = mergeGeometries(Array.from({ length: n }, (_, i) => {
+        const fi = i / n, fo = (i + 1) / n;
+        const irx = f.ix + (f.rx - f.ix) * fi, iry = f.iy + (f.ry - f.iy) * fi, orx = f.ix + (f.rx - f.ix) * fo, ory = f.iy + (f.ry - f.iy) * fo;
+        const s = new THREE.Shape();
+        if (full) {
+          s.absellipse(0, 0, orx, ory, 0, Math.PI * 2, false, 0);
+          s.holes.push(new THREE.Path().absellipse(0, 0, irx, iry, 0, Math.PI * 2, true, 0));
+        } else {
+          s.absellipse(0, 0, orx, ory, a0, a1, false, 0);
+          s.absellipse(0, 0, irx, iry, a1, a0, true, 0);
+        }
+        return new THREE.ExtrudeGeometry(s, { depth: (f.h * (i + 1)) / n, bevelEnabled: false, curveSegments: 56 }).rotateX(-Math.PI / 2);
+      }));
       break;
     }
     case "stones":
@@ -120,7 +139,9 @@ export function playIntro(p: IntroPlace, onCut: () => void): () => void {
 
   // ---- The scene ----
   const scene = new THREE.Scene();
-  scene.background = new THREE.Color(0xf6f6f3);
+  const night = isNight(p.fx);
+  scene.background = new THREE.Color(night ? 0x070b18 : 0xf6f6f3);
+  if (night) el.classList.add("night");
   const camera = new THREE.PerspectiveCamera(30, 1, 0.05, 400);
   const controls = new OrbitControls(camera, renderer.domElement);
   controls.enableDamping = true;
@@ -130,8 +151,8 @@ export function playIntro(p: IntroPlace, onCut: () => void): () => void {
   controls.maxPolarAngle = Math.PI * 0.47;
   controls.autoRotate = !reduced;
   controls.autoRotateSpeed = -0.6;
-  scene.add(new THREE.HemisphereLight(0xffffff, 0xd9d6cf, 1.5));
-  const sun = new THREE.DirectionalLight(0xffffff, 2.1);
+  scene.add(night ? new THREE.HemisphereLight(0x8fa6d8, 0x1a2030, 0.9) : new THREE.HemisphereLight(0xffffff, 0xd9d6cf, 1.5));
+  const sun = new THREE.DirectionalLight(night ? 0xbcd0ff : 0xffffff, night ? 0.9 : 2.1);
   sun.position.set(-7, 13, 6);
   sun.castShadow = true;
   sun.shadow.mapSize.set(2048, 2048);
@@ -292,8 +313,10 @@ export function playIntro(p: IntroPlace, onCut: () => void): () => void {
     dNear = p.forms?.length ? Math.min(17, Math.max(7, tall * 4.5 + 3, formReach(p.forms) * k * 4.5 + 3)) : 17;
     controls.target.copy(far);
     camera.position.copy(far).add(new THREE.Vector3(Math.sin(-35 * DEG), 0.62, Math.cos(-35 * DEG)).normalize().multiplyScalar(dFar * 1.3));
+    if (p.fx?.length) fxScene = makeFx(p.fx, { model, size: p.size, ground: (x, z) => ground(x, z) - g0, top: zmax - g0, ex });
     built = performance.now();
   };
+  let fxScene: FxScene | null = null;
 
   let dFar = 21, dNear = 12;
   const far = new THREE.Vector3(), near = new THREE.Vector3();
@@ -330,6 +353,7 @@ export function playIntro(p: IntroPlace, onCut: () => void): () => void {
     const since = built ? (now - built) / 1000 : 0;
     // The model rises into place, piece by piece.
     for (const r of risers) if (!reduced) r.o.scale.y = Math.max(0.001, ease((since - r.at) / 0.9));
+    fxScene?.update(reduced ? 2 : since);
     // Lines come in one by one.
     const t = (now - T0) / 1000;
     lines.forEach((l, i) => l.classList.toggle("on", reduced || t > 0.5 + i * 1.6));
@@ -416,6 +440,7 @@ export function playIntro(p: IntroPlace, onCut: () => void): () => void {
       const mat = m.material as THREE.Material | THREE.Material[] | undefined;
       for (const x of Array.isArray(mat) ? mat : mat ? [mat] : []) x.dispose();
     });
+    fxScene?.dispose();
     renderer.dispose();
     renderer.forceContextLoss();
     el.remove();

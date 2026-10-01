@@ -5,6 +5,7 @@
 // a closure out as theatre: the strait seals in red, the affected ships'
 // routes redraw the long way round, and the cost counts up. Wall mode clears
 // everything else away for a screen on the wall; Still and Film capture it.
+import { demand } from "../globe/motion";
 import {
   CallbackProperty, Cartesian2, Cartesian3, Color, CustomDataSource, LabelStyle, NearFarScalar, PolylineDashMaterialProperty, PolylineGlowMaterialProperty, VerticalOrigin,
 } from "cesium";
@@ -42,6 +43,7 @@ export function openPulse(app: App) {
   if (open) { open.close(); return; }
   const viewer = app.globe.viewer, scene = viewer.scene;
   const ds = new CustomDataSource("pulse"), theatre = new CustomDataSource("pulse-theatre");
+  demand(() => document.body.classList.contains("pulse-on"));
   void viewer.dataSources.add(ds); void viewer.dataSources.add(theatre);
   const now = Date.now();
   let t = now, playing = false, hidden = new Set<Layer>(), closed: string[] | undefined;

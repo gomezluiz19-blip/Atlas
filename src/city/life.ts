@@ -10,6 +10,7 @@ import {
   Math as CesiumMath, Matrix4, PerInstanceColorAppearance, PolygonGeometry, PolygonHierarchy, Primitive, Transforms,
 } from "cesium";
 import type { App } from "../app";
+import { everyFrame } from "../globe/motion";
 import { elevation } from "../data/elevation";
 import { busyAt, dist, fetchCity, localHour, M_LAT, mLon, type CityData, type Mover, type Road } from "./data";
 
@@ -146,7 +147,7 @@ export function createCityLife(app: App) {
   };
 
   let last = 0;
-  scene.preRender.addEventListener(() => {
+  everyFrame(scene, () => {
     const now = performance.now(), dt = Math.min(0.1, last ? (now - last) / 1000 : 0);
     last = now;
     if (!on || !agents.length || camera.positionCartographic.height > 6000 || document.hidden) return;
@@ -160,7 +161,7 @@ export function createCityLife(app: App) {
       else if (a.d <= 0) { a.d = 0; turn(a, a.road.nodes[0]); }
       place(a, now);
     }
-  });
+  }, () => on && agents.length > 0 && camera.positionCartographic.height <= 6000 && !document.hidden);
 
   const place = (a: Agent, now: number) => {
     const r = a.road, i = Math.max(0, Math.min(a.seg, r.pts.length - 2));

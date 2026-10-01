@@ -1,6 +1,8 @@
 // The Layers popover: base map, analytical overlays with legends, terrain settings.
 import { contourInterval, LAND_RAMP, SEA_RAMP, SLOPE_RAMP, type Ramp } from "../globe/analyticLayers";
 import type { Globe, OverlayKind } from "../globe/viewer";
+import { setQuality } from "../globe/motion";
+import { currentQuality, pinQuality, qualityFor, readSignals, type Tier } from "../globe/quality";
 import { h } from "./dom";
 
 const OVERLAYS: { kind: OverlayKind; label: string; about: string }[] = [
@@ -164,5 +166,28 @@ export function createLayersPanel(globe: Globe, live: LiveSwitch[] = []): HTMLEl
     h("label", { class: "slider-row" }, h("span", {}, "Vertical exaggeration"), veValue),
     ve,
     h("label", { class: "layer-row", title: "Show the ocean floor instead of a flat sea surface" }, bathy, h("span", {}, "Show seafloor")),
+    h("h3", { class: "panel-sub" }, "Detail"),
+    detailControl(),
   );
+}
+
+/** Auto fits the globe to the device; the others pin it (lighter saves battery and data). */
+function detailControl(): HTMLElement {
+  let pinned: Tier | "auto" = (() => { try { return (JSON.parse(localStorage.getItem("atlas.quality") ?? "{}") as { pinned?: boolean; tier?: Tier }).pinned ? currentQuality().tier : "auto"; } catch { return "auto"; } })();
+  const note = h("p", { class: "muted small" });
+  const say = () => { note.textContent = `Now: ${({ low: "light", mid: "balanced", high: "sharp" } as const)[currentQuality().tier]}${pinned === "auto" ? ", chosen for this device" : ""}.`; };
+  const opts: [Tier | "auto", string][] = [["auto", "Auto"], ["low", "Light"], ["mid", "Balanced"], ["high", "Sharp"]];
+  const seg = h("div", { class: "segmented", role: "radiogroup", "aria-label": "Globe detail" },
+    ...opts.map(([t, label]) => {
+      const btn = h("button", { role: "radio", "aria-checked": String(pinned === t), onclick: () => {
+        pinQuality(t === "auto" ? null : t);
+        pinned = t;
+        setQuality(t === "auto" ? currentQuality() : qualityFor(t, readSignals()));
+        seg.querySelectorAll("button").forEach((x) => x.setAttribute("aria-checked", String(x === btn)));
+        say();
+      } }, label);
+      return btn;
+    }));
+  say();
+  return h("div", {}, seg, note);
 }

@@ -5,6 +5,7 @@
 // their paddocks on the globe.
 import { Cartesian3, CallbackProperty, CustomDataSource, HeightReference, VerticalOrigin } from "cesium";
 import type { App } from "../app";
+import { demand } from "../globe/motion";
 import { forecast } from "../data/openmeteo";
 import { inlineChart, stats } from "../themes/common";
 import { h } from "../ui/dom";
@@ -141,6 +142,8 @@ function drawFlock(app: App) {
   if (!herd) {
     herd = new CustomDataSource("work-flock");
     void app.globe.viewer.dataSources.add(herd);
+    const h0 = herd;
+    demand(() => h0.show && h0.entities.values.length > 0 && app.globe.viewer.dataSources.contains(h0));
   }
   herd.entities.removeAll();
   const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
