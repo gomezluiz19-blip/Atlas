@@ -4,6 +4,7 @@
 // satellite greenness of that week (NASA MODIS, 8-day composites of last
 // year): the spring wave climbing north, the Sahel greening with the
 // monsoon, the southern summer. Play loops it; the planet breathes.
+import { wake } from "../globe/motion";
 import { Cartesian3, ImageryLayer, JulianDate, UrlTemplateImageryProvider } from "cesium";
 import type { App } from "../app";
 import { h } from "../ui/dom";
@@ -59,6 +60,7 @@ export function yearBreathes(app: App) {
       const f = Math.min(1, (now - t0) / 700);
       next.alpha = 0.72 * f;
       if (old) old.alpha = 0.72 * (1 - f);
+      wake(200);
       if (f < 1) requestAnimationFrame(fade);
       else if (old) viewer.imageryLayers.remove(old, true);
     };

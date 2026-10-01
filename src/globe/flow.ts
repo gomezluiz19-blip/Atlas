@@ -4,6 +4,7 @@
 // in a thin trickle, buried culverts dim. OpenStreetMap draws waterways in the
 // direction they flow, so the drops go downstream.
 import { Cartesian2, Cartesian3, SceneTransforms, type Viewer } from "cesium";
+import { demand } from "./motion";
 
 export interface FlowLine {
   pts: [number, number][];
@@ -39,6 +40,7 @@ export class FlowOverlay {
     this.canvas.className = "flow-layer";
     viewer.canvas.after(this.canvas);
     this.remove.push(viewer.scene.postRender.addEventListener(() => this.frame()));
+    demand(() => this.visible && this.drops.length > 0 && !document.hidden);
     this.remove.push(viewer.camera.moveStart.addEventListener(() => (this.moving = true)));
     this.remove.push(viewer.camera.moveEnd.addEventListener(() => (this.moving = false)));
   }

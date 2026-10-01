@@ -19,6 +19,7 @@ import { config } from "../config";
 import { GEOLOGIC_MAP_TILES } from "../data/macrostrat";
 import { GBIF_DENSITY_TILES } from "../data/inaturalist";
 import { createAnalyticLayer, type AnalyticKind } from "./analyticLayers";
+import { initMotion } from "./motion";
 import { createTerrariumTerrain, terrainOptions } from "./terrain";
 
 export type BaseMap = "satellite" | "plain";
@@ -98,6 +99,7 @@ export class Globe {
     // Keep more tiles around so panning back doesn't reload them.
     scene.globe.tileCacheSize = 400;
     this.keepRendering();
+    initMotion(this.viewer);
 
     // Offline fallback imagery bundled with Cesium, under the satellite layer.
     TileMapServiceImageryProvider.fromUrl(buildModuleUrl("Assets/Textures/NaturalEarthII")).then((p) =>
