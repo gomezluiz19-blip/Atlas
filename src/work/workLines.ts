@@ -6,6 +6,14 @@
 
 import { INDUSTRIES } from "./scoutModel";
 
+/** The made-and-grown-nearby stations, between the pro's scout and the companies that serve them. */
+const SOURCE_STATIONS: Record<string, [label: string, who: string, words: string]> = {
+  food: ["Foodshed", "Chefs: the farms, orchards and boats within a day's drive, and what's in season", "chef sourcing local produce farm to table seasonal menu supplier farmers farm shop"],
+  fashion: ["Made nearby", "Designers: mills, tanneries, workrooms and fabric within reach", "sourcing manufacturer mill tannery local production textile supplier factory"],
+  architecture: ["Local materials", "Architects and builders: stone, timber, brick and trades within reach", "materials stone timber brick local sourcing quarry sawmill"],
+  art: ["Makers and suppliers", "Artists: foundries, studios, framers and suppliers within reach", "foundry framer fabrication art supplies casting printmaking"],
+};
+
 /** The companies that serve each industry (Field Network sectors), kept here so the Work map doesn't load the sector engine. */
 const SERVES: Record<string, [label: string, who: string, words: string]> = {
   art: ["Art handling and installation", "Fine-art shippers, installers and display-case makers", "art handling fine art shipping installer display cases museum services conservation art logistics"],
@@ -37,6 +45,7 @@ export const LINES: Line[] = [
   ...INDUSTRIES.filter((i) => i.id !== "sport").map((i): Line => ({ id: i.id, label: i.label, color: i.color, stations: [
     { id: `explore-${i.id}`, label: i.explore.label, who: i.explore.who, tool: `explore:${i.id}`, words: i.words.explore },
     { id: `scout-${i.id}`, label: i.scout.label, who: i.scout.who, tool: `scout:${i.id}`, words: i.words.scout, key: "atlas.work.scout.v1" },
+    ...(SOURCE_STATIONS[i.id] ? [{ id: `source-${i.id}`, label: SOURCE_STATIONS[i.id][0], who: SOURCE_STATIONS[i.id][1], tool: `source:${i.id}`, words: SOURCE_STATIONS[i.id][2] }] : []),
     ...(i.sector && SERVES[i.sector] ? [{ id: `fn-${i.sector}`, label: SERVES[i.sector][0], who: SERVES[i.sector][1], tool: `services:${i.sector}`, words: SERVES[i.sector][2], key: "atlas.pro.services.v1" }] : []),
   ] })),
   { id: "sport", label: "Sport", color: "#bf5af2", stations: [

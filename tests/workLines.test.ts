@@ -13,7 +13,8 @@ describe("the Work map", () => {
   it("runs each new industry from the everyday look round, to the pro's scout, to the companies that serve them", () => {
     for (const id of ["food", "retail", "fashion", "art", "gaming", "realestate", "architecture", "tech"]) {
       const tools = LINES.find((x) => x.id === id)!.stations.map((s) => s.tool);
-      expect(tools).toEqual([`explore:${id}`, `scout:${id}`, `services:${id}`]);
+      const made = ["food", "fashion", "architecture", "art"].includes(id) ? [`source:${id}`] : [];
+      expect(tools).toEqual([`explore:${id}`, `scout:${id}`, ...made, `services:${id}`]);
     }
     expect(LINES.find((x) => x.id === "sport")!.stations[0].tool).toBe("explore:sport");
   });
@@ -34,6 +35,7 @@ describe("the Work map", () => {
     expect(top("laser scanning surveyor")).toBe("fn-architecture");
     expect(top("startup founder")).toBe("scout-tech");
     expect(top("arcade operator")).toBe("scout-gaming");
+    expect(top("chef looking for local produce")).toBe("source-food");
   });
   it("ignores filler words", () => {
     expect(rank("we run our company")).toEqual([]);
