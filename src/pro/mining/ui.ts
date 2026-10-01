@@ -3,6 +3,7 @@
 // four ways to see it: the value chain from pit to smelter as living streams,
 // the communities around it with rings and grievances, who lives downhill of
 // the tailings dam, and this week's earthquakes nearby.
+import { openSpace } from "../../delight/spaces";
 import type { App } from "../../app";
 import { COMMODITIES, commodity, MINES } from "../../content/minerals";
 import { elevation } from "../../data/elevation";
@@ -146,7 +147,9 @@ function home(ctx: WorkCtx, m: Mine) {
       [String(q.length), "open grievances", m.issues.some((g) => stageOf(g) !== "closed" && (sla(g, t).lateAck || sla(g, t).lateResponse)), () => { view = "grievances"; draw(app, m); home(ctx, m); }],
       [String(urgent.length), "permits due in 30 d", urgent.length > 0, () => permitsScreen(ctx, m)]),
     h("div", { class: "chips wrap" }, tab("chain", "Value chain"), tab("community", "Communities"), tab("grievances", "Grievances"), tab("tailings", "Tailings"), tab("hazards", "Earthquakes")),
-    h("button", { class: "pill-btn", onclick: () => boardReport(m, tailingsSummary()) }, "Board report"),
+    h("div", { class: "row" },
+      h("button", { class: "pill-btn holo-go", onclick: () => void mineHologram(app, m) }, "◎ Hologram"),
+      h("button", { class: "pill-btn", onclick: () => boardReport(m, tailingsSummary()) }, "Board report")),
     view === "chain" ? h("div", {},
       lines(...chainLines(m)),
       title("What moves"),
@@ -309,4 +312,23 @@ function tailingsLines(f: Flow) {
       f.down.length ? `Downstream along the path, nearest first: ${f.down.map((d) => `${d.name.replace(/ \(demo\)/, "")} (${kmText(d.along)} down${d.people ? `, ${fmt(d.people)} people` : ""})`).join("; ")}.` : "No mapped towns, communities or camps within 2 km of the path.",
       f.partial ? "Some communities have no population recorded, so the class is at least High until they're counted." : "",
       "The red line is the steepest way down from the dam on elevation sampled every 500 m: where released tailings would head first. A screening view for siting sirens, drills and evacuation routes, not a dam-break study."));
+}
+
+/** The mine as a hologram: the pit, plant, dam and camp on the real ground, the dam ringed by who lives downhill. */
+async function mineHologram(app: App, m: Mine) {
+  const pit = m.sites.find((s) => s.kind === "pit" || s.kind === "underground") ?? m.sites[0];
+  if (!pit) { app.toast("Add the mine's sites first.", 3000); return; }
+  const near = m.sites.filter((s) => kmBetween(s, pit) < 8);
+  const lon = near.reduce((a, s) => a + s.lon, 0) / near.length, lat = near.reduce((a, s) => a + s.lat, 0) / near.length;
+  const span = Math.max(1.2, ...near.map((s) => kmBetween(s, { lon, lat }))) * 2600;
+  const colors: Record<string, string> = { pit: "#ffb347", underground: "#ffb347", plant: "#5ad8ff", tailings: "#ff453a", waste: "#a2845e", camp: "#30d158", airstrip: "#bf5af2" };
+  const e = economics(m.econ), t = today();
+  const hl = await openSpace(app, {
+    name: m.name, kicker: [commodity(m.commodity)?.name, m.country, "mine"].filter(Boolean).join(" · "), lon, lat, size: Math.min(9000, span), tint: "amber",
+    markers: near.map((s) => ({ lon: s.lon, lat: s.lat, color: colors[s.kind] ?? "#ffffff", label: `${SITE_KINDS[s.kind as keyof typeof SITE_KINDS]?.emoji ?? ""} ${s.name.split(",")[0]}`, pulse: s.kind === "tailings", ring: s.kind === "tailings" ? Math.min(3000, span / 4) : undefined, height: span / 25 })),
+  });
+  hl.setHud([
+    { k: "Revenue a year", v: usdShort(e.revenue) }, { k: "Margin", v: usdShort(e.margin) },
+    { k: "Open grievances", v: String(issueQueue(m.issues, t).length) }, { k: "Permits due, 30 d", v: String(dueSoon(m.permits, t, 30).length) },
+  ], m.sites.some((s) => s.kind === "tailings") ? "The red ring: who lives downhill of the tailings dam" : undefined);
 }

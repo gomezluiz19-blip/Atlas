@@ -8,14 +8,90 @@ themes) and goes deep when you want it to: rock sections, watersheds, life zones
 
 ## How it works for you
 
-Atlas does three things, switched at the top of the screen:
+Atlas does four things, switched at the top of the screen:
 
-- **My Places**: your home, farm, site or business. A daily brief ("Today at Hillside Farm": frost tonight,
-  a ewe due to lamb, a vaccination due, a project running behind), your saved places with their 3D view,
-  energy, water and security, and the tools to run them: **Grow**, **Flock**, **Build** and live occupancy (Pro).
 - **Explore**: the whole Earth and space. Tap anything, flip through the themes, or look at it through a lens.
   **Space** and **Learn** are one tap away on the Earth card.
 - **Create**: **Plan**, **Present**, **Video** and **Teach**: things made from the map to share.
+- **Work**: tools for the work you do, drawn as a map of industry lines (see below).
+- **My Place**: your home, farm or business, booted up as a hologram, with what's going on there.
+
+**My Place, booted.** Tap My Place and your place comes up as a holographic model on a projector. The ground comes
+from the real terrain and the buildings around from OpenStreetMap, with yours lit warm among the cool blue ones. Your
+cameras, solar panels, tanks and gates stand where you put them, and each camera's view is painted on the ground.
+Around it: the local time, the weather now, today's range and the next sunset, and the day's most pressing thing
+("Frost tonight: cover the seedlings"). Underneath, a dock with live badges: **Today**, **Packages**, **Cameras**,
+**What's on** (events nearby), **Plans**, **Grow**, **Flock**, **Build** and **Energy & water**. Tap one and the model
+shrinks to a puck in the corner while that opens; tap the puck, or close the tool, and it comes back. Switch between
+your places from the chips under the name, or fly in on the globe.
+
+**Holograms for anything.** The same holographic model works for any place, not just yours. Every place card has a
+**◎ Hologram** button: Spitalfields, a summit, a stadium. Every pro tool's sites boot the same way, with their live
+state drawn on them:
+- **Build Pro:** a site glows by status, with its 300 m earshot ring and the schools and clinics within it tagged
+  with their noise; the readout says whether the crane can lift and concrete can pour today.
+- **Mining Pro:** the pit, plant, camp and tailings dam, with the dam ringed.
+- **Field Network:** a customer site, with its machines running or down.
+- **Freight Desk:** a port, with what's arriving and the wait to berth.
+- **Relief Pipeline:** a warehouse, with the days of stock left.
+
+Sites are amber, places violet, programmes green. **Still** saves a framed picture; **Film** records an eight-second
+orbit with a title card, for a deck, an update or a post.
+
+**Pulse (top bar).** Everything you have in Atlas as one living picture of the planet:
+- Your places glow, and plans brighten as they near (the My plans scale).
+- Shipments ride their sea lanes to where the ship would be that day, and relief loads move between warehouses.
+- Building sites, mines, customers and business partners hold their places, joined by what flows between them.
+
+Around the picture:
+- **Time scrub:** drag a month back or a quarter ahead, or press play, and the world moves with it.
+- **What if:** close Suez, the Red Sea, Panama, Malacca or another strait your cargo uses. The strait seals in red,
+  each affected ship's route redraws the long way round, and the cost counts up in ship-days, CO₂ and dollars.
+- **Wall mode:** clears everything else away for a screen on the wall, with the planet slowly turning and a clock.
+- **Still** and **Film** work here too.
+
+**People's pages.** A page is about a person's world:
+- **Hero:** a dotted planet turning slowly, with their places glowing in their colour and arcs from home.
+- **Identity:** a monogram, their name set large, and a quiet line with their handle, role and home.
+- **Places:** their **essential places**, numbered, in editorial tiles.
+- **Notes from visitors**, in place of the old guestbook.
+- **Looks:** Midnight, Tide, Aurora, Moss, Ember, Sand or Paper.
+- **On the globe:** their places show as fine points of light in their colour.
+
+**Packages.** Paste a tracking number, or the whole shipping email: Atlas finds the numbers, knows the carrier from
+the pattern (UPS, FedEx, USPS, DHL, Amazon, Royal Mail, Canada Post, international post), picks out the delivery date,
+and links to the carrier's own tracking page. Set each one's step (on the way, out for delivery, delivered, problem);
+what's due shows on the dock and in My plans.
+
+**Work: industries as lines.** Every pro tool sits on its industry's line like a metro station, running from the
+everyday tool out to the pros and on to the specialists who serve them. Building runs Build → Build Pro → suppliers
+and plant hire; Mining runs Mining Pro → mining equipment and services; Farming runs Grow → farm machinery dealers;
+Aid runs Field Ops → Relief Pipeline; and Freight, Energy, Health, Telecoms, Sport, Government and Hotels have lines
+of their own. Type what you do ("we hire out cranes", "freight forwarder", "city councillor") and the stations that
+fit light up, the best one pulsing. Stations you already use are filled in, and the last one you had open is one tap
+away.
+
+**Build Pro (for builders and contractors).** Every site on the map, and for each:
+- **Schedule.** Tasks and what they wait for, worked out with the critical path method on working days. You see the
+  float on each task, what's critical from today, and the forecast finish against the contract date.
+- **Weather.** A ten-day board of when each kind of weather-sensitive work can go ahead:
+  - concrete pours: under 2 mm of rain, 5–32 °C;
+  - crane lifts: gusts under 60 km/h, wind under 40 km/h;
+  - roofing: under 1 mm of rain, gusts under 50 km/h;
+  - exterior finishes: dry, at least 10 °C;
+  - earthworks: under 10 mm of rain.
+
+  Planned work the forecast rules out is flagged, with the next good day. Ten years of ERA5 give the working days
+  usually lost each month.
+- **Money.** Earned value: planned against earned against spent, cost and schedule performance, and the forecast
+  final cost.
+- **Site.**
+  - People on site for the next four weeks.
+  - Deliveries with their suppliers drawn on the map, road time, and clashes (two in one window, or a crane lift on a
+    windy day).
+  - Schools, clinics, care homes and places of worship within 300 m, with a rough noise level at each.
+  - Permits and inspections, and open questions to the designer with their possible cost.
+- A printable client report, and CSV export. The demo is a contractor with four sites around Austin.
 
 **Overview (the default).** Just move the map. Atlas labels what's worth knowing as you go: seas, mountain
 ranges and cities when zoomed out; rivers, landmarks, stadiums, parks and museums when zoomed in (the Hudson,
@@ -176,8 +252,8 @@ track from OpenRailwayMap when zoomed in), highways and ferries, shipping lanes,
 airports, 35,000 power plants coloured by fuel and sized by capacity, and the undersea cables that carry
 the internet. Tap a dot for the plant, port or airport.
 
-**The tools.** Grow, Flock, Build and live occupancy live under **My Places**; Plan, Present, Video and Teach
-under **Create**; Learn under **Explore**. All of them are open to anyone:
+**The tools.** Grow, Flock, Build and Packages live under **My Place**; the pro tools under **Work**; Plan, Present,
+Video and Teach under **Create**; Learn under **Explore**. All of them are open to anyone:
 
 - **Politics** (Countries › Politics): who governs the place you're looking at. For every country: who holds
   power (head of state and of government, with their parties and portraits), the legislature (chambers and
@@ -352,7 +428,7 @@ star walls). Then it cuts to the real place on the globe, where the camera circl
 The list is spread on purpose: Djenné, Lalibela, Great Zimbabwe, Aksum, Meroë, Chichén Itzá, Machu Picchu,
 Borobudur, Angkor Wat and Lagos stand beside the Eiffel Tower and the Empire State Building.
 
-**Politics Pro.** In My Places, a legislative office runs on the map. Start from the member (the whole of
+**Politics Pro.** In Work, a legislative office runs on the map. Start from the member (the whole of
 Congress is searchable) and the district is outlined from the Census Bureau, with its people from the American
 Community Survey (population, age, income, home values, veterans, poverty, born abroad, degrees). Add the
 office's locations; the people it serves and works with (constituents, stakeholders, organisations, press,
@@ -531,7 +607,7 @@ Demos: a soy-belt dealer in Mato Grosso, a wind and solar O&M firm from Lake Tur
 medical equipment servicer across Kenya, Uganda and Tanzania, a tower company across Nigeria, a crane rental firm in
 Texas, and a turf installer in Mexico. Every company and its equipment is made up; the places are real.
 
-**Business network.** Also in My Places: map a business as it runs. Its sites (head office, shops,
+**Business network.** In Work: map a business as it runs. Its sites (head office, shops,
 warehouses, factories) and its partners (farms, suppliers, ports, customers), and what moves between them:
 goods, people, money and data, how much and how often, by truck, van, rail, ship, air, public transport, on
 foot or digitally. Each flow is drawn as a living stream along its route (orange goods, blue people, green

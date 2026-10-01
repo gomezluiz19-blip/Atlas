@@ -65,8 +65,8 @@ export interface Guide { id: string; title: string; blurb: string; stops: GuideS
 
 export type Skin = "dawn" | "ocean" | "forest" | "desert" | "night" | "paper" | "2006";
 export const SKINS: { id: Skin; label: string }[] = [
-  { id: "dawn", label: "Dawn" }, { id: "ocean", label: "Ocean" }, { id: "forest", label: "Forest" }, { id: "desert", label: "Desert" },
-  { id: "night", label: "Night sky" }, { id: "paper", label: "Paper" }, { id: "2006", label: "2006" },
+  { id: "night", label: "Midnight" }, { id: "ocean", label: "Tide" }, { id: "2006", label: "Aurora" }, { id: "forest", label: "Moss" },
+  { id: "dawn", label: "Ember" }, { id: "desert", label: "Sand" }, { id: "paper", label: "Paper" },
 ];
 export const AVATAR_EMOJI = ["🦉", "🦊", "🐢", "🐋", "🦅", "🌵", "🌋", "🏔️", "🌊", "🌙", "⭐", "🌻", "🍄", "🐝", "🦋", "🚲", "🛶", "🎒", "📷", "🎸"];
 export const AVATAR_COLORS = ["#0a84ff", "#30d158", "#ff9f0a", "#ff375f", "#bf5af2", "#64d2ff", "#a2845e", "#5e5ce6"];

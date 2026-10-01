@@ -6,6 +6,7 @@
 // to berth), carbon (per shipment and customer, the EU ETS bill, and what
 // slowing down saves) and risk (warning areas, sanctions, ships gone quiet,
 // rough seas ahead).
+import { openSpace } from "../../delight/spaces";
 import type { App } from "../../app";
 import { getJson } from "../../data/http";
 import { ports as loadPorts } from "../../data/infra";
@@ -182,7 +183,15 @@ function portsPanel(ctx: WorkCtx, d: Desk) {
         list(...g.items.sort((a, b) => a.eta.localeCompare(b.eta)).map(({ s, eta: e }) => row({ color: C.ok }, `${e} · ${s.ref}`, `${s.cargo} · ${vesselOf(d, s)?.name ?? ""}`, () => shipmentScreen(ctx, d, s)))),
         field("Waiting to berth (days)", inp),
         h("p", { class: "muted small" }, w ? `From ${w.source}, ${w.asOf}.` : "No wait reported."),
-        canCount(g.port) ? h("button", { class: "link-btn", onclick: () => void countAnchored(ctx, d, g.port) }, "Count ships at anchor now (live AIS)") : "");
+        h("div", { class: "row" },
+          h("button", { class: "pill-btn holo-go", onclick: () => void openSpace(ctx.app, {
+            name: g.port.name, kicker: `Port · ${g.port.country}${g.port.code ? ` · ${g.port.code}` : ""}`, lon: g.port.lon, lat: g.port.lat, size: 2400, tint: "cyan",
+            markers: [{ lon: g.port.lon, lat: g.port.lat, color: w && w.days >= 3 ? "#ff9f0a" : "#5ad8ff", label: `${g.items.length} arriving`, pulse: !!w && w.days >= 3, ring: 900, height: 120 }],
+          }).then((hl) => hl.setHud([
+            { k: "Arriving, 30 d", v: String(g.items.length) }, { k: "Wait to berth", v: w ? `${w.days} days` : "none reported" },
+            ...g.items.slice(0, 3).map((it) => ({ k: it.eta, v: it.s.ref })),
+          ], w && w.days >= 3 ? `Ships are waiting ${w.days} days to berth` : undefined)) }, "◎ Hologram"),
+          canCount(g.port) ? h("button", { class: "link-btn", onclick: () => void countAnchored(ctx, d, g.port) }, "Count ships at anchor now (live AIS)") : ""));
     }));
 }
 
