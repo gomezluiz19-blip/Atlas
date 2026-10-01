@@ -18,6 +18,8 @@ import type { WorkFeature } from "./layer";
 import { industry, kindsOf, metres, nearestFirst, query, scoreSite, toPois, WALK, type Find, type Industry, type Poi } from "./scoutModel";
 
 const KEY = "atlas.work.scout.v1";
+/** Where a line has a made-and-grown-nearby view, the consumer's way into it. */
+const MADE: Record<string, string> = { food: "🌾 What grows around here", fashion: "🧵 What's made around here", architecture: "🪨 Local stone, timber and brick", art: "🏺 Makers around here" };
 interface Candidate { id: string; name: string; lon: number; lat: number }
 interface Saved { industry: string; as?: string; sites: Candidate[] }
 const readAll = (): Saved[] => { try { const v = JSON.parse(localStorage.getItem(KEY) ?? "[]"); return Array.isArray(v) ? v : []; } catch { return []; } };
@@ -129,7 +131,8 @@ export function openExplore(ctx: WorkCtx, id: string) {
   };
   ctx.show(ind.explore.label, ctx.home,
     h("p", { class: "sc-lede" }, ind.explore.who, "."),
-    h("div", { class: "row-btns" }, h("button", { class: "primary-btn", onclick: lookHere }, "◎ Look round here"), h("button", { class: "pill-btn", onclick: () => openScout(ctx, id) }, `For pros: ${ind.scout.label} →`)),
+    h("div", { class: "row-btns" }, h("button", { class: "primary-btn", onclick: lookHere }, "◎ Look round here"), h("button", { class: "pill-btn", onclick: () => openScout(ctx, id) }, `For pros: ${ind.scout.label} →`),
+      MADE[id] ? h("button", { class: "pill-btn", onclick: () => void import("./sourcingUi").then((m) => m.openSourcing(ctx, id)) }, MADE[id]) : ""),
     status, body,
     signature(ctx, ind));
   if (look?.for === id) render(); else if (close(app)) lookHere();
