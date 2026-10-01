@@ -199,6 +199,8 @@ const myStore = new PlaceStore();
 const myScene = new PlaceScene(globe.viewer);
 const tool = (id: string, label: string, about: string, color: string, icon: string, open: (ctx: WorkCtx) => void): WorkTool => ({ id, label, about, color, icon, open });
 const PLACE_TOOLS: WorkTool[] = [
+  tool("reach", "Getting around", "Walk, bike or drive: how far you get in 15 minutes, which way wins to the places you go, and what's within a short walk", "#30d158", icons.route, (ctx) => void import("./travel/reachUi").then((m) => m.openReach(ctx, app))),
+  tool("travel", "Travel", "Go somewhere: the way there drawn on the globe, the time change and the weather when you land, stays near what you came for, and where to book", "#0a84ff", icons.suitcase, (ctx) => void import("./travel/travelUi").then((m) => m.openTravel(ctx, app))),
   tool("myplans", "My plans", "Everything you've planned across Atlas on one map: the darker the blue, the sooner", "#1f6fe5", icons.flag, (ctx) => void import("./plans/ui").then((m) => m.openPlans(ctx))),
   tool("packages", "Packages", "What's on the way to you: paste a tracking number or the shipping email", "#bf5af2", icons.suitcase, (ctx) => void import("./myplaces/packagesUi").then((m) => m.openPackages(ctx))),
   tool("grow", "Grow", "Fields and crops: growth stage, harvest, water and frost", "#30d158", icons.sprout, openGrow),
@@ -981,6 +983,8 @@ const syncIntroChip = (p: typeof app.place) => {
   introChip.replaceChildren(h("span", { "aria-hidden": "true" }, "▶"), ` ${ip.name}: the intro`);
   introChip.onclick = () => withIntro(ip.name, ip.lon, ip.lat, (x) => x && arriveAt(x), true);
 };
+app.actions.set("reach:open", { label: "Getting around from here", run: () => { closePanels(placeHub.panel); placeHub.ctx.open(); void import("./travel/reachUi").then((m) => m.openReach(placeHub.ctx, app)); } });
+app.actions.set("travel:to", { label: "Travel here", run: () => { const p = app.place; closePanels(placeHub.panel); placeHub.ctx.open(); void import("./travel/travelUi").then((m) => m.openTravel(placeHub.ctx, app, p ? { name: p.name?.title ?? "this spot", lon: p.lon, lat: p.lat } : undefined)); } });
 app.actions.set("wind:toggle", { label: "Wind on the map", run: () => void import("./climate/windLayer").then((m) => app.toast(m.windLayer(app).toggle() ? "Wind on: the wind now, over the whole view." : "Wind off.", 3000)) });
 app.actions.set("intro:play", { label: "Play this landmark's intro", run: () => { const p = app.place; if (p) withIntro(p.name?.title, p.lon, p.lat, (x) => x && arriveAt(x), true); } });
 app.onPlace = (p) => {

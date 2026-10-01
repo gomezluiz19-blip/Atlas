@@ -435,6 +435,23 @@ bridge (go2rtc config generated for you) for live WebRTC, a direct stream link, 
 48-hour sky ring for any place, warming stripes, how far the local climate has shifted (in kilometres
 south and metres down the mountain), and decades of heat to the 2050s.
 
+**Getting around.** From home, the office or any spot: how far you get in 10 to 60 minutes on foot, by bike
+and by car, as nested shapes on the map and a reach rose (each mode's reach in every direction, overlaid
+like petals) with the ground each covers. The race to your places runs walking, biking and driving in
+three lanes and crowns the sensible winner (a ride that's nearly as fast as the car wins), and the
+15-minute check lights up which of daily life's needs (groceries, schools, health, parks, cafés, transit,
+culture, sport) are within a quarter-hour walk. Routes by Valhalla over OpenStreetMap; estimated when the
+router can't be reached. From My Place, or "Getting around" on any place.
+
+**Travel.** Say where and when, and the trip arrives as a boarding pass: the airports at each end with
+the plane crossing between them, when you leave and land in local time, the time change and how the
+body will take it, and a strip of your landing day showing whether it's dark or light. The way there
+flows across the globe. Then the weather on each day you're there (the forecast, or last year on those
+dates), every way there door to door with time and carbon, where to stay for what you came to see (the
+sweet spot where the sights cluster, and stays ranked by the sights within a 15-minute walk), and links
+that open Google Flights, Skyscanner, Kayak, Booking.com, Airbnb and more already searched for your dates
+and party. One tap saves it to your trips, where it plays on the globe. "Go here" on any place.
+
 **Made and grown nearby.** For chefs, a Foodshed: every farm, orchard, vineyard, dairy, boat and market
 within 50 km as a bloom at its true bearing, supply lines flowing into the restaurant, and a season wheel of
 what grows here when, from the local climate. The same for designers (mills, tanneries, workrooms),
