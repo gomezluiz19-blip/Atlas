@@ -6,6 +6,7 @@
 // Offsets are metres east (dx) and north (dy) of the place's point; heights
 // are metres above the ground there.
 
+import { HERITAGE_INTROS } from "./heritage";
 import { MORE_INTROS } from "./more";
 
 export type Form =
@@ -42,6 +43,8 @@ export interface IntroPlace {
   parts?: Part[];
   /** What it's about (sport, art, fashion, food, retail, tech, gaming…), for the Work map's industries. */
   tags?: string[];
+  /** Its id on UNESCO's World Heritage List, if it's on it. */
+  whc?: number;
 }
 
 const P = (id: string, name: string, where: string, lon: number, lat: number, size: number, lines: string[], facts: [string, string][], extra: Partial<IntroPlace> = {}): IntroPlace =>
@@ -459,7 +462,7 @@ const FIRST: IntroPlace[] = [
 ];
 
 // Later lists add places; an id already here wins.
-export const INTROS: IntroPlace[] = [...FIRST, ...MORE_INTROS.filter((p) => !FIRST.some((q) => q.id === p.id))];
+export const INTROS: IntroPlace[] = [...FIRST, ...MORE_INTROS, ...HERITAGE_INTROS].filter((p, i, all) => all.findIndex((q) => q.id === p.id) === i);
 
 /** The signature places tagged with any of these. */
 export const introsTagged = (...tags: string[]) => INTROS.filter((p) => p.tags?.some((t) => tags.includes(t)));
@@ -470,13 +473,47 @@ const norm = (s: string) => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,
 export function introFor(name?: string | null, lon?: number, lat?: number): IntroPlace | null {
   const n = name ? norm(name) : "";
   if (n) {
-    const hit = INTROS.find((p) => norm(p.name) === n || p.also?.some((a) => norm(a) === n) || (n.length > 5 && norm(p.name).startsWith(n)));
+    const hit = INTROS.find((p) => norm(p.name) === n || p.also?.some((a) => norm(a) === n)) ?? listed.find((x) => x.n === n)?.p
+      ?? (n.length > 5 ? INTROS.find((p) => norm(p.name).startsWith(n)) : undefined);
     if (hit) return hit;
   }
   if (lon !== undefined && lat !== undefined)
     for (const p of INTROS) {
       const dx = (lon - p.lon) * 111_320 * Math.cos((p.lat * Math.PI) / 180), dy = (lat - p.lat) * 110_540;
       if (Math.hypot(dx, dy) < Math.min(1500, p.size / 3)) return p;
+    }
+  return listedFor(n, lon, lat);
+}
+
+// ---- The rest of the World Heritage List -----------------------------------------------------------
+// Loaded on first need (it's 1,273 places); until then only the intros above are found.
+let listed: { p: IntroPlace; n: string }[] = [];
+let listing: Promise<void> | null = null;
+
+/** Loads the World Heritage List, joining its sites onto the intros above and adding the rest. */
+export function loadWorldHeritage(): Promise<void> {
+  return (listing ??= import("./unesco").then((m) => { listed = m.worldHeritage(INTROS).map((p) => ({ p, n: norm(p.name) })); }));
+}
+export const worldHeritageCount = () => listed.length;
+
+/** Like introFor, after making sure the World Heritage List is loaded. */
+export async function introForAsync(name?: string | null, lon?: number, lat?: number): Promise<IntroPlace | null> {
+  // Wait a moment for the List, not longer: arriving at the place matters more.
+  await Promise.race([loadWorldHeritage().catch(() => {}), new Promise((r) => setTimeout(r, 1500))]);
+  return introFor(name, lon, lat);
+}
+
+function listedFor(n: string, lon?: number, lat?: number): IntroPlace | null {
+  if (n) {
+    const hit = (n.length > 5 ? listed.find((x) => x.n.startsWith(n)) : undefined) ?? (n.length >= 6 ? listed.find((x) => ` ${x.n} `.includes(` ${n} `)) : undefined);
+    if (hit) return hit.p;
+  }
+  // By point only for cultural sites, whose points sit on the place; natural sites' points are just somewhere inside them.
+  if (lon !== undefined && lat !== undefined)
+    for (const { p } of listed) {
+      if (p.size > 1200) continue;
+      const dx = (lon - p.lon) * 111_320 * Math.cos((p.lat * Math.PI) / 180), dy = (lat - p.lat) * 110_540;
+      if (Math.hypot(dx, dy) < 300) return p;
     }
   return null;
 }

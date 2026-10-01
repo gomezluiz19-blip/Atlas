@@ -434,7 +434,7 @@ still read from above. It's a simulation on real streets (there is no public fee
 people), labelled as such; switch it under Layers › Live › Living city. With a Google key, the photorealistic
 3D city is on by default and the figures move through it.
 
-**Landmark intros.** The first time in a visit that you open one of about 230 of the world's most-searched
+**Landmark intros.** The first time in a visit that you open one of about 410 of the world's most-searched
 places (from search, a place link or a curated list), it's introduced before you arrive. The place stands
 as a white architect's model on a plinth in a white studio: the ground shaped from the real terrain (sea in
 pale blue), the buildings around it from OpenStreetMap, and the landmark itself as a simple massing model
@@ -450,6 +450,17 @@ the towers that make skylines, museums (the Louvre, the Met, the Guggenheims), m
 Park, Akihabara, Nintendo in Kyoto, Gamescom's halls). Stadiums are modelled with raked stands in tiers; ballparks
 wrap their stands round home plate, with bleachers, a canopy over the grandstand and light masts. Each place is
 tagged by industry, so each Work line shows its own signature places.
+
+**Every World Heritage Site.** All 1,273 properties on UNESCO's World Heritage List have an intro. About 180 of the
+most visited that weren't already covered have full ones, with white models where they're buildings: Versailles,
+Pompeii, Florence's Duomo, Prague Castle, the Tower of London, Karnak, Petra's neighbours Baalbek and Hegra, Himeji,
+Tōdai-ji, the Temple of Heaven, the Red Fort, Humayun's Tomb, Prambanan and others. Every other site gets a plainer
+intro built from the List itself, played over the real ground and the buildings standing there: its name, where it
+is, the year it was inscribed, and whether it's cultural, natural or both. Where Atlas already had an intro for a
+place, its listing joins it instead, so that intro gains the UNESCO name and a "World Heritage since" year. A listing
+joins by its point, by a distinctive word in its name, or by an explicit claim; a few nearby but separate listings
+are kept apart on purpose. The List is a snapshot of whc.unesco.org/en/list from August 2026. It loads a few seconds
+after the globe, in its own file of about 45 kB gzipped, so first load doesn't wait for it.
 
 **Politics Pro.** In Work, a legislative office runs on the map. Start from the member (the whole of
 Congress is searchable) and the district is outlined from the Census Bureau, with its people from the American

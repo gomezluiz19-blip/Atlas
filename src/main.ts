@@ -29,7 +29,7 @@ import { findThings, scoreThing, tokens, type Thing } from "./ui/frontDoor";
 import { buildThings } from "./ui/things";
 import { TimeBar } from "./time/bar";
 import { arrive, stopArriving } from "./delight/arrive";
-import { introFor, shouldPlay, type IntroPlace } from "./intros/places";
+import { introFor, introForAsync, loadWorldHeritage, shouldPlay, type IntroPlace } from "./intros/places";
 import { playIntro } from "./delight/intro";
 import { setSound, soundOn } from "./delight/sound";
 import { startTour, tourDone } from "./delight/tour";
@@ -132,10 +132,13 @@ labels.onClick = (l) => {
 // Landmark intros: the first time in a visit that a well-known place is opened, it's shown as a white model
 // with a few lines about it, then the view cuts to the real place.
 const withIntro = (name: string | undefined, lon: number, lat: number, then: (ip?: IntroPlace) => void, force = false) => {
-  const ip = introFor(name, lon, lat);
-  if (!ip || (!force && !shouldPlay(ip))) { then(); return; }
-  void import("./intros/intro").then((m) => m.playIntro(ip, () => then(ip))).catch(() => then());
+  void introForAsync(name, lon, lat).then((ip) => {
+    if (!ip || (!force && !shouldPlay(ip))) { then(); return; }
+    void import("./intros/intro").then((m) => m.playIntro(ip, () => then(ip))).catch(() => then());
+  });
 };
+// The whole World Heritage List, once the globe has settled.
+setTimeout(() => void loadWorldHeritage().catch(() => {}), 6000);
 const arriveAt = (ip: IntroPlace) => void arrive(app, { name: ip.name, kicker: ip.where, lon: ip.lon, lat: ip.lat, radius: Math.max(150, ip.size / 3), fact: ip.lines[0] });
 
 const pick = (p: SearchPlace | SearchResult) => {
