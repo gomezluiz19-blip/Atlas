@@ -6,8 +6,11 @@
 // Offsets are metres east (dx) and north (dy) of the place's point; heights
 // are metres above the ground there.
 
+import type { Fx } from "./fx";
+import { FOOTHOLD_INTROS } from "./footholds";
 import { HERITAGE_INTROS } from "./heritage";
 import { MORE_INTROS } from "./more";
+import { NATURE_INTROS } from "./nature";
 
 export type Form =
   | { f: "box"; w: number; d: number; h: number; dx?: number; dy?: number; z?: number; rot?: number }
@@ -43,6 +46,8 @@ export interface IntroPlace {
   parts?: Part[];
   /** What it's about (sport, art, fashion, food, retail, tech, gaming…), for the Work map's industries. */
   tags?: string[];
+  /** What moves: aurora, a herd, a river, clouds, fireflies. */
+  fx?: Fx[];
   /** Its id on UNESCO's World Heritage List, if it's on it. */
   whc?: number;
 }
@@ -462,12 +467,12 @@ const FIRST: IntroPlace[] = [
 ];
 
 // Later lists add places; an id already here wins.
-export const INTROS: IntroPlace[] = [...FIRST, ...MORE_INTROS, ...HERITAGE_INTROS].filter((p, i, all) => all.findIndex((q) => q.id === p.id) === i);
+export const INTROS: IntroPlace[] = [...FIRST, ...MORE_INTROS, ...HERITAGE_INTROS, ...FOOTHOLD_INTROS, ...NATURE_INTROS].filter((p, i, all) => all.findIndex((q) => q.id === p.id) === i);
 
 /** The signature places tagged with any of these. */
 export const introsTagged = (...tags: string[]) => INTROS.filter((p) => p.tags?.some((t) => tags.includes(t)));
 
-const norm = (s: string) => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, " ").trim();
+const norm = (s: string) => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, " ").trim().replace(/^the /, "");
 
 /** The intro place for a name (as searched) or a point, if there is one. */
 export function introFor(name?: string | null, lon?: number, lat?: number): IntroPlace | null {

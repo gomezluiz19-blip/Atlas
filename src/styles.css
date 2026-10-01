@@ -2928,3 +2928,17 @@ body[data-work="1"] .holo:not(.mini) .holo-actions { margin-right: 440px; }
 .row-btns { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 8px; align-items: center; }
 .sc-row-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; color: var(--label); font-size: 13.5px; }
 .sc-row-main small { color: var(--secondary); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* Intros at night: aurora, fireflies, glowing water. */
+.lmi.night { background: #070b18; color: #eef1f8; }
+.lmi.night .lmi-canvas::after { background: linear-gradient(90deg, #070b18 0, rgba(7,11,24,.9) 22%, rgba(7,11,24,0) 42%); }
+.lmi.night .lmi-where, .lmi.night .lmi-off { color: #8d97b3; }
+.lmi.night .lmi-line { color: #c9d0e2; }
+.lmi.night .lmi-facts { border-top-color: #232b44; }
+.lmi.night .lmi-facts dt { color: #8d97b3; }
+.lmi.night .lmi-facts dd { color: #eef1f8; }
+.lmi.night .lmi-go { background: #eef1f8; color: #070b18; }
+.lmi.night .lmi-skip { color: #c9d0e2; border-color: #2c3552; }
+.lmi.night .lmi-progress { background: #1c2338; }
+.lmi.night .lmi-progress i { background: #7dffc4; }
+@media (max-width: 820px) { .lmi.night .lmi-canvas::after { background: linear-gradient(0deg, #070b18 0, rgba(7,11,24,.92) 34%, rgba(7,11,24,0) 55%); } }

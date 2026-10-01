@@ -37,7 +37,7 @@ describe("the World Heritage List", () => {
   it("leaves the rest as listings, and joining adds the UNESCO name and year", () => {
     const intros = copy();
     const rest = worldHeritage(intros);
-    expect(rest.length).toBeGreaterThan(1000);
+    expect(rest.length).toBeGreaterThan(950);
     expect(rest.length + new Set(intros.filter((p) => p.whc).map((p) => p.whc)).size).toBeLessThanOrEqual(1273);
     const mp = intros.find((p) => p.id === "machu-picchu")!;
     expect(mp.also).toContain("Historic Sanctuary of Machu Picchu");
@@ -50,7 +50,7 @@ describe("the World Heritage List", () => {
   });
   it("finds a listed site by name once the List is loaded", async () => {
     expect(await introForAsync("Rock Islands Southern Lagoon")).toMatchObject({ whc: 1386 });
-    expect(worldHeritageCount()).toBeGreaterThan(1000);
+    expect(worldHeritageCount()).toBeGreaterThan(950);
     expect(introFor("Historic Sanctuary of Machu Picchu")?.id).toBe("machu-picchu");
     expect(introFor("Mount Fuji")?.id).toBe("mount-fuji");
     await loadWorldHeritage();

@@ -434,7 +434,7 @@ still read from above. It's a simulation on real streets (there is no public fee
 people), labelled as such; switch it under Layers › Live › Living city. With a Google key, the photorealistic
 3D city is on by default and the figures move through it.
 
-**Landmark intros.** The first time in a visit that you open one of about 410 of the world's most-searched
+**Landmark intros.** The first time in a visit that you open one of about 600 of the world's most-searched
 places (from search, a place link or a curated list), it's introduced before you arrive. The place stands
 as a white architect's model on a plinth in a white studio: the ground shaped from the real terrain (sea in
 pale blue), the buildings around it from OpenStreetMap, and the landmark itself as a simple massing model
@@ -461,6 +461,25 @@ place, its listing joins it instead, so that intro gains the UNESCO name and a "
 joins by its point, by a distinctive word in its name, or by an explicit claim; a few nearby but separate listings
 are kept apart on purpose. The List is a snapshot of whc.unesco.org/en/list from August 2026. It loads a few seconds
 after the globe, in its own file of about 45 kB gzipped, so first load doesn't wait for it.
+
+**A foothold in every kind of place.** About 140 more intros reach into the kinds of place people look up:
+national and state parks (Zion, Delicate Arch, Death Valley, Kruger, Custer State Park, Antelope Canyon), tourist
+sights (the Strip, Central Park, the Trevi Fountain, the Pantheon), amusement parks (the Disney parks with their
+castles, Cedar Point, Tivoli, Efteling), race tracks (Daytona, Le Mans, Monaco, Silverstone, the Nordschleife,
+Churchill Downs), the restaurants named best in the world year by year (elBulli, Noma, Osteria Francescana, Central,
+Disfrutar, Maido) and old institutions such as Botín and Katz's, fashion houses (Chanel's 31 rue Cambon, Hermès,
+Dior's 30 Avenue Montaigne, Savile Row), great factories (Boeing Everett, Volkswagen Wolfsburg, TSMC, ASML, Three
+Gorges) and the most impressive mines (Bingham Canyon, Chuquicamata, the Mir pit, Mponeng). Each is tagged by kind
+(park, attraction, amusement, racing, food, fashion, factory, mining), so a Work line or a lens can find its own.
+
+**The great feats of nature, alive.** Intros can now carry effects: the aurora's curtains rippling over a night sky,
+a herd crossing the plinth, a river running, clouds drifting over mountains, fireflies and glowing water. The scene
+and card turn to night for the ones that need it. The aurora borealis and australis, the Great Migration over the
+Mara River, monarch butterflies, Christmas Island's red crabs, the Porcupine caribou, the bats of Kasanka, gray
+whales, the Sardine Run and bears at Brooks Falls all move. A lion and an elephant stand as life-size white
+sculptures. The Amazon, the Himalaya, the Rockies, the Adirondacks, the Andes, Mont Blanc, Denali, K2, Mauna Kea,
+the Sahara, the Dead Sea, Challenger Deep, Lake Baikal, Antarctica, the General Sherman tree, the Avenue of the
+Baobabs, the synchronous fireflies, Mosquito Bay and Waitomo's glowworms round it out.
 
 **Politics Pro.** In Work, a legislative office runs on the map. Start from the member (the whole of
 Congress is searchable) and the district is outlined from the Census Bureau, with its people from the American
