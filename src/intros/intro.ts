@@ -45,6 +45,24 @@ export function formGeometry(f: Form): THREE.BufferGeometry {
       g = new THREE.ExtrudeGeometry(s, { depth: f.h, bevelEnabled: false, curveSegments: 56 }).rotateX(-Math.PI / 2);
       break;
     }
+    case "stand": {
+      const n = Math.max(1, f.n ?? 3), full = f.from === undefined || f.to === undefined;
+      const a0 = (f.from ?? 0) * DEG, a1 = (f.to ?? 360) * DEG;
+      g = mergeGeometries(Array.from({ length: n }, (_, i) => {
+        const fi = i / n, fo = (i + 1) / n;
+        const irx = f.ix + (f.rx - f.ix) * fi, iry = f.iy + (f.ry - f.iy) * fi, orx = f.ix + (f.rx - f.ix) * fo, ory = f.iy + (f.ry - f.iy) * fo;
+        const s = new THREE.Shape();
+        if (full) {
+          s.absellipse(0, 0, orx, ory, 0, Math.PI * 2, false, 0);
+          s.holes.push(new THREE.Path().absellipse(0, 0, irx, iry, 0, Math.PI * 2, true, 0));
+        } else {
+          s.absellipse(0, 0, orx, ory, a0, a1, false, 0);
+          s.absellipse(0, 0, irx, iry, a1, a0, true, 0);
+        }
+        return new THREE.ExtrudeGeometry(s, { depth: (f.h * (i + 1)) / n, bevelEnabled: false, curveSegments: 56 }).rotateX(-Math.PI / 2);
+      }));
+      break;
+    }
     case "stones":
       g = mergeGeometries(Array.from({ length: f.n }, (_, i) => {
         const a = (2 * Math.PI * i) / f.n;

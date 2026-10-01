@@ -6,6 +6,8 @@
 // Offsets are metres east (dx) and north (dy) of the place's point; heights
 // are metres above the ground there.
 
+import { MORE_INTROS } from "./more";
+
 export type Form =
   | { f: "box"; w: number; d: number; h: number; dx?: number; dy?: number; z?: number; rot?: number }
   | { f: "frustum"; w: number; top: number; h: number; dx?: number; dy?: number; z?: number; rot?: number }
@@ -18,6 +20,8 @@ export type Form =
   | { f: "ring"; rx: number; ry: number; ix: number; iy: number; h: number; dx?: number; dy?: number; z?: number; rot?: number }
   | { f: "stones"; r: number; n: number; w: number; d: number; h: number; dx?: number; dy?: number }
   | { f: "arch"; span: number; h: number; t: number; dx?: number; dy?: number; rot?: number }
+  /** Raked stands: n tiers stepping up and out from the inner edge; `from`/`to` (degrees, 0 = east, 90 = north) for a part of the way round. */
+  | { f: "stand"; rx: number; ry: number; ix: number; iy: number; h: number; n?: number; from?: number; to?: number; dx?: number; dy?: number; z?: number; rot?: number }
   | { f: "shell"; rx: number; ry: number; h: number; dx?: number; dy?: number; z?: number; rot?: number };
 
 export interface Part { label: string; dx?: number; dy?: number; h: number }
@@ -36,12 +40,14 @@ export interface IntroPlace {
   facts: [string, string][];
   forms?: Form[];
   parts?: Part[];
+  /** What it's about (sport, art, fashion, food, retail, tech, gaming…), for the Work map's industries. */
+  tags?: string[];
 }
 
 const P = (id: string, name: string, where: string, lon: number, lat: number, size: number, lines: string[], facts: [string, string][], extra: Partial<IntroPlace> = {}): IntroPlace =>
   ({ id, name, where, lon, lat, size, lines, facts, ...extra });
 
-export const INTROS: IntroPlace[] = [
+const FIRST: IntroPlace[] = [
   // ---- The Americas ----------------------------------------------------------------------------------
   P("statue-of-liberty", "Statue of Liberty", "Liberty Island, New York Harbor", -74.0445, 40.68925, 700,
     ["A gift from the people of France, dedicated in 1886.", "Copper skin over an iron frame designed by Gustave Eiffel.", "It stands on the star-shaped walls of Fort Wood."],
@@ -450,6 +456,12 @@ export const INTROS: IntroPlace[] = [
     ["A fiord carved by glaciers, walled by cliffs over 1,000 m high.", "Mitre Peak rises straight from the water."],
     [["Mitre Peak", "1,692 m"], ["Length", "about 15 km"]]),
 ];
+
+// Later lists add places; an id already here wins.
+export const INTROS: IntroPlace[] = [...FIRST, ...MORE_INTROS.filter((p) => !FIRST.some((q) => q.id === p.id))];
+
+/** The signature places tagged with any of these. */
+export const introsTagged = (...tags: string[]) => INTROS.filter((p) => p.tags?.some((t) => tags.includes(t)));
 
 const norm = (s: string) => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, " ").trim();
 
