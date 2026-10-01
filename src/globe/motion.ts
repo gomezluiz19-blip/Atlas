@@ -64,9 +64,11 @@ export function initMotion(viewer: Viewer) {
 
   // ---- Camera feel ----
   const c = scene.screenSpaceCameraController;
-  c.inertiaSpin = 0.92;
-  c.inertiaTranslate = 0.92;
-  c.inertiaZoom = 0.86;
+  // Long, smooth glides; short ones for people who've asked their device for less motion.
+  const calm = typeof matchMedia !== "undefined" && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  c.inertiaSpin = calm ? 0.6 : 0.92;
+  c.inertiaTranslate = calm ? 0.6 : 0.92;
+  c.inertiaZoom = calm ? 0.5 : 0.86;
   c.zoomFactor = 4;
   c.minimumZoomDistance = 25;
   c.maximumZoomDistance = 45_000_000;
