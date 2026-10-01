@@ -8,8 +8,11 @@
 // While the camera is moving it streams slightly coarser terrain and, on a
 // device that can't keep up, renders at a lower resolution, sharpening both
 // again the moment it settles. And the camera itself gets a calmer feel:
-// gentler wheel steps, longer glides, no diving into the ground.
+// gentler wheel steps, longer glides, no diving into the ground. How hard all
+// of it works is fitted to the device (quality.ts), and a device that keeps
+// dropping frames is stepped down a tier, there and then and on its next visit.
 import type { Scene, Viewer } from "cesium";
+import { currentQuality, learnSlow, qualityFor, readSignals, type Quality } from "./quality";
 
 type Pred = () => boolean;
 const wants: Pred[] = [];
@@ -36,11 +39,42 @@ export function everyFrame(scene: Scene, fn: () => void, active: Pred): () => vo
   return add(fn as (...a: never[]) => void);
 }
 
-export interface MotionStats { mode: "full" | "idle"; fps: number; scale: number; transient: number; why: string }
-export const stats: MotionStats = { mode: "full", fps: 0, scale: 1, transient: 0, why: "" };
+export interface MotionStats { mode: "full" | "idle"; fps: number; scale: number; transient: number; why: string; tier: string }
+export const stats: MotionStats = { mode: "full", fps: 0, scale: 1, transient: 0, why: "", tier: "" };
+
+let q: Quality = currentQuality();
+let applyTo: Viewer | null = null;
+/** The quality in force. */
+export const quality = () => q;
+
+/** Puts a quality's settings on the globe. */
+export function setQuality(next: Quality) {
+  q = next;
+  stats.tier = q.tier;
+  const v = applyTo;
+  if (!v) return;
+  // Sharp on high-density screens without rendering 9x the pixels on 3x phones.
+  v.useBrowserRecommendedResolution = false;
+  const dpr = (typeof devicePixelRatio === "number" && devicePixelRatio) || 1;
+  v.resolutionScale = q.pixelRatio / dpr;
+  v.scene.globe.maximumScreenSpaceError = q.sse;
+  v.scene.globe.tileCacheSize = q.tileCache;
+  v.scene.postProcessStages.fxaa.enabled = q.fxaa;
+  v.scene.requestRender();
+}
 
 export function initMotion(viewer: Viewer) {
   const scene = viewer.scene, camera = viewer.camera;
+  applyTo = viewer;
+  setQuality(q);
+  // On battery and running low: ease off until it's charging again.
+  type Battery = EventTarget & { level: number; charging: boolean };
+  void (navigator as Navigator & { getBattery?: () => Promise<Battery> }).getBattery?.().then((b) => {
+    const check = () => setQuality(!b.charging && b.level < 0.2 ? qualityFor("low", readSignals()) : currentQuality());
+    if (!b.charging && b.level < 0.2) check();
+    b.addEventListener("levelchange", check);
+    b.addEventListener("chargingchange", check);
+  }).catch(() => {});
   scene.requestRenderMode = true;
   // The real clock ticking doesn't redraw; a lens jumping the time by more than a minute does.
   scene.maximumRenderTimeChange = 60;
@@ -74,15 +108,19 @@ export function initMotion(viewer: Viewer) {
   c.maximumZoomDistance = 45_000_000;
 
   // ---- While moving: coarser terrain, and lower resolution if frames are slow ----
-  const sharp = scene.globe.maximumScreenSpaceError;
-  const baseScale = viewer.resolutionScale;
-  let moving = false, slow = 0;
-  camera.moveStart.addEventListener(() => { moving = true; scene.globe.maximumScreenSpaceError = sharp * 1.5; });
+  let moving = false, slow = 0, sharp = q.sse, baseScale = viewer.resolutionScale, struggled = 0, dropped = false;
+  camera.moveStart.addEventListener(() => {
+    moving = true; dropped = false;
+    sharp = q.sse; baseScale = viewer.resolutionScale;
+    scene.globe.maximumScreenSpaceError = sharp * q.movingSse;
+  });
   camera.moveEnd.addEventListener(() => {
     moving = false; slow = 0;
     scene.globe.maximumScreenSpaceError = sharp;
     if (viewer.resolutionScale !== baseScale) viewer.resolutionScale = baseScale;
     stats.scale = 1;
+    // Struggling on three separate moves: this device wants a lighter globe.
+    if (dropped && ++struggled >= 3 && q.tier !== "low") { struggled = 0; setQuality(qualityFor(learnSlow(q.tier), readSignals())); }
     wake(1500);
     scene.requestRender();
   });
@@ -92,9 +130,9 @@ export function initMotion(viewer: Viewer) {
     frames++;
     if (now - fpsAt > 1000) { stats.fps = frames; frames = 0; fpsAt = now; }
     if (moving && lastFrame) {
-      // A run of slow frames (under ~40 fps) while moving: render at 75% until it settles.
+      // A run of slow frames (under ~40 fps) while moving: render at lower resolution until it settles.
       if (now - lastFrame > 25) slow++; else slow = Math.max(0, slow - 1);
-      if (slow > 12 && viewer.resolutionScale === baseScale) { viewer.resolutionScale = baseScale * 0.75; stats.scale = 0.75; }
+      if (slow > 12 && viewer.resolutionScale === baseScale) { viewer.resolutionScale = baseScale * q.movingScale; stats.scale = q.movingScale; dropped = true; }
     }
     lastFrame = now;
   });
@@ -109,7 +147,7 @@ export function initMotion(viewer: Viewer) {
     stats.why = why;
     stats.transient = transient;
     if (animating) scene.requestRender();
-    else if (now - beat > 300) { beat = now; scene.requestRender(); }
+    else if (now - beat > q.heartbeat) { beat = now; scene.requestRender(); }
     raf0(loop);
   };
   raf0(loop);

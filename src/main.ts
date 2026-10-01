@@ -79,6 +79,7 @@ import { MINES } from "./content/minerals";
 import { LINKS } from "./content/links";
 import { wireSocial } from "./social/wire";
 import { watchForProblems } from "./ui/errors";
+import { seamlessDeploys, warmUp } from "./ui/warm";
 watchForProblems();
 import { allProfiles, searchProfiles } from "./social/store";
 import { allLenses, myLenses } from "./lenses/library";
@@ -1094,9 +1095,11 @@ else if (!shared.camera && !pageLinked && myStore.all().length) {
   }, 1200);
 }
 
-// Offline: the app, bundled data and the map tiles you've seen keep working without a connection.
-if (import.meta.env.PROD && "serviceWorker" in navigator)
-  addEventListener("load", () => void navigator.serviceWorker.register("./sw.js").catch(() => {}));
+// Offline: the app, bundled data and the map tiles you've seen keep working without a connection,
+// and a new deploy takes over without breaking an open tab (ui/warm.ts, public/sw.js).
+if (import.meta.env.PROD) seamlessDeploys();
+// What people open next, fetched while the browser is idle.
+warmUp(globe, [() => import("./intros/intro"), () => loadWorldHeritage(), () => import("./answers/ui")]);
 
 // Handy for debugging from the browser console during development.
 if (import.meta.env.DEV) {

@@ -414,6 +414,32 @@ the terrain you've looked at stay cached, so Atlas opens in a field with no sign
 device (satellite imagery follows the browser's own cache until an imagery licence allows storing it). **Back up everything** (in My Places) saves all your places, animals, fields,
 projects, plans, decks and quizzes to one file to keep or to restore on another device.
 
+**Fast on any device, seamless across deploys.** The globe draws on demand: full rate while anything moves
+(the camera, a touch, wind, traffic, a lens), a slow heartbeat otherwise, so a still map costs almost nothing.
+How hard it works is fitted to the device (memory, cores, screen, data saver, connection, battery): pixels,
+terrain detail, tile cache and idle redraws step from **Light** to **Balanced** to **Sharp**, a device that keeps
+dropping frames steps itself down and remembers, and a low battery eases off until it's charging (Layers ›
+Detail to choose by hand). Startup code, Cesium, libraries and bundled data ship as separate files, so a
+deploy that changes only the code leaves the rest cached; the service worker fetches the startup files at
+install, opens pages with navigation preload, keeps built files across deploys so an open tab never breaks,
+and keeps the last weather for offline. When idle, the screens people open next (landmark intros, the World
+Heritage List) are fetched ahead. The build prints what every visitor downloads and fails CI past a budget.
+
+**Connect a home camera, whatever it is.** Pick the brand (Ring, Nest, Arlo, Blink, Wyze, eufy, SimpliSafe,
+Reolink, Tapo, UniFi, Hikvision/Dahua, Amcrest, Home Assistant) and Atlas shows the ways that work for it,
+best first: share the camera app's window into Atlas now, open the camera's own app from the place, a home
+bridge (go2rtc config generated for you) for live WebRTC, a direct stream link, or the maker's official API
+(coming). See [docs/cameras.md](docs/cameras.md).
+
+**Weather you can see.** Wind alive on the globe (streamlines with drops of light, coloured by speed), a
+48-hour sky ring for any place, warming stripes, how far the local climate has shifted (in kilometres
+south and metres down the mountain), and decades of heat to the 2050s.
+
+**Made and grown nearby.** For chefs, a Foodshed: every farm, orchard, vineyard, dairy, boat and market
+within 50 km as a bloom at its true bearing, supply lines flowing into the restaurant, and a season wheel of
+what grows here when, from the local climate. The same for designers (mills, tanneries, workrooms),
+architects (quarries, sawmills, brickworks) and artists (foundries, studios, framers).
+
 **Worth knowing.** Tap a notable feature and the place card says something true about it: about 270 rivers,
 lakes, waterfalls, canyons, deserts, peaks, volcanoes, impact craters, ocean trenches, forests and metro
 systems, with their key figures (a
