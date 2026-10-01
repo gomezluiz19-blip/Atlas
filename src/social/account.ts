@@ -12,7 +12,10 @@ import { account, handleTaken, localAccounts, me, onAccount, signIn, signOut } f
 
 /** A round avatar: the person's emoji on their colour. */
 export function avatarEl(p: Pick<Profile, "avatar" | "name">, size = 32): HTMLElement {
-  return h("span", { class: "avatar", style: `--av:${p.avatar.color};--size:${size}px`, "aria-hidden": "true" }, p.avatar.emoji || p.name.slice(0, 1));
+  // A monogram: the first letters of the first and last names.
+  const words = p.name.trim().split(/\s+/).filter(Boolean);
+  const mono = words.length ? (words[0][0] + (words.length > 1 ? words[words.length - 1][0] : "")).toUpperCase() : "·";
+  return h("span", { class: "avatar", style: `--av:${p.avatar.color};--size:${size}px`, "aria-hidden": "true" }, mono);
 }
 
 const PERSON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.5" r="3.6"/><path d="M4.8 19.5c1.3-3.3 4-5 7.2-5s5.9 1.7 7.2 5"/></svg>`;

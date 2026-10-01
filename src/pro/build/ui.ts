@@ -5,6 +5,7 @@
 // the months ahead), the money (earned value), and the site (people on it,
 // deliveries and where they come from, neighbours in earshot, permits,
 // inspections and questions to the designer).
+import { openSpace } from "../../delight/spaces";
 import type { App } from "../../app";
 import { climateDays, siteWeather } from "../../data/openmeteo";
 import { elementPoint, overpass } from "../../data/overpass";
@@ -156,6 +157,7 @@ function projectScreen(ctx: WorkCtx, f: Firm, p: Project, fly = true) {
     h("div", { class: "chips wrap" }, setTab("schedule"), setTab("weather"), setTab("money"), setTab("site")),
     tab === "schedule" ? schedulePanel(ctx, f, p) : tab === "weather" ? weatherPanel(p) : tab === "money" ? moneyPanel(ctx, f, p) : sitePanel(ctx, f, p),
     h("div", { class: "row" },
+      h("button", { class: "pill-btn holo-go", onclick: () => void siteHologram(ctx.app, p) }, "◎ Hologram"),
       h("button", { class: "primary-btn", onclick: () => ownerReport(f, p) }, "Client report"),
       h("button", { class: "link-btn danger", onclick: () => { if (confirm(`Remove ${p.name}?`)) { f.projects = f.projects.filter((x) => x.id !== p.id); save(f); openBuildPro(ctx); } } }, "Remove project")),
     title("Project"),
@@ -303,4 +305,22 @@ function exportAll(f: Firm) {
   const t = today();
   downloadCsv(`${f.name} projects ${t}`, ["project", "client", "value", "start", "contract finish", "forecast finish", "days late", "done %", "planned %", "CPI", "SPI", "forecast cost"],
     f.projects.map((p) => { const ev = earnedValue(p, t), ff = forecastFinish(p, t); return [p.name, p.client, p.value, p.start, p.finish, ff.finish, ff.late, Math.round(ev.done * 100), Math.round(ev.planned * 100), ev.cpi.toFixed(2), ev.spi.toFixed(2), Math.round(ev.eac)]; }));
+}
+
+/** The site as a hologram: the block around it, the site glowing by status, the 300 m earshot ring, and the neighbours who'll hear it. */
+async function siteHologram(app: App, p: Project) {
+  const t = today(), d0 = fc(p)[0], ev = earnedValue(p, t), ff = forecastFinish(p, t), lvl = worst(p);
+  void loadNeighbours(p);
+  const markers = () => [
+    { lon: p.lon, lat: p.lat, color: statusColor(lvl), label: `${Math.round(ev.done * 100)}% built`, pulse: lvl >= 3, ring: 300, height: 60 },
+    ...(receptors.get(p.id) ?? []).filter((r) => r.kind !== "homes").slice(0, 8).map((r) => ({ lon: r.lon, lat: r.lat, color: "#ff375f", label: `${r.name} · ${noiseAt(r.m)} dB`, height: 25 })),
+  ];
+  const hl = await openSpace(app, { name: p.name, kicker: `Building site · ${p.client || p.kind}`, lon: p.lon, lat: p.lat, size: 760, tint: "amber", markers: markers() });
+  const ok = (k: Weather) => (d0 ? (workable(k, d0).ok ? "Go" : `Stop: ${workable(k, d0).why}`) : "…");
+  hl.setHud([
+    { k: "Crane today", v: ok("crane") }, { k: "Pour today", v: ok("pour") },
+    { k: "On site today", v: `${headcount(p, t, 1)[0]?.people ?? 0} people` },
+    { k: "Finish", v: ff.late > 0 ? `${ff.finish} (${ff.late} d late)` : ff.finish }, { k: "Cost performance", v: ev.cpi.toFixed(2) },
+  ], projectFlags(p, t, fc(p))[0]?.text);
+  setTimeout(() => hl.setMarkers(markers()), 4000);
 }

@@ -25,6 +25,39 @@ Around it: the local time, the weather now, today's range and the next sunset, a
 shrinks to a puck in the corner while that opens; tap the puck, or close the tool, and it comes back. Switch between
 your places from the chips under the name, or fly in on the globe.
 
+**Holograms for anything.** The same holographic model works for any place, not just yours. Every place card has a
+**◎ Hologram** button: Spitalfields, a summit, a stadium. Every pro tool's sites boot the same way, with their live
+state drawn on them:
+- **Build Pro:** a site glows by status, with its 300 m earshot ring and the schools and clinics within it tagged
+  with their noise; the readout says whether the crane can lift and concrete can pour today.
+- **Mining Pro:** the pit, plant, camp and tailings dam, with the dam ringed.
+- **Field Network:** a customer site, with its machines running or down.
+- **Freight Desk:** a port, with what's arriving and the wait to berth.
+- **Relief Pipeline:** a warehouse, with the days of stock left.
+
+Sites are amber, places violet, programmes green. **Still** saves a framed picture; **Film** records an eight-second
+orbit with a title card, for a deck, an update or a post.
+
+**Pulse (top bar).** Everything you have in Atlas as one living picture of the planet:
+- Your places glow, and plans brighten as they near (the My plans scale).
+- Shipments ride their sea lanes to where the ship would be that day, and relief loads move between warehouses.
+- Building sites, mines, customers and business partners hold their places, joined by what flows between them.
+
+Around the picture:
+- **Time scrub:** drag a month back or a quarter ahead, or press play, and the world moves with it.
+- **What if:** close Suez, the Red Sea, Panama, Malacca or another strait your cargo uses. The strait seals in red,
+  each affected ship's route redraws the long way round, and the cost counts up in ship-days, CO₂ and dollars.
+- **Wall mode:** clears everything else away for a screen on the wall, with the planet slowly turning and a clock.
+- **Still** and **Film** work here too.
+
+**People's pages.** A page is about a person's world:
+- **Hero:** a dotted planet turning slowly, with their places glowing in their colour and arcs from home.
+- **Identity:** a monogram, their name set large, and a quiet line with their handle, role and home.
+- **Places:** their **essential places**, numbered, in editorial tiles.
+- **Notes from visitors**, in place of the old guestbook.
+- **Looks:** Midnight, Tide, Aurora, Moss, Ember, Sand or Paper.
+- **On the globe:** their places show as fine points of light in their colour.
+
 **Packages.** Paste a tracking number, or the whole shipping email: Atlas finds the numbers, knows the carrier from
 the pattern (UPS, FedEx, USPS, DHL, Amazon, Royal Mail, Canada Post, international post), picks out the delivery date,
 and links to the carrier's own tracking page. Set each one's step (on the way, out for delivery, delivered, problem);

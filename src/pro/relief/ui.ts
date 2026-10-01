@@ -5,6 +5,7 @@
 // the rains, incidents, and who can only be reached by air), moves (what's
 // on the way, and planning the next one by the fastest, cheapest or
 // ground-only route) and a sitrep to print.
+import { openSpace } from "../../delight/spaces";
 import type { App } from "../../app";
 import { climateDays } from "../../data/openmeteo";
 import { h } from "../../ui/dom";
@@ -162,6 +163,7 @@ function hubScreen(ctx: WorkCtx, n: Network, x: Hub) {
   const other = n.hubs.filter((y) => y.id !== x.id);
   const newLeg = { to: other[0]?.id ?? "", mode: "road" as Mode };
   ctx.show(x.name, back,
+    h("button", { class: "pill-btn holo-go", onclick: () => void hubHologram(ctx.app, n, x) }, "◎ Hologram"),
     field("Name", input(x.name, (v) => { x.name = v; save(n); })),
     field("Kind", select<HubKind>(x.kind, Object.entries(HUB_KINDS).map(([k, v]) => [k as HubKind, v.label]), (v) => { x.kind = v; save(n); hubScreen(ctx, n, x); })),
     field("Capacity (t)", input(x.capacity ?? "", (v) => { x.capacity = Number(v) || undefined; save(n); }, { type: "number", min: 0 })),
@@ -323,3 +325,18 @@ function sitrep(n: Network) {
 }
 
 
+
+/** A warehouse or distribution point as a hologram, with what's left and what's coming. */
+async function hubHologram(app: App, n: Network, x: Hub) {
+  const t = today(), bs = breaks(n, t).filter((b) => b.hub.id === x.id), f = fill(x);
+  const inc = n.incidents.filter((i) => kmBetween(i, x) < 2);
+  const hl = await openSpace(app, {
+    name: x.name, kicker: `${HUB_KINDS[x.kind].label}${x.people ? ` · serves ${x.people.toLocaleString()} people` : ""}`, lon: x.lon, lat: x.lat, size: 1400, tint: "green",
+    markers: [{ lon: x.lon, lat: x.lat, color: bs.some((b) => b.level === 3) ? "#ff453a" : bs.some((b) => b.level === 2) ? "#ff9f0a" : "#30d158", label: `${fmt(f.tonnes)} t in stock`, pulse: bs.some((b) => b.level === 3), height: 60 },
+      ...inc.map((i) => ({ lon: i.lon, lat: i.lat, color: "#ff453a", label: i.text.slice(0, 32), pulse: true }))],
+  });
+  hl.setHud([
+    ...bs.slice(0, 4).map((b) => ({ k: b.item.name, v: b.cover < 1 ? "Out" : `${Math.floor(b.cover)} days left` })),
+    ...(x.capacity ? [{ k: "Warehouse", v: `${Math.round(f.share * 100)}% full` }] : []),
+  ], bs[0] && bs[0].level >= 2 ? `${bs[0].item.name} runs out ${bs[0].runsOut}` : undefined);
+}

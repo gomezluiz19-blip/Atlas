@@ -47,6 +47,7 @@ import type { DockItem } from "./myplaces/holo";
 import { packageSummary, readPackages } from "./myplaces/packages";
 import { localRecords, type TodayItem } from "./myplaces/today";
 import { forecast } from "./data/openmeteo";
+import { activeSpace, adopt, closeSpace, openSpace } from "./delight/spaces";
 import { PlaceScene } from "./myplaces/scene";
 import { createMyPlaces } from "./myplaces/panel";
 import { createPro } from "./pro/panel";
@@ -343,8 +344,9 @@ $("ui").append(myPlaces.panel);
 const pro = createPro(app, myStore, myScene, (id) => { myPlaces.open(id); myPlaces.close(); });
 
 // ---- My Place, booted: your place as a hologram, with a dock of what you do there -------------------
+// The live hologram (your place, or any other place or site) is kept by spaces.ts, one at a time.
 let holo: import("./myplaces/holo").Holo | null = null;
-const closeHolo = () => { holo?.close(); holo = null; };
+const closeHolo = () => { closeSpace(); holo = null; };
 function dockFor(place: MyPlace, brief?: TodayItem[]): DockItem[] {
   const rec = localRecords(), pk = packageSummary(readPackages(), new Date().toISOString().slice(0, 10));
   const cams = place.devices.filter((d) => d.type === "camera").length;
@@ -391,6 +393,7 @@ async function bootMyPlace(id?: string) {
     onAdd: () => { holo?.minimize(); closePanels(placeHub.panel); placeHub.ctx.open(); placeHub.ctx.home(); app.toast("Search for the address, or tap the spot on the map, then Save.", 5000); },
   });
   holo = h0;
+  adopt(h0);
   modes.set("place");
   // What's going on there now: the weather, the light, and the day's most pressing thing.
   void forecast(place.lon, place.lat).then((f) => {
@@ -408,6 +411,15 @@ async function bootMyPlace(id?: string) {
   void briefFor(place).then((b) => { if (holo !== h0) return; h0.setDock(dockFor(place, b)); const top = b[0]; if (top) h0.setHud([...h0.el.querySelectorAll(".holo-hud div")].map((d) => ({ k: d.querySelector("dt")?.textContent ?? "", v: d.querySelector("dd")?.textContent ?? "" })), `${top.icon} ${top.title}`); }).catch(() => {});
 }
 app.actions.set("myplace:boot", { label: "Boot my place", run: (id) => void bootMyPlace(id || undefined) });
+// Any place on Earth as a hologram: the size follows what it is (a building, a town, a mountain).
+app.actions.set("space:boot", { label: "See it as a hologram", run: () => {
+  const p = app.place;
+  if (!p) return;
+  const kind = String((p.feature as { world?: { kind?: string } } | undefined)?.world?.kind ?? "");
+  const size = /peak|volcano|range|glacier|island|water|lake/.test(kind) ? 2400 : /city|capital/.test(kind) ? 1600 : 700;
+  closePanels();
+  void openSpace(app, { name: p.name?.title ?? "This spot", kicker: [p.name?.context, `${p.lat.toFixed(4)}, ${p.lon.toFixed(4)}`].filter(Boolean).join(" · "), lon: p.lon, lat: p.lat, size, own: true, tint: "violet" });
+} });
 $("ui").append(pro.panel);
 // Space: satellites, the ISS, launches and the solar system.
 const space = createSpace(app);
@@ -437,6 +449,7 @@ function closePanels(keep?: HTMLElement) {
 /** Profile pages and Lens Studio step aside when another panel opens (set up once they exist). */
 let hideSocial = () => {};
 function openMode(m: Mode) {
+  if (activeSpace() !== holo) holo = null;
   if (m !== "place") closeHolo();
   if (m === "look") { closePanels(); modes.set("look"); return; }
   // My Place: boot the place as a model (or bring the puck back); with nothing saved, the first-run card.
@@ -470,11 +483,15 @@ app.actions.set("myplace:report", {
   },
 });
 $("layers-btn").parentElement!.before(modes.el);
+// Pulse: everything you have, alive on the planet, with time and what-ifs.
+const pulseBtn = h("button", { class: "round-btn pulse-btn", "aria-label": "Pulse: your world, live", title: "Pulse: your world, live", html: icons.activity, onclick: () => { closePanels(); closeHolo(); void import("./pulse/ui").then((m) => m.openPulse(app)); } });
+$("layers-btn").before(pulseBtn);
+app.actions.set("pulse:open", { label: "Pulse: your world, live", run: () => pulseBtn.click() });
 // The switch follows whichever panel is showing.
 const syncMode = () => {
   const shown = (el: HTMLElement) => !el.hidden;
   // Everything closed while your place was a puck: it comes back.
-  if (holo?.el.classList.contains("mini") && ![placeHub.panel, myPlaces.panel].some(shown)) holo.restore();
+  if (holo && activeSpace() === holo && holo.el.classList.contains("mini") && ![placeHub.panel, myPlaces.panel].some(shown)) holo.restore();
   modes.set([placeHub.panel, myPlaces.panel].some(shown) ? "place" : [workHub.panel, pro.panel].some(shown) ? "work" : shown(makeHub.panel) ? "make" : "look");
   // Phones have room for one panel: the place card steps aside while a mode panel is open.
   document.body.dataset.panel = [placeHub.panel, myPlaces.panel, pro.panel, makeHub.panel, workHub.panel, lookHub.panel, space.panel].some(shown) ? "open" : "";

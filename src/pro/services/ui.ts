@@ -7,6 +7,7 @@
 // battery-electric screen, filled in for every customer), the market (every
 // mine in the world scored for fit, and the pipeline), and risk (exposure by
 // commodity and country, hazards near customers, conflict minerals).
+import { openSpace } from "../../delight/spaces";
 import type { App } from "../../app";
 import { airports as loadAirports } from "../../data/infra";
 import { recentQuakes } from "../../data/quakes";
@@ -403,6 +404,14 @@ function accountScreen(ctx: WorkCtx, c: Company, a: Account) {
     trips.length ? h("div", {}, title("Getting there"), list(...trips.map((p) => row("🧰", p.name, `${hoursText(p.trip.hours)} · ${p.trip.how}`)))) : "",
     (a.contacts ?? []).length ? h("div", {}, title("People"), list(...a.contacts!.map((p) => row("👤", p.name, [p.role, p.email, p.phone].filter(Boolean).join(" · "))))) : "",
     h("div", { class: "row" },
+      h("button", { class: "pill-btn holo-go", onclick: () => void openSpace(ctx.app, {
+        name: a.site, kicker: [a.name, a.country, commodity(a.commodity ?? "")?.name].filter(Boolean).join(" · "), lon: a.lon, lat: a.lat, size: 2400, tint: "amber",
+        markers: [{ lon: a.lon, lat: a.lat, color: ms.some((m) => m.status === "down") ? STATUS.down : ms.some((m) => serviceDue(m, t).overdue) ? STATUS.overdue : STATUS.ok, label: `${ms.filter((m) => m.status === "running").length} of ${ms.length} ${S(c).machines} running`, pulse: ms.some((m) => m.status === "down"), ring: 600 }],
+      }).then((hl) => hl.setHud([
+        { k: "Down", v: String(ms.filter((m) => m.status === "down").length) }, { k: "Service due", v: String(ms.filter((m) => serviceDue(m, t).overdue).length) },
+        ...(x ? [{ k: "Altitude", v: `${fmt(x.alt)} m` }, { k: "Respond within", v: `${a.slaHours ?? c.slaHours} h` }] : []),
+        ...(trips[0] ? [{ k: "Nearest tech", v: hoursText(trips[0].trip.hours) }] : []),
+      ], ms.some((m) => m.status === "down") ? `⛔ ${ms.filter((m) => m.status === "down").map((m) => `${m.type} ${m.serial}`).join(", ")} down` : "All machines running")) }, "◎ Hologram"),
       h("button", { class: "pill-btn", onclick: () => void flyToPlace(ctx.app.globe, { name: a.site, lon: a.lon, lat: a.lat, radius: 6000 }) }, "Show the site"),
       h("button", { class: "pill-btn", onclick: () => accountBrief(c, a, trips) }, "Visit brief")));
 }

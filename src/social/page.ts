@@ -15,7 +15,8 @@ import { canvasUrl } from "../ui/canvasUrl";
 import { icons } from "../ui/icons";
 import { flyToPlace, geocode } from "../ui/search";
 import { avatarEl } from "./account";
-import { ROLES, SKINS, SPOT_KINDS, AVATAR_EMOJI, AVATAR_COLORS, TOP, byKind, countriesOf, dayText, profileFromJson, topSpots, type Post, type Profile, type Spot, type SpotKind } from "./model";
+import { footprint } from "./footprint";
+import { ROLES, SKINS, SPOT_KINDS, AVATAR_COLORS, TOP, byKind, countriesOf, dayText, profileFromJson, topSpots, type Post, type Profile, type Spot, type SpotKind } from "./model";
 import { findProfile, follow, isFollowing, isMe, me, remember, saveProfile, sign } from "./store";
 import { guideCards, guideEditor, playGuide, publishGuide } from "./guides";
 import { NOTE_KINDS, photoUrl } from "./notes";
@@ -30,39 +31,30 @@ const tileXY = (lon: number, lat: number, z: number) => {
 const tileUrl = (z: number, x: number, y: number) => `https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${z}/${y}/${x}`;
 /** One satellite tile around a point. */
 export const aerial = (lon: number, lat: number, z = 15) => { const t = tileXY(lon, lat, z); return tileUrl(z, t.x, t.y); };
-/** A strip of tiles for the banner. */
-function bannerTiles(lon: number, lat: number, z = 13): HTMLElement {
-  const t = tileXY(lon, lat, z);
-  const strip = h("div", { class: "pf-aerial", "aria-hidden": "true" });
-  for (let dy = -1; dy <= 0; dy++) for (let dx = -2; dx <= 2; dx++)
-    strip.append(h("img", { src: tileUrl(z, (t.x + dx + t.n) % t.n, t.y + dy), alt: "", decoding: "async", onerror: (e: Event) => ((e.target as HTMLElement).style.visibility = "hidden") }));
-  return strip;
-}
 
 // ---- Pins on the globe --------------------------------------------------------------------------
 
 /** A pin as an image URL (Cesium keys its texture atlas by URL, so redrawn pins always appear). */
-const pinImage = (emoji: string, color: string, big = false) => canvasUrl(`pf|${emoji}|${color}|${big}`, () => {
-  const s = big ? 2.4 : 2, W = 30 * s, H = 38 * s;
+/** A place on someone's map: a glowing point in their colour on a fine stem, larger for their essential places. */
+const pinImage = (_emoji: string, color: string, big = false) => canvasUrl(`pf2|${color}|${big}`, () => {
+  const s = 2, r = big ? 7 : 5, W = 40 * s, H = 52 * s;
   const c = document.createElement("canvas");
   c.width = W; c.height = H;
-  const g = c.getContext("2d", { willReadFrequently: true })!;
+  const g = c.getContext("2d")!;
   g.scale(s, s);
-  g.shadowColor = "rgba(0,0,0,0.35)"; g.shadowBlur = 4; g.shadowOffsetY = 1.5;
-  g.beginPath();
-  g.moveTo(15, 36); g.bezierCurveTo(11, 29, 2, 24, 2, 15); g.arc(15, 15, 13, Math.PI, 0); g.bezierCurveTo(28, 24, 19, 29, 15, 36);
-  g.fillStyle = color; g.fill();
-  g.shadowColor = "transparent";
-  g.lineWidth = 2; g.strokeStyle = "#fff"; g.stroke();
-  g.beginPath(); g.arc(15, 15, 10, 0, Math.PI * 2); g.fillStyle = "#fff"; g.fill();
-  g.font = "13px system-ui, 'Apple Color Emoji', 'Segoe UI Emoji', sans-serif"; g.textAlign = "center"; g.textBaseline = "middle";
-  g.fillText(emoji, 15, 15.5);
+  const cx = 20, cy = 18;
+  const halo = g.createRadialGradient(cx, cy, 0, cx, cy, r * 2.6);
+  halo.addColorStop(0, color); halo.addColorStop(0.45, `${color}55`); halo.addColorStop(1, "rgba(0,0,0,0)");
+  g.fillStyle = halo; g.beginPath(); g.arc(cx, cy, r * 2.6, 0, Math.PI * 2); g.fill();
+  g.strokeStyle = "rgba(255,255,255,0.75)"; g.lineWidth = 1.2; g.beginPath(); g.moveTo(cx, cy + r); g.lineTo(cx, 50); g.stroke();
+  g.fillStyle = "#fff"; g.beginPath(); g.arc(cx, cy, r, 0, Math.PI * 2); g.fill();
+  g.fillStyle = color; g.beginPath(); g.arc(cx, cy, r * 0.55, 0, Math.PI * 2); g.fill();
   return c;
 });
 
 // ---- The page ---------------------------------------------------------------------------------------
 
-const SKIN_ACCENT: Record<string, string> = { dawn: "#ff6b4a", ocean: "#0a84ff", forest: "#248a3d", desert: "#c2410c", night: "#a78bfa", paper: "#1d1d1f", "2006": "#ff2d95" };
+const SKIN_ACCENT: Record<string, string> = { night: "#8ea8ff", ocean: "#4cc3ff", "2006": "#5dffc8", forest: "#8fd16a", dawn: "#ff8a5c", desert: "#e8b878", paper: "#1d1d1f" };
 const newId = () => Math.random().toString(36).slice(2, 10);
 
 function kindFromTags(t: Record<string, string>): SpotKind {
@@ -243,12 +235,12 @@ export function createProfiles(app: App, deps: {
       input.addEventListener("change", () => { (p as unknown as Record<string, string>)[key] = input.value.trim(); if (key === "name" && !p.name) p.name = "Me"; persist(); });
       return input;
     };
-    const stat = (n: number, label: string) => h("div", { class: "pf-stat" }, h("strong", {}, String(n)), h("span", {}, label));
+    const stat = (n: number, label: string) => h("div", { class: "pf-stat" }, h("strong", {}, String(n).padStart(2, "0")), h("span", {}, label));
     const following = isFollowing(p.handle);
 
     el.replaceChildren(
       h("header", { class: "pf-banner" },
-        banner ? bannerTiles(banner.lon, banner.lat) : "",
+        footprint({ places: p.spots.map((x) => ({ lon: x.lon, lat: x.lat })), home: p.home ?? (banner ? { lon: banner.lon, lat: banner.lat } : undefined), accent: SKIN_ACCENT[p.skin] ?? p.avatar.color }),
         h("div", { class: "pf-banner-glow" }),
         h("div", { class: "pf-top-actions" },
           h("button", { class: "pf-round", "aria-label": "Share this page", html: icons.share, onclick: () => void share(p) }),
@@ -256,14 +248,14 @@ export function createProfiles(app: App, deps: {
       h("div", { class: "pf-id" },
         h("div", { class: "pf-avatar" }, avatarEl(p, 96)),
         editing ? edit("name", false, "Your name") : h("h1", {}, p.name),
-        h("p", { class: "pf-meta" }, `@${p.handle}`, h("span", { class: "pf-role" }, `${role.emoji} ${role.label}`), p.home ? h("span", {}, `📍 ${p.home.name}`) : ""),
+        h("p", { class: "pf-meta" }, h("span", {}, `@${p.handle}`), h("span", { class: "pf-role" }, role.label), p.home ? h("span", {}, p.home.name) : ""),
         editing ? edit("now", false, "What are you up to? (“Chasing the aurora in Tromsø”)") : p.now ? h("p", { class: "pf-now" }, p.now) : "",
         h("div", { class: "pf-actions" },
           own
             ? h("button", { class: "pf-btn primary", onclick: () => { editing = !editing; render(); } }, editing ? "Done" : "Edit page")
             : h("button", { class: `pf-btn ${following ? "" : "primary"}`, "aria-pressed": String(following), onclick: () => { follow(p.handle, !following); render(); app.toast(following ? `Unfollowed ${first}` : `Following ${first}. Their places show on your map when you look nearby.`, 3000); } }, following ? "Following" : "Follow"),
-          p.spots.length ? h("button", { class: "pf-btn", onclick: () => void tour(p) }, "▶  Fly my places") : "",
-          !own ? h("button", { class: "pf-btn", onclick: () => el.querySelector<HTMLElement>(".pf-sign textarea")?.focus() }, "Sign guestbook") : "")),
+          p.spots.length ? h("button", { class: "pf-btn", onclick: () => void tour(p) }, own ? "Play my world" : `Play ${first}'s world`) : "",
+          !own ? h("button", { class: "pf-btn", onclick: () => el.querySelector<HTMLElement>(".pf-sign textarea")?.focus() }, "Leave a note") : "")),
       editing ? editor(p) : "",
       h("div", { class: "pf-stats" }, stat(p.spots.length, p.spots.length === 1 ? "place" : "places"), stat(countriesOf(p), countriesOf(p) === 1 ? "country" : "countries"), stat(p.posts.length, p.posts.length === 1 ? "post" : "posts"), stat(p.lenses.length, p.lenses.length === 1 ? "lens" : "lenses")),
       topEight(p, own, first),
@@ -289,8 +281,8 @@ export function createProfiles(app: App, deps: {
     let dragging: string | null = null;
     const tile = (s: Spot, i: number) => {
       const t = h("button", { class: "pf-tile", "data-id": s.id, draggable: own && editing ? "true" : undefined, title: s.note ?? s.name, onclick: () => (editing ? undefined : visit(s)) },
-        h("span", { class: "pf-tile-img" }, h("img", { src: aerial(s.lon, s.lat, 15), alt: "", loading: "lazy", decoding: "async" }), h("i", {}, SPOT_KINDS[s.kind].emoji), h("b", {}, String(i + 1))),
-        h("strong", {}, s.name), h("small", {}, s.where ?? SPOT_KINDS[s.kind].label),
+        h("span", { class: "pf-tile-img" }, h("img", { src: aerial(s.lon, s.lat, 15), alt: "", loading: "lazy", decoding: "async" }), h("b", {}, String(i + 1).padStart(2, "0"))),
+        h("small", { class: "pf-tile-kind" }, SPOT_KINDS[s.kind].label), h("strong", {}, s.name), h("small", {}, s.where ?? ""),
         own && editing ? h("span", { class: "pf-tile-x", role: "button", "aria-label": `Take ${s.name} out of the Top 8`, onclick: (e: Event) => { e.stopPropagation(); p.top = p.top.filter((x) => x !== s.id); persist(); render(); } }, "✕") : "");
       if (own && editing) {
         t.addEventListener("dragstart", () => { dragging = s.id; t.classList.add("dragging"); });
@@ -308,7 +300,7 @@ export function createProfiles(app: App, deps: {
     };
     if (!top.length && !own) return h("div");
     return h("section", { class: "pf-card pf-top" },
-      h("h2", {}, own ? "My Top 8" : `${first}'s Top 8`, own && editing && top.length > 1 ? h("small", {}, "Drag to reorder") : ""),
+      h("h2", {}, own ? "Essential places" : `${first}'s essential places`, own && editing && top.length > 1 ? h("small", {}, "Drag to reorder") : ""),
       h("div", { class: "pf-grid" }, ...top.map(tile), ...empty.map(() => h("button", { class: "pf-tile ghost", onclick: () => { editing = true; render(); el.querySelector<HTMLInputElement>(".pf-add input")?.focus(); } }, h("span", { class: "pf-tile-img" }, "+"), h("small", {}, "Add a place")))));
   }
 
@@ -389,8 +381,8 @@ export function createProfiles(app: App, deps: {
       render();
       app.toast(`Signed ${first}'s guestbook`, 2500);
     };
-    return h("section", { class: "pf-card pf-guest" }, h("h2", {}, "Guestbook"),
-      !own ? h("div", { class: "pf-sign" }, text, h("button", { class: "pf-btn primary", onclick: post }, "Sign")) : "",
+    return h("section", { class: "pf-card pf-guest" }, h("h2", {}, "Notes from visitors"),
+      !own ? h("div", { class: "pf-sign" }, text, h("button", { class: "pf-btn primary", onclick: post }, "Leave note")) : "",
       ...p.guestbook.map((g) => {
         const from = findProfile(g.from);
         return h("div", { class: "pf-sig" },
@@ -404,16 +396,14 @@ export function createProfiles(app: App, deps: {
   function editor(p: Profile): HTMLElement {
     const skins = h("div", { class: "pf-skins", role: "radiogroup", "aria-label": "Page skin" }, ...SKINS.map((s) =>
       h("button", { class: "pf-skin", "data-skin": s.id, role: "radio", "aria-checked": String(p.skin === s.id), onclick: () => { p.skin = s.id; persist(); render(); } }, h("i"), h("span", {}, s.label))));
-    const faces = h("div", { class: "pf-faces" },
-      ...AVATAR_EMOJI.map((e) => h("button", { class: "si-emoji", "aria-pressed": String(p.avatar.emoji === e), onclick: () => { p.avatar.emoji = e; persist(); render(); } }, e)));
     const colours = h("div", { class: "si-colors" },
       ...AVATAR_COLORS.map((c) => h("button", { class: "si-color", style: `--c:${c}`, "aria-pressed": String(p.avatar.color === c), "aria-label": "Colour", onclick: () => { p.avatar.color = c; persist(); render(); } })));
     const role = h("select", { class: "pf-input", "aria-label": "Role", onchange: (e: Event) => { p.role = (e.target as HTMLSelectElement).value as Profile["role"]; persist(); render(); } },
       ...ROLES.map((r) => h("option", { value: r.id, selected: r.id === p.role }, `${r.emoji} ${r.label}`)));
     return h("section", { class: "pf-card pf-editor" },
       h("h2", {}, "Make it yours"),
-      h("h3", {}, "Skin"), skins,
-      h("h3", {}, "Face"), faces, colours,
+      h("h3", {}, "Look"), skins,
+      h("h3", {}, "Colour"), colours,
       h("h3", {}, "I'm here as"), role,
       h("h3", {}, "Home"), homePicker(p),
       h("h3", {}, "Add places"), adder(p));

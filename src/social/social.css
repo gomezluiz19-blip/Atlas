@@ -452,3 +452,85 @@ textarea.pf-input { resize: vertical; line-height: 1.45; }
 .gd-controls .primary-btn { background: var(--gc); }
 .gd-play { width: 44px; height: 44px; border: 0; border-radius: 50%; background: var(--fill); color: var(--label); font-size: 15px; cursor: pointer; }
 @media (max-width: 720px) { .gd-player { bottom: calc(var(--gutter) + 76px); } .gd-stop h3 { font-size: 18px; } }
+
+/* ---------- Profile, redesigned: an editorial page about a person's world ---------- */
+.profile {
+  --pf-bg: radial-gradient(120% 60% at 70% 0%, color-mix(in srgb, var(--pf-accent) 18%, transparent), transparent 60%), linear-gradient(180deg, #0a0d14, #0b0f18 40%, #090b11);
+  --pf-card: rgba(255, 255, 255, 0.035); --pf-ink: #eef1f6; --pf-muted: #8b93a3; --pf-line: rgba(255, 255, 255, 0.08);
+  font-family: Inter, -apple-system, system-ui, sans-serif; -webkit-font-smoothing: antialiased;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55), inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+  background-size: auto; color-scheme: dark;
+}
+.profile[data-skin]:not([data-skin="paper"]) {
+  --pf-bg: radial-gradient(120% 60% at 70% 0%, color-mix(in srgb, var(--pf-accent) 16%, transparent), transparent 60%), linear-gradient(180deg, #0a0d14, #0b0f18 40%, #090b11);
+  --pf-card: rgba(255, 255, 255, 0.035); --pf-ink: #eef1f6; --pf-muted: #8b93a3; --pf-line: rgba(255, 255, 255, 0.08);
+  background: var(--pf-bg); background-size: auto;
+}
+.profile[data-skin="2006"] h1, .profile[data-skin="2006"] .pf-card h2 { font-family: inherit; text-shadow: none; }
+.profile[data-skin="2006"] .pf-card { border: 0; }
+.profile[data-skin="night"] .pf-card, .profile[data-skin="night"] .pf-stats { --pf-card: rgba(255, 255, 255, 0.035); }
+.profile[data-skin="paper"] {
+  --pf-bg: #f7f5f0; --pf-card: rgba(0, 0, 0, 0.025); --pf-ink: #16171a; --pf-muted: #6d6f75; --pf-line: rgba(0, 0, 0, 0.08);
+  color-scheme: light; font-family: Inter, -apple-system, system-ui, sans-serif;
+}
+.profile[data-skin="paper"] h1, .profile[data-skin="paper"] .pf-card h2 { font-family: "Iowan Old Style", "Palatino Linotype", Georgia, serif; font-weight: 600; }
+.pf-banner { height: 250px; background: transparent; }
+.pf-globe { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.pf-banner-glow { background: linear-gradient(180deg, transparent 55%, var(--pf-bg-end, #0a0d14) 100%); pointer-events: none; }
+.profile[data-skin="paper"] .pf-banner-glow { --pf-bg-end: #f7f5f0; }
+.profile[data-skin="paper"] .pf-globe { filter: invert(1) hue-rotate(180deg) contrast(0.9); }
+.pf-round { background: rgba(255, 255, 255, 0.08); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12); }
+.profile[data-skin="paper"] .pf-round { background: rgba(0, 0, 0, 0.06); color: #16171a; }
+.pf-id { margin-top: -96px; padding: 0 32px 6px; gap: 8px; }
+.pf-avatar .avatar, .profile[data-skin="night"] .pf-avatar .avatar, .profile[data-skin="2006"] .pf-avatar .avatar {
+  --size: 72px !important; width: 72px; height: 72px; font-size: 26px; font-weight: 600; letter-spacing: 0.02em;
+  background: linear-gradient(145deg, color-mix(in srgb, var(--pf-accent) 85%, #fff 15%), color-mix(in srgb, var(--pf-accent) 45%, #000));
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.25), 0 0 0 6px color-mix(in srgb, var(--pf-accent) 18%, transparent), 0 18px 40px rgba(0, 0, 0, 0.5);
+}
+.pf-id h1 { margin: 12px 0 0; font-size: 40px; line-height: 1; letter-spacing: -0.035em; font-weight: 700; }
+.pf-meta { gap: 0; font-size: 13px; letter-spacing: 0.01em; }
+.pf-meta > * + *::before { content: "·"; margin: 0 9px; color: var(--pf-muted); opacity: 0.6; }
+.pf-role { padding: 0; background: none; color: var(--pf-accent); font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; }
+.pf-now { font-style: normal; font-size: 17px; line-height: 1.45; color: var(--pf-ink); opacity: 0.92; max-width: 46ch; }
+.pf-now::before, .pf-now::after { content: none; }
+.pf-actions { margin-top: 14px; }
+.pf-btn { padding: 10px 18px; font-size: 13.5px; font-weight: 600; letter-spacing: 0.01em; background: rgba(255, 255, 255, 0.06); box-shadow: inset 0 0 0 1px var(--pf-line); }
+.profile[data-skin="paper"] .pf-btn { background: rgba(0, 0, 0, 0.04); }
+.pf-btn.primary { background: var(--pf-accent); color: #06080c; box-shadow: 0 8px 24px color-mix(in srgb, var(--pf-accent) 35%, transparent); }
+.profile[data-skin="paper"] .pf-btn.primary { color: #fff; }
+.pf-stats { margin: 22px 32px 8px; padding: 18px 0; border-radius: 0; background: none; box-shadow: none; border-top: 1px solid var(--pf-line); border-bottom: 1px solid var(--pf-line); }
+.pf-stat { align-items: flex-start; padding-left: 16px; }
+.pf-stat:first-child { padding-left: 0; }
+.pf-stat strong { font-size: 30px; font-weight: 300; letter-spacing: -0.03em; }
+.pf-stat span { font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em; }
+.pf-card { margin: 22px 32px; padding: 0; background: none; box-shadow: none; border-radius: 0; gap: 14px; }
+.pf-card h2 { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.16em; color: var(--pf-muted); }
+.pf-card h2 small { text-transform: none; letter-spacing: 0; }
+.pf-grid { grid-template-columns: repeat(2, 1fr); gap: 18px 14px; }
+.pf-tile { gap: 3px; }
+.pf-tile-img { aspect-ratio: 4 / 3; border-radius: 10px; box-shadow: none; background: #141822; }
+.pf-tile-img img { filter: saturate(0.9) contrast(1.05); transition: transform 0.5s cubic-bezier(.2,.8,.2,1); }
+.pf-tile:hover .pf-tile-img { transform: none; box-shadow: none; }
+.pf-tile:hover .pf-tile-img img { transform: scale(1.06); }
+.pf-tile-img b { top: auto; bottom: 10px; left: 12px; height: auto; padding: 0; background: none; font-size: 28px; font-weight: 200; letter-spacing: -0.04em; color: #fff; text-shadow: 0 2px 12px rgba(0, 0, 0, 0.6); }
+.pf-tile-kind { margin-top: 6px; font-size: 10.5px !important; text-transform: uppercase; letter-spacing: 0.12em; color: var(--pf-accent) !important; }
+.pf-tile strong { font-size: 15px; font-weight: 600; letter-spacing: -0.01em; }
+.pf-tile.on .pf-tile-img { box-shadow: 0 0 0 2px var(--pf-accent); transform: none; }
+.pf-bio p { font-size: 16px; line-height: 1.65; color: var(--pf-ink); opacity: 0.9; }
+.pf-post { padding: 16px 0 4px; }
+.pf-post-head strong { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
+.pf-chip { background: rgba(255, 255, 255, 0.06); box-shadow: inset 0 0 0 1px var(--pf-line); }
+.pf-lens { background: rgba(255, 255, 255, 0.04); box-shadow: inset 0 0 0 1px var(--pf-line); }
+.pf-lens-icon { background: rgba(255, 255, 255, 0.06); box-shadow: none; }
+.pf-input, .pf-edit { background: rgba(255, 255, 255, 0.05); box-shadow: inset 0 0 0 1px var(--pf-line); }
+.profile[data-skin="paper"] .pf-input, .profile[data-skin="paper"] .pf-edit { background: rgba(0, 0, 0, 0.04); }
+.pf-fine { margin: 28px 32px 36px; text-align: left; }
+.pf-skin[data-skin="night"] i { background: linear-gradient(135deg, #0a0d14, #8ea8ff); }
+.pf-skin[data-skin="ocean"] i { background: linear-gradient(135deg, #0a0d14, #4cc3ff); }
+.pf-skin[data-skin="2006"] i { background: linear-gradient(135deg, #0a0d14, #5dffc8); }
+.pf-skin[data-skin="forest"] i { background: linear-gradient(135deg, #0a0d14, #8fd16a); }
+.pf-skin[data-skin="dawn"] i { background: linear-gradient(135deg, #0a0d14, #ff8a5c); }
+.pf-skin[data-skin="desert"] i { background: linear-gradient(135deg, #0a0d14, #e8b878); }
+.pf-skin[data-skin="paper"] i { background: linear-gradient(135deg, #f7f5f0, #d8d4ca); }
+.pf-skin i { height: 34px; border-radius: 8px; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1); }
+@media (max-width: 720px) { .pf-id, .pf-card, .pf-stats { margin-left: 20px; margin-right: 20px; } .pf-id { padding: 0 20px; margin-left: 0; margin-right: 0; } .pf-id h1 { font-size: 32px; } }
