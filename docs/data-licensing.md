@@ -32,6 +32,8 @@ relies on the browser's normal cache until a licence allows storing it.
 | Photon (`photon.komoot.io`) | Search suggestions | ⚠️ | The public instance is for fair, light use. Self-host Photon or use a provider (Geoapify, Stadia, MapTiler, LocationIQ). |
 | Nominatim (`nominatim.openstreetmap.org`) | Geocoding fallback, reverse geocoding | ⚠️ | Usage policy: at most 1 request a second, no heavy use, a real User-Agent. Same fix as above. |
 | Overpass API (3 public mirrors) | Buildings, water, mines, transit, forests, places to learn | ⚠️ | Public instances are for light use. Atlas now caches answers for a week. At scale, self-host Overpass (or a hosted plan). OSM data is ODbL: keep "© OpenStreetMap contributors" visible, and share-alike applies to any database you build from it. |
+| Valhalla routing (`valhalla1.openstreetmap.de`, run by FOSSGIS) | Getting around: walk, bike and drive reach, times to your places | ⚠️ | The public server is for fair, light use. Valhalla itself is MIT-licensed: self-host it (or use a hosted plan such as Stadia Maps) before launch. Routes are over OSM data (ODbL): keep the credit. Without the router, Atlas falls back to estimated circles. |
+| Booking sites (Google Flights, Skyscanner, Kayak, Booking.com, Airbnb, Google Hotels, Rome2Rio) | Travel: "Book it" links | ✅ | Plain links that open each site already searched; no data is taken from them. To earn on bookings, join their affiliate programmes and add the partner IDs to the links. |
 | OpenRailwayMap tiles | Railway detail layer | ⚠️ | CC BY-SA, with a tile-usage policy against heavy use; self-host from OSM data if it matters. |
 
 ## Weather, climate, geology and life

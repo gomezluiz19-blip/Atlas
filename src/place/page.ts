@@ -73,6 +73,8 @@ export function pageHead(app: App, place: Place, placesLike: (title: string) => 
     head,
     h("div", { class: "pg-actions" },
       h("button", { class: "pg-btn holo-go", title: "See this place as a hologram: the ground and every building around it, in 3D", onclick: () => app.actions.get("space:boot")?.run() }, ...labelled("◎ Hologram", 15)),
+      h("button", { class: "pg-btn", title: "Walk, bike or drive from here: how far you get and how long to your places", onclick: () => app.actions.get("reach:open")?.run() }, ...labelled("⏱ Getting around", 15)),
+      h("button", { class: "pg-btn", title: "Plan a trip here: the way there, the time change, the weather, stays and where to book", onclick: () => app.actions.get("travel:to")?.run() }, ...labelled("✈ Go here", 15)),
       h("button", { class: "pg-btn", title: "Find places with the same ground and climate", onclick: () => placesLike(place.name?.title ?? "here") }, ...labelled("✨ Places like this", 15)),
       h("button", { class: "pg-btn", title: "A place you love: it goes on your page (your Top 8, favourite restaurants, trails…)", onclick: () => app.actions.get("profile:add")?.run() }, ...labelled("♡ Add to my page", 15)),
       h("button", { class: "pg-btn", title: "A place you live, farm or run: My Places gives it a daily brief", onclick: () => app.actions.get("place:save")?.run() }, ...labelled("🏠 Add to My Places", 15))));
