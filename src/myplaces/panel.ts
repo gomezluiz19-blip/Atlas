@@ -2,6 +2,7 @@
 // a 3D view of the buildings, its energy (solar, battery), water (source, tank,
 // rain off the roof) and security (cameras with their field of view, gates,
 // alarms, lights). Separate from the place card, so it's always one tap away.
+import { brand } from "../pro/vision/connect";
 import type { App } from "../app";
 import { reverseGeocode } from "../data/geocode";
 import { h } from "../ui/dom";
@@ -210,7 +211,8 @@ export function createMyPlaces(app: App, store: PlaceStore, scene: PlaceScene, o
                 ? h("span", { class: "list-sub" }, `Faces ${Math.round(d.heading ?? 0)}° · sees about ${Math.round(d.range ?? 25)} m`,
                     h("input", { class: "mp-url", type: "url", placeholder: "Feed link (optional)", value: d.url ?? "",
                       onchange: (e: Event) => save({ ...p, devices: p.devices.map((x) => (x.id === d.id ? { ...x, url: safeUrl((e.target as HTMLInputElement).value) } : x)) }) }),
-                    d.url ? h("a", { class: "link-btn", href: d.url, target: "_blank", rel: "noopener noreferrer" }, "Open feed ↗") : "")
+                    d.url ? h("a", { class: "link-btn", href: d.url, target: "_blank", rel: "noopener noreferrer" }, "Open feed ↗") : "",
+                    brand(d.brand)?.web ? h("a", { class: "link-btn", href: brand(d.brand)!.web, target: "_blank", rel: "noopener noreferrer" }, `Open in ${brand(d.brand)!.name} ↗`) : "")
                 : ""),
             h("button", { class: "icon-btn", "aria-label": `Remove ${d.label ?? DEVICES[d.type].label}`, html: icons.close, onclick: () => { save({ ...p, devices: p.devices.filter((x) => x.id !== d.id) }); render(); } }))))
       : "";

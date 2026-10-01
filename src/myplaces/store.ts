@@ -18,6 +18,8 @@ export interface Device {
   range?: number;
   /** Cameras: a link to the live feed, if the owner has one. */
   url?: string;
+  /** Cameras: the maker (ring, nest, reolink…), for how to connect it. */
+  brand?: string;
   /** Cameras: a counting line across the picture (e.g. a doorway), and named zones (normalised 0..1). */
   line?: { a: [number, number]; b: [number, number] };
   zones?: { name: string; box: [number, number, number, number] }[];
