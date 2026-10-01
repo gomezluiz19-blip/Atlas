@@ -321,6 +321,8 @@ const makeHub = createWork(app, MAKE_TOOLS, {
 /** Work: every pro tool as a station on its industry's line (the Work map). */
 const openStation = (st: Station) => {
   const ctx = workHub.ctx;
+  if (st.tool.startsWith("explore:")) { void import("./work/scout").then((m) => m.openExplore(ctx, st.tool.slice(8))); return; }
+  if (st.tool.startsWith("scout:")) { void import("./work/scout").then((m) => m.openScout(ctx, st.tool.slice(6))); return; }
   if (st.tool.startsWith("services:")) { void import("./pro/services/ui").then((m) => m.openServices(ctx, st.tool.slice(9) as Parameters<typeof m.openServices>[1])); return; }
   [...WORK_TOOLS, ...PLACE_TOOLS].find((t) => t.id === st.tool)?.open(ctx);
 };

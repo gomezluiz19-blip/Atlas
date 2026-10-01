@@ -4,12 +4,26 @@
 // Pro → suppliers and plant hire; Mining Pro → mining equipment and
 // services. Typing what you do lights up the stations that fit (pure).
 
+import { INDUSTRIES } from "./scoutModel";
+
+/** The companies that serve each industry (Field Network sectors), kept here so the Work map doesn't load the sector engine. */
+const SERVES: Record<string, [label: string, who: string, words: string]> = {
+  art: ["Art handling and installation", "Fine-art shippers, installers and display-case makers", "art handling fine art shipping installer display cases museum services conservation art logistics"],
+  fashion: ["Textile and sewing machinery", "Dealers and servicers of sewing, knitting and cutting machines", "sewing machine dealer textile machinery garment factory supplier knitting embroidery machine technician"],
+  gaming: ["Arcade and venue tech", "Operators and servicers of arcade machines, VR and venue screens", "arcade machines amusement operator vr installer venue av led screens cabinet repair"],
+  realestate: ["Property maintenance", "Facilities and building-services companies looking after many buildings", "facilities management building services hvac elevator maintenance property maintenance fm"],
+  architecture: ["Surveys and inspection", "Surveying, scanning and façade-inspection companies", "surveyor laser scanning drone survey facade inspection building survey measured survey"],
+  food: ["Kitchens and refrigeration", "Companies that install and service restaurant kitchens and cold rooms", "commercial kitchen refrigeration engineer catering equipment cold room installer restaurant equipment"],
+  retail: ["Fixtures, checkouts and cold cases", "Companies that fit out and service shops and supermarkets", "shop fitting store fixtures pos epos refrigeration self checkout retail installer"],
+  tech: ["Field IT and data centres", "Companies that install and service networks, servers and data-centre plant", "data centre field engineer it support msp remote hands ups cooling network installer"],
+};
+
 export interface Station {
   id: string;
   label: string;
   /** Who it's for, in a line. */
   who: string;
-  /** The tool it opens: a tool id, or "services:<sector>" for Field Network in a sector. */
+  /** The tool it opens: a tool id, "services:<sector>" for Field Network in a sector, "explore:<industry>" or "scout:<industry>". */
   tool: string;
   /** Words people use for this work, for matching "what do you do?". */
   words: string;
@@ -19,6 +33,18 @@ export interface Station {
 export interface Line { id: string; label: string; color: string; stations: Station[] }
 
 export const LINES: Line[] = [
+  // Industries where people work around a place: the everyday look round first, then the pro's scout, then the companies that serve them.
+  ...INDUSTRIES.filter((i) => i.id !== "sport").map((i): Line => ({ id: i.id, label: i.label, color: i.color, stations: [
+    { id: `explore-${i.id}`, label: i.explore.label, who: i.explore.who, tool: `explore:${i.id}`, words: i.words.explore },
+    { id: `scout-${i.id}`, label: i.scout.label, who: i.scout.who, tool: `scout:${i.id}`, words: i.words.scout, key: "atlas.work.scout.v1" },
+    ...(i.sector && SERVES[i.sector] ? [{ id: `fn-${i.sector}`, label: SERVES[i.sector][0], who: SERVES[i.sector][1], tool: `services:${i.sector}`, words: SERVES[i.sector][2], key: "atlas.pro.services.v1" }] : []),
+  ] })),
+  { id: "sport", label: "Sport", color: "#bf5af2", stations: [
+    { id: "explore-sport", label: "Stadiums and games", who: "Grounds, gyms and pitches near you, and the world's great stadiums", tool: "explore:sport", words: "fan tickets match game stadium gym swim run" },
+    { id: "scout-sport", label: "Gym and club scout", who: "Gyms, studios and clubs: where members will come from", tool: "scout:sport", words: "gym owner fitness studio personal trainer yoga studio climbing gym", key: "atlas.work.scout.v1" },
+    { id: "sports", label: "Sports Pro", who: "Clubs: fixtures, travel, fans, scouting", tool: "sports", words: "club team coach sports manager football soccer baseball league scouting", key: "atlas.pro.clubs.v1" },
+    { id: "fn-sports", label: "Surfaces & facilities", who: "Pitch, turf and stadium equipment companies", tool: "services:sports", words: "pitch turf artificial grass stadium sports facilities groundskeeping floodlights", key: "atlas.pro.services.v1" },
+  ] },
   { id: "build", label: "Building", color: "#ff9f0a", stations: [
     { id: "build", label: "Build", who: "Your own project: a house, an extension, a barn", tool: "build", words: "home renovation extension self build house barn homeowner", key: "atlas.work.build.v1" },
     { id: "buildpro", label: "Build Pro", who: "Builders and contractors running sites", tool: "buildpro", words: "contractor builder construction general contractor site manager project manager developer subcontractor civil engineering", key: "atlas.pro.build.v1" },
@@ -48,10 +74,6 @@ export const LINES: Line[] = [
   ] },
   { id: "telecom", label: "Telecoms", color: "#64d2ff", stations: [
     { id: "fn-telecom", label: "Tower services", who: "Towers, generators and fuel runs", tool: "services:telecom", words: "telecom tower mast mobile network generator fuel rigger isp", key: "atlas.pro.services.v1" },
-  ] },
-  { id: "sport", label: "Sport", color: "#bf5af2", stations: [
-    { id: "sports", label: "Sports Pro", who: "Clubs: fixtures, travel, fans, scouting", tool: "sports", words: "club team coach sports manager football soccer baseball league scouting", key: "atlas.pro.clubs.v1" },
-    { id: "fn-sports", label: "Surfaces & facilities", who: "Pitch, turf and stadium equipment companies", tool: "services:sports", words: "pitch turf artificial grass stadium sports facilities groundskeeping floodlights", key: "atlas.pro.services.v1" },
   ] },
   { id: "gov", label: "Government", color: "#5e5ce6", stations: [
     { id: "office", label: "Politics Pro", who: "Legislative offices: the district, casework, events, votes", tool: "office", words: "politician legislator congress councillor mayor office staffer casework constituents district campaign", key: "atlas.pro.offices.v1" },

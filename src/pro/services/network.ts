@@ -8,7 +8,8 @@
 // and where one more depot helps most. Pure functions; the screens in ui.ts.
 import { days, kmBetween } from "../kit/ops";
 
-export type Vertical = "mining" | "agriculture" | "energy" | "medical" | "telecom" | "construction" | "sports";
+export type Vertical = "mining" | "agriculture" | "energy" | "medical" | "telecom" | "construction" | "sports"
+  | "art" | "fashion" | "gaming" | "realestate" | "architecture" | "food" | "retail" | "tech";
 
 export interface Account {
   id: string; name: string; site: string; lon: number; lat: number;

@@ -144,6 +144,102 @@ export function playSeason(x: Conditions): Insight {
   };
 }
 
+/** Museums and galleries: how hard the building works to hold 20 °C and steady humidity, and when to move art (pure). */
+export function artClimate(x: Conditions): Insight {
+  const cl = x.climate;
+  if (!cl) return { label: "Climate load", value: "—", lines: [], good: true };
+  const swing = Math.round(cl.hottest - cl.coldest);
+  const humid = cl.months.map((m, i) => (m.rain > 120 && m.tmax > 24 ? i : -1)).filter((i) => i >= 0);
+  const calm = cl.months.map((m, i) => (m.rain < 80 && m.tmax < 28 && m.tmin > 0 ? i : -1)).filter((i) => i >= 0);
+  return {
+    label: "Seasonal swing", value: `${swing} °C`, good: swing < 20 && humid.length < 3,
+    lines: [
+      `Monthly means swing ${swing} °C between summer and winter: ${swing >= 20 ? "display cases and air handling work hard; check seals and humidity controllers before each season turns." : "a gentle climate for collections."}`,
+      humid.length ? `Hot and wet ${months(humid)}: humidity spikes; service dehumidifiers and case conditioning before then.` : "",
+      calm.length ? `Calmest months to crate and move works: ${months(calm)}.` : "No month is calm: move works in climate-controlled trucks only.",
+    ].filter(Boolean),
+  };
+}
+
+/** Garment and textile factories: heat on the floor and how reliable power is (pure). */
+export function factoryFloor(x: Conditions): Insight {
+  const cl = x.climate;
+  const hot = cl ? cl.months.map((m, i) => (m.tmax >= 32 ? i : -1)).filter((i) => i >= 0) : [];
+  const weak = !x.grid || x.grid.km > 40;
+  return {
+    label: "Hot months", value: String(hot.length), good: hot.length < 4 && !weak,
+    lines: [
+      hot.length ? `Over 32 °C in ${months(hot)}: motors and servo drives run hot and operators slow; clean filters and check cooling first.` : "No month above 32 °C on average.",
+      weak ? "Power is weak here (no large station near): stabilisers and backup generators protect machine electronics." : "Grid supply is close: fit surge protection on servo-motor lines.",
+      cl?.wetMonths.length ? `Monsoon ${months(cl.wetMonths)}: damp rusts needle bars and hooks; keep spare kits dry and stocked.` : "",
+    ].filter(Boolean),
+  };
+}
+
+/** Arcades, cinemas and venues: power quality and the busy season to service around (pure). */
+export function venueSeason(x: Conditions): Insight {
+  const cl = x.climate;
+  const weak = !x.grid || x.grid.km > 40;
+  const hot = cl ? cl.months.map((m, i) => (m.tmax >= 30 ? i : -1)).filter((i) => i >= 0) : [];
+  return {
+    label: "Power", value: weak ? "backup" : "grid", good: !weak,
+    lines: [
+      weak ? "Weak grid nearby: brownouts corrupt cabinet storage and kill power supplies; UPS on every bank." : "Grid supply close by.",
+      hot.length ? `Hot ${months(hot)}: crowds come in for air conditioning and cabinets run hot; clean fans and service before.` : "",
+      "Busy weeks: school holidays and the year-end; do upgrades and swaps before them, not during.",
+    ].filter(Boolean),
+  };
+}
+
+/** Buildings: the cooling and heating seasons, and when to service each before it starts (pure). */
+export function buildingSeasons(x: Conditions): Insight {
+  const cl = x.climate;
+  if (!cl) return { label: "Seasons", value: "—", lines: [], good: true };
+  const cool = cl.months.map((m, i) => (m.tmax >= 27 ? i : -1)).filter((i) => i >= 0);
+  const heat = cl.months.map((m, i) => (m.tmin <= 5 ? i : -1)).filter((i) => i >= 0);
+  const before = (ms: number[]) => MONTHS[((ms.find((m) => !ms.includes((m + 11) % 12)) ?? ms[0]) + 11) % 12];
+  return {
+    label: "Cooling months", value: String(cool.length), good: cool.length < 7,
+    lines: [
+      cool.length ? `Cooling season ${span(cool)}: service chillers and rooftop units in ${before(cool)}.` : "Little need for cooling.",
+      heat.length ? `Heating season ${span(heat)}: boilers and heat pumps checked in ${before(heat)}.` : "Little need for heating.",
+      cl.wetMonths.length ? `Wet ${months(cl.wetMonths)}: roofs, gutters and drains before then; leaks follow.` : "",
+    ].filter(Boolean),
+  };
+}
+
+/** Surveys and façade inspections: the dry, calm months for drones and scanners (pure). */
+export function surveyWindow(x: Conditions): Insight {
+  const cl = x.climate;
+  if (!cl) return { label: "Survey months", value: "—", lines: [], good: true };
+  const ok = cl.months.map((m, i) => (m.rain < 70 && m.tmax < 38 && m.tmax > 2 ? i : -1)).filter((i) => i >= 0);
+  return {
+    label: "Survey months", value: String(ok.length), good: ok.length >= 6,
+    lines: [
+      ok.length ? `Dry, workable months for drones, scanners and rope access: ${months(ok)}.` : "No reliably dry month: book short windows and plan for re-flights.",
+      cl.hottest > 40 ? `Highs near ${Math.round(cl.hottest)} °C: scanners and drone batteries overheat after midday; fly at dawn.` : "",
+      x.alt > 2500 ? `At ${Math.round(x.alt)} m, thin air shortens drone flight times by about ${Math.round((1 - x.density) * 100)}%.` : "",
+    ].filter(Boolean),
+  };
+}
+
+/** Kitchens, shops and data rooms: how hard the cooling works in the hottest month, and when to service before it (pure). */
+export function coolingLoad(x: Conditions, what: string): Insight {
+  const cl = x.climate;
+  if (!cl) return { label: "Peak heat", value: "—", lines: [], good: true };
+  const hot = cl.months.map((m, i) => (m.tmax >= 30 ? i : -1)).filter((i) => i >= 0);
+  const free = cl.months.filter((m) => m.tmax < 18).length;
+  const first = hot.find((m) => !hot.includes((m + 11) % 12)) ?? hot[0];
+  return {
+    label: "Peak heat", value: `${Math.round(cl.hottest)} °C`, good: cl.hottest < 32,
+    lines: [
+      hot.length ? `Over 30 °C in ${months(hot)}: ${what} run hardest and fail most; service condensers and check refrigerant in ${MONTHS[((first ?? 0) + 11) % 12]}.` : `Highs stay under 30 °C: ${what} have an easy year.`,
+      free ? `${free} months cool enough (under 18 °C) for free cooling with outside air.` : "",
+      !x.grid || x.grid.km > 40 ? "Weak grid: power cuts spoil stock and crash systems; backup power is part of the service." : "",
+    ].filter(Boolean),
+  };
+}
+
 /** Mining: battery-electric readiness (already scored with the site's conditions). */
 const minesInsight = (x: Conditions): Insight => ({ label: "Electric-ready", value: String(x.electric.score), good: x.electric.score >= 60, lines: [`Battery-electric: ${x.electric.reasons.join("; ")}.`] });
 
@@ -290,6 +386,126 @@ export const SECTORS: Record<Vertical, SectorDef> = {
       [["Paola R.", "Mexico City"], ["Andrés V.", "Mexico City"], ["Luis T.", "Monterrey"]],
       [["Artificial turf pitch", 2], ["Floodlights", 2], ["Scoreboard", 1], ["Gym equipment", 2]],
       [["Two new turf pitches", 700_000, "proposal", 2], ["LED floodlight upgrade", 250_000, "negotiation", 0], ["Stadium scoreboard", 400_000, "qualified", 5], ["Turf replacement", 350_000, "won", 3]]),
+  },
+  art: {
+    id: "art", label: "Art handling and installation", who: "a fine-art shipper, installer or display-case maker", emoji: "🖼",
+    site: "museum", sites: "museums", machine: "installation", machines: "installations", kind: "Collection",
+    types: { "Display case": { every: 2000, perDay: 10, life: 80_000, power: "electric" }, "Climate unit": { every: 1000, perDay: 24, life: 60_000, power: "electric" }, "Lighting track": { every: 3000, perDay: 10, life: 50_000, power: "electric" }, "Hanging system": { every: 4000, perDay: 10, life: 100_000 } },
+    focus: ["museum", "gallery"], methods: [],
+    insight: (x) => artClimate(x),
+    market: { how: "view", label: "Museums, galleries and art shops on OpenStreetMap in the map view", query: viewPlaces('nwr["tourism"="museum"];nwr["tourism"="gallery"];nwr["shop"="art"]'), read: (t) => ({ name: t.name ?? "Gallery", tags: [t.tourism ?? t.shop ?? "", t.museum ?? ""].filter(Boolean) }) },
+    demo: () => makeDemo("art", "Meridian Fine Art Services (demo)", SECTORS.art.types, [
+      ["City museum (demo)", "Paris", 2.35, 48.86, "France", "museum"], ["Contemporary gallery (demo)", "London", -0.12, 51.51, "United Kingdom", "gallery"], ["Art fair halls (demo)", "Basel", 7.6, 47.56, "Switzerland", "fair"],
+      ["Biennale pavilions (demo)", "Venice", 12.34, 45.44, "Italy", "gallery"], ["Kunsthalle (demo)", "Berlin", 13.4, 52.52, "Germany", "museum"], ["Fine arts museum (demo)", "Madrid", -3.69, 40.41, "Spain", "museum", 12],
+    ], [["Workshop, Paris", 2.35, 48.86, "service centre"], ["Store, London", -0.12, 51.51, "parts depot"]],
+      [["Camille D.", "Paris"], ["Hugo M.", "Paris"], ["Priya S.", "London"], ["Tom W.", "London"]],
+      [["Display case", 4], ["Climate unit", 2], ["Lighting track", 2], ["Hanging system", 1]],
+      [["Rehang, modern wing", 420_000, "proposal", 0], ["Case conditioning upgrade", 260_000, "qualified", 4], ["Fair season install", 180_000, "won", 2]]),
+  },
+  fashion: {
+    id: "fashion", label: "Textile and sewing machinery", who: "a dealer or servicer of sewing, knitting and cutting machines", emoji: "🧵",
+    site: "factory", sites: "factories", machine: "machine", machines: "machines", kind: "Product",
+    types: { "Lockstitch machine": { every: 500, perDay: 10, life: 30_000, power: "electric" }, "Overlock machine": { every: 500, perDay: 10, life: 30_000, power: "electric" }, "Embroidery machine": { every: 1000, perDay: 16, life: 40_000, power: "electric" }, "Auto cutter": { every: 1000, perDay: 16, life: 50_000, power: "electric" }, "Steam boiler": { every: 2000, perDay: 16, life: 80_000 } },
+    focus: ["textile", "clothes"], methods: [],
+    insight: (x) => factoryFloor(x),
+    market: { how: "view", label: "Garment workshops, tailors and textile works on OpenStreetMap in the map view", query: viewPlaces('nwr["craft"~"tailor|dressmaker|sewing"];nwr["industrial"~"textile|garment|clothing"];nwr["product"~"textile|clothes|garment"]'), read: (t) => ({ name: t.name ?? (t.craft ? `${t.craft}` : "Garment works"), tags: [t.craft ?? "", t.industrial ?? "", t.product ?? ""].filter(Boolean) }) },
+    demo: () => makeDemo("fashion", "Delta Stitch Machinery (demo)", SECTORS.fashion.types, [
+      ["Knitwear factory (demo)", "Gazipur", 90.41, 23.99, "Bangladesh", "knitwear"], ["Denim plant (demo)", "Narayanganj", 90.5, 23.62, "Bangladesh", "denim"], ["Export garments (demo)", "Savar", 90.26, 23.86, "Bangladesh", "woven"],
+      ["Sweater unit (demo)", "Chattogram", 91.82, 22.34, "Bangladesh", "knitwear"], ["Shirt factory (demo)", "Ashulia", 90.33, 23.9, "Bangladesh", "woven"], ["Sportswear (demo)", "Dhaka", 90.41, 23.81, "Bangladesh", "activewear", 8],
+    ], [["Service centre, Dhaka", 90.41, 23.81, "service centre"], ["Parts store, Chattogram", 91.82, 22.34, "parts depot"]],
+      [["Rafiq H.", "Dhaka"], ["Nasrin A.", "Dhaka"], ["Sohel K.", "Dhaka"], ["Mitu R.", "Chattogram"]],
+      [["Lockstitch machine", 12], ["Overlock machine", 6], ["Embroidery machine", 2], ["Auto cutter", 1], ["Steam boiler", 1]],
+      [["300 direct-drive machines", 540_000, "negotiation", 0], ["Auto-cutter line", 380_000, "proposal", 2], ["Annual service contract", 120_000, "won", 4]]),
+  },
+  gaming: {
+    id: "gaming", label: "Arcade and venue technology", who: "an operator or servicer of arcade machines, VR and venue screens", emoji: "🕹",
+    site: "venue", sites: "venues", machine: "machine", machines: "machines", kind: "Venue",
+    types: { "Arcade cabinet": { every: 1000, perDay: 12, life: 40_000, power: "electric" }, "Crane game": { every: 500, perDay: 12, life: 30_000, power: "electric" }, "VR pod": { every: 500, perDay: 10, life: 15_000, power: "electric" }, "LED wall": { every: 2000, perDay: 12, life: 60_000, power: "electric" } },
+    focus: ["amusement arcade", "cinema"], methods: [],
+    insight: (x) => venueSeason(x),
+    market: { how: "view", label: "Arcades, cinemas, bowling and casinos on OpenStreetMap in the map view", query: viewPlaces('nwr["leisure"="amusement_arcade"];nwr["amenity"="cinema"];nwr["leisure"="bowling_alley"];nwr["amenity"="casino"];nwr["leisure"="escape_game"]'), read: (t) => ({ name: t.name ?? "Venue", tags: [t.leisure ?? t.amenity ?? ""].map((v) => v.replace(/_/g, " ")).filter(Boolean) }) },
+    demo: () => makeDemo("gaming", "Neon Line Venue Systems (demo)", SECTORS.gaming.types, [
+      ["Game centre (demo)", "Akihabara, Tokyo", 139.77, 35.7, "Japan", "arcade"], ["Arcade floor (demo)", "Namba, Osaka", 135.5, 34.66, "Japan", "arcade"], ["VR park (demo)", "Shinjuku, Tokyo", 139.7, 35.69, "Japan", "vr"],
+      ["PC bang (demo)", "Hongdae, Seoul", 126.92, 37.56, "South Korea", "esports"], ["Family entertainment (demo)", "Ximending, Taipei", 121.51, 25.04, "Taiwan", "arcade"], ["Cinema complex (demo)", "Nagoya", 136.91, 35.17, "Japan", "cinema"],
+    ], [["Service centre, Tokyo", 139.77, 35.68, "service centre"], ["Parts depot, Osaka", 135.5, 34.69, "parts depot"]],
+      [["Kenji T.", "Tokyo"], ["Aya M.", "Tokyo"], ["Ryo S.", "Osaka"], ["Min-ji P.", "Tokyo"]],
+      [["Arcade cabinet", 8], ["Crane game", 6], ["VR pod", 2], ["LED wall", 1]],
+      [["Rhythm-game refresh, 40 cabinets", 300_000, "proposal", 0], ["VR arena fit-out", 650_000, "qualified", 2], ["Prize-machine service plan", 90_000, "won", 4]]),
+  },
+  realestate: {
+    id: "realestate", label: "Property maintenance", who: "a facilities or building-services company looking after many buildings", emoji: "🏢",
+    site: "building", sites: "buildings", machine: "system", machines: "systems", kind: "Use",
+    types: { Chiller: { every: 1000, perDay: 14, life: 80_000, power: "electric" }, Elevator: { every: 720, perDay: 18, life: 150_000, power: "electric" }, "Rooftop unit": { every: 1000, perDay: 12, life: 60_000, power: "electric" }, "Fire panel": { every: 4380, perDay: 24, life: 120_000, power: "electric" }, Generator: { every: 250, perDay: 0.5, life: 30_000 } },
+    focus: ["office", "apartments", "commercial"], methods: [],
+    insight: (x) => buildingSeasons(x),
+    market: { how: "view", label: "Office, apartment and commercial buildings on OpenStreetMap in the map view", query: viewPlaces('way["building"~"^(office|apartments|commercial|hotel|retail)$"]["name"]'), read: (t) => ({ name: t.name ?? "Building", tags: [t.building ?? ""].filter(Boolean) }) },
+    demo: () => makeDemo("realestate", "Harbourline Property Services (demo)", SECTORS.realestate.types, [
+      ["Brickell office tower (demo)", "Miami", -80.19, 25.76, "United States", "office"], ["Las Olas apartments (demo)", "Fort Lauderdale", -80.14, 26.12, "United States", "apartments"], ["Downtown hotel (demo)", "Orlando", -81.38, 28.54, "United States", "hotel"],
+      ["Water Street offices (demo)", "Tampa", -82.46, 27.95, "United States", "office"], ["Riverside mall (demo)", "Jacksonville", -81.66, 30.33, "United States", "retail"], ["Midtown residences (demo)", "Atlanta", -84.39, 33.78, "United States", "apartments", 6],
+    ], [["Service centre, Miami", -80.19, 25.77, "service centre"], ["Depot, Orlando", -81.38, 28.54, "parts depot"]],
+      [["Carlos R.", "Miami"], ["Denise W.", "Miami"], ["Andre J.", "Orlando"], ["Kim L.", "Orlando"]],
+      [["Chiller", 1], ["Elevator", 3], ["Rooftop unit", 3], ["Fire panel", 1], ["Generator", 1]],
+      [["Portfolio maintenance, 12 buildings", 2_400_000, "negotiation", 0], ["Elevator modernisation", 900_000, "proposal", 2], ["Hurricane-season generator plan", 150_000, "won", 4]]),
+  },
+  architecture: {
+    id: "architecture", label: "Surveys and inspection", who: "a surveying, scanning or façade-inspection company", emoji: "📐",
+    site: "site", sites: "sites", machine: "instrument", machines: "instruments", kind: "Work",
+    types: { "Laser scanner": { every: 500, perDay: 4, life: 10_000, power: "electric" }, "Survey drone": { every: 100, perDay: 2, life: 2_000, power: "electric" }, "Total station": { every: 1000, perDay: 4, life: 15_000, power: "electric" }, "Façade access unit": { every: 500, perDay: 3, life: 30_000, power: "electric" } },
+    focus: ["construction", "heritage"], methods: [],
+    insight: (x) => surveyWindow(x),
+    market: { how: "view", label: "Construction sites and listed buildings on OpenStreetMap in the map view", query: viewPlaces('nwr["building"="construction"];nwr["landuse"="construction"];nwr["heritage"]["building"]'), read: (t) => ({ name: t.name ?? (t.heritage ? "Listed building" : "Construction site"), tags: [t.heritage ? "heritage" : "construction"] }) },
+    demo: () => makeDemo("architecture", "Datum Survey & Inspection (demo)", SECTORS.architecture.types, [
+      ["Marina towers (demo)", "Dubai", 55.14, 25.08, "United Arab Emirates", "façade"], ["Museum district (demo)", "Abu Dhabi", 54.4, 24.53, "United Arab Emirates", "as-built"], ["Lusail boulevard (demo)", "Doha", 51.52, 25.42, "Qatar", "setting-out"],
+      ["King's Road project (demo)", "Riyadh", 46.68, 24.71, "Saudi Arabia", "setting-out"], ["Old souq restoration (demo)", "Muscat", 58.59, 23.61, "Oman", "heritage"], ["Bay tower (demo)", "Manama", 50.58, 26.24, "Bahrain", "façade", 12],
+    ], [["Office, Dubai", 55.27, 25.2, "service centre"], ["Office, Riyadh", 46.68, 24.71, "service centre"]],
+      [["Arjun N.", "Dubai"], ["Layla H.", "Dubai"], ["Faisal A.", "Riyadh"], ["Marco P.", "Dubai"]],
+      [["Laser scanner", 1], ["Survey drone", 2], ["Total station", 1], ["Façade access unit", 1]],
+      [["Scan-to-BIM, 6 towers", 480_000, "proposal", 0], ["Annual façade inspections", 220_000, "won", 5], ["Heritage survey", 90_000, "qualified", 4]]),
+  },
+  food: {
+    id: "food", label: "Commercial kitchens and refrigeration", who: "a company that installs and services restaurant kitchens and cold rooms", emoji: "🍳",
+    site: "restaurant", sites: "restaurants", machine: "appliance", machines: "appliances", kind: "Cuisine",
+    types: { "Walk-in cooler": { every: 2000, perDay: 24, life: 90_000, power: "electric" }, "Combi oven": { every: 1000, perDay: 10, life: 30_000, power: "electric" }, "Ice machine": { every: 1000, perDay: 24, life: 40_000, power: "electric" }, Fryer: { every: 500, perDay: 10, life: 20_000 }, Dishwasher: { every: 1000, perDay: 10, life: 25_000, power: "electric" } },
+    focus: ["restaurant", "fast food", "cafe"], methods: [],
+    insight: (x) => coolingLoad(x, "walk-ins and ice machines"),
+    market: { how: "view", label: "Restaurants, cafés and fast food on OpenStreetMap in the map view", query: viewPlaces('nwr["amenity"~"^(restaurant|fast_food|cafe|food_court)$"]'), read: (t) => ({ name: t.name ?? "Restaurant", tags: [t.amenity?.replace(/_/g, " ") ?? "", t.cuisine ?? ""].filter(Boolean) }) },
+    demo: () => makeDemo("food", "Coldline Kitchen Service (demo)", SECTORS.food.types, [
+      ["West Loop steakhouse (demo)", "Chicago", -87.65, 41.88, "United States", "steak"], ["Third Ward food hall (demo)", "Milwaukee", -87.91, 43.03, "United States", "food hall"], ["Corktown diner (demo)", "Detroit", -83.07, 42.33, "United States", "american"],
+      ["Mass Ave bistro (demo)", "Indianapolis", -86.15, 39.78, "United States", "french"], ["North Loop taqueria (demo)", "Minneapolis", -93.28, 44.99, "United States", "mexican"], ["The Hill trattoria (demo)", "St. Louis", -90.28, 38.62, "United States", "italian", 4],
+    ], [["Service centre, Chicago", -87.65, 41.88, "service centre"], ["Parts depot, Indianapolis", -86.15, 39.77, "parts depot"]],
+      [["Rosa M.", "Chicago"], ["Dwayne T.", "Chicago"], ["Hector V.", "Chicago"], ["Beth K.", "Indianapolis"]],
+      [["Walk-in cooler", 1], ["Combi oven", 2], ["Ice machine", 1], ["Fryer", 2], ["Dishwasher", 1]],
+      [["Food-hall kitchen fit-out", 650_000, "proposal", 1], ["Refrigeration maintenance, 20 sites", 180_000, "negotiation", 0], ["Combi oven swap", 75_000, "won", 3]]),
+  },
+  retail: {
+    id: "retail", label: "Store fixtures, checkouts and refrigeration", who: "a company that fits out and services shops and supermarkets", emoji: "🛒",
+    site: "store", sites: "stores", machine: "unit", machines: "units", kind: "Format",
+    types: { "Refrigerated case": { every: 2000, perDay: 24, life: 90_000, power: "electric" }, "Self-checkout": { every: 2000, perDay: 14, life: 40_000, power: "electric" }, "POS terminal": { every: 4000, perDay: 14, life: 35_000, power: "electric" }, "Shelf labels": { every: 4000, perDay: 24, life: 60_000, power: "electric" } },
+    focus: ["supermarket", "convenience"], methods: [],
+    insight: (x) => coolingLoad(x, "refrigerated cases"),
+    market: { how: "view", label: "Supermarkets, convenience and department stores on OpenStreetMap in the map view", query: viewPlaces('nwr["shop"~"^(supermarket|convenience|department_store|mall|hardware|electronics)$"]'), read: (t) => ({ name: t.name ?? t.brand ?? "Store", tags: [t.shop?.replace(/_/g, " ") ?? "", t.brand ?? ""].filter(Boolean) }) },
+    demo: () => makeDemo("retail", "Gôndola Retail Systems (demo)", SECTORS.retail.types, [
+      ["Supermarket, Pinheiros (demo)", "São Paulo", -46.69, -23.56, "Brazil", "supermarket"], ["Hypermarket, Barra (demo)", "Rio de Janeiro", -43.36, -23.0, "Brazil", "hypermarket"], ["Supermarket, Savassi (demo)", "Belo Horizonte", -43.94, -19.94, "Brazil", "supermarket"],
+      ["Convenience, Batel (demo)", "Curitiba", -49.29, -25.44, "Brazil", "convenience"], ["Supermarket, Moinhos (demo)", "Porto Alegre", -51.2, -30.03, "Brazil", "supermarket"], ["Department store, Asa Sul (demo)", "Brasília", -47.89, -15.81, "Brazil", "department store", 8],
+    ], [["Service centre, São Paulo", -46.63, -23.55, "service centre"], ["Depot, Rio de Janeiro", -43.2, -22.91, "parts depot"]],
+      [["Thiago A.", "São Paulo"], ["Mariana C.", "São Paulo"], ["Rafael L.", "Rio de Janeiro"], ["Juliana P.", "São Paulo"]],
+      [["Refrigerated case", 6], ["Self-checkout", 3], ["POS terminal", 4], ["Shelf labels", 1]],
+      [["Self-checkout rollout, 30 stores", 1_200_000, "negotiation", 0], ["Natural-refrigerant cases", 800_000, "proposal", 1], ["POS service contract", 140_000, "won", 3]]),
+  },
+  tech: {
+    id: "tech", label: "Field IT and data centres", who: "a company that installs and services networks, servers and data-centre plant", emoji: "🖥",
+    site: "site", sites: "sites", machine: "system", machines: "systems", kind: "Type",
+    types: { UPS: { every: 4380, perDay: 24, life: 90_000, power: "electric" }, "Cooling unit": { every: 2000, perDay: 24, life: 90_000, power: "electric" }, Generator: { every: 250, perDay: 0.3, life: 30_000 }, "Network rack": { every: 8760, perDay: 24, life: 60_000, power: "electric" }, "Fire suppression": { every: 4380, perDay: 24, life: 120_000 } },
+    focus: ["data center", "it"], methods: [],
+    insight: (x) => coolingLoad(x, "cooling units"),
+    market: { how: "view", label: "Data centres, telecom exchanges and IT offices on OpenStreetMap in the map view", query: viewPlaces('nwr["telecom"~"data_center|exchange"];nwr["building"="data_center"];nwr["office"~"^(it|telecommunication)$"]'), read: (t) => ({ name: t.name ?? t.operator ?? "Data centre", tags: [(t.telecom ?? t.building ?? t.office ?? "").replace(/_/g, " ")].filter(Boolean) }) },
+    demo: () => makeDemo("tech", "Northgrid Field IT (demo)", SECTORS.tech.types, [
+      ["Colocation hall (demo)", "Dublin", -6.37, 53.33, "Ireland", "colocation"], ["Edge site (demo)", "Amsterdam", 4.82, 52.35, "Netherlands", "edge"], ["Exchange campus (demo)", "Frankfurt", 8.73, 50.11, "Germany", "colocation"],
+      ["Docklands data centre (demo)", "London", 0.0, 51.51, "United Kingdom", "colocation"], ["Enterprise DC (demo)", "Paris", 2.36, 48.92, "France", "enterprise"], ["Cloud region (demo)", "Stockholm", 17.95, 59.4, "Sweden", "hyperscale", 4],
+    ], [["Service hub, Amsterdam", 4.9, 52.37, "service centre"], ["Spares, Frankfurt", 8.68, 50.11, "parts depot"]],
+      [["Sean O.", "Amsterdam"], ["Femke V.", "Amsterdam"], ["Lukas B.", "Frankfurt"], ["Aoife K.", "Amsterdam"]],
+      [["UPS", 2], ["Cooling unit", 3], ["Generator", 1], ["Network rack", 4], ["Fire suppression", 1]],
+      [["Liquid-cooling retrofit", 1_600_000, "proposal", 2], ["Edge rollout, 40 sites", 900_000, "qualified", 1], ["Remote-hands contract", 300_000, "won", 0]]),
   },
 };
 

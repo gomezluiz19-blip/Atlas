@@ -8,7 +8,14 @@ describe("the Work map", () => {
     const ids = (l: string) => LINES.find((x) => x.id === l)!.stations.map((s) => s.id);
     expect(ids("build")).toEqual(["build", "buildpro", "fn-construction"]);
     expect(ids("mine")).toEqual(["mining", "fn-mining"]);
-    expect(LINES.flatMap((l) => l.stations).filter((s) => s.tool.startsWith("services:")).map((s) => s.tool.slice(9)).sort()).toEqual(["agriculture", "construction", "energy", "medical", "mining", "sports", "telecom"]);
+    expect(LINES.flatMap((l) => l.stations).filter((s) => s.tool.startsWith("services:")).map((s) => s.tool.slice(9)).sort()).toEqual(["agriculture", "architecture", "art", "construction", "energy", "fashion", "food", "gaming", "medical", "mining", "realestate", "retail", "sports", "tech", "telecom"]);
+  });
+  it("runs each new industry from the everyday look round, to the pro's scout, to the companies that serve them", () => {
+    for (const id of ["food", "retail", "fashion", "art", "gaming", "realestate", "architecture", "tech"]) {
+      const tools = LINES.find((x) => x.id === id)!.stations.map((s) => s.tool);
+      expect(tools).toEqual([`explore:${id}`, `scout:${id}`, `services:${id}`]);
+    }
+    expect(LINES.find((x) => x.id === "sport")!.stations[0].tool).toBe("explore:sport");
   });
   it("matches what people say they do", () => {
     expect(top("we hire out cranes")).toBe("fn-construction");
@@ -19,6 +26,14 @@ describe("the Work map", () => {
     expect(top("humanitarian logistics")).toBe("relief");
     expect(top("city councillor")).toBe("office");
     expect(top("we sell drill rigs to mines")).toBe("fn-mining");
+    expect(top("I want to open a restaurant")).toBe("scout-food");
+    expect(top("we service walk-in coolers in restaurants")).toBe("fn-food");
+    expect(top("I'm a fashion designer")).toBe("scout-fashion");
+    expect(top("gallerist")).toBe("scout-art");
+    expect(top("real estate agent")).toBe("scout-realestate");
+    expect(top("laser scanning surveyor")).toBe("fn-architecture");
+    expect(top("startup founder")).toBe("scout-tech");
+    expect(top("arcade operator")).toBe("scout-gaming");
   });
   it("ignores filler words", () => {
     expect(rank("we run our company")).toEqual([]);

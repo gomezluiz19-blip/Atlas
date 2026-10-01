@@ -2884,3 +2884,47 @@ button.po-kpi:hover { transform: translateY(-1px); box-shadow: inset 0 0 0 1px c
 /* A tool panel open beside a hologram: the readout moves to the open side. */
 body[data-work="1"] .holo:not(.mini) .holo-hud { right: auto; left: 28px; top: auto; bottom: 30px; transform: none; flex-direction: row; flex-wrap: wrap; width: min(560px, calc(100vw - 480px)); }
 body[data-work="1"] .holo:not(.mini) .holo-actions { margin-right: 440px; }
+
+/* ---- Look round and Scout ----------------------------------------------------------------------- */
+.sc-lede { font-size: 14px; line-height: 1.45; color: var(--secondary); margin: 0 0 10px; }
+.sc-look { display: flex; gap: 14px; align-items: center; margin: 10px 0 12px; }
+.sc-look-side { flex: 1; min-width: 0; }
+.sc-big { margin: 0 0 8px; font-size: 13px; color: var(--secondary); }
+.sc-big strong { display: block; font-size: 34px; font-weight: 650; letter-spacing: -0.04em; line-height: 1; color: var(--label); }
+.sc-radar { flex: none; width: 200px; height: 200px; border-radius: 50%; background: radial-gradient(circle, color-mix(in srgb, var(--label) 6%, transparent), transparent 70%); }
+.sc-cand .sc-radar { width: 120px; height: 120px; }
+.sc-ring { fill: none; stroke: color-mix(in srgb, var(--label) 16%, transparent); stroke-dasharray: 2 3; }
+.sc-axis { stroke: color-mix(in srgb, var(--label) 8%, transparent); }
+.sc-n { font-size: 8px; font-weight: 700; fill: var(--secondary); text-anchor: middle; dominant-baseline: hanging; }
+.sc-dot { stroke: rgba(0, 0, 0, 0.35); stroke-width: 0.6; cursor: pointer; transition: r 0.15s; }
+.sc-dot:hover { r: 6; }
+.sc-you { fill: var(--label); stroke: var(--bg, #000); stroke-width: 2; }
+.sc-chips { display: flex; flex-wrap: wrap; gap: 5px; }
+.sc-chip { display: inline-flex; align-items: center; gap: 6px; padding: 5px 9px; border: 0; border-radius: 999px; background: var(--fill); color: var(--secondary); font: inherit; font-size: 12px; cursor: pointer; opacity: 0.55; transition: opacity 0.15s, background 0.15s; }
+.sc-chip.on { opacity: 1; color: var(--label); background: color-mix(in srgb, var(--c) 16%, var(--fill)); }
+.sc-chip i { width: 8px; height: 8px; border-radius: 50%; background: var(--c); }
+.sc-chip small { font-variant-numeric: tabular-nums; color: var(--secondary); }
+.sc-sig { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px; }
+.sc-sig-card { position: relative; display: flex; flex-direction: column; gap: 2px; padding: 12px 12px 11px; border: 0; border-radius: 14px; background: linear-gradient(160deg, color-mix(in srgb, var(--c) 14%, var(--material-strong)), var(--material-strong)); color: var(--label); font: inherit; text-align: left; cursor: pointer; transition: transform 0.15s; overflow: hidden; }
+.sc-sig-card::before { content: "◎"; position: absolute; right: 10px; top: 8px; font-size: 12px; color: var(--c); opacity: 0.8; }
+.sc-sig-card:hover { transform: translateY(-1px); }
+.sc-sig-card strong { font-size: 13.5px; line-height: 1.2; padding-right: 14px; }
+.sc-sig-card small { font-size: 11.5px; color: var(--secondary); }
+.sc-cands { display: grid; gap: 8px; margin: 8px 0; }
+.sc-cand { padding: 12px; border-radius: 16px; background: var(--material-strong); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--label) 7%, transparent); }
+.sc-cand.best { box-shadow: inset 0 0 0 1.5px var(--c), 0 6px 24px -12px var(--c); }
+.sc-cand-head { display: flex; align-items: center; gap: 8px; }
+.sc-cand-name { flex: 1; text-align: left; font-weight: 600; }
+.sc-letter { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 7px; background: var(--c); color: #000; font-size: 12px; font-weight: 800; }
+.sc-cand-body { display: flex; align-items: center; gap: 12px; margin: 8px 0 4px; flex-wrap: wrap; }
+.sc-dial { --p: 0; display: grid; place-items: center; width: 64px; height: 64px; border-radius: 50%; background: conic-gradient(var(--c) calc(var(--p) * 1%), color-mix(in srgb, var(--label) 10%, transparent) 0); -webkit-mask: radial-gradient(circle, transparent 23px, #000 24px); mask: radial-gradient(circle, transparent 23px, #000 24px); position: relative; }
+.sc-dial strong { position: absolute; font-size: 20px; font-weight: 700; letter-spacing: -0.03em; }
+.sc-cand-body .sc-dial { -webkit-mask: none; mask: none; background: radial-gradient(circle, var(--material-strong) 23px, transparent 24px), conic-gradient(var(--c) calc(var(--p) * 1%), color-mix(in srgb, var(--label) 10%, transparent) 0); }
+.sc-counts { display: flex; flex-direction: column; gap: 3px; font-size: 12px; color: var(--secondary); min-width: 120px; }
+.sc-counts span { display: flex; align-items: center; gap: 6px; }
+.sc-counts i { width: 7px; height: 7px; border-radius: 50%; background: var(--c); }
+.sc-why { margin: 6px 0 0; padding-left: 16px; font-size: 12.5px; line-height: 1.45; color: var(--secondary); }
+@media (max-width: 520px) { .sc-look { flex-direction: column; align-items: stretch; } .sc-radar { margin: 0 auto; } }
+.row-btns { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 8px; align-items: center; }
+.sc-row-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; color: var(--label); font-size: 13.5px; }
+.sc-row-main small { color: var(--secondary); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

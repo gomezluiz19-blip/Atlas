@@ -13,6 +13,7 @@ export function inUse(s: Station): boolean {
   if (!s.key) return false;
   const v = readJson(s.key);
   if (!Array.isArray(v) || !v.length) return false;
+  if (s.tool.startsWith("scout:")) { const ind = s.tool.slice(6); return v.some((x: { industry?: string; sites?: unknown[] }) => x.industry === ind && !!x.sites?.length); }
   if (s.tool.startsWith("services:")) { const sector = s.tool.slice(9); return v.some((c: { vertical?: string }) => (c.vertical ?? "mining") === sector); }
   return true;
 }

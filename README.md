@@ -71,6 +71,23 @@ of their own. Type what you do ("we hire out cranes", "freight forwarder", "city
 fit light up, the best one pulsing. Stations you already use are filled in, and the last one you had open is one tap
 away.
 
+**The places people work: Food, Retail, Fashion, Art, Gaming, Sport, Real estate, Architecture and Tech.** Each of
+these lines starts with the consumer, then the pros, then the companies that serve them:
+
+- **Look round** (Eat & drink, Shop, Fashion streets, See art, Play, Stadiums and games, The neighbourhood, Buildings
+  worth seeing, Tech around you) shows what's within a 7-minute walk of the middle of the map. It's drawn as a radar,
+  north up with rings every 200 m, and the places sit on the map in their colours with chips to filter them. A list
+  runs nearest first, with cuisine and opening hours where OpenStreetMap has them. Below that are the industry's
+  signature places worldwide, and each opens with its intro.
+- **Scout** (Restaurant site scout, Store site scout, Boutique site scout, Gallery and studio scout, Venue site scout,
+  Gym and club scout, Property compare, Site context study, Office and lab scout) compares up to four candidate
+  addresses. Pick what you'd open, then tap addresses or use the middle of the map. Each address gets what's within a
+  walk: what brings people past (stations, offices, schools, sights and hotels), who else is there and the nearest
+  of them, a score and its own radar. The best address is ringed on the map, and the comparison downloads as CSV.
+  The score uses diminishing returns, so ten cafés don't count ten times one. In fashion, art, architecture and
+  tech, like attracts like, so neighbours of the same kind count in your favour; elsewhere they're rivals.
+- **The companies that serve them** are new Field Network sectors (below).
+
 **Build Pro (for builders and contractors).** Every site on the map, and for each:
 - **Schedule.** Tasks and what they wait for, worked out with the critical path method on working days. You see the
   float on each task, what's critical from today, and the forecast finish against the contract date.
@@ -417,7 +434,7 @@ still read from above. It's a simulation on real streets (there is no public fee
 people), labelled as such; switch it under Layers › Live › Living city. With a Google key, the photorealistic
 3D city is on by default and the figures move through it.
 
-**Landmark intros.** The first time in a visit that you open one of about 120 of the world's most-searched
+**Landmark intros.** The first time in a visit that you open one of about 230 of the world's most-searched
 places (from search, a place link or a curated list), it's introduced before you arrive. The place stands
 as a white architect's model on a plinth in a white studio: the ground shaped from the real terrain (sea in
 pale blue), the buildings around it from OpenStreetMap, and the landmark itself as a simple massing model
@@ -426,7 +443,13 @@ moves in and callouts point out its parts (the Statue of Liberty's torch, crown,
 star walls). Then it cuts to the real place on the globe, where the camera circles it. Drag to turn the model
 (the clock waits), **Go there** to cut early, **Skip**, or switch intros off. A chip on the map plays it again.
 The list is spread on purpose: Djenné, Lalibela, Great Zimbabwe, Aksum, Meroë, Chichén Itzá, Machu Picchu,
-Borobudur, Angkor Wat and Lagos stand beside the Eiffel Tower and the Empire State Building.
+Borobudur, Angkor Wat and Lagos stand beside the Eiffel Tower and the Empire State Building. About 100 more
+are places people work and gather: about 40 stadiums and arenas (Yankee Stadium, Wembley, the Maracanã, the MCG),
+the towers that make skylines, museums (the Louvre, the Met, the Guggenheims), markets and shopping streets
+(Borough, Tsukiji, the Grand Bazaar, Ginza), and where technology and games come from (Apple Park, CERN, Bletchley
+Park, Akihabara, Nintendo in Kyoto, Gamescom's halls). Stadiums are modelled with raked stands in tiers; ballparks
+wrap their stands round home plate, with bleachers, a canopy over the grandstand and light masts. Each place is
+tagged by industry, so each Work line shows its own signature places.
 
 **Politics Pro.** In Work, a legislative office runs on the map. Start from the member (the whole of
 Congress is searchable) and the district is outlined from the Census Bureau, with its people from the American
@@ -602,6 +625,14 @@ prospects come from, and a demo:
 | Telecom towers | generators, batteries, rectifiers, radios | on or off grid, and how many days a tank of diesel lasts | towers and masts in the map view |
 | Construction and crane rental | tower and mobile cranes, excavators, pumps | weeks a year lost to rain, heat and frost | construction sites in the map view |
 | Sports facilities and equipment | turf pitches, floodlights, scoreboards, gym kit | playing months, and where artificial turf keeps pitches open | pitches (with their surface) in the map view |
+| Art handling and installation | display cases, climate units, lighting, hanging systems | the seasonal swing and humid months collections must ride out, and the calm months to move works | museums, galleries and art shops in the map view |
+| Textile and sewing machinery | lockstitch, overlock and embroidery machines, auto cutters, boilers | hot months on the factory floor, weak power, monsoon damp | garment workshops, tailors and textile works in the map view |
+| Arcade and venue technology | arcade cabinets, crane games, VR pods, LED walls | power quality, hot months, and the busy weeks to service around | arcades, cinemas, bowling and casinos in the map view |
+| Property maintenance | chillers, elevators, rooftop units, fire panels, generators | the cooling and heating seasons and the month to service before each | office, apartment and commercial buildings in the map view |
+| Surveys and inspection | laser scanners, survey drones, total stations, façade access units | dry, workable months for drones and scanners; heat and thin air | construction sites and listed buildings in the map view |
+| Commercial kitchens and refrigeration | walk-in coolers, combi ovens, ice machines, fryers, dishwashers | peak heat (when compressors fail) and the month to service before it | restaurants, cafés and fast food in the map view |
+| Store fixtures, checkouts and refrigeration | refrigerated cases, self-checkouts, POS, shelf labels | peak heat for cold cases, weak power | supermarkets and stores in the map view |
+| Field IT and data centres | UPS, cooling units, generators, racks, fire suppression | peak heat, months of free cooling, weak power | data centres, exchanges and IT offices in the map view |
 
 Demos: a soy-belt dealer in Mato Grosso, a wind and solar O&M firm from Lake Turkana to Noor Ouarzazate and De Aar, a
 medical equipment servicer across Kenya, Uganda and Tanzania, a tower company across Nigeria, a crane rental firm in
