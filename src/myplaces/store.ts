@@ -40,6 +40,8 @@ export interface MyPlace {
   /** The building's outline, traced by hand when it isn't mapped (lon, lat). */
   footprint?: [number, number][];
   storeys?: number;
+  /** Your pool outlines and trees (lon, lat), when the map doesn't have them. */
+  land?: { pools?: [number, number][][]; trees?: [number, number][] };
 }
 
 export const KIND_LABEL: Record<PlaceKind, string> = { home: "Home", hotel: "Hotel", business: "Business", farm: "Farm", school: "School", other: "Place" };
@@ -79,6 +81,10 @@ function cleanZones(v: unknown): Device["zones"] {
 }
 
 /** Checks and tidies places read from storage or an import file. */
+/** A list of [lon, lat] pairs, or undefined (pure). */
+const cleanPts = (v: unknown, max = 2000): [number, number][] | undefined =>
+  Array.isArray(v) ? (v as unknown[]).filter((q): q is [number, number] => Array.isArray(q) && q.length >= 2 && Number.isFinite(q[0]) && Number.isFinite(q[1]) && Math.abs(q[1] as number) <= 90 && Math.abs(q[0] as number) <= 180).map((q) => [q[0], q[1]] as [number, number]).slice(0, max) : undefined;
+
 export function sanitize(raw: unknown): MyPlace[] {
   if (!Array.isArray(raw)) return [];
   const num = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? v : undefined);
@@ -99,6 +105,14 @@ export function sanitize(raw: unknown): MyPlace[] {
       energy: (o.energy && typeof o.energy === "object" ? o.energy : {}) as MyPlace["energy"],
       water: (o.water && typeof o.water === "object" ? o.water : {}) as MyPlace["water"],
       devices,
+      footprint: (() => { const f = cleanPts(o.footprint, 400); return f && f.length > 2 ? f : undefined; })(),
+      storeys: num(o.storeys) !== undefined ? Math.max(1, Math.min(200, Math.round(o.storeys as number))) : undefined,
+      land: o.land && typeof o.land === "object" ? (() => {
+        const l = o.land as Record<string, unknown>;
+        const pools = Array.isArray(l.pools) ? (l.pools as unknown[]).map((r) => cleanPts(r, 200)).filter((r): r is [number, number][] => !!r && r.length > 2).slice(0, 20) : [];
+        const trees = cleanPts(l.trees, 2000) ?? [];
+        return pools.length || trees.length ? { pools, trees } : undefined;
+      })() : undefined,
     }];
   });
 }

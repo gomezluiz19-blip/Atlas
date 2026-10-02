@@ -17,6 +17,8 @@ import { h } from "../ui/dom";
 import { cameraSector, fetchBuildings, ownBuilding, type Building } from "./scene";
 import { DEVICES, KIND_LABEL, type Device, type MyPlace, type PlaceKind } from "./store";
 import { estimateBuilding, newOnes, ringKey, surveyLines, tracedBuilding, type Yours } from "./survey";
+import { circle, clipConvex, distanceTo, emptyLand, landLine, landQuery, scatter, toLand, withYours, type Land } from "./land";
+import { overpass } from "../data/overpass";
 
 export interface DockItem { id: string; label: string; icon: string; color: string; badge?: string; alert?: boolean }
 export interface HoloLine { k: string; v: string }
@@ -47,6 +49,10 @@ export interface SpaceOptions {
   estimate?: PlaceKind;
   /** Offers "Trace my building" (saved places). */
   onTrace?(): void;
+  /** Your own pool outlines and trees (lon, lat), for what the map doesn't have. */
+  yours?: { pools?: [number, number][][]; trees?: [number, number][] };
+  /** Offers "Add trees & pool" (saved places). */
+  onLand?(): void;
   devices?: Device[];
   markers?: Marker[];
   dock?: DockItem[];
@@ -97,6 +103,7 @@ export function bootSpace(o: SpaceOptions): Holo {
           o.onAdd ? h("button", { class: "holo-chip add", onclick: () => o.onAdd!() }, o.addLabel ?? "+ Place") : "") : ""),
       h("div", { class: "holo-actions" },
         o.onTrace ? h("button", { class: "holo-btn", onclick: () => o.onTrace!() }, o.footprint ? "Edit my building" : "Trace my building") : "",
+        o.onLand ? h("button", { class: "holo-btn", onclick: () => o.onLand!() }, "Add trees & pool") : "",
         capture, filmBtn,
         h("button", { class: "holo-btn", onclick: () => o.onGlobe() }, "Fly in on the globe"),
         h("button", { class: "holo-btn icon", "aria-label": "Close", onclick: () => o.onClose() }, "✕"))),
@@ -209,14 +216,14 @@ export function bootSpace(o: SpaceOptions): Holo {
   };
 
   // ---- The survey: the ground first, then your building, then everything around as it arrives ----
-  const st: Parameters<typeof surveyLines>[0] = { ground: "wait", yours: o.estimate || o.footprint ? "wait" : "none", around: "wait", radiusM: Math.round(Math.min(1200, SIZE / 2)) };
+  const st: Parameters<typeof surveyLines>[0] = { ground: "wait", yours: o.estimate || o.footprint ? "wait" : "none", around: "wait", radiusM: Math.round(Math.min(1200, SIZE / 2)), land: (o.size ?? 520) <= 3000 ? "◌ Looking for water, pools and trees…" : undefined };
   const say = () => {
     status.replaceChildren(...surveyLines(st).map((l) => h("span", { class: "holo-survey-line" + (l.startsWith("◌") ? " wait" : l.startsWith("△") ? " warn" : "") }, l)));
     if (st.ground !== "wait" && st.yours !== "wait" && st.around !== "wait") el.classList.add("booted");
   };
   say();
   const have = new Set<string>();
-  let ownGroup: THREE.Group | null = null, ownKind: Yours | "wait" = "wait", count = 0;
+  let ownGroup: THREE.Group | null = null, ownKind: Yours | "wait" = "wait", count = 0, ownRing: [number, number][] | null = null;
   const geoOf = (b: Building) => {
     const pts = b.ring.map(([lon, lat]) => toXZ(lon, lat));
     const cx = pts.reduce((s0, q) => s0 + q[0], 0) / pts.length, cz = pts.reduce((s0, q) => s0 + q[1], 0) / pts.length;
@@ -251,7 +258,8 @@ export function bootSpace(o: SpaceOptions): Holo {
     drop(ownGroup);
     have.add(ringKey(b.ring));
     ownGroup = addGroup([g], WARM, kind === "estimated" ? 0.1 : 0.22, kind === "estimated" ? 0.55 : 1);
-    ownKind = kind; st.yours = kind;
+    ownKind = kind; st.yours = kind; ownRing = b.ring;
+    if (landDrawn) measureWater();
     estTag.el.style.display = kind === "estimated" ? "" : "none";
     estTag.v.set(0, ground(0, 0) + Math.max(3, b.height) / ex + SIZE / 60, 0);
     say();
@@ -336,6 +344,101 @@ export function bootSpace(o: SpaceOptions): Holo {
     st.around = count; say();
   });
 
+  // ---- The land: water, pools and trees ----
+  const WATER = 0x3aa0ff, POOL = 0x6ff7ff, TREE = 0x5dffa8;
+  const disc = circle((SIZE / 2) * 0.97, 72);
+  const shimmer: THREE.Material[] = [];
+  let land: Land = emptyLand(), landDrawn = false, landCounts = { trees: 0, pools: 0 };
+  const flatShape = (xz: [number, number][], y: number, color: number, fill: number, edge: number) => {
+    const g = new THREE.ShapeGeometry(new THREE.Shape(xz.map(([x, z]) => new THREE.Vector2(x, -z)))).rotateX(-Math.PI / 2);
+    g.translate(0, y, 0);
+    const fillMat = additive(color, fill), edgeMat = lineMat(color, edge);
+    const loop = new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(xz.map(([x, z]) => new THREE.Vector3(x, y + 0.05, z))), edgeMat);
+    const grp = new THREE.Group(); grp.add(new THREE.Mesh(g, fillMat), loop);
+    model.add(grp);
+    return { grp, fillMat };
+  };
+  const lowest = (xz: [number, number][]) => { let m = Infinity; for (let i = 0; i < xz.length; i += Math.max(1, Math.floor(xz.length / 24))) m = Math.min(m, ground(xz[i][0], xz[i][1])); return Number.isFinite(m) ? m : 0; };
+  const toXZs = (r: [number, number][]) => r.map(([lon, lat]) => toXZ(lon, lat));
+  function measureWater() {
+    const rings = land.water.map((w) => toXZs(w.ring)), lines = land.streams.map((w) => toXZs(w.line));
+    if (!rings.length && !lines.length) { st.land = landLine({ ...landCounts }); say(); return; }
+    const from = ownRing ? toXZs(ownRing) : [[0, 0] as [number, number]];
+    const m = distanceTo(from, rings, lines);
+    const all = [...land.water.map((w, i) => ({ name: w.name, kind: w.kind, d: distanceTo(from, [rings[i]]) })), ...land.streams.map((w, i) => ({ name: w.name, kind: "river", d: distanceTo(from, [], [lines[i]]) }))].sort((a, b) => a.d - b.d)[0];
+    st.land = landLine({ ...landCounts, water: m <= SIZE / 2 ? { name: all?.name, kind: all?.kind ?? "water", m } : undefined });
+    say();
+  }
+  const drawLand = (l: Land) => {
+    land = l; landDrawn = true;
+    // Water: lakes, ponds and rivers lie flat at their lowest shore, shimmering.
+    let biggest: { xz: [number, number][]; name?: string; area: number } | null = null;
+    for (const w of l.water) {
+      const xz = clipConvex(toXZs(w.ring), disc);
+      if (xz.length < 3) continue;
+      const { fillMat } = flatShape(xz, lowest(xz) + 0.3, WATER, w.kind === "wetland" ? 0.08 : 0.2, 0.85);
+      shimmer.push(fillMat);
+      let a = 0; for (let i = 0; i < xz.length; i++) { const [x1, z1] = xz[i], [x2, z2] = xz[(i + 1) % xz.length]; a += x1 * z2 - x2 * z1; }
+      if (!biggest || Math.abs(a) > biggest.area) biggest = { xz, name: w.name, area: Math.abs(a) };
+    }
+    for (const sline of l.streams) {
+      const pts = toXZs(sline.line).filter(([x, z]) => Math.hypot(x, z) < (SIZE / 2) * 0.97);
+      if (pts.length < 2) continue;
+      model.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts.map(([x, z]) => new THREE.Vector3(x, ground(x, z) + 0.4, z))), lineMat(WATER, 0.9)));
+    }
+    if (biggest?.name) {
+      const cx = biggest.xz.reduce((t, q) => t + q[0], 0) / biggest.xz.length, cz = biggest.xz.reduce((t, q) => t + q[1], 0) / biggest.xz.length;
+      const tag = { v: new THREE.Vector3(cx, lowest(biggest.xz) + SIZE / 80, cz), el: h("span", { class: "holo-tag water", style: `--c:${hex(WATER)}` }, biggest.name) };
+      fixed.push(tag); tagged.push(tag); tags.append(tag.el);
+    }
+    // Pools: bright, small, unmistakable.
+    let pools = 0;
+    for (const r of l.pools) {
+      const xz = clipConvex(toXZs(r), disc);
+      if (xz.length < 3) continue;
+      // A shallow basin with a glowing rim, so even a small pool reads at a glance.
+      const y = lowest(xz) + 0.25, { fillMat } = flatShape(xz, y, POOL, 0.8, 1);
+      const rim = new THREE.ExtrudeGeometry(new THREE.Shape(xz.map(([x, z]) => new THREE.Vector2(x, -z))), { depth: 1.2 / ex, bevelEnabled: false }).rotateX(-Math.PI / 2);
+      rim.translate(0, y - 1.2 / ex, 0);
+      model.add(new THREE.LineSegments(new THREE.EdgesGeometry(rim, 25), lineMat(POOL, 0.9)));
+      shimmer.push(fillMat); pools++;
+      if (pools === 1) {
+        const cx = xz.reduce((t, q) => t + q[0], 0) / xz.length, cz = xz.reduce((t, q) => t + q[1], 0) / xz.length;
+        const tag = { v: new THREE.Vector3(cx, y + SIZE / 90, cz), el: h("span", { class: "holo-tag", style: `--c:${hex(POOL)}` }, "Pool") };
+        fixed.push(tag); tagged.push(tag); tags.append(tag.el);
+      }
+    }
+    // Trees: each one mapped or marked, and woods filled at about one every 9 m.
+    const spots: [number, number][] = toXZs(l.trees).filter(([x, z]) => Math.hypot(x, z) < (SIZE / 2) * 0.97);
+    for (const wood of l.woods) {
+      const xz = clipConvex(toXZs(wood), disc);
+      if (xz.length < 3) continue;
+      flatShape(xz, lowest(xz) + 0.1, TREE, 0.04, 0.25);
+      spots.push(...scatter(xz, Math.max(9, SIZE / 70), 900));
+    }
+    const n = Math.min(1600, spots.length);
+    if (n) {
+      const crown = new THREE.ConeGeometry(2.6, 7, 6).translate(0, 5.5, 0), trunk = new THREE.CylinderGeometry(0.25, 0.35, 2, 5).translate(0, 1, 0);
+      const geo = mergeGeometries([crown, trunk]);
+      const trees = new THREE.InstancedMesh(geo, additive(TREE, 0.3), n);
+      const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), sc = new THREE.Vector3();
+      for (let i = 0; i < n; i++) {
+        const [x, z] = spots[i], hgt = 0.8 + ((i * 7919) % 100) / 200;
+        sc.set(hgt, hgt / ex, hgt);
+        m4.compose(new THREE.Vector3(x, ground(x, z), z), q, sc);
+        trees.setMatrixAt(i, m4);
+      }
+      const grp = new THREE.Group(); grp.add(trees);
+      model.add(grp);
+      grp.scale.y = reduced ? 1 : 0.001;
+      risers.push({ g: grp, t0: performance.now() });
+    }
+    landCounts = { trees: n, pools };
+    measureWater();
+  };
+  if (SIZE <= 3000) void ready.then(() => within(overpass(landQuery(o.lon, o.lat, (SIZE / 2) * 1.05)).then(toLand), 30_000, emptyLand())).then((l) => { if (!closed) drawLand(withYours(l, o.yours)); });
+  else { st.land = undefined; }
+
   // ---- The loop ----
   const resize = () => {
     const mini = el.classList.contains("mini");
@@ -359,6 +462,8 @@ export function bootSpace(o: SpaceOptions): Holo {
     a.needsUpdate = true;
     const beat = 1 + 0.6 * ((now / 1400) % 1);
     for (const p of pulses) { p.scale.set(beat, 1, beat); (p.material as THREE.MeshBasicMaterial).opacity = 0.9 * (1 - ((now / 1400) % 1)); }
+    // Water and pools shimmer.
+    if (!reduced) shimmer.forEach((m, i) => { const base = (m as THREE.MeshBasicMaterial).userData.base ??= (m as THREE.MeshBasicMaterial).opacity; (m as THREE.MeshBasicMaterial).opacity = base * (1 + 0.3 * Math.sin(now / 620 + i)); });
     if (!reduced) for (const r of risers) if (r.g.scale.y < 1) r.g.scale.y = Math.max(0.001, ease((now - r.t0) / 1300));
     controls.update();
     renderer!.render(scene, camera);
@@ -415,14 +520,14 @@ export function bootSpace(o: SpaceOptions): Holo {
 /** Your saved place, booted: your building lit, your devices on it, your places as chips. */
 export function bootPlace(o: {
   place: MyPlace; places: MyPlace[]; dock: DockItem[];
-  onPick(id: string): void; onSwitch(id: string): void; onGlobe(): void; onClose(): void; onAdd(): void; onTrace?(): void;
+  onPick(id: string): void; onSwitch(id: string): void; onGlobe(): void; onClose(): void; onAdd(): void; onTrace?(): void; onLand?(): void;
 }): Holo {
   const p = o.place;
   return bootSpace({
     name: p.name, kicker: `${KIND_LABEL[p.kind]} · ${p.lat.toFixed(4)}, ${p.lon.toFixed(4)}`, lon: p.lon, lat: p.lat, own: true, devices: p.devices, dock: o.dock,
     // Close enough to see a house; wider for a farm.
     size: p.kind === "home" ? 260 : p.kind === "farm" ? 700 : 420,
-    footprint: p.footprint && p.footprint.length > 2 ? tracedBuilding(p.footprint, p.storeys) : undefined, estimate: p.kind, onTrace: o.onTrace,
+    footprint: p.footprint && p.footprint.length > 2 ? tracedBuilding(p.footprint, p.storeys) : undefined, estimate: p.kind, onTrace: o.onTrace, yours: p.land, onLand: o.onLand,
     chips: o.places.map((x) => ({ id: x.id, label: x.name, on: x.id === p.id })), onChip: o.onSwitch, onAdd: o.onAdd, onPick: o.onPick, onGlobe: o.onGlobe, onClose: o.onClose,
   });
 }

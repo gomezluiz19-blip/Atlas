@@ -406,6 +406,7 @@ async function bootMyPlace(id?: string) {
     onClose: () => closeHolo(),
     onAdd: () => { holo?.minimize(); closePanels(placeHub.panel); placeHub.ctx.open(); placeHub.ctx.home(); app.toast("Search for the address, or tap the spot on the map, then Save.", 5000); },
     onTrace: () => void traceMyBuilding(place),
+    onLand: () => void addMyLand(place),
   });
   holo = h0;
   adopt(h0);
@@ -436,17 +437,47 @@ function askStoreys(now: number): Promise<number> {
     $("ui").append(bar);
   });
 }
-/** Trace your own building over the satellite view, when the map doesn't have it (or has it wrong). */
-async function traceMyBuilding(place: MyPlace) {
+/** Looks straight down at a place, 160 m above its ground, for tracing. */
+async function lookDown(place: MyPlace) {
   closeHolo();
   closePanels();
-  // Hold the camera still while tracing (no slow circling around a chosen place).
   stopArriving();
   holdTilt = true;
-  // Straight down from 160 m above the ground (not sea level: the ground may be higher than that).
   const { elevation } = await import("./data/elevation");
   const ground = await Promise.race([elevation.sample([[place.lon, place.lat]], 15).then((v) => v[0] ?? 0).catch(() => 0), new Promise<number>((r) => setTimeout(() => r(0), 2500))]);
-  await new Promise<void>((done) => globe.viewer.camera.flyTo({ destination: Cartesian3.fromDegrees(place.lon, place.lat, Math.max(0, ground) + 160), orientation: { heading: 0, pitch: -CesiumMath.PI_OVER_TWO, roll: 0 }, duration: 1.6, complete: done, cancel: done }));
+  await new Promise<void>((done) => globe.viewer.camera.flyTo({ destination: Cartesian3.fromDegrees(place.lon, place.lat, Math.max(0, ground) + 200), orientation: { heading: 0, pitch: -CesiumMath.PI_OVER_TWO, roll: 0 }, duration: 1.6, complete: done, cancel: done }));
+}
+/** A row of choices over the map. */
+function askChoice(prompt: string, options: string[]): Promise<number> {
+  return new Promise((resolve) => {
+    const bar = h("div", { class: "draw-bar", role: "toolbar" }, h("span", { class: "draw-prompt" }, prompt),
+      ...options.map((o, i) => h("button", { class: i === 0 ? "primary-btn" : "pill-btn", onclick: () => { bar.remove(); resolve(i); } }, o)));
+    $("ui").append(bar);
+  });
+}
+/** Add what the map doesn't have: your pool, your trees. */
+async function addMyLand(place: MyPlace) {
+  await lookDown(place);
+  const { drawOnMap } = await import("./work/draw");
+  const land = { pools: [...(place.land?.pools ?? [])], trees: [...(place.land?.trees ?? [])] };
+  try {
+    for (;;) {
+      const pick = await askChoice("Add to your place:", ["🏊 Trace the pool", "🌳 Tap trees", land.pools.length || land.trees.length ? "Clear mine" : "", "Done"].filter(Boolean));
+      const label = ["🏊 Trace the pool", "🌳 Tap trees", land.pools.length || land.trees.length ? "Clear mine" : "", "Done"].filter(Boolean)[pick];
+      if (label === "Done") break;
+      if (label === "Clear mine") { land.pools = []; land.trees = []; continue; }
+      if (label.includes("pool")) { const ring = await drawOnMap(app, "area", "#6ff7ff", "Tap each corner of the pool, then Done"); if (ring && ring.length > 2) land.pools.push(ring); }
+      else { const pts = await drawOnMap(app, "points", "#5dffa8", "Tap each tree (the middle of its crown), then Done"); if (pts) land.trees.push(...pts); }
+    }
+  } finally { holdTilt = false; }
+  myStore.save({ ...(myStore.get(place.id) ?? place), land });
+  app.toast(`Saved: ${land.pools.length} pool${land.pools.length === 1 ? "" : "s"} and ${land.trees.length} tree${land.trees.length === 1 ? "" : "s"} of yours. The hologram shows them with what's mapped around.`, 5000);
+  void bootMyPlace(place.id);
+}
+/** Trace your own building over the satellite view, when the map doesn't have it (or has it wrong). */
+async function traceMyBuilding(place: MyPlace) {
+  // Straight down, still (no circling or tilting), from just above the ground (not sea level: the ground may be higher).
+  await lookDown(place);
   const { drawOnMap } = await import("./work/draw");
   const ring = await drawOnMap(app, "area", "#ffc46b", "Tap each corner of your building, then Done").finally(() => { holdTilt = false; });
   if (!ring || ring.length < 3) { void bootMyPlace(place.id); return; }

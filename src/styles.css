@@ -3192,3 +3192,4 @@ body[data-work="1"] .holo:not(.mini) .holo-actions { margin-right: 440px; }
 @media (prefers-reduced-motion: reduce) { .fin-node { animation: none; } }
 .mk-name { font-size: 8px; fill: var(--secondary); }
 .mk-name.open { fill: var(--label); font-weight: 700; }
+.holo-tag.water { font-style: italic; }
