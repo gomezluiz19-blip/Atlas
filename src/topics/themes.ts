@@ -55,15 +55,16 @@ function pinSpots(app: App, spots: { name?: string; lon: number; lat: number }[]
 }
 
 /** Rows for named things; each opens its Wikipedia article (or goes there on the map). */
-function namedList(app: App, items: Named[], opts: { emoji?: string; sub?: (n: Named) => string | undefined } = {}): HTMLElement {
+function namedList(app: App, items: Named[], opts: { emoji?: string; sub?: (n: Named) => string | undefined; open?: (n: Named) => void } = {}): HTMLElement {
   return h("div", { class: "list" }, ...items.map((n) => {
     // The detail only when the description doesn't already say it ("baseball · Dominican baseball player").
     const detail = n.detail && !n.about?.toLowerCase().includes(n.detail.toLowerCase()) ? n.detail : undefined;
     const sub = opts.sub?.(n) ?? [detail, n.about].filter(Boolean).join(" · ");
-    const go = n.article ? () => window.open(n.article, "_blank", "noopener")
+    const go = opts.open ? () => opts.open!(n)
+      : n.article ? () => window.open(n.article, "_blank", "noopener")
       : n.lon !== undefined && n.lat !== undefined ? () => void flyToPlace(app.globe, { name: n.name, lon: n.lon!, lat: n.lat!, radius: 1500 })
       : null;
-    return h("button", { class: "list-row" + (go ? "" : " static"), onclick: go ?? undefined, title: n.article ? "Read about it on Wikipedia" : undefined },
+    return h("button", { class: "list-row" + (go ? "" : " static"), onclick: go ?? undefined, title: opts.open ? "Its stock, figures, owners and subsidiaries" : n.article ? "Read about it on Wikipedia" : undefined },
       n.image ? h("img", { class: "tp-thumb", src: commonsThumb(n.image, 120), alt: "", loading: "lazy" }) : h("span", { class: "story-mini-emoji" }, opts.emoji ?? "•"),
       h("span", { class: "list-text" }, h("span", { class: "list-title" }, n.name), sub ? h("span", { class: "list-sub" }, sub) : ""),
       go ? h("span", { class: "chev", html: "&rsaquo;" }) : "");
@@ -197,8 +198,8 @@ function moneyTheme(): Theme {
         const inCountry = (big ?? []).filter((x) => !near?.some((n) => n.id === x.id));
         if (!near?.length && !inCountry.length) return [hero("—", "No well-known companies found", "Wikidata may not have reached here yet."), note(WIKI_NOTE)];
         return [
-          near?.length ? section(`Based near ${placeName(place)}`, namedList(app, near, { emoji: "🏢" })) : "",
-          inCountry.length && c ? section(`Best-known companies in ${theCountry(c)}`, namedList(app, inCountry, { emoji: "🏢" })) : "",
+          near?.length ? section(`Based near ${placeName(place)}`, namedList(app, near, { emoji: "🏢", open: (n) => app.actions.get("fin:company")?.run(n.id) })) : "",
+          inCountry.length && c ? section(`Best-known companies in ${theCountry(c)}`, namedList(app, inCountry, { emoji: "🏢", open: (n) => app.actions.get("fin:company")?.run(n.id) })) : "",
           note(WIKI_NOTE),
         ];
       });

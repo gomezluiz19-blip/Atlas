@@ -15,7 +15,8 @@ import { elevation } from "../data/elevation";
 import { film, still } from "../delight/capture";
 import { h } from "../ui/dom";
 import { cameraSector, fetchBuildings, ownBuilding, type Building } from "./scene";
-import { DEVICES, KIND_LABEL, type Device, type MyPlace } from "./store";
+import { DEVICES, KIND_LABEL, type Device, type MyPlace, type PlaceKind } from "./store";
+import { estimateBuilding, newOnes, ringKey, surveyLines, tracedBuilding, type Yours } from "./survey";
 
 export interface DockItem { id: string; label: string; icon: string; color: string; badge?: string; alert?: boolean }
 export interface HoloLine { k: string; v: string }
@@ -40,6 +41,12 @@ export interface SpaceOptions {
   size?: number;
   /** Light the building at the centre warm (yours, the landmark). */
   own?: boolean;
+  /** Your building as you traced it (it wins over the map's). */
+  footprint?: Building;
+  /** When no building is mapped where you are, show a house-sized estimate (saved places). */
+  estimate?: PlaceKind;
+  /** Offers "Trace my building" (saved places). */
+  onTrace?(): void;
   devices?: Device[];
   markers?: Marker[];
   dock?: DockItem[];
@@ -89,6 +96,7 @@ export function bootSpace(o: SpaceOptions): Holo {
           ...(o.chips ?? []).map((c) => h("button", { class: "holo-chip" + (c.on ? " on" : ""), onclick: () => !c.on && o.onChip?.(c.id) }, c.label)),
           o.onAdd ? h("button", { class: "holo-chip add", onclick: () => o.onAdd!() }, o.addLabel ?? "+ Place") : "") : ""),
       h("div", { class: "holo-actions" },
+        o.onTrace ? h("button", { class: "holo-btn", onclick: () => o.onTrace!() }, o.footprint ? "Edit my building" : "Trace my building") : "",
         capture, filmBtn,
         h("button", { class: "holo-btn", onclick: () => o.onGlobe() }, "Fly in on the globe"),
         h("button", { class: "holo-btn icon", "aria-label": "Close", onclick: () => o.onClose() }, "✕"))),
@@ -159,7 +167,8 @@ export function bootSpace(o: SpaceOptions): Holo {
   const k = 10 / SIZE;
   const mx = 111_320 * Math.cos((o.lat * Math.PI) / 180), my = 110_540;
   const toXZ = (lon: number, lat: number): [number, number] => [(lon - o.lon) * mx, -(lat - o.lat) * my];
-  const risers: THREE.Object3D[] = [];
+  /** Groups rising into place, each from its own moment (buildings arrive in waves). */
+  const risers: { g: THREE.Object3D; t0: number }[] = [];
   let heights: Float32Array | null = null, g0 = 0, ex = 1;
   const ground = (x: number, z: number) => {
     if (!heights) return 0;
@@ -173,10 +182,12 @@ export function bootSpace(o: SpaceOptions): Holo {
   const markerGroup = new THREE.Group();
   model.add(markerGroup);
   let tagged: { v: THREE.Vector3; el: HTMLElement }[] = [];
+  /** Tags that stay when the markers change (the estimate's). */
+  const fixed: { v: THREE.Vector3; el: HTMLElement }[] = [];
   let pulses: THREE.Mesh[] = [];
   const setMarkers = (ms: Marker[]) => {
     markerGroup.traverse((x) => { const m = x as THREE.Mesh; m.geometry?.dispose(); (m.material as THREE.Material | undefined)?.dispose?.(); });
-    markerGroup.clear(); tags.replaceChildren(); tagged = []; pulses = [];
+    markerGroup.clear(); tags.replaceChildren(...fixed.map((f) => f.el)); tagged = [...fixed]; pulses = [];
     const r = SIZE / 90;
     for (const m of ms.slice(0, 60)) {
       const [x, z] = toXZ(m.lon, m.lat);
@@ -197,8 +208,68 @@ export function bootSpace(o: SpaceOptions): Holo {
     }
   };
 
-  const build = (hs: Float32Array | null, bs: Building[]) => {
+  // ---- The survey: the ground first, then your building, then everything around as it arrives ----
+  const st: Parameters<typeof surveyLines>[0] = { ground: "wait", yours: o.estimate || o.footprint ? "wait" : "none", around: "wait", radiusM: Math.round(Math.min(1200, SIZE / 2)) };
+  const say = () => {
+    status.replaceChildren(...surveyLines(st).map((l) => h("span", { class: "holo-survey-line" + (l.startsWith("◌") ? " wait" : l.startsWith("△") ? " warn" : "") }, l)));
+    if (st.ground !== "wait" && st.yours !== "wait" && st.around !== "wait") el.classList.add("booted");
+  };
+  say();
+  const have = new Set<string>();
+  let ownGroup: THREE.Group | null = null, ownKind: Yours | "wait" = "wait", count = 0;
+  const geoOf = (b: Building) => {
+    const pts = b.ring.map(([lon, lat]) => toXZ(lon, lat));
+    const cx = pts.reduce((s0, q) => s0 + q[0], 0) / pts.length, cz = pts.reduce((s0, q) => s0 + q[1], 0) / pts.length;
+    if (!inDisc(cx, cz)) return null;
+    const shape = new THREE.Shape(pts.map(([x, z]) => new THREE.Vector2(x, -z)));
+    const g = new THREE.ExtrudeGeometry(shape, { depth: Math.max(3, b.height) / ex, bevelEnabled: false }).rotateX(-Math.PI / 2);
+    g.translate(0, ground(cx, cz), 0);
+    return g;
+  };
+  const addGroup = (geos: THREE.BufferGeometry[], color: number, fill: number, edge: number) => {
+    const merged = geos.length ? mergeGeometries(geos) : null;
+    if (!merged) return null;
+    const grp = new THREE.Group();
+    grp.add(new THREE.Mesh(merged, additive(color, fill)), new THREE.LineSegments(new THREE.EdgesGeometry(merged, 25), lineMat(color, edge)));
+    model.add(grp);
+    grp.scale.y = reduced ? 1 : 0.001;
+    risers.push({ g: grp, t0: performance.now() });
+    return grp;
+  };
+  const drop = (grp: THREE.Group | null) => {
+    if (!grp) return;
+    model.remove(grp);
+    grp.traverse((x) => { const m = x as THREE.Mesh; m.geometry?.dispose(); (m.material as THREE.Material | undefined)?.dispose?.(); });
+    const i = risers.findIndex((r) => r.g === grp); if (i >= 0) risers.splice(i, 1);
+  };
+  /** Your building, lit warm: traced beats mapped beats estimated. */
+  const setOwn = (b: Building, kind: Yours) => {
+    const rank = { traced: 3, mapped: 2, estimated: 1, none: 0 } as const;
+    if (ownKind !== "wait" && rank[ownKind] >= rank[kind]) return;
+    const g = geoOf(b);
+    if (!g) return;
+    drop(ownGroup);
+    have.add(ringKey(b.ring));
+    ownGroup = addGroup([g], WARM, kind === "estimated" ? 0.1 : 0.22, kind === "estimated" ? 0.55 : 1);
+    ownKind = kind; st.yours = kind;
+    estTag.el.style.display = kind === "estimated" ? "" : "none";
+    estTag.v.set(0, ground(0, 0) + Math.max(3, b.height) / ex + SIZE / 60, 0);
+    say();
+  };
+  const estTag = { v: new THREE.Vector3(0, 0, 0), el: h("span", { class: "holo-tag est", style: `--c:${hex(WARM)}` }, "Estimated · trace yours") };
+  estTag.el.style.display = "none";
+  fixed.push(estTag);
+  tags.append(estTag.el);
+  const addAround = (bs: Building[]) => {
+    const fresh = newOnes(have, bs);
+    const geos: THREE.BufferGeometry[] = [];
+    for (const b of fresh) { if (count + geos.length > 1200) break; const g = geoOf(b); if (g) geos.push(g); }
+    count += geos.length;
+    addGroup(geos, COOL, 0.07, 0.55);
+  };
+  const buildGround = (hs: Float32Array | null) => {
     heights = hs && hs.length === N * N ? hs : null;
+    st.ground = heights ? "ok" : "flat";
     if (heights) { g0 = heights[Math.floor(N / 2) * N + Math.floor(N / 2)]; let lo = Infinity, hi = -Infinity; for (const v of heights) { lo = Math.min(lo, v); hi = Math.max(hi, v); } ex = Math.min(2.5, Math.max(1, (0.06 * SIZE) / Math.max(1, hi - lo))); }
     model.scale.set(k, k * ex, k);
     const segs: number[] = [];
@@ -210,31 +281,10 @@ export function bootSpace(o: SpaceOptions): Holo {
     const grid = new THREE.BufferGeometry();
     grid.setAttribute("position", new THREE.Float32BufferAttribute(segs, 3));
     model.add(new THREE.LineSegments(grid, lineMat(COOL, 0.22)));
-    const own = o.own ? ownBuilding(bs, o.lon, o.lat) : null;
-    const cool: THREE.BufferGeometry[] = [];
-    let warm: THREE.BufferGeometry | null = null;
-    for (const b of bs) {
-      const pts = b.ring.map(([lon, lat]) => toXZ(lon, lat));
-      const cx = pts.reduce((s, q) => s + q[0], 0) / pts.length, cz = pts.reduce((s, q) => s + q[1], 0) / pts.length;
-      if (!inDisc(cx, cz) || cool.length > 1200) continue;
-      const shape = new THREE.Shape(pts.map(([x, z]) => new THREE.Vector2(x, -z)));
-      const g = new THREE.ExtrudeGeometry(shape, { depth: Math.max(3, b.height) / ex, bevelEnabled: false }).rotateX(-Math.PI / 2);
-      g.translate(0, ground(cx, cz), 0);
-      if (b === own) warm = g; else cool.push(g);
-    }
-    const addGroup = (geos: THREE.BufferGeometry[], color: number, fill: number, edge: number) => {
-      const merged = geos.length ? mergeGeometries(geos) : null;
-      if (!merged) return;
-      const grp = new THREE.Group();
-      grp.add(new THREE.Mesh(merged, additive(color, fill)), new THREE.LineSegments(new THREE.EdgesGeometry(merged, 25), lineMat(color, edge)));
-      model.add(grp);
-      risers.push(grp);
-    };
-    addGroup(cool, COOL, 0.07, 0.55);
-    if (warm) addGroup([warm], WARM, 0.22, 1);
     const beacon = new THREE.Mesh(new THREE.CylinderGeometry(SIZE / 430, SIZE / 430, SIZE / 9, 16, 1, true), additive(WARM, 0.35));
     beacon.position.set(0, SIZE / 18, 0);
     model.add(beacon);
+    if (!tagged.includes(estTag)) tagged.push(estTag);
     for (const d of o.devices ?? []) {
       const [x, z] = toXZ(d.lon, d.lat);
       if (!inDisc(x, z)) continue;
@@ -252,19 +302,39 @@ export function bootSpace(o: SpaceOptions): Holo {
       }
     }
     setMarkers(o.markers ?? []);
-    for (const r of risers) r.scale.y = reduced ? 1 : 0.001;
-    built = performance.now();
-    status.textContent = bs.length ? `${bs.length} buildings within ${Math.round(SIZE / 2).toLocaleString()} m${own ? ", yours lit" : ""}` : `${Math.round(SIZE / 2).toLocaleString()} m around`;
-    el.classList.add("booted");
+    if (o.footprint) setOwn(o.footprint, "traced");
+    say();
   };
-  let built = 0, closed = false;
+  let closed = false;
   const hsP = (() => {
     const pts: [number, number][] = [];
     for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) pts.push([o.lon + ((i / (N - 1) - 0.5) * SIZE) / mx, o.lat + ((0.5 - j / (N - 1)) * SIZE) / my]);
     return within(elevation.sample(pts, Math.min(15, zoomForSpacing(SIZE / (N - 1), o.lat))), 3500, null);
   })();
-  const bsP = SIZE <= 2400 ? within(fetchBuildings(o.lon, o.lat, Math.min(1200, SIZE / 2)), 5000, [] as Building[]) : Promise.resolve([] as Building[]);
-  void Promise.all([hsP, bsP]).then(([a, b]) => { if (!closed) build(a, b); });
+  const ready = hsP.then((hs) => { if (!closed) buildGround(hs); });
+  /** Your building: a quick look right where you are, before the wider survey. */
+  const near = SIZE <= 2400 ? fetchBuildings(o.lon, o.lat, 80) : Promise.resolve([] as Building[]);
+  const wide = SIZE <= 2400 ? fetchBuildings(o.lon, o.lat, Math.min(1200, SIZE / 2)) : Promise.resolve([] as Building[]);
+  const placeOwn = (bs: Building[]) => {
+    const own = o.own ? ownBuilding(bs, o.lon, o.lat) : null;
+    if (own) setOwn(own, "mapped");
+    return own;
+  };
+  void ready.then(() => within(near, 7000, [] as Building[])).then((bs) => {
+    if (closed) return;
+    placeOwn(bs);
+    if (ownKind === "wait" && o.estimate) setOwn(estimateBuilding(o.lon, o.lat, o.estimate), "estimated");
+    if (ownKind === "wait" && !o.estimate) { st.yours = "none"; say(); }
+    addAround(bs);
+  });
+  // The wider survey: whenever it arrives, it fills in (and can still find yours).
+  void ready.then(() => within(wide, 45_000, null)).then((bs) => {
+    if (closed) return;
+    if (!bs) { st.around = count ? count : "failed"; say(); return; }
+    placeOwn(bs);
+    addAround(bs);
+    st.around = count; say();
+  });
 
   // ---- The loop ----
   const resize = () => {
@@ -289,7 +359,7 @@ export function bootSpace(o: SpaceOptions): Holo {
     a.needsUpdate = true;
     const beat = 1 + 0.6 * ((now / 1400) % 1);
     for (const p of pulses) { p.scale.set(beat, 1, beat); (p.material as THREE.MeshBasicMaterial).opacity = 0.9 * (1 - ((now / 1400) % 1)); }
-    if (built && !reduced) { const t = (now - built) / 1000; risers.forEach((r, i) => { r.scale.y = Math.max(0.001, ease((t - i * 0.35) / 1.3)); }); }
+    if (!reduced) for (const r of risers) if (r.g.scale.y < 1) r.g.scale.y = Math.max(0.001, ease((now - r.t0) / 1300));
     controls.update();
     renderer!.render(scene, camera);
     // Tags follow their points.
@@ -345,11 +415,14 @@ export function bootSpace(o: SpaceOptions): Holo {
 /** Your saved place, booted: your building lit, your devices on it, your places as chips. */
 export function bootPlace(o: {
   place: MyPlace; places: MyPlace[]; dock: DockItem[];
-  onPick(id: string): void; onSwitch(id: string): void; onGlobe(): void; onClose(): void; onAdd(): void;
+  onPick(id: string): void; onSwitch(id: string): void; onGlobe(): void; onClose(): void; onAdd(): void; onTrace?(): void;
 }): Holo {
   const p = o.place;
   return bootSpace({
     name: p.name, kicker: `${KIND_LABEL[p.kind]} · ${p.lat.toFixed(4)}, ${p.lon.toFixed(4)}`, lon: p.lon, lat: p.lat, own: true, devices: p.devices, dock: o.dock,
+    // Close enough to see a house; wider for a farm.
+    size: p.kind === "home" ? 260 : p.kind === "farm" ? 700 : 420,
+    footprint: p.footprint && p.footprint.length > 2 ? tracedBuilding(p.footprint, p.storeys) : undefined, estimate: p.kind, onTrace: o.onTrace,
     chips: o.places.map((x) => ({ id: x.id, label: x.name, on: x.id === p.id })), onChip: o.onSwitch, onAdd: o.onAdd, onPick: o.onPick, onGlobe: o.onGlobe, onClose: o.onClose,
   });
 }

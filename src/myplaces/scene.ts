@@ -9,6 +9,7 @@ import {
 import { elevation } from "../data/elevation";
 import { overpass } from "../data/overpass";
 import { DEVICES, type Device, type MyPlace } from "./store";
+import { tracedBuilding } from "./survey";
 import { ringAreaM2 } from "./estimates";
 
 export interface Building {
@@ -126,13 +127,16 @@ export class PlaceScene {
 
   /** Loads and draws the buildings around a place. */
   async showBuildings(p: MyPlace): Promise<void> {
-    const bs = await fetchBuildings(p.lon, p.lat);
+    let bs = await fetchBuildings(p.lon, p.lat).catch(() => [] as Building[]);
+    // Your own outline, traced by hand, replaces whatever the map has there.
+    const traced = p.footprint && p.footprint.length > 2 ? tracedBuilding(p.footprint, p.storeys) : null;
+    if (traced) { const [cx, cy] = traced.ring.reduce(([a, b], q) => [a + q[0] / traced.ring.length, b + q[1] / traced.ring.length], [0, 0]); bs = [traced, ...bs.filter((b) => !contains(b.ring, cx, cy))]; }
     // One batch of elevation samples (the same tiles the terrain uses) for every footprint's centre.
     const centres = bs.map((b) => [b.ring.reduce((s, q) => s + q[0], 0) / b.ring.length, b.ring.reduce((s, q) => s + q[1], 0) / b.ring.length] as [number, number]);
     const heights = await elevation.sample(centres, 15).catch(() => centres.map(() => 0));
     bs.forEach((b, i) => (b.ground = Math.max(0, heights[i] ?? 0)));
     this.buildings = bs;
-    this.own = ownBuilding(this.buildings, p.lon, p.lat);
+    this.own = traced ?? ownBuilding(this.buildings, p.lon, p.lat);
     this.draw(p);
   }
 

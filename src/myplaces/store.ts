@@ -37,6 +37,9 @@ export interface MyPlace {
   energy: { solarKw?: number; batteryKwh?: number; generatorKw?: number; dailyUseKwh?: number };
   water: { source?: "mains" | "well" | "cistern" | "rain" | "truck"; tankLitres?: number; dailyUseLitres?: number; roofM2?: number };
   devices: Device[];
+  /** The building's outline, traced by hand when it isn't mapped (lon, lat). */
+  footprint?: [number, number][];
+  storeys?: number;
 }
 
 export const KIND_LABEL: Record<PlaceKind, string> = { home: "Home", hotel: "Hotel", business: "Business", farm: "Farm", school: "School", other: "Place" };

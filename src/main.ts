@@ -330,6 +330,11 @@ const openStation = (st: Station) => {
   if (st.tool.startsWith("explore:")) { void import("./work/scout").then((m) => m.openExplore(ctx, st.tool.slice(8))); return; }
   if (st.tool.startsWith("source:")) { void import("./work/sourcingUi").then((m) => m.openSourcing(ctx, st.tool.slice(7))); return; }
   if (st.tool.startsWith("scout:")) { void import("./work/scout").then((m) => m.openScout(ctx, st.tool.slice(6))); return; }
+  if (st.tool.startsWith("fin:") || st.tool.startsWith("bank:")) {
+    void import("./finance/ui").then((m) => ({ "fin:markets": () => m.openMarkets(ctx, app), "fin:company": () => m.openCompany(ctx, app), "fin:watch": () => m.openWatchlist(ctx, app),
+      "bank:near": () => m.openBanksNear(ctx, app), "bank:company": () => m.openCompany(ctx, app, "bank"), "bank:coverage": () => m.openCoverage(ctx, app) } as Record<string, () => void>)[st.tool]?.());
+    return;
+  }
   if (st.tool.startsWith("services:")) { void import("./pro/services/ui").then((m) => m.openServices(ctx, st.tool.slice(9) as Parameters<typeof m.openServices>[1])); return; }
   [...WORK_TOOLS, ...PLACE_TOOLS].find((t) => t.id === st.tool)?.open(ctx);
 };
@@ -400,6 +405,7 @@ async function bootMyPlace(id?: string) {
     onGlobe: () => { closeHolo(); void flyToPlace(globe, { name: place.name, lon: place.lon, lat: place.lat, radius: 600 }); },
     onClose: () => closeHolo(),
     onAdd: () => { holo?.minimize(); closePanels(placeHub.panel); placeHub.ctx.open(); placeHub.ctx.home(); app.toast("Search for the address, or tap the spot on the map, then Save.", 5000); },
+    onTrace: () => void traceMyBuilding(place),
   });
   holo = h0;
   adopt(h0);
@@ -418,6 +424,36 @@ async function bootMyPlace(id?: string) {
     ]);
   }).catch(() => {});
   void briefFor(place).then((b) => { if (holo !== h0) return; h0.setDock(dockFor(place, b)); const top = b[0]; if (top) h0.setHud([...h0.el.querySelectorAll(".holo-hud div")].map((d) => ({ k: d.querySelector("dt")?.textContent ?? "", v: d.querySelector("dd")?.textContent ?? "" })), `${top.icon} ${top.title}`); }).catch(() => {});
+}
+/** Keeps the camera looking straight down (no automatic tilt) while tracing. */
+let holdTilt = false;
+/** How many storeys: a row of choices over the map. */
+function askStoreys(now: number): Promise<number> {
+  return new Promise((resolve) => {
+    const pick = (n: number) => { bar.remove(); resolve(n); };
+    const bar = h("div", { class: "draw-bar", role: "toolbar" }, h("span", { class: "draw-prompt" }, "How many storeys?"),
+      ...[1, 2, 3, 4, 6, 10].map((n) => h("button", { class: n === now ? "primary-btn" : "pill-btn", onclick: () => pick(n) }, n === 10 ? "10+" : String(n))));
+    $("ui").append(bar);
+  });
+}
+/** Trace your own building over the satellite view, when the map doesn't have it (or has it wrong). */
+async function traceMyBuilding(place: MyPlace) {
+  closeHolo();
+  closePanels();
+  // Hold the camera still while tracing (no slow circling around a chosen place).
+  stopArriving();
+  holdTilt = true;
+  // Straight down from 160 m above the ground (not sea level: the ground may be higher than that).
+  const { elevation } = await import("./data/elevation");
+  const ground = await Promise.race([elevation.sample([[place.lon, place.lat]], 15).then((v) => v[0] ?? 0).catch(() => 0), new Promise<number>((r) => setTimeout(() => r(0), 2500))]);
+  await new Promise<void>((done) => globe.viewer.camera.flyTo({ destination: Cartesian3.fromDegrees(place.lon, place.lat, Math.max(0, ground) + 160), orientation: { heading: 0, pitch: -CesiumMath.PI_OVER_TWO, roll: 0 }, duration: 1.6, complete: done, cancel: done }));
+  const { drawOnMap } = await import("./work/draw");
+  const ring = await drawOnMap(app, "area", "#ffc46b", "Tap each corner of your building, then Done").finally(() => { holdTilt = false; });
+  if (!ring || ring.length < 3) { void bootMyPlace(place.id); return; }
+  const storeys = await askStoreys(place.storeys ?? (place.kind === "home" ? 2 : 1));
+  myStore.save({ ...(myStore.get(place.id) ?? place), footprint: ring, storeys });
+  app.toast("Saved: your building as you traced it. The hologram uses it from now on.", 5000);
+  void bootMyPlace(place.id);
 }
 app.actions.set("myplace:boot", { label: "Boot my place", run: (id) => void bootMyPlace(id || undefined) });
 // Any place on Earth as a hologram: the size follows what it is (a building, a town, a mountain).
@@ -782,6 +818,8 @@ app.actions.set("city:life", { label: "Living city (3D, simulated movement)", ru
   let tilted = false;
   const cam = globe.viewer.camera;
   cam.moveEnd.addEventListener(() => {
+    // Not while you're drawing on the map, or looking straight down to trace something.
+    if (holdTilt || app.interacting) return;
     const hgt = cam.positionCartographic.height;
     if (hgt > 30_000) { tilted = false; return; }
     if (tilted || hgt > 6000 || CesiumMath.toDegrees(cam.pitch) > -75) { if (CesiumMath.toDegrees(cam.pitch) > -75) tilted = true; return; }
@@ -983,6 +1021,7 @@ const syncIntroChip = (p: typeof app.place) => {
   introChip.replaceChildren(h("span", { "aria-hidden": "true" }, "▶"), ` ${ip.name}: the intro`);
   introChip.onclick = () => withIntro(ip.name, ip.lon, ip.lat, (x) => x && arriveAt(x), true);
 };
+app.actions.set("fin:company", { label: "Company explorer", run: (id) => { closePanels(workHub.panel); workHub.ctx.open(); void import("./finance/ui").then((m) => m.openCompany(workHub.ctx, app, "finance", id || undefined)); } });
 app.actions.set("reach:open", { label: "Getting around from here", run: () => { closePanels(placeHub.panel); placeHub.ctx.open(); void import("./travel/reachUi").then((m) => m.openReach(placeHub.ctx, app)); } });
 app.actions.set("travel:to", { label: "Travel here", run: () => { const p = app.place; closePanels(placeHub.panel); placeHub.ctx.open(); void import("./travel/travelUi").then((m) => m.openTravel(placeHub.ctx, app, p ? { name: p.name?.title ?? "this spot", lon: p.lon, lat: p.lat } : undefined)); } });
 app.actions.set("wind:toggle", { label: "Wind on the map", run: () => void import("./climate/windLayer").then((m) => app.toast(m.windLayer(app).toggle() ? "Wind on: the wind now, over the whole view." : "Wind off.", 3000)) });

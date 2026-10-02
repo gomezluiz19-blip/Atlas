@@ -45,6 +45,7 @@ jobs:
           VITE_ATLAS_EDGE_KEYS: ${{ vars.ATLAS_EDGE_KEYS }}
           VITE_FEEDBACK_URL: ${{ vars.FEEDBACK_URL }}
           VITE_VAPID_PUBLIC_KEY: ${{ vars.VAPID_PUBLIC_KEY }}
+          VITE_FINNHUB_KEY: ${{ secrets.FINNHUB_KEY }}
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
