@@ -330,6 +330,11 @@ const openStation = (st: Station) => {
   if (st.tool.startsWith("explore:")) { void import("./work/scout").then((m) => m.openExplore(ctx, st.tool.slice(8))); return; }
   if (st.tool.startsWith("source:")) { void import("./work/sourcingUi").then((m) => m.openSourcing(ctx, st.tool.slice(7))); return; }
   if (st.tool.startsWith("scout:")) { void import("./work/scout").then((m) => m.openScout(ctx, st.tool.slice(6))); return; }
+  if (st.tool.startsWith("fin:") || st.tool.startsWith("bank:")) {
+    void import("./finance/ui").then((m) => ({ "fin:markets": () => m.openMarkets(ctx, app), "fin:company": () => m.openCompany(ctx, app), "fin:watch": () => m.openWatchlist(ctx, app),
+      "bank:near": () => m.openBanksNear(ctx, app), "bank:company": () => m.openCompany(ctx, app, "bank"), "bank:coverage": () => m.openCoverage(ctx, app) } as Record<string, () => void>)[st.tool]?.());
+    return;
+  }
   if (st.tool.startsWith("services:")) { void import("./pro/services/ui").then((m) => m.openServices(ctx, st.tool.slice(9) as Parameters<typeof m.openServices>[1])); return; }
   [...WORK_TOOLS, ...PLACE_TOOLS].find((t) => t.id === st.tool)?.open(ctx);
 };
@@ -1016,6 +1021,7 @@ const syncIntroChip = (p: typeof app.place) => {
   introChip.replaceChildren(h("span", { "aria-hidden": "true" }, "▶"), ` ${ip.name}: the intro`);
   introChip.onclick = () => withIntro(ip.name, ip.lon, ip.lat, (x) => x && arriveAt(x), true);
 };
+app.actions.set("fin:company", { label: "Company explorer", run: (id) => { closePanels(workHub.panel); workHub.ctx.open(); void import("./finance/ui").then((m) => m.openCompany(workHub.ctx, app, "finance", id || undefined)); } });
 app.actions.set("reach:open", { label: "Getting around from here", run: () => { closePanels(placeHub.panel); placeHub.ctx.open(); void import("./travel/reachUi").then((m) => m.openReach(placeHub.ctx, app)); } });
 app.actions.set("travel:to", { label: "Travel here", run: () => { const p = app.place; closePanels(placeHub.panel); placeHub.ctx.open(); void import("./travel/travelUi").then((m) => m.openTravel(placeHub.ctx, app, p ? { name: p.name?.title ?? "this spot", lon: p.lon, lat: p.lat } : undefined)); } });
 app.actions.set("wind:toggle", { label: "Wind on the map", run: () => void import("./climate/windLayer").then((m) => app.toast(m.windLayer(app).toggle() ? "Wind on: the wind now, over the whole view." : "Wind off.", 3000)) });

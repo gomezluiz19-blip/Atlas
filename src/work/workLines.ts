@@ -63,6 +63,16 @@ export const LINES: Line[] = [
     { id: "mining", label: "Mining Pro", who: "Mine operators: pit to port, communities, permits, tailings", tool: "mining", words: "mine miner mining operator quarry pit smelter tailings community relations", key: "atlas.pro.mines.v1" },
     { id: "fn-mining", label: "Mining equipment & services", who: "Companies that sell to and service mines", tool: "services:mining", words: "mining equipment drill rigs haul trucks mining services oem dealer technician mining supplier", key: "atlas.pro.services.v1" },
   ] },
+  { id: "finance", label: "Finance", color: "#2a78d6", stations: [
+    { id: "fin-markets", label: "Markets now", who: "The world's exchanges following the sun: who's trading, when each opens and closes", tool: "fin:markets", words: "stock market exchange trading hours open close nyse nasdaq lse tokyo markets investor trader" },
+    { id: "fin-company", label: "Company explorer", who: "Any company: owners, subsidiaries, assets and partners on the map; stock and figures year by year", tool: "fin:company", words: "company stock shares ticker analyst investor equity research subsidiaries owners parent revenue earnings financials market cap holding corporate structure m&a private equity venture" },
+    { id: "fin-watch", label: "Watchlist", who: "The companies you follow on the map, and where they're based", tool: "fin:watch", words: "portfolio watchlist investments holdings stocks shares fund manager wealth", key: "atlas.fin.watch.v1" },
+  ] },
+  { id: "banking", label: "Banking", color: "#1baf7a", stations: [
+    { id: "bank-near", label: "Banks near you", who: "Banks, ATMs and credit unions around a place, nearest first", tool: "bank:near", words: "bank atm cash credit union branch near me withdraw deposit" },
+    { id: "bank-company", label: "Bank explorer", who: "Any bank: its group, subsidiaries, assets, listings and figures, and its branches near you", tool: "bank:company", words: "bank banking group lender subsidiaries total assets capital bank analyst regulator" },
+    { id: "bank-coverage", label: "Branch coverage", who: "Bankers: each bank's share of branches around a place, and the areas more than 2 km from any branch", tool: "bank:coverage", words: "banker branch network retail banking branch planning market share banking desert financial inclusion credit union manager" },
+  ] },
   { id: "freight", label: "Freight & trade", color: "#0a84ff", stations: [
     { id: "shipping", label: "Freight Desk", who: "Forwarders, shipping agents and shippers", tool: "shipping", words: "freight forwarder shipping agent shipper logistics container import export customs broker ocean cargo vessel port", key: "atlas.pro.shipping.v1" },
     { id: "network", label: "Business network", who: "Your sites, suppliers and customers, and what flows between them", tool: "network", words: "supply chain suppliers distributor wholesale manufacturer business sites partners customers", key: "atlas.pro.networks.v1" },

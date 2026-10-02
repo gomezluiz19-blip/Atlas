@@ -452,6 +452,23 @@ sweet spot where the sights cluster, and stays ranked by the sights within a 15-
 that open Google Flights, Skyscanner, Kayak, Booking.com, Airbnb and more already searched for your dates
 and party. One tap saves it to your trips, where it plays on the globe. "Go here" on any place.
 
+**Finance and Banking.** Two new lines on the Work map. The Company explorer opens any company: its
+tickers (and a live quote when a market-data key is set), revenue, net income, margin, assets, market value
+and staff year by year as small charts, and its shape as a constellation: owners above, subsidiaries,
+divisions, the assets it owns (buildings, teams), partners and alliances around it, each tappable to open
+that company in turn, and on the globe as lines from its head office to everywhere they're based. Its own
+branches or shops near the map come from OpenStreetMap's brand tags. Markets now shows the world's
+exchanges following the sun on one 24-hour strip, with who's trading and when each opens or closes; the
+Watchlist puts the companies you follow on the map. For banking: Banks near you (nearest branch, ATM and
+credit union), the Bank explorer, and Branch coverage, each bank's share of the branches around a place
+as a ring and the areas more than 2 km from any branch shaded on the map. Companies on the place card's
+Money tab open straight into the explorer.
+
+**Your building, always.** The hologram surveys a place step by step and says what it found. When nobody
+has mapped your house (common in the suburbs) it shows a house-sized estimate marked as such, and Trace
+my building lets you tap its corners on the satellite view and pick the storeys; the hologram and the
+globe use your outline from then on.
+
 **Made and grown nearby.** For chefs, a Foodshed: every farm, orchard, vineyard, dairy, boat and market
 within 50 km as a bloom at its true bearing, supply lines flowing into the restaurant, and a season wheel of
 what grows here when, from the local climate. The same for designers (mills, tanneries, workrooms),

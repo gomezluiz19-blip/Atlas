@@ -3124,3 +3124,71 @@ body[data-work="1"] .holo:not(.mini) .holo-actions { margin-right: 440px; }
 .holo:not(.booted) .holo-survey-line.wait::after { content: "▍"; animation: holo-caret 0.8s steps(1) infinite; }
 .holo-tag.est { border-style: dashed; }
 @media (prefers-reduced-motion: reduce) { .holo-survey-line { animation: none; } }
+
+/* ---- Finance and Banking: company card, figures, constellation, market strip, branch ring ---- */
+.fin-head { display: flex; gap: 12px; align-items: flex-start; margin: 4px 0 6px; }
+.fin-logo { width: 48px; height: 48px; object-fit: contain; border-radius: 10px; background: #fff; padding: 4px; flex: none; }
+.fin-name { margin: 0; font-size: 20px; letter-spacing: -0.01em; }
+.fin-head p { margin: 2px 0 6px; }
+.fin-ticker { font: 600 11px/1 "JetBrains Mono", ui-monospace, monospace; padding: 5px 8px; border-radius: 999px; background: color-mix(in srgb, #2a78d6 14%, transparent); color: var(--label); }
+.fin-facts { margin: 4px 0 10px; font-size: 13px; color: var(--secondary); line-height: 1.45; }
+.fin-quote { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin: 2px 0 10px; }
+.fin-quote strong { font: 700 26px/1 "JetBrains Mono", ui-monospace, monospace; }
+.up { color: #1a8f5c; font-weight: 600; }
+.down { color: #d03c3b; font-weight: 600; }
+.fin-kpis { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 6px; margin: 4px 0 10px; }
+.fin-kpi { display: flex; flex-direction: column; gap: 2px; padding: 8px 10px; border-radius: 12px; background: color-mix(in srgb, var(--label) 5%, transparent); }
+.fin-kpi small { font-size: 10.5px; color: var(--secondary); }
+.fin-kpi strong { font-size: 16px; font-variant-numeric: tabular-nums; }
+.fin-charts { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; margin-bottom: 10px; }
+.fin-chart { padding: 8px 10px 6px; border-radius: 12px; background: color-mix(in srgb, var(--label) 4%, transparent); }
+.fin-chart-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; font-size: 12px; color: var(--secondary); }
+.fin-chart-head strong { color: var(--label); font-size: 14px; font-variant-numeric: tabular-nums; }
+.fin-chart-head small { font-size: 11px; }
+.fin-bars { width: 100%; height: auto; display: block; margin-top: 4px; }
+.fin-bar { fill: color-mix(in srgb, #2a78d6 55%, transparent); }
+.fin-bar.last { fill: #2a78d6; }
+.fin-bar.neg { fill: color-mix(in srgb, #e34948 70%, transparent); }
+.fin-bar:hover { fill: #eb6834; }
+.fin-base { stroke: color-mix(in srgb, var(--label) 22%, transparent); stroke-width: 1; }
+.fin-yr { font-size: 8px; fill: var(--secondary); }
+.fin-web-wrap { display: flex; gap: 12px; align-items: center; margin: 4px 0 8px; }
+.fin-web { flex: none; width: 240px; height: 240px; overflow: visible; }
+.fin-link { stroke-width: 0.8; opacity: 0.45; }
+.fin-node { stroke: var(--material-strong, #fff); stroke-width: 1.5; cursor: pointer; transform-box: fill-box; transform-origin: center; animation: fin-pop 500ms cubic-bezier(.2,.8,.2,1) both; }
+.fin-node:hover { stroke: var(--label); stroke-width: 2; }
+@keyframes fin-pop { from { transform: scale(0); } }
+.fin-node-label { font-size: 7px; text-anchor: middle; fill: var(--label); paint-order: stroke; stroke: var(--material-strong, #fff); stroke-width: 2.5px; pointer-events: none; }
+.fin-core { fill: var(--label); }
+.fin-core-label { font: 700 7.5px "JetBrains Mono", ui-monospace, monospace; text-anchor: middle; fill: var(--material-strong, #fff); }
+.fin-legend { flex: 1; display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.fin-leg { display: grid; grid-template-columns: 10px 1fr auto; gap: 7px; align-items: center; font-size: 12.5px; }
+.fin-leg i, .fin-group summary i { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+.fin-leg small { color: var(--secondary); font-variant-numeric: tabular-nums; }
+.fin-group { margin: 4px 0; }
+.fin-group summary { cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; padding: 6px 0; }
+.fin-row { display: flex; gap: 6px; align-items: center; }
+.fin-row .list-row { flex: 1; min-width: 0; }
+.fin-country { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
+.fin-crow { display: grid; grid-template-columns: 110px 1fr 24px; gap: 8px; align-items: center; font-size: 12.5px; }
+.fin-crow .reach-bar { margin: 0; }
+.mk-strip { width: 100%; height: auto; display: block; margin: 4px 0 10px; }
+.mk-grid { stroke: color-mix(in srgb, var(--label) 10%, transparent); }
+.mk-hr { font-size: 7px; fill: var(--secondary); }
+.mk-sess { fill: color-mix(in srgb, var(--label) 18%, transparent); }
+.mk-sess.open { fill: #1baf7a; }
+.mk-sess.lunch { fill: #eda100; }
+.mk-now { stroke: #e34948; stroke-width: 1.5; }
+.mk-dot { width: 9px; height: 9px; border-radius: 50%; flex: none; background: #9a9893; }
+.mk-dot.open { background: #1baf7a; box-shadow: 0 0 0 3px color-mix(in srgb, #1baf7a 25%, transparent); }
+.mk-dot.lunch { background: #eda100; }
+.mk-state { font-size: 11.5px; color: var(--secondary); white-space: nowrap; }
+.mk-state.open { color: #1a8f5c; font-weight: 600; }
+.bk-ring { flex: none; width: 170px; height: 170px; }
+.bk-seg { stroke: var(--material-strong, #fff); stroke-width: 1; }
+.bk-n { font-size: 24px; font-weight: 700; text-anchor: middle; fill: var(--label); }
+.bk-sub { font-size: 10px; text-anchor: middle; fill: var(--secondary); }
+@media (max-width: 520px) { .fin-web-wrap { flex-direction: column; } }
+@media (prefers-reduced-motion: reduce) { .fin-node { animation: none; } }
+.mk-name { font-size: 8px; fill: var(--secondary); }
+.mk-name.open { fill: var(--label); font-weight: 700; }
