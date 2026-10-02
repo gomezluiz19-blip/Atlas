@@ -46,10 +46,11 @@ export function newOnes(have: Set<string>, bs: Building[]): Building[] {
 export type Yours = "traced" | "mapped" | "estimated" | "none";
 
 /** The survey's lines, as the hologram shows them (pure). */
-export function surveyLines(s: { ground: "wait" | "ok" | "flat"; yours: Yours | "wait"; around: number | "wait" | "failed"; radiusM: number }): string[] {
+export function surveyLines(s: { ground: "wait" | "ok" | "flat"; yours: Yours | "wait"; around: number | "wait" | "failed"; radiusM: number; land?: string }): string[] {
   return [
     s.ground === "wait" ? "◌ Reading the ground…" : s.ground === "ok" ? "✓ Ground from elevation data" : "△ Ground: flat (elevation didn't load)",
     s.yours === "wait" ? "◌ Finding your building…" : s.yours === "traced" ? "✓ Your building: as you traced it" : s.yours === "mapped" ? "✓ Your building: from OpenStreetMap" : s.yours === "estimated" ? "△ Your building isn't mapped yet: estimated" : "",
+    s.land ?? "",
     s.around === "wait" ? `◌ Surveying ${s.radiusM.toLocaleString()} m around…` : s.around === "failed" ? "△ Buildings around didn't load: try again later" : `✓ ${s.around.toLocaleString()} buildings within ${s.radiusM.toLocaleString()} m`,
   ].filter(Boolean);
 }

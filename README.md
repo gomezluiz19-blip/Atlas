@@ -464,6 +464,12 @@ credit union), the Bank explorer, and Branch coverage, each bank's share of the 
 as a ring and the areas more than 2 km from any branch shaded on the map. Companies on the place card's
 Money tab open straight into the explorer.
 
+**The land too.** The hologram's survey also reads the water, pools and trees around a place: lakes and
+ponds lie flat and shimmer at their shoreline, rivers and streams run through, pools glow with a rim, and
+woods fill with trees. It says how far your building is from the water ("Waterfront on Lake Barcroft, 24 m to
+the water"). Private gardens are rarely mapped, so Add trees & pool lets you trace your pool and tap each
+tree from above; they're saved with the place.
+
 **Your building, always.** The hologram surveys a place step by step and says what it found. When nobody
 has mapped your house (common in the suburbs) it shows a house-sized estimate marked as such, and Trace
 my building lets you tap its corners on the satellite view and pick the storeys; the hologram and the

@@ -32,3 +32,15 @@ describe("hologram survey", () => {
     expect(surveyLines({ ground: "flat", yours: "none", around: "failed", radiusM: 260 })).toHaveLength(2);
   });
 });
+
+import { sanitize } from "../src/myplaces/store";
+describe("saved places keep what you traced", () => {
+  it("keeps the outline, storeys, pools and trees through a reload, and drops junk", () => {
+    const [p] = sanitize([{ id: "h", name: "Home", kind: "home", lon: -77.2, lat: 38.85, devices: [], footprint: [[-77.2, 38.85], [-77.1999, 38.85], [-77.1999, 38.8501], ["x", 1]], storeys: 2.4, land: { pools: [[[0, 0], [1, 0], [1, 1]], [[0, 0]]], trees: [[1, 2], [500, 2]] } }]);
+    expect(p.footprint).toHaveLength(3);
+    expect(p.storeys).toBe(2);
+    expect(p.land?.pools).toHaveLength(1);
+    expect(p.land?.trees).toEqual([[1, 2]]);
+    expect(sanitize([{ lon: 0, lat: 0, footprint: [[0, 0]] }])[0].footprint).toBeUndefined();
+  });
+});
