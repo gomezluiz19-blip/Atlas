@@ -464,6 +464,11 @@ credit union), the Bank explorer, and Branch coverage, each bank's share of the 
 as a ring and the areas more than 2 km from any branch shaded on the map. Companies on the place card's
 Money tab open straight into the explorer.
 
+**On a TV.** The 📺 button casts Atlas to a TV (or puts this screen in TV mode): big type, a playlist that
+runs by itself (Live Earth, great places, the markets, your home as a hologram), and a QR code that turns a
+phone into the remote: search on the phone and the TV flies there; tap a lens and it opens on the big screen.
+See [docs/tv.md](docs/tv.md).
+
 **The land too.** The hologram's survey also reads the water, pools and trees around a place: lakes and
 ponds lie flat and shimmer at their shoreline, rivers and streams run through, pools glow with a rim, and
 woods fill with trees. It says how far your building is from the water ("Waterfront on Lake Barcroft, 24 m to
