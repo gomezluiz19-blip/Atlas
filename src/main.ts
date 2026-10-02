@@ -929,6 +929,7 @@ timeBtn.addEventListener("click", () => (timeBar.el.hidden ? timeBar.open() : ti
 layersBtn.before(timeBtn);
 app.actions.set("time:open", { label: "Time travel", run: () => timeBar.open() });
 // "1914", or "1914@lon,lat" to light up whoever governed that place.
+app.actions.set("time:close", { label: "Back to today", run: () => timeBar.close() });
 app.actions.set("time:go", { label: "Go to a year", run: (arg) => {
   const m = /^(-?\d+)(?:@(-?[\d.]+),(-?[\d.]+))?$/.exec(arg ?? "");
   if (m) timeBar.goToYear(Number(m[1]), m[2] ? [Number(m[2]), Number(m[3])] : undefined);
@@ -1008,6 +1009,8 @@ const syncHash = () => {
 };
 // Lenses: ways of looking at whatever was tapped, offered in the place card.
 const lenses = createLenses(app, LENSES);
+app.actions.set("lens:close", { label: "Close the lens", run: () => lenses.close() });
+app.actions.set("place:clear", { label: "Close the place", run: () => app.clearPlace() });
 // "More" also holds the lenses you've made or kept, one tap from any place.
 app.moreExtras = () => {
   const mine = myLenses();
