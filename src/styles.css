@@ -3114,3 +3114,13 @@ body[data-work="1"] .holo:not(.mini) .holo-actions { margin-right: 440px; }
 .tr-book a.pill-btn { text-decoration: none; }
 @media (max-width: 520px) { .tr-when { grid-template-columns: 1fr 1fr; } .bp-code { font-size: 28px; } }
 @media (prefers-reduced-motion: reduce) { .bpass, .tr-wx-day, .tr-way-bar i, .tr-sweet > span:first-child { animation: none; } }
+
+/* ---- Hologram survey: what it has read, line by line ---- */
+.holo-survey-line { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; animation: holo-type 380ms steps(18) both; }
+.holo-survey-line.wait { color: #9fdcf0; opacity: .8; }
+.holo-survey-line.warn { color: #ffd38a; }
+@keyframes holo-type { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+.holo:not(.booted) .holo-boot::after { display: none; }
+.holo:not(.booted) .holo-survey-line.wait::after { content: "▍"; animation: holo-caret 0.8s steps(1) infinite; }
+.holo-tag.est { border-style: dashed; }
+@media (prefers-reduced-motion: reduce) { .holo-survey-line { animation: none; } }

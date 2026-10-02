@@ -231,7 +231,8 @@ export class App {
       if (!p) return;
       if (tool?.wantsClicks?.()) {
         tool.onClick?.(p);
-        if (!tool.wantsClicks()) this.setInteraction(null);
+        // Only if it's still the one in charge: the click may have started the next pick (drawing a shape).
+        if (this.interaction === tool && !tool.wantsClicks()) this.setInteraction(null);
         return;
       }
       this.select(p);
