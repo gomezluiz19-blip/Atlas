@@ -1,18 +1,16 @@
-// The opening: black, a few words faded in and out like a film's titles, then
-// the Earth fades up turning in real sunlight with its cities lit on the night
-// side, and a line on what's happening on the planet right now. The full
-// titles play on a first visit; after that, just the name. Any key or tap
-// skips.
+// The opening, in about three seconds: a rim of sunrise climbs out of the
+// black, the name resolves out of a blur, four words light one after another
+// (the ground, the weather, the people, the past), and the dark opens like an
+// iris onto the Earth turning in real sunlight with its cities lit on the
+// night side. Then a line on what's happening on the planet right now. Return
+// visits get just the name and the iris. Any key or tap skips.
 import { Cartesian3, EasingFunction } from "cesium";
 import type { App } from "../app";
 import { h } from "../ui/dom";
 import { chime } from "./sound";
 import { earthNow, type PulseLine } from "./pulse";
 
-const TITLES = [
-  "Every place on Earth has a story.",
-  "Its ground. Its weather. Its people. Its past.",
-];
+const WORDS = ["Ground", "Weather", "People", "Time"];
 
 export interface IntroOptions {
   /** Where to settle the camera (the viewer's side of the planet); null leaves the camera alone. */
@@ -32,10 +30,11 @@ const wait = (ms: number, skip: { on: boolean }) => new Promise<void>((r) => {
 export async function playIntro(app: App, opts: IntroOptions) {
   const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
   const { viewer } = app.globe, cam = viewer.camera;
-  const line = h("p", { class: "intro-line" });
-  const mark = h("div", { class: "intro-mark" }, h("span", { class: "intro-word" }, "Atlas"), h("span", { class: "intro-tag" }, "All things Earth"));
+  const word = h("span", { class: "intro-word", "aria-label": "Atlas" }, ...[..."ATLAS"].map((c, i) => h("span", { style: `--i:${i}` }, c)));
+  const words = h("div", { class: "intro-words", "aria-hidden": "true" }, ...WORDS.map((w, i) => h("span", { style: `--i:${i}` }, w)));
+  const mark = h("div", { class: "intro-mark" }, word, words);
   const skipBtn = h("button", { class: "intro-skip" }, "Skip");
-  const veil = h("div", { class: "intro", role: "presentation" }, line, mark, skipBtn);
+  const veil = h("div", { class: "intro" + (opts.full ? " full" : ""), role: "presentation" }, h("div", { class: "intro-rim", "aria-hidden": "true" }), mark, skipBtn);
   document.body.append(veil);
   const skip = { on: false };
   const doSkip = () => { skip.on = true; };
@@ -55,27 +54,16 @@ export async function playIntro(app: App, opts: IntroOptions) {
   const pulse = earthNow();
 
   if (!reduced) {
-    if (opts.full)
-      for (const t of TITLES) {
-        if (skip.on) break;
-        line.textContent = t;
-        line.classList.add("on");
-        await wait(2300, skip);
-        line.classList.remove("on");
-        await wait(800, skip);
-      }
-    if (!skip.on) {
-      mark.classList.add("on");
-      await wait(opts.full ? 2000 : 1100, skip);
-    }
+    // Rim rises, the name resolves (CSS), then the words light in turn on a first visit.
+    requestAnimationFrame(() => veil.classList.add("on"));
+    await wait(opts.full ? 2900 : 1300, skip);
   }
   // Fade up on the Earth as the camera settles in.
-  veil.classList.add("out");
-  mark.classList.add("on");
+  veil.classList.add("on", "out");
   chime("open");
   if (opts.home) cam.flyTo({ destination: Cartesian3.fromDegrees(opts.home.lon, opts.home.lat * 0.8, 14_000_000), duration: reduced ? 0 : 4.2, easingFunction: EasingFunction.QUARTIC_IN_OUT });
   opts.onReveal?.();
-  setTimeout(() => veil.remove(), 1600);
+  setTimeout(() => veil.remove(), 1500);
   removeEventListener("keydown", doSkip);
   showPulse(app, await pulse);
   if (!opts.home) return;

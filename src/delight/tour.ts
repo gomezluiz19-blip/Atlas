@@ -1,10 +1,15 @@
-// The tour: a step-by-step introduction, once. Each step lights up one part
-// of Atlas and says what it's for in a sentence, and some steps show it
-// working (a place's page opens, a lens appears). Finish or skip and it
-// never comes back on its own; it can be replayed from About or by typing
-// "tour" in the search box.
+// The tour: a minute that shows what Atlas can do by doing it. Each step
+// lights up one part and makes it happen live: a question typed into the
+// search, a mountain's page, the mountain cut open, the mountain as a
+// hologram, the planet's wind and planes moving, the world of 1914, the tools
+// for twenty industries, and your own place. What a step turns on, it turns
+// off again on the way out. Finish or skip and it never comes back on its own;
+// it can be replayed from the menu or by typing "tour" in the search box.
+import { Cartesian3 } from "cesium";
 import type { App } from "../app";
 import { h } from "../ui/dom";
+import { introsOff, setIntrosOff } from "../intros/places";
+import { closeSpace } from "./spaces";
 
 const KEY = "atlas.tour";
 export const tourDone = () => { try { return localStorage.getItem(KEY) === "done"; } catch { return true; } };
@@ -13,27 +18,59 @@ const markDone = () => { try { localStorage.setItem(KEY, "done"); localStorage.s
 interface Step {
   /** What to light up (none: a card in the middle). */
   target?: string;
+  /** A small label above the title: what kind of power this is. */
+  kicker?: string;
   title: string;
   text: string;
-  /** Show it working before the step appears. */
+  /** Make it happen before the step appears. */
   before?: (app: App) => void | Promise<void>;
+  /** Undo it on the way out. */
+  after?: (app: App) => void;
   /** Extra buttons for the last step. */
   finale?: boolean;
 }
 
 const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
+const run = (app: App, id: string, arg?: string) => app.actions.get(id)?.run(arg);
+const fly = (app: App, lon: number, lat: number, height: number, seconds = 2.2) => new Promise<void>((done) =>
+  app.globe.viewer.camera.flyTo({ destination: Cartesian3.fromDegrees(lon, lat, height), duration: seconds, complete: done, cancel: done }));
+
+/** Types into the search box as if someone were, so its suggestions come up. */
+async function typeInSearch(text: string) {
+  const input = document.querySelector<HTMLInputElement>(".search input");
+  if (!input) return;
+  input.focus();
+  input.value = "";
+  for (const ch of text) { input.value += ch; input.dispatchEvent(new Event("input", { bubbles: true })); await wait(38); }
+}
+function clearSearch() {
+  const input = document.querySelector<HTMLInputElement>(".search input");
+  if (!input) return;
+  input.value = ""; input.dispatchEvent(new Event("input", { bubbles: true })); input.blur();
+}
+
+let windOn = false;
 
 const STEPS: Step[] = [
-  { title: "Welcome to Atlas", text: "All things Earth, in one place. This tour takes about a minute; you can leave it any time." },
-  { target: ".search", title: "One box for everything", text: "Search any place or address. Ask a question (“flat land near an airport”). Type a year (“1914”). Or say what to show (“night lights”, “railways”)." },
-  { target: ".sheet", title: "Every place has a page", text: "Its ground, climate, people and past, all at once, at an address you can share. Here's Mount Fuji.",
-    before: async (app) => { app.actions.get("place:open")?.run("mount-fuji"); await wait(2600); } },
-  { target: ".lens-strip", title: "Look through a lens", text: "Slice a mountain open, lift it out as a block, trace where the rain goes, or watch a day pass over it, with its real shadows." },
-  { target: ".tabbar", title: "See the planet a different way", text: "Each theme shows the whole Earth its own way: the ground, water, climate, plants and animals, what we've built, people, countries and space." },
-  { target: "#time-btn", title: "Travel in time", text: "The borders of any age, the Earth from space on a day in any year since 2000, and where we're heading." },
-  { target: ".account-btn", title: "Your page, and lenses you make", text: "Make a page of the places you love: your Top 8, the restaurants and trails you swear by, a journal. Then describe a lens (“birdwatching”, “a coffee crawl”) and Atlas builds it, to use anywhere and share." },
-  { target: ".mode-bar", title: "Explore, Create, My Places", text: "Explore: the whole planet, and questions for the map. Create: trips, stories, videos and lessons. My Places: your home, farm or business, with a daily brief." },
-  { title: "That's Atlas", text: "Tap anything to start, or let Atlas pick somewhere for you.", finale: true },
+  { title: "The whole Earth, live", text: "And your own corner of it. In the next minute Atlas will show you what it can do, for real, on the real planet. Leave any time." },
+  { target: ".search", kicker: "Ask", title: "One box understands anything", text: "A place, an address, coordinates, a year, something to show, or a question across every layer at once. This one finds flat land near an airport that stays warm in winter.",
+    before: () => typeInSearch("flat land near an airport, warm in winter"), after: () => clearSearch() },
+  { target: ".sheet", kicker: "Know", title: "Every place, every layer", text: "Its ground, climate, water, people, hazards and past, in one page with an address you can share. Here's Mount Fuji.",
+    before: async (app) => { run(app, "place:open", "mount-fuji"); await wait(2600); } },
+  { target: ".lens-strip", kicker: "See inside", title: "Cut a mountain open", text: "Lenses work on anything: slice through to the rock, lift out a 3D block, trace where the rain goes, or watch a day's real shadows pass over it.",
+    before: async (app) => { run(app, "lens:slice"); await wait(2400); }, after: (app) => run(app, "lens:close") },
+  { kicker: "Boot it", title: "Any place, as a hologram", text: "From a volcano to your own home: the ground in 3D, every building, the water and the trees, with what's going on there now around it.",
+    before: async (app) => { run(app, "space:boot"); await wait(2600); }, after: () => closeSpace() },
+  { kicker: "Live", title: "The planet, moving", text: "Wind streaming across the globe, every plane in the sky, ships, storms, quakes and the aurora, live and refreshed as they happen.",
+    before: async (app) => { run(app, "place:clear"); await fly(app, -30, 48, 6_500_000); run(app, "live:planes"); if (!windOn) { run(app, "wind:toggle"); windOn = true; } await wait(1800); },
+    after: (app) => { app.actions.get("live:planes")?.stop?.(); if (windOn) { run(app, "wind:toggle"); windOn = false; } } },
+  { target: "#time-btn", kicker: "Rewind", title: "Any year", text: "The borders of 1914, the Earth from space on a day in any year since 2000, and the climate to 2050. Here's Europe on the eve of the First World War.",
+    before: async (app) => { run(app, "time:go", "1914@15,50"); await wait(2400); }, after: (app) => run(app, "time:close") },
+  { target: ".work-panel:not([hidden])", kicker: "Work", title: "Tools for twenty industries", text: "Builders, miners, chefs, shippers, bankers, investors, aid workers and more: each line runs from everyday tools to the pros and the companies that serve them, all on the real map.",
+    before: async (app) => { run(app, "mode:work"); await wait(1200); } },
+  { target: ".work-panel:not([hidden])", kicker: "Yours", title: "Your place, every day", text: "Save your home, farm or business for a morning brief (frost, storms, deliveries), your cameras, how long to get anywhere, trips, and a hologram of your lot with its trees and water.",
+    before: async (app) => { run(app, "mode:place"); await wait(1200); } },
+  { title: "That's Atlas", text: "Start with your own place, plan somewhere to go, or let Atlas surprise you.", finale: true },
 ];
 
 export function startTour(app: App) {
@@ -42,17 +79,20 @@ export function startTour(app: App) {
   document.querySelector(".pulse")?.remove();
   let i = 0;
   const hole = h("div", { class: "tour-hole" });
-  const title = h("strong", { class: "tour-title" }), text = h("p", { class: "tour-text" });
+  const kicker = h("span", { class: "tour-kicker" }), title = h("strong", { class: "tour-title" }), text = h("p", { class: "tour-text" });
   const dots = h("div", { class: "tour-dots" }, ...STEPS.map(() => h("i")));
   const back = h("button", { class: "link-btn tour-back" }, "Back") as HTMLButtonElement;
   const next = h("button", { class: "primary-btn tour-next" }, "Next") as HTMLButtonElement;
   const skip = h("button", { class: "tour-skip", "aria-label": "Skip the tour" }, "Skip");
   const extra = h("div", { class: "tour-extra" });
-  const bubble = h("div", { class: "tour-bubble", role: "dialog", "aria-live": "polite" }, skip, title, text, extra, h("div", { class: "tour-foot" }, dots, h("div", { class: "tour-buttons" }, back, next)));
+  const bubble = h("div", { class: "tour-bubble", role: "dialog", "aria-live": "polite" }, skip, kicker, title, text, extra, h("div", { class: "tour-foot" }, dots, h("div", { class: "tour-buttons" }, back, next)));
   const root = h("div", { class: "tour" }, hole, bubble);
   document.body.append(root);
 
-  const finish = () => { markDone(); root.classList.add("out"); removeEventListener("resize", place); removeEventListener("keydown", keys); setTimeout(() => root.remove(), 350); };
+  // Landmark intros wait until the tour is over (they'd cover the steps).
+  const introsWere = introsOff();
+  setIntrosOff(true);
+  const finish = () => { STEPS[i].after?.(app); setIntrosOff(introsWere); markDone(); root.classList.add("out"); removeEventListener("resize", place); removeEventListener("keydown", keys); setTimeout(() => root.remove(), 350); };
   const keys = (e: KeyboardEvent) => { if (e.key === "Escape") finish(); if (e.key === "ArrowRight") void go(i + 1); if (e.key === "ArrowLeft") void go(i - 1); };
 
   /** Puts the spotlight on the target and the card beside it. */
@@ -82,16 +122,22 @@ export function startTour(app: App) {
 
   async function go(k: number) {
     if (k < 0 || k >= STEPS.length) return;
+    STEPS[i].after?.(app);
     i = k;
     const s = STEPS[i];
     bubble.classList.add("busy");
     if (s.before) await s.before(app);
+    kicker.textContent = s.kicker ?? "";
     title.textContent = s.title;
     text.textContent = s.text;
     dots.querySelectorAll("i").forEach((d, n) => d.classList.toggle("on", n === i));
     back.hidden = i === 0;
-    next.textContent = s.finale ? "Finished" : i === 0 ? "Start the tour" : "Next";
-    extra.replaceChildren(...(s.finale ? [h("button", { class: "pill-btn", onclick: () => { finish(); app.actions.get("surprise")?.run(); } }, "Show me something amazing")] : []));
+    next.textContent = s.finale ? "Explore" : i === 0 ? "Show me" : "Next";
+    extra.replaceChildren(...(s.finale ? [
+      h("button", { class: "primary-btn", onclick: () => { finish(); run(app, "mode:place"); } }, "🏠 Save my place"),
+      h("button", { class: "pill-btn", onclick: () => { finish(); run(app, "work:travel"); } }, "✈ Plan a trip"),
+      h("button", { class: "pill-btn", onclick: () => { finish(); run(app, "surprise"); } }, "✨ Surprise me"),
+    ] : []));
     bubble.classList.remove("busy");
     place();
   }
