@@ -66,7 +66,7 @@ const STEPS: Step[] = [
     after: (app) => { app.actions.get("live:planes")?.stop?.(); if (windOn) { run(app, "wind:toggle"); windOn = false; } } },
   { target: "#time-btn", kicker: "Rewind", title: "Any year", text: "The borders of 1914, the Earth from space on a day in any year since 2000, and the climate to 2050. Here's Europe on the eve of the First World War.",
     before: async (app) => { run(app, "time:go", "1914@15,50"); await wait(2400); }, after: (app) => run(app, "time:close") },
-  { target: ".work-panel:not([hidden])", kicker: "Work", title: "Tools for twenty industries", text: "Builders, miners, chefs, shippers, bankers, investors, aid workers and more: each line runs from everyday tools to the pros and the companies that serve them, all on the real map.",
+  { target: ".work-panel:not([hidden])", kicker: "Work", title: "Pick your field", text: "Builders, miners, chefs, shippers, bankers, aid workers and more. Each field has its tools on three rungs: Everyday for anyone, Pro for the people who do the work, and Services for the companies that serve them.",
     before: async (app) => { run(app, "mode:work"); await wait(1200); } },
   { target: ".work-panel:not([hidden])", kicker: "Yours", title: "Your place, every day", text: "Save your home, farm or business for a morning brief (frost, storms, deliveries), your cameras, how long to get anywhere, trips, and a hologram of your lot with its trees and water.",
     before: async (app) => { run(app, "mode:place"); await wait(1200); } },

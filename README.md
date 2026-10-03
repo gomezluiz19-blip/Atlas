@@ -13,7 +13,7 @@ Atlas does four things, switched at the top of the screen:
 - **Explore**: the whole Earth and space. Tap anything, flip through the themes, or look at it through a lens.
   **Space** and **Learn** are one tap away on the Earth card.
 - **Create**: **Plan**, **Present**, **Video** and **Teach**: things made from the map to share.
-- **Work**: tools for the work you do, drawn as a map of industry lines (see below).
+- **Work**: tools for the work you do: pick your field, then its Everyday, Pro and Services tools (see below).
 - **My Place**: your home, farm or business, booted up as a hologram, with what's going on there.
 
 **My Place, booted.** Tap My Place and your place comes up as a holographic model on a projector. The ground comes
@@ -63,16 +63,21 @@ the pattern (UPS, FedEx, USPS, DHL, Amazon, Royal Mail, Canada Post, internation
 and links to the carrier's own tracking page. Set each one's step (on the way, out for delivery, delivered, problem);
 what's due shows on the dock and in My plans.
 
-**Work: industries as lines.** Every pro tool sits on its industry's line like a metro station, running from the
-everyday tool out to the pros and on to the specialists who serve them. Building runs Build → Build Pro → suppliers
-and plant hire; Mining runs Mining Pro → mining equipment and services; Farming runs Grow → farm machinery dealers;
-Aid runs Field Ops → Relief Pipeline; and Freight, Energy, Health, Telecoms, Sport, Government and Hotels have lines
-of their own. Type what you do ("we hire out cranes", "freight forwarder", "city councillor") and the stations that
-fit light up, the best one pulsing. Stations you already use are filled in, and the last one you had open is one tap
-away.
+**Work: pick your field, then its three rungs.** Work asks one question first: *What's your field?* Twenty-one
+fields sit as tiles in four groups (Make and build, Shops and hospitality, Money and trade, Culture and community),
+or you describe what you do ("we hire out cranes", "freight forwarder", "city councillor") and the tools that fit
+come up, best first. A field opens on its tools on the same three rungs in every field:
+
+- **Everyday**, for anyone into it: Mines and minerals, Eat & drink, Banks near you, Power around you.
+- **Pro**, for people who do the work: Mining Pro, Build Pro, Restaurant site scout, Freight Desk.
+- **Services**, for companies that serve it: Mining equipment & services, Suppliers & plant hire.
+
+So Mining reads Mines and minerals → Mining Pro → Mining equipment & services. Atlas remembers your field and opens
+Work on it next time; the last tool you had open is one tap away, and tools you already use say so. The reasoning is
+in [docs/work-design.md](docs/work-design.md).
 
 **The places people work: Food, Retail, Fashion, Art, Gaming, Sport, Real estate, Architecture and Tech.** Each of
-these lines starts with the consumer, then the pros, then the companies that serve them:
+these fields starts with the consumer, then the pros, then the companies that serve them:
 
 - **Look round** (Eat & drink, Shop, Fashion streets, See art, Play, Stadiums and games, The neighbourhood, Buildings
   worth seeing, Tech around you) shows what's within a 7-minute walk of the middle of the map. It's drawn as a radar,
@@ -452,7 +457,7 @@ sweet spot where the sights cluster, and stays ranked by the sights within a 15-
 that open Google Flights, Skyscanner, Kayak, Booking.com, Airbnb and more already searched for your dates
 and party. One tap saves it to your trips, where it plays on the globe. "Go here" on any place.
 
-**Finance and Banking.** Two new lines on the Work map. The Company explorer opens any company: its
+**Finance and Banking.** Two fields in Work. The Company explorer opens any company: its
 tickers (and a live quote when a market-data key is set), revenue, net income, margin, assets, market value
 and staff year by year as small charts, and its shape as a constellation: owners above, subsidiaries,
 divisions, the assets it owns (buildings, teams), partners and alliances around it, each tappable to open

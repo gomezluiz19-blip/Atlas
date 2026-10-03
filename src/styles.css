@@ -2714,32 +2714,88 @@ body.year-open .look-legend { display: none; }
 /* Freight Desk */
 .fd-update { margin: 6px 0 8px; padding: 10px 12px; border-radius: 10px; background: var(--fill, rgba(120, 120, 128, 0.12)); font-size: 13px; line-height: 1.45; }
 
-/* Work map: industries as metro lines, pro tools as stations, specialists branching on */
-.wm-ask { width: 100%; font: inherit; font-size: 15px; padding: 12px 14px; border-radius: 14px; border: 1.5px solid rgba(120, 120, 128, 0.25); background: var(--fill); color: var(--label); }
-.wm-ask:focus { outline: none; border-color: var(--accent, #0a84ff); box-shadow: 0 0 0 4px rgba(10, 132, 255, 0.15); }
-.wm-hint { min-height: 1.2em; margin: 6px 2px 4px; font-size: 13px; color: var(--secondary); }
-.wm-last { display: flex; align-items: center; gap: 10px; width: 100%; margin: 4px 0 10px; padding: 10px 12px; border: 0; border-radius: 12px; background: color-mix(in srgb, var(--c) 14%, transparent); color: var(--label); font: inherit; font-size: 13.5px; text-align: left; cursor: pointer; }
-.wm-last .wm-dot { background: var(--c); border-color: var(--c); }
-.wm-lines { position: relative; margin: 8px 0 4px 6px; padding-left: 16px; border-left: 2px solid rgba(120, 120, 128, 0.22); }
-.wm-line { position: relative; margin: 0 0 14px; transition: opacity 0.25s; }
-.wm-line.dim { opacity: 0.28; }
-.wm-line::before { content: ""; position: absolute; left: -18px; top: 8px; width: 14px; height: 14px; border-bottom: 2px solid var(--c); border-left: 2px solid transparent; border-bottom-left-radius: 12px; }
-.wm-industry { display: block; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--c); margin: 0 0 4px 2px; }
-.wm-track { position: relative; display: flex; gap: 4px; }
-.wm-track::before { content: ""; position: absolute; left: 7px; right: 7px; top: 9px; height: 3px; border-radius: 2px; background: var(--c); opacity: 0.85; }
-.wm-stop { position: relative; flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 0 6px 6px 0; border: 0; background: none; color: var(--label); font: inherit; text-align: left; cursor: pointer; }
-.wm-stop strong { font-size: 13px; line-height: 1.2; margin-top: 6px; }
-.wm-stop small { font-size: 11px; line-height: 1.3; color: var(--secondary); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.wm-dot { position: relative; z-index: 1; display: inline-block; width: 14px; height: 14px; flex: none; border-radius: 50%; border: 3px solid var(--c, #8e8e93); background: var(--surface-solid, #fff); box-sizing: border-box; transition: transform 0.2s, box-shadow 0.2s; }
-.wm-stop.root .wm-dot { width: 20px; height: 20px; margin-top: -3px; }
-.wm-stop.used .wm-dot, .wm-dot.used { background: var(--c, #8e8e93); }
-.wm-stop:hover .wm-dot { transform: scale(1.25); }
-.wm-stop.hit .wm-dot { box-shadow: 0 0 0 5px color-mix(in srgb, var(--c) 30%, transparent); }
-.wm-stop.best .wm-dot { transform: scale(1.35); box-shadow: 0 0 0 6px color-mix(in srgb, var(--c) 35%, transparent), 0 0 18px var(--c); animation: wm-pulse 1.6s ease-in-out infinite; }
-.wm-stop.best strong { color: var(--c); }
-@keyframes wm-pulse { 50% { box-shadow: 0 0 0 10px color-mix(in srgb, var(--c) 12%, transparent), 0 0 24px var(--c); } }
-.wm-legend { display: flex; align-items: center; gap: 6px; }
-.wm-legend .wm-dot { width: 10px; height: 10px; border-width: 2px; --c: #8e8e93; }
+/* Work: What's your field? then the field on three rungs (Everyday, Pro, Services). Design notes: docs/work-design.md */
+.mp-intro:empty { display: none; }
+.wk { --ease-out: cubic-bezier(.2, .8, .2, 1); }
+.wk-view { display: flex; flex-direction: column; gap: 12px; }
+.wk-enter { animation: wk-enter .38s var(--ease-out) both; }
+.wk-return { animation: wk-return .38s var(--ease-out) both; }
+@keyframes wk-enter { from { opacity: .3; transform: translateX(22px); } }
+@keyframes wk-return { from { opacity: .3; transform: translateX(-22px); } }
+@keyframes wk-rise { from { transform: translateY(6px); } }
+.wk-glyph { flex: none; display: grid; place-items: center; width: 44px; height: 44px; border-radius: 13px; color: var(--c); background: color-mix(in srgb, var(--c) 14%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 22%, transparent); transition: transform .25s var(--ease-out), background .25s; }
+.wk-glyph svg { width: 24px; height: 24px; }
+.wk-glyph.sm { width: 34px; height: 34px; border-radius: 10px; }
+.wk-glyph.sm svg { width: 19px; height: 19px; }
+.wk-glyph.lg { width: 64px; height: 64px; border-radius: 19px; color: #fff; background: linear-gradient(145deg, color-mix(in srgb, var(--c) 80%, #fff), var(--c) 55%, color-mix(in srgb, var(--c) 70%, #000)); box-shadow: 0 10px 24px color-mix(in srgb, var(--c) 35%, transparent), inset 0 1px 0 rgba(255, 255, 255, .35); }
+.wk-glyph.lg svg { width: 34px; height: 34px; stroke-width: 1.6; }
+.wk-chev { margin-left: auto; padding-left: 6px; font-size: 22px; line-height: 1; color: var(--secondary); opacity: .6; }
+
+/* 1. What's your field? */
+.wk-q { margin: 6px 0 0; font: 700 26px/1.15 var(--font-display); letter-spacing: -0.02em; }
+.wk-sub { margin: -4px 0 0; font-size: 14px; line-height: 1.45; color: var(--secondary); }
+.wk-ask-wrap { position: relative; }
+.wk-ask-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--secondary); display: grid; }
+.wk-ask-icon svg { width: 18px; height: 18px; }
+.wk-ask { width: 100%; box-sizing: border-box; font: inherit; font-size: 15px; padding: 12px 14px 12px 38px; border-radius: 12px; border: 0; background: var(--fill); color: var(--label); }
+.wk-ask:focus { outline: none; box-shadow: 0 0 0 3px rgba(10, 132, 255, .35); }
+.wk-groups { display: flex; flex-direction: column; gap: 16px; }
+.wk-groups[hidden] { display: none; }
+.wk-group-title { margin: 0 0 8px 2px; font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--secondary); }
+.wk-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.wk-tile { position: relative; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 14px 6px 10px; border: 0; border-radius: 16px; background: var(--fill); color: var(--label); font: inherit; cursor: pointer; transition: transform .2s var(--ease-out), background .2s, box-shadow .2s; }
+.wk-tile:hover { background: color-mix(in srgb, var(--c) 10%, var(--fill)); }
+.wk-tile:hover .wk-glyph { transform: translateY(-2px) scale(1.06); }
+.wk-tile:active { transform: scale(.96); }
+.wk-tile-name { font-size: 13px; font-weight: 600; line-height: 1.2; text-align: center; }
+.wk-tile small { font-size: 11px; color: var(--secondary); }
+.wk-tile.mine { box-shadow: inset 0 0 0 2px var(--c); }
+.wk-tile.mine::after { content: "✓"; position: absolute; top: 6px; right: 8px; width: 18px; height: 18px; border-radius: 50%; display: grid; place-items: center; font-size: 11px; font-weight: 700; color: #fff; background: var(--c); }
+.wk-results { display: flex; flex-direction: column; gap: 6px; }
+.wk-results:empty { display: none; }
+.wk-hit { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border: 0; border-radius: 14px; background: var(--fill); color: var(--label); font: inherit; text-align: left; cursor: pointer; animation: wk-rise .25s var(--ease-out); }
+.wk-hit.best { background: color-mix(in srgb, var(--c) 12%, var(--fill)); box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--c) 45%, transparent); }
+.wk-hit-text { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.wk-hit-text strong { font-size: 15px; }
+.wk-hit-text small { font-size: 12.5px; color: var(--secondary); line-height: 1.35; }
+.wk-hit-text .wk-where { color: var(--c); font-weight: 600; font-size: 11.5px; letter-spacing: .02em; }
+.wk-none { margin: 4px 2px; font-size: 13.5px; color: var(--secondary); }
+.wk-carry { display: flex; align-items: center; gap: 10px; padding: 8px 12px 8px 8px; border: 0; border-radius: 14px; background: color-mix(in srgb, var(--c) 12%, transparent); color: var(--label); font: inherit; text-align: left; cursor: pointer; }
+.wk-carry-text { display: flex; flex-direction: column; }
+.wk-carry-text small { font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--c); }
+.wk-carry-text strong { font-size: 14.5px; }
+
+/* 2. The field */
+.wk-back { align-self: flex-start; padding: 0; font-size: 14px; }
+.wk-hero { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 4px 14px; padding: 2px 0; }
+.wk-hero h2 { margin: 0; font: 700 30px/1.05 var(--font-display); letter-spacing: -0.025em; }
+.wk-hero p { grid-column: 1 / -1; margin: 8px 0 0; font-size: 14.5px; line-height: 1.45; color: var(--secondary); }
+.wk-chain { position: relative; display: grid; grid-template-columns: repeat(3, 1fr); margin: 4px 0 2px; }
+.wk-chain::before { content: ""; position: absolute; left: 16.7%; right: 16.7%; top: 9px; height: 2px; border-radius: 1px; background: linear-gradient(90deg, color-mix(in srgb, var(--c) 35%, transparent), var(--c)); }
+.wk-rung { position: relative; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 0 2px 4px; border: 0; background: none; color: var(--label); font: inherit; cursor: pointer; }
+.wk-rung i { width: 20px; height: 20px; border-radius: 50%; box-sizing: border-box; border: 3px solid var(--c); background: var(--material-strong, #fff); transition: transform .2s var(--ease-out); }
+.wk-rung:nth-child(1) i { border-color: color-mix(in srgb, var(--c) 45%, #fff); }
+.wk-rung:nth-child(3) i { background: var(--c); }
+.wk-rung:hover i { transform: scale(1.18); }
+.wk-rung strong { font-size: 13px; margin-top: 3px; }
+.wk-rung small { font-size: 11px; color: var(--secondary); }
+.wk-rung.empty { opacity: .4; cursor: default; }
+.wk-rung.empty i { border-style: dashed; background: none; }
+.wk-tier { scroll-margin-top: 12px; display: flex; flex-direction: column; border-radius: 18px; overflow: hidden; background: var(--fill); }
+.wk-tier > header { display: flex; flex-direction: column; gap: 1px; padding: 12px 16px 8px; }
+.wk-tier-name { font-size: 12px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--c); }
+.wk-tier.everyday .wk-tier-name { color: color-mix(in srgb, var(--c) 70%, var(--secondary)); }
+.wk-tier-for { font-size: 13px; color: var(--secondary); }
+.wk-tool { display: flex; align-items: center; gap: 10px; padding: 12px 14px 12px 16px; border: 0; border-top: 1px solid color-mix(in srgb, var(--label) 7%, transparent); background: none; color: var(--label); font: inherit; text-align: left; cursor: pointer; transition: background .15s; }
+.wk-tool:hover { background: color-mix(in srgb, var(--c) 8%, transparent); }
+.wk-tool:active { background: color-mix(in srgb, var(--c) 14%, transparent); }
+.wk-tool-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.wk-tool-text strong { font-size: 15.5px; font-weight: 600; }
+.wk-tool-text small { font-size: 13px; line-height: 1.38; color: var(--secondary); }
+.wk-badge { flex: none; padding: 3px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; color: var(--c); background: color-mix(in srgb, var(--c) 14%, transparent); }
+.wk-other { align-self: center; margin: 4px 0 2px; padding: 8px 12px; border: 0; border-radius: 999px; background: none; color: var(--accent, #0a84ff); font: inherit; font-size: 14px; cursor: pointer; }
+.wk-other:hover { background: var(--fill); }
+@media (prefers-reduced-motion: reduce) { .wk-enter, .wk-return, .wk-hit { animation: none; } }
 
 /* Packages */
 .pk-paste { min-height: 64px; resize: vertical; }

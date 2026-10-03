@@ -327,6 +327,9 @@ const makeHub = createWork(app, MAKE_TOOLS, {
 /** Work: every pro tool as a station on its industry's line (the Work map). */
 const openStation = (st: Station) => {
   const ctx = workHub.ctx;
+  // A view of the world (a theme) or a live layer: the panel steps aside so the map can show it.
+  if (st.tool.startsWith("theme:")) { const [theme, sub] = st.tool.slice(6).split("/"); openMode("look"); app.setTheme(theme, sub); return; }
+  if (st.tool.startsWith("action:")) { ctx.close(); app.actions.get(st.tool.slice(7))?.run(); return; }
   if (st.tool.startsWith("explore:")) { void import("./work/scout").then((m) => m.openExplore(ctx, st.tool.slice(8))); return; }
   if (st.tool.startsWith("source:")) { void import("./work/sourcingUi").then((m) => m.openSourcing(ctx, st.tool.slice(7))); return; }
   if (st.tool.startsWith("scout:")) { void import("./work/scout").then((m) => m.openScout(ctx, st.tool.slice(6))); return; }
@@ -340,7 +343,7 @@ const openStation = (st: Station) => {
 };
 const workHub = createWork(app, [], {
   title: "Work",
-  intro: "Tools for the work you do, on the map. Each line is an industry; follow it out to the people who serve it.",
+  intro: "",
   top: () => [workMap(openStation)],
 });
 const lookHub = createWork(app, LOOK_TOOLS, {
