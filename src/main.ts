@@ -936,6 +936,15 @@ app.actions.set("time:go", { label: "Go to a year", run: (arg) => {
 } });
 
 // About / data sources.
+// Atlas on a TV: TV mode plays by itself and a phone is the remote (src/tv). A link to #/tv/CODE opens it.
+const tvLink = /^#\/tv(\/([A-Za-z0-9]{6}))?$/.exec(location.hash);
+app.actions.set("tv:mode", { label: "TV mode", run: (code) => void import("./tv/tv").then((m) => { closePanels(); m.enterTv(app, code || undefined); }) });
+app.actions.set("tv:cast", { label: "Show Atlas on a TV", run: () => void import("./tv/tv").then((m) => m.openCast(app)) });
+{
+  const castBtn = h("button", { class: "round-btn cast-btn", "aria-label": "Show Atlas on a TV", title: "Show Atlas on a TV", html: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 16.5V6.8A1.8 1.8 0 0 1 4.8 5h14.4A1.8 1.8 0 0 1 21 6.8v10.4a1.8 1.8 0 0 1-1.8 1.8H14"/><path d="M3 19.5h.01M3 13a6.5 6.5 0 0 1 6.5 6.5M3 16a3.5 3.5 0 0 1 3.5 3.5"/></svg>', onclick: () => app.actions.get("tv:cast")?.run() });
+  document.querySelector(".topbar-actions")?.prepend(castBtn);
+  if (tvLink) setTimeout(() => app.actions.get("tv:mode")?.run(tvLink[2]?.toUpperCase()), 2600);
+}
 const about = $("about-btn");
 about.innerHTML = icons.info;
 const soundBtn = h("button", { class: "pill-btn sound-toggle", "aria-pressed": String(soundOn()) }, soundOn() ? "Sounds on" : "Sounds off") as HTMLButtonElement;
@@ -1155,7 +1164,7 @@ if (shared.camera) {
   void playIntro(app, { home, full: !seen && !!home }).then(() => {
     try { localStorage.setItem("atlas.intro", "1"); } catch { /* private mode */ }
     // The tour, once: after the first opening (not when arriving by a link to a place or view).
-    if (home && !tourDone()) setTimeout(() => startTour(app), 1200);
+    if (home && !tourDone() && !tvLink) setTimeout(() => startTour(app), 1200);
   });
 }
 if (pageLinked) { if (/^#\/p\//.test(location.hash)) placeHash(); else if (pageSlug) void openPlace(pageSlug); }

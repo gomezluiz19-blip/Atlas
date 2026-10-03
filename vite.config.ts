@@ -1,6 +1,6 @@
 /// <reference types="vitest/config" />
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 import { gzipSync } from "node:zlib";
 import { defineConfig, type Plugin } from "vite";
 import { FEATURES } from "./src/content/features";
@@ -99,7 +99,8 @@ export default defineConfig({
     chunkSizeWarningLimit: 6000,
     // Cesium, small libraries and the bundled data each in their own file, so a deploy that
     // only changes Atlas's code leaves them cached, and they download in parallel.
-    rollupOptions: { output: { manualChunks: (id) => (/node_modules\/@?cesium/.test(id) ? "cesium" : VENDOR.test(id) ? "vendor" : DATA.test(id) ? "atlas-data" : undefined) } },
+    // The app, and the phone remote for TV mode (a page of its own, no globe).
+    rollupOptions: { input: { main: resolve(__dirname, "index.html"), remote: resolve(__dirname, "remote.html") }, output: { manualChunks: (id) => (/node_modules\/@?cesium/.test(id) ? "cesium" : VENDOR.test(id) ? "vendor" : DATA.test(id) ? "atlas-data" : undefined) } },
   },
   test: { environment: "node", include: ["tests/**/*.test.ts"] },
 });
