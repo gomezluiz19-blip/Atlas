@@ -1,18 +1,12 @@
-// The Layers popover: base map, analytical overlays with legends, terrain settings.
+// The Layers popover: how the map itself looks (base map, names, 3D, terrain,
+// detail). What's drawn on it (live layers, analysis layers, any view) is
+// stacked as bubbles at the edge of the globe instead (ui/viewStack.ts).
 import { contourInterval, LAND_RAMP, SEA_RAMP, SLOPE_RAMP, type Ramp } from "../globe/analyticLayers";
 import type { Globe, OverlayKind } from "../globe/viewer";
 import { setQuality } from "../globe/motion";
 import { currentQuality, pinQuality, qualityFor, readSignals, type Tier } from "../globe/quality";
 import { h } from "./dom";
 
-const OVERLAYS: { kind: OverlayKind; label: string; about: string }[] = [
-  { kind: "geology", label: "Geologic map", about: "Bedrock at the surface, coloured by rock unit and age (Macrostrat)." },
-  { kind: "species", label: "Species records", about: "Where plants and animals have been recorded; brighter means more records (GBIF)." },
-  { kind: "hillshade", label: "Relief shading", about: "Shadows from a sun in the north-west bring out landforms." },
-  { kind: "elevation", label: "Elevation colours", about: "Height above sea level, and depth below it." },
-  { kind: "slope", label: "Slope", about: "Steepness of the ground in degrees." },
-  { kind: "contours", label: "Contour lines", about: "Lines of equal elevation. Bold lines every 5th interval." },
-];
 
 function gradientBar(ramp: Ramp, labels: string[]): HTMLElement {
   return h(
@@ -23,7 +17,7 @@ function gradientBar(ramp: Ramp, labels: string[]): HTMLElement {
   );
 }
 
-function legendFor(kind: OverlayKind, globe: Globe): HTMLElement | null {
+export function legendFor(kind: OverlayKind, globe: Globe): HTMLElement | null {
   if (kind === "geology") return h("div", { class: "legend-note" }, "Each colour is a mapped rock unit; colours come from the source maps and broadly follow rock age. Click with Rock column for the details.");
   if (kind === "species") return h("div", { class: "legend-note" }, "Record density, not abundance: it also reflects where people look.");
   if (kind === "elevation")
@@ -50,7 +44,7 @@ function legendFor(kind: OverlayKind, globe: Globe): HTMLElement | null {
 /** A live layer switch (planes, ships) shown first in the popover. */
 export interface LiveSwitch { label: string; about: string; on(): boolean; set(v: boolean): void; status?(): string }
 
-export function createLayersPanel(globe: Globe, live: LiveSwitch[] = []): HTMLElement {
+export function createLayersPanel(globe: Globe): HTMLElement {
   const s = globe.state;
   const apply = () => globe.apply();
 
@@ -75,34 +69,9 @@ export function createLayersPanel(globe: Globe, live: LiveSwitch[] = []): HTMLEl
     }),
   );
 
-  const overlays = OVERLAYS.map(({ kind, label, about }) => {
-    const o = s.overlays[kind];
-    const legend = legendFor(kind, globe);
-    const opacity = h("input", {
-      type: "range",
-      min: 0.1,
-      max: 1,
-      step: 0.05,
-      value: o.opacity,
-      "aria-label": `${label} opacity`,
-      oninput: (e: Event) => {
-        o.opacity = Number((e.target as HTMLInputElement).value);
-        apply();
-      },
-    });
-    const details = h("div", { class: "layer-details", hidden: !o.on }, opacity, legend);
-    const check = h("input", {
-      type: "checkbox",
-      checked: o.on,
-      onchange: (e: Event) => {
-        o.on = (e.target as HTMLInputElement).checked;
-        details.hidden = !o.on;
-        apply();
-      },
-    });
-    return h("div", { class: "layer" }, h("label", { class: "layer-row", title: about }, check, h("span", {}, label)), details);
-  });
-
+  const relief = h("label", { class: "layer-row", title: "Shadows from a sun in the north-west bring out the landforms" },
+    h("input", { type: "checkbox", checked: s.overlays.hillshade.on, onchange: (e: Event) => { s.overlays.hillshade.on = (e.target as HTMLInputElement).checked; apply(); } }),
+    h("span", {}, "Relief shading"));
   const streets = h("label", { class: "layer-row", title: "Road names, highway shields and place names over the imagery, once you zoom in" },
     h("input", { type: "checkbox", checked: s.streets, onchange: (e: Event) => { s.streets = (e.target as HTMLInputElement).checked; apply(); } }),
     h("span", {}, "Street and place names"));
@@ -145,23 +114,15 @@ export function createLayersPanel(globe: Globe, live: LiveSwitch[] = []): HTMLEl
       )
     : h("p", { class: "fineprint" }, "Add a Google Maps API key to unlock photorealistic 3D cities and terrain. See the README.");
 
-  const liveRows = live.map((l) => {
-    const status = h("span", { class: "layer-status" }, l.on() ? l.status?.() ?? "" : "");
-    return h("label", { class: "layer-row", title: l.about },
-      h("input", { type: "checkbox", checked: l.on(), onchange: (e: Event) => { const v = (e.target as HTMLInputElement).checked; l.set(v); status.textContent = v && l.status ? "finding…" : ""; } }),
-      h("span", {}, l.label), status);
-  });
-
   return h(
     "div",
     { class: "popover layers-panel", hidden: true },
-    ...(liveRows.length ? [h("h3", { class: "panel-sub" }, h("span", { class: "pulse-dot" }), " Live"), ...liveRows] : []),
     h("h3", { class: "panel-sub" }, "Base map"),
     base,
     streets,
+    relief,
     photoreal,
-    h("h3", { class: "panel-sub" }, "Analysis layers"),
-    ...overlays,
+    h("button", { class: "pill-btn layers-add", onclick: () => dispatchEvent(new CustomEvent("atlas:add-view")) }, "＋ Add a view: live, analysis, any layer"),
     h("h3", { class: "panel-sub" }, "Terrain"),
     h("label", { class: "slider-row" }, h("span", {}, "Vertical exaggeration"), veValue),
     ve,

@@ -8,6 +8,8 @@
 //     choose a new place, unless pinned.
 //   - A theme's own suggested layers (Built's default networks, Minerals'
 //     landmark mines) show while you're in that theme, unless pinned.
+//   - Any of them can be hidden for a moment ("off") without losing it: it
+//     stays in the stack of views, ready to come back with a tap.
 
 export interface CanvasItem {
   id: string;
@@ -26,7 +28,7 @@ export interface CanvasItem {
 }
 
 export class Canvas {
-  private items = new Map<string, CanvasItem & { visible: boolean }>();
+  private items = new Map<string, CanvasItem & { visible: boolean; off?: boolean }>();
   private listeners = new Set<() => void>();
   private theme = "";
 
@@ -45,7 +47,7 @@ export class Canvas {
    */
   put(item: CanvasItem, drawn = false) {
     const prev = this.items.get(item.id);
-    const next = { ...item, pinned: item.pinned || (prev?.pinned ?? false), visible: drawn };
+    const next = { ...item, pinned: item.pinned || (prev?.pinned ?? false), visible: drawn, off: prev?.off };
     this.items.set(item.id, next);
     this.sync(next);
     this.emit();
@@ -78,9 +80,23 @@ export class Canvas {
     this.emit();
   }
 
-  /** Items currently drawn, for the tray. */
+  /** Items currently drawn. */
   visible(): (CanvasItem & { visible: boolean })[] {
     return [...this.items.values()].filter((i) => i.visible);
+  }
+
+  /** Items that belong in the current view, drawn or hidden for now: the stack of views. */
+  listed(): (CanvasItem & { visible: boolean; off: boolean })[] {
+    return [...this.items.values()].filter((i) => this.inView(i)).map((i) => ({ ...i, off: !!i.off }));
+  }
+
+  /** Hides an item for now (it stays listed), or brings it back. */
+  setOff(id: string, off: boolean) {
+    const it = this.items.get(id);
+    if (!it || !!it.off === off) return;
+    it.off = off;
+    this.sync(it);
+    this.emit();
   }
 
   setTheme(theme: string) {
@@ -105,8 +121,12 @@ export class Canvas {
     for (const id of [...this.items.keys()]) this.remove(id);
   }
 
-  private sync(it: CanvasItem & { visible: boolean }) {
-    const want = it.pinned || it.scope === "place" || !it.theme || it.theme === this.theme;
+  private inView(it: CanvasItem) {
+    return it.pinned || it.scope === "place" || !it.theme || it.theme === this.theme;
+  }
+
+  private sync(it: CanvasItem & { visible: boolean; off?: boolean }) {
+    const want = !it.off && this.inView(it);
     if (want !== it.visible) {
       it.visible = want;
       it.show(want);

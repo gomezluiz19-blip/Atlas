@@ -132,8 +132,17 @@ follow the filter, and each label carries a small glyph for its kind (stadium, b
 canvas. What you put on it stays as you move between them: follow the rain in Water, then open Built and the
 path is still there, next to the city's roads and rail. Layers you switch on (railways, earthquakes, the
 geologic map) stay on everywhere. Results about the chosen place stay while you look at it through other
-themes, and clear when you pick a new place. A theme's own suggested layers show in that theme. The
-"On the map" tray lists everything that's drawn: pin something to keep it everywhere, or take it off.
+themes, and clear when you pick a new place. A theme's own suggested layers show in that theme.
+
+**The stack of views.** Everything on the map sits as a column of small bubbles at the edge of the globe, each
+in its colour with its icon. Tap a bubble to hide it for a moment (it turns frosted and stays in the stack), tap
+again to bring it back. Hover it, or press and hold on a phone, for its card: its name, hide or show, pin (keep it
+in every theme and for every place) and take it off; analysis layers like the geologic map add their opacity and
+legend. The **+** at the foot of the stack opens *Add a view* right beside it (a bottom sheet on a phone):
+search ("wind", "railways", "rocks") or browse the shelves (Live, the theme you're in, The whole Earth, Networks,
+Analysis, every other theme's layers), and switch views on and off right there, as many as you like. The camera
+doesn't move and no panel opens, so the view of the Earth you've built stays put. The Layers button keeps only
+how the map itself looks: satellite or plain, names, relief shading, 3D, terrain and detail.
 Every view ends with **Connected** links: the next questions people ask about that place in other themes
 ("How water moves through the city here", "Power for the mines"), and layers you can add without leaving.
 
