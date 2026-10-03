@@ -76,6 +76,57 @@ So Mining reads Mines and minerals → Mining Pro → Mining equipment & service
 Work on it next time; the last tool you had open is one tap away, and tools you already use say so. The reasoning is
 in [docs/work-design.md](docs/work-design.md).
 
+**The commodity desk (Work › Raw materials, and Mining).** Metals, energy and crops as a business sees them. Pick
+one and the globe raises a 3D column in every country that mines it (taller for a bigger share) and a white one
+where it's processed, with streams of it flowing between them: cobalt rises out of Congo and pours into China's
+refineries. Beside that: ten years of prices with the peak marked, the typical year's swing, a supply-risk gauge
+(how concentrated mining and processing are, weighted by how stable those countries are), the choke point in plain
+words ("mined in DR Congo, but 76% is refined in China"), the sea lanes it sails through, the policies moving it
+(export bans, licences, tariffs, carbon border taxes, each with its status and date), the listed companies that buy
+and sell it, and a What if bar: pick a scenario and the price line extends to the shocked price while the companies
+that gain and lose are ranked. The Minerals theme links each commodity here.
+
+**My portfolio (Work › Finance).** Add the companies you own (about 30 big ones are mapped so far, or start from a
+demo) and see where your money really is:
+- **Where it earns:** columns in the countries your companies sell in ("of every $100 you own, about $34 is earned
+  in the United States"), with streams from their suppliers, fabs, mines and plants abroad flowing home. Each
+  holding's key sites are listed and fly-to-able.
+- **Made of:** the raw materials they buy (costs that bite when prices rise) and sell, with the countries those
+  are mined in, each a tap from its market.
+- **Policies:** the policies that touch what you own, biggest first, with the holdings each touches and halos on
+  the countries behind them.
+- **What if:** your portfolio's rough move under one or more scenarios, and each holding's move with the reasons
+  ("Taiwan disrupted: TSMC Tainan Fab 18").
+
+**What if… (Create, and Work › Finance and Raw materials).** Twelve ready-made scenarios (China tightens
+critical-mineral exports, a Taiwan Strait blockade, Hormuz closed, the Red Sea avoided, Congo halts cobalt,
+Indonesia curbs nickel, an Andes copper squeeze, a cocoa failure, drought in Brazil, EU carbon at €150, US–China
+tariffs at 60%, a global recession) that stack, with a severity slider, or build your own: a price move, a country's
+output lost, a sea lane shut. The globe pulses the countries hit and flashes the closed lanes, raises the materials
+that jump where they're mined, ranks every mapped company from hardest hit to biggest gain and shows what it does to
+your portfolio. The same scenarios sit inside the commodity desk and the portfolio. Field views carry their own
+what-ifs: a dry spell or a cloudburst on a soil, a calmer year or another power price on a wind site, a different
+kickoff at a stadium. Rules of thumb for comparing exposures, not forecasts. Data sources are in
+[docs/data-licensing.md](docs/data-licensing.md).
+
+**Field views: views made for one kind of work.**
+- **Matchday (Sport):** pick a stadium and a kickoff. A bowl of stands rises around the pitch in 3D and casts real
+  shadows across it as the match plays out (drag the timeline or press play). Beside it: how much of the pitch is in
+  shade at kickoff, half time and full time, a top-down shade map with the sun's direction, the kickoff times with
+  the most even light (half-and-half is worst for players and TV), the weather at kickoff with a heat flag for
+  cooling breaks, and how many people live within 25, 100 and 250 km. The pitch's direction and the stands' height
+  can be set to match the real stadium.
+- **Soil profile (Farming):** the ground two metres down as a 3D block you can turn, each layer coloured by its
+  texture and darkened by its organic matter (ISRIC SoilGrids), with rain soaking in as fast as that soil lets it.
+  Beside it: the topsoil's texture, pH, organic carbon, the water the top metre holds for roots, how well it drains,
+  what it suits, and a what-if for a downpour (how long to soak 30 cm, and whether it runs off) and a dry spell (how
+  many days the water lasts).
+- **Site potential (Energy):** over the site, the sun's paths on the longest day, the equinox and the shortest day
+  arch across the sky in 3D, with today's sun travelling its arc, and a wind rose rises from the ground, a petal for
+  each direction. From a year of hourly weather: kWh per kWp of solar, mean wind at 100 m, one 3.6 MW turbine's yearly
+  MWh and capacity factor, month by month (sun in summer, wind in winter?), a verdict, and what a calmer year or a
+  different power price would do.
+
 **The places people work: Food, Retail, Fashion, Art, Gaming, Sport, Real estate, Architecture and Tech.** Each of
 these fields starts with the consumer, then the pros, then the companies that serve them:
 

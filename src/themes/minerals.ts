@@ -185,7 +185,8 @@ export function mineralsTheme(app: App): Theme {
         h("div", { class: "commodity-card", style: `--c:${c.color}` },
           h("div", { class: "commodity-card-head" }, tagChip(c), h("span", { class: "muted small" }, GROUP_INFO[c.group].label)),
           h("p", { class: "commodity-what" }, c.what),
-          stats(["Used for", c.uses], ["Mined as", c.ores], ["Where it forms", c.geology])),
+          stats(["Used for", c.uses], ["Mined as", c.ores], ["Where it forms", c.geology]),
+          c.group !== "gems" ? h("button", { class: "pill-btn commodity-desk", onclick: () => app.actions.get("econ:desk")?.run(c.id) }, "The market: prices, refining, supply risk, what-ifs ›") : ""),
         section("Who mines it", producerBars(c), note(`Share of world mine production. ${c.source ?? "USGS Mineral Commodity Summaries 2024 (2023 production), rounded."}`)),
         mines.length ? section(`Landmark ${c.name.toLowerCase()} mines`, h("div", { class: "list" }, ...mines.map((mn) => mineRow(mn, from)))) : "",
       );

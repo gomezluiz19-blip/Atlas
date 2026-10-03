@@ -50,6 +50,7 @@ relies on the browser's normal cache until a licence allows storing it.
 | GBIF | Species density tiles | ✅ | Most records are CC0 or CC BY; some datasets are CC BY-NC. Attribute GBIF. |
 | NASA GIBS (MODIS NDVI, Black Marble) | Plant health, Earth at night | ✅ | US government, public. |
 | NOAA SWPC, USGS earthquakes | Aurora, geomagnetic activity, quakes | ✅ | US government, public. |
+| ISRIC SoilGrids 2.0 | Soil profile (texture, pH, carbon by depth) | ✅ | CC BY 4.0; attribute ISRIC. A research service with modest capacity: cache answers and keep request volume low, or host the 250 m rasters for heavy use. |
 
 ## Knowledge, countries and images
 
@@ -76,6 +77,17 @@ relies on the browser's normal cache until a licence allows storing it.
 | CelesTrak | Satellites | ✅ | Free; follow the polling guidelines (Atlas fetches once per session). |
 | Launch Library 2 (The Space Devs) | Rocket launches | ⚠️ | Free tier is 15 requests an hour; paid plans exist for products. |
 | Hand-compiled content (features, breeds, crops, care, sowing, sites) | Facts and guidance | ✅ | Written for Atlas from commonly cited figures; keep sources noted. |
+
+## Economy: raw materials, companies, policies
+
+| Source | Used for | Status | What to do |
+|---|---|---|---|
+| USGS Mineral Commodity Summaries | Mine production shares | ✅ | US government, public domain. Bundled, rounded. |
+| World Bank Commodity Price Data (Pink Sheet) | Ten years of prices | ✅ | CC BY 4.0; attribute the World Bank. Bundled annual averages. |
+| IEA Global Critical Minerals Outlook, Energy Institute Statistical Review, FAO, USDA, ICCO, worldsteel | Processing shares, oil/LNG and crop producers | ✅ | Rounded figures cited from published reports (facts, not reproduced tables); credit the source on screen. For more detail, IEA data needs its own licence. |
+| Lithium, cobalt and rare-earth prices | Price history for materials the Pink Sheet doesn't carry | ⚠️ | Rounded yearly averages of widely reported spot prices, labelled indicative. For live prices, license a feed (Fastmarkets, Benchmark, Argus). |
+| Company revenue by region, sites and suppliers | Portfolio map | ✅ | From companies' own annual reports, rounded; judgement weights are Atlas's. For a real product, a licensed fundamentals feed (and the user's own holdings via a broker API) would replace them. |
+| Policies and scenarios | Policy radar, What if lab | ✅ | Written by Atlas from public announcements; review and date-stamp regularly. |
 
 ## AI
 
