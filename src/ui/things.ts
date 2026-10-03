@@ -104,6 +104,16 @@ export function buildThings(app: App, overlays: Overlays, tools: WorkTool[]): Th
     out.push({ title: `${l.label} lens`, detail: l.blurb, emoji: l.icon, group: "Open", words: l.id === "day" ? "lens look sunrise sunset shadows golden hour light sun rhythm" : "lens look", run: act(`lens:${l.id}`) });
   for (const s of FEATURED)
     out.push({ title: s.title, detail: s.summary, emoji: "📖", group: "Stories", words: `story ${s.tags.join(" ")}`, run: act("story:open", s.id) });
+  // The economy and the field views, from anywhere.
+  for (const [id, title, emoji, detail, words] of [
+    ["econ:desk", "Commodity desk", "⛏️", "Raw materials as markets: where they're mined and refined, prices, supply risk, policies and what-ifs", "commodities raw materials metals lithium copper cobalt oil gas wheat cocoa coffee prices supply chain critical minerals refining"],
+    ["econ:portfolio", "My portfolio", "📈", "Where you're invested, as a map: where your companies earn, their supply chains, raw materials and the policies about to bite", "portfolio investments stocks shares holdings exposure invest my money"],
+    ["econ:lab", "What if…", "⚡", "Play out a shock (a blockade, an export ban, a drought) and see prices, companies and your portfolio react", "what if scenario stress test shock simulate model blockade export ban recession tariffs"],
+    ["view:matchday", "Matchday sun and shade", "🏟️", "Stands cast real shadows over the pitch through a match; the best kickoff, the weather and fans in reach", "stadium kickoff shade sun pitch match fixture"],
+    ["view:soil", "Soil profile", "🪱", "The ground two metres down in 3D: texture, pH, carbon, water held, and what it suits", "soil quality ph clay sand loam farm field drainage"],
+    ["view:site", "Site potential", "☀️", "Sun paths and a wind rose in 3D, and what the land could make from solar and wind", "solar wind farm site renewable yield irradiance energy potential"],
+  ] as const)
+    out.push({ title, detail, emoji, group: "Open", words, run: act(id) });
   out.push({ title: "Show me something amazing", detail: "Somewhere unexpected, and why it's worth seeing", emoji: "🎲", group: "Open", words: "surprise random wonder amazing beautiful inspire", run: act("surprise") });
   out.push({ title: "Take the tour", detail: "A one-minute walk through what Atlas can do", emoji: "🧭", group: "Open", words: "tour help tutorial guide intro introduction how start learn", run: act("tour") });
   out.push({ title: "Time travel", detail: "The globe in any year: borders of the time, the view from space, projections", emoji: "⏳", group: "Open", words: "time history past then now future year years borders empires old", run: act("time:open") });

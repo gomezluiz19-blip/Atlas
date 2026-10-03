@@ -224,6 +224,7 @@ const MAKE_TOOLS: WorkTool[] = [
   tool("present", "Stories", "Tell a story on the globe, publish it, and use or remix others'", "#e0b050", icons.slides, openPresent),
   tool("video", "Video", "A studio: the globe on a monitor, shots, looks, camera moves and narration", "#ff375f", icons.video, openVideo),
   tool("teach", "Teach", "Lessons, quizzes, games, a world politics simulation and field trips", "#bf5af2", icons.graduate, openTeach),
+  tool("whatif", "What if…", "Model a shock (a blockade, an export ban, a drought, your own) and watch prices, countries, companies and your portfolio react", "#ff453a", icons.activity, (ctx) => void import("./econ/labUi").then((m) => m.openLab(ctx, app))),
 ];
 const LOOK_TOOLS: WorkTool[] = [
   tool("news", "World now", "The biggest stories, the latest headlines, fires, storms and quakes going on, and what the world is reading", "#ff375f", icons.globe, (ctx) => openWorldNow(ctx)),
@@ -330,6 +331,19 @@ const openStation = (st: Station) => {
   // A view of the world (a theme) or a live layer: the panel steps aside so the map can show it.
   if (st.tool.startsWith("theme:")) { const [theme, sub] = st.tool.slice(6).split("/"); openMode("look"); app.setTheme(theme, sub); return; }
   if (st.tool.startsWith("action:")) { ctx.close(); app.actions.get(st.tool.slice(7))?.run(); return; }
+  if (st.tool.startsWith("view:")) {
+    const which = st.tool.slice(5);
+    void (which === "matchday" ? import("./fieldviews/matchdayUi").then((m) => m.openMatchday(ctx, app))
+      : which === "soil" ? import("./fieldviews/soilUi").then((m) => m.openSoil(ctx, app))
+      : import("./fieldviews/siteUi").then((m) => m.openSite(ctx, app)));
+    return;
+  }
+  if (st.tool.startsWith("econ:")) {
+    const which = st.tool.slice(5);
+    void import(which === "desk" ? "./econ/deskUi" : which === "portfolio" ? "./econ/portfolioUi" : "./econ/labUi").then((m) =>
+      "openDesk" in m ? m.openDesk(ctx, app) : "openPortfolio" in m ? m.openPortfolio(ctx, app) : m.openLab(ctx, app));
+    return;
+  }
   if (st.tool.startsWith("explore:")) { void import("./work/scout").then((m) => m.openExplore(ctx, st.tool.slice(8))); return; }
   if (st.tool.startsWith("source:")) { void import("./work/sourcingUi").then((m) => m.openSourcing(ctx, st.tool.slice(7))); return; }
   if (st.tool.startsWith("scout:")) { void import("./work/scout").then((m) => m.openScout(ctx, st.tool.slice(6))); return; }
@@ -942,6 +956,16 @@ app.actions.set("time:go", { label: "Go to a year", run: (arg) => {
 // About / data sources.
 // Atlas on a TV: TV mode plays by itself and a phone is the remote (src/tv). A link to #/tv/CODE opens it.
 const tvLink = /^#\/tv(\/([A-Za-z0-9]{6}))?$/.exec(location.hash);
+// The economy views from anywhere (search, the Minerals theme, the robot): the commodity desk (optionally on one material), your portfolio, the What if lab.
+for (const [id, label, load] of [
+  ["econ:desk", "Commodity desk", (arg?: string) => void import("./econ/deskUi").then((m) => m.openDesk(workHub.ctx, app, arg || undefined))],
+  ["econ:portfolio", "My portfolio", () => void import("./econ/portfolioUi").then((m) => m.openPortfolio(workHub.ctx, app))],
+  ["econ:lab", "What if lab", () => void import("./econ/labUi").then((m) => m.openLab(makeHub.ctx, app))],
+  ["view:matchday", "Matchday sun and shade", () => void import("./fieldviews/matchdayUi").then((m) => m.openMatchday(workHub.ctx, app))],
+  ["view:soil", "Soil profile", () => void import("./fieldviews/soilUi").then((m) => m.openSoil(workHub.ctx, app))],
+  ["view:site", "Site potential", () => void import("./fieldviews/siteUi").then((m) => m.openSite(workHub.ctx, app))],
+] as const)
+  app.actions.set(id, { label, run: (arg) => { const hub = id === "econ:lab" ? makeHub : workHub; closePanels(hub.panel); hub.ctx.open(); load(arg); } });
 app.actions.set("tv:mode", { label: "TV mode", run: (code) => void import("./tv/tv").then((m) => { closePanels(); m.enterTv(app, code || undefined); }) });
 app.actions.set("tv:cast", { label: "Show Atlas on a TV", run: () => void import("./tv/tv").then((m) => m.openCast(app)) });
 {

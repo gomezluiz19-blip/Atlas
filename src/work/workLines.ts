@@ -70,6 +70,7 @@ export const LINES: Line[] = [
   { id: "sport", label: "Sport", color: "#bf5af2", stations: [
     { id: "explore-sport", label: "Stadiums and games", who: "Grounds, gyms and pitches near you, and the world's great stadiums", tool: "explore:sport", words: "fan tickets match game stadium gym swim run" },
     { id: "scout-sport", label: "Gym and club scout", who: "Gyms, studios and clubs: where members will come from", tool: "scout:sport", words: "gym owner fitness studio personal trainer yoga studio climbing gym", key: "atlas.work.scout.v1" },
+    { id: "sport-matchday", label: "Matchday", who: "Sun, shade and heat at a stadium: the stands' shadows sweep the pitch in 3D through a match, the best kickoff for even light, the weather and the fans in reach", tool: "view:matchday", words: "stadium kickoff kick-off fixture scheduling pitch shade sun glare heat broadcaster groundsman venue operations matchday" },
     { id: "sports", label: "Sports Pro", who: "Clubs: fixtures, travel, fans, scouting", tool: "sports", words: "club team coach sports manager football soccer baseball league scouting", key: "atlas.pro.clubs.v1" },
     { id: "fn-sports", label: "Surfaces & facilities", who: "Pitch, turf and stadium equipment companies", tool: "services:sports", words: "pitch turf artificial grass stadium sports facilities groundskeeping floodlights", key: "atlas.pro.services.v1" },
   ] },
@@ -80,13 +81,21 @@ export const LINES: Line[] = [
   ] },
   { id: "mine", label: "Mining", color: "#ac8e68", stations: [
     { id: "explore-mine", label: "Mines and minerals", who: "The world's great mines, what each metal is for, and what's under your feet", tool: "theme:minerals/commodities", words: "minerals metals commodities copper lithium gold rocks geology curious mines of the world" },
+    { id: "desk-mine", label: "Commodity desk", who: "Each metal's market: where it's mined and refined, prices, supply risk, policies and what-ifs", tool: "econ:desk", words: "commodity metal prices market supply risk refining offtake trader" },
     { id: "mining", label: "Mining Pro", who: "Mine operators: pit to port, communities, permits, tailings", tool: "mining", words: "mine miner mining operator quarry pit smelter tailings community relations", key: "atlas.pro.mines.v1" },
     { id: "fn-mining", label: "Mining equipment & services", who: "Companies that sell to and service mines", tool: "services:mining", words: "mining equipment drill rigs haul trucks mining services oem dealer technician mining supplier", key: "atlas.pro.services.v1" },
+  ] },
+  { id: "commod", label: "Raw materials", color: "#c77c02", stations: [
+    { id: "explore-commod", label: "Mines and minerals", who: "The world's great mines and what each metal is for", tool: "theme:minerals/commodities", words: "minerals metals curious where does it come from" },
+    { id: "desk", label: "Commodity desk", who: "Metals, energy and crops as markets: where they're mined and processed, ten years of prices, supply risk, policies, who's exposed and what-ifs", tool: "econ:desk", words: "commodity commodities raw materials trader buyer procurement sourcing supply chain metals lithium copper cobalt oil gas wheat cocoa coffee prices critical minerals" },
+    { id: "commod-whatif", label: "What if lab", who: "Shocks to supply, prices and sea lanes, and who wins and loses", tool: "econ:lab", words: "scenario supply shock export ban disruption" },
   ] },
   { id: "finance", label: "Finance", color: "#2a78d6", stations: [
     { id: "fin-markets", label: "Markets now", who: "The world's exchanges following the sun: who's trading, when each opens and closes", tool: "fin:markets", words: "stock market exchange trading hours open close nyse nasdaq lse tokyo markets investor trader" },
     { id: "fin-company", label: "Company explorer", who: "Any company: owners, subsidiaries, assets and partners on the map; stock and figures year by year", tool: "fin:company", words: "company stock shares ticker analyst investor equity research subsidiaries owners parent revenue earnings financials market cap holding corporate structure m&a private equity venture" },
-    { id: "fin-watch", label: "Watchlist", who: "The companies you follow on the map, and where they're based", tool: "fin:watch", words: "portfolio watchlist investments holdings stocks shares fund manager wealth", key: "atlas.fin.watch.v1" },
+    { id: "fin-watch", label: "Watchlist", who: "The companies you follow on the map, and where they're based", tool: "fin:watch", words: "watchlist follow companies stocks shares", key: "atlas.fin.watch.v1" },
+    { id: "fin-portfolio", label: "My portfolio", who: "Where you're invested, as a map: where your companies earn, their supply chains and raw materials, policies about to bite, and how a shock would land", tool: "econ:portfolio", words: "portfolio investments holdings investor my stocks shares fund wealth exposure supply chain esg risk", key: "atlas.econ.portfolio.v1" },
+    { id: "fin-whatif", label: "What if lab", who: "Play out a shock (a blockade, an export ban, a drought) and see prices, companies and your portfolio react", tool: "econ:lab", words: "scenario what if stress test shock simulation risk analyst strategist macro" },
   ] },
   { id: "banking", label: "Banking", color: "#1baf7a", stations: [
     { id: "bank-near", label: "Banks near you", who: "Banks, ATMs and credit unions around a place, nearest first", tool: "bank:near", words: "bank atm cash credit union branch near me withdraw deposit" },
@@ -104,12 +113,14 @@ export const LINES: Line[] = [
     { id: "relief", label: "Relief Pipeline", who: "Humanitarian logisticians: port to people", tool: "relief", words: "humanitarian logistics relief supply chain warehouse emergency response wfp unhcr food distribution", key: "atlas.pro.relief.v1" },
   ] },
   { id: "farm", label: "Farming", color: "#8bd346", stations: [
+    { id: "farm-soil", label: "Soil profile", who: "The ground under a field in 3D, two metres down: texture, pH, carbon, the water it holds, how fast rain soaks in, what it suits", tool: "view:soil", words: "soil quality soil test ph acidity clay sand loam organic matter carbon drainage water holding agronomist farmer field" },
     { id: "grow", label: "Grow", who: "Your fields and crops: growth stage, harvest, water and frost", tool: "grow", words: "farmer grower fields crops garden allotment", key: "atlas.work.fields.v1" },
     { id: "flock", label: "Flock", who: "Animals in your care: herds, flocks, vets and their records", tool: "flock", words: "livestock sheep cattle cows herd flock vet hens animals rancher" },
     { id: "fn-agriculture", label: "Farm machinery & service", who: "Dealers and servicers of tractors, combines, irrigation", tool: "services:agriculture", words: "tractor dealer farm machinery combine irrigation agricultural equipment ag dealer", key: "atlas.pro.services.v1" },
   ] },
   { id: "energy", label: "Energy", color: "#ffd60a", stations: [
     { id: "explore-energy", label: "Power around you", who: "Power plants, lines and wind and solar farms on the map", tool: "theme:built/energy", words: "power plants electricity grid power lines energy" },
+    { id: "energy-site", label: "Site potential", who: "What a piece of land could make from sun and wind: the sun's paths and a wind rose in 3D, yearly yield, and what a calmer year or another power price would do", tool: "view:site", words: "solar farm wind farm developer site selection yield capacity factor irradiance wind resource renewable project land" },
     { id: "fn-energy", label: "Wind & solar O&M", who: "Operations and maintenance for wind and solar farms", tool: "services:energy", words: "wind turbine solar farm renewable energy o&m operations maintenance technician inverter power plant", key: "atlas.pro.services.v1" },
   ] },
   { id: "health", label: "Health", color: "#ff375f", stations: [
@@ -133,7 +144,7 @@ export const LINES: Line[] = [
 /** Which rung a station sits on (pure). */
 export function tierOf(s: Station): Tier {
   if (s.tool.startsWith("services:")) return "services";
-  if (/^(explore:|theme:|action:)/.test(s.tool) || ["build", "travel", "fin-markets", "fin-watch", "bank-near"].includes(s.id)) return "everyday";
+  if (/^(explore:|theme:|action:)/.test(s.tool) || ["build", "travel", "fin-markets", "fin-watch", "fin-portfolio", "bank-near"].includes(s.id)) return "everyday";
   return "pro";
 }
 
@@ -149,8 +160,9 @@ export const LOOKS: Record<string, FieldLook> = {
   fashion: { icon: "shirt", family: "serve", noun: "fashion", blurb: "Fashion streets, where a boutique belongs, makers nearby, and the machinery behind them." },
   host: { icon: "suitcase", family: "serve", noun: "hotels", blurb: "Trips, and live rooms and bookings for the people who run hotels and buildings." },
   realestate: { icon: "home", family: "serve", noun: "real estate", blurb: "Neighbourhoods, comparing addresses, and the firms that look after buildings." },
-  finance: { icon: "coin", family: "money", noun: "finance", blurb: "Markets as they open around the world, any company's owners and assets, and your watchlist." },
+  finance: { icon: "coin", family: "money", noun: "finance", blurb: "Markets as they open, your portfolio as a map of where it earns and what it's made of, any company's owners and assets, and what-ifs." },
   banking: { icon: "bank", family: "money", noun: "banking", blurb: "Banks near you, any bank's group and figures, and branch coverage for bankers." },
+  commod: { icon: "gem", family: "money", noun: "raw materials", blurb: "Metals, energy and crops as markets: where they come from, where they're processed, what they cost and what could move them." },
   freight: { icon: "ship", family: "money", noun: "freight", blurb: "Ships moving now, every shipment on its route, and your business's flows." },
   tech: { icon: "chip", family: "money", noun: "tech", blurb: "Tech hubs, where a startup should base itself, and the engineers behind data centres." },
   art: { icon: "palette", family: "people", noun: "art", blurb: "Museums and galleries, where the scene is, makers and suppliers, and art handlers." },
