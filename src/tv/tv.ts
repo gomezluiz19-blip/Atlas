@@ -1,11 +1,14 @@
 // TV mode: Atlas for a screen across the room. The panels go, the type gets
 // big, and it plays by itself: the Earth live (wind and planes moving), a run
 // of great places, the world's markets, and your own place as a hologram. A
-// QR code in the corner turns any phone into the remote: search on the phone
-// and the TV flies there; tap a lens and the mountain opens on the big screen.
-// Commands pause the playlist for a minute so the person driving stays in
-// charge. Escape (or Exit on the remote) leaves.
-import { Cartesian3, HeadingPitchRange, Math as CesiumMath, Matrix4 } from "cesium";
+// QR code in the corner pairs a phone, then steps aside. The phone is a
+// controller: its orb spins the Earth (drag), zooms (pinch) and picks what's in
+// the middle (tap); its ring moves through an on-screen menu; its keyboard
+// types into a big search bar on the TV with suggestions as you go. Commands
+// pause the playlist for a minute so the person driving stays in charge.
+// Escape (or Exit on the remote) leaves.
+import { Cartesian2, Cartesian3, HeadingPitchRange, Math as CesiumMath, Matrix4 } from "cesium";
+import { wake } from "../globe/motion";
 import qrcode from "qrcode-generator";
 import type { App } from "../app";
 import { closeSpace } from "../delight/spaces";
@@ -14,7 +17,22 @@ import { EXCHANGES, session } from "../finance/model";
 import { h } from "../ui/dom";
 import { searchPlaces } from "../place/places";
 import { flyToPlace, geocode } from "../ui/search";
-import { listen, newCode, remoteUrl, send, type Cmd } from "./link";
+import { hostDirect, listen, newCode, remoteUrl, send, type Cmd } from "./link";
+
+/** The on-screen menu the remote's ring moves through. */
+const MENU: { id: string; icon: string; label: string }[] = [
+  { id: "search", icon: "⌕", label: "Search" },
+  { id: "scene:live", icon: "🌍", label: "Live Earth" },
+  { id: "scene:places", icon: "🏔", label: "Great places" },
+  { id: "scene:markets", icon: "📈", label: "Markets" },
+  { id: "scene:home", icon: "🏠", label: "Home" },
+  { id: "lens:slice", icon: "⛰", label: "Cut open" },
+  { id: "lens:block", icon: "🧊", label: "3D block" },
+  { id: "lens:day", icon: "☀️", label: "A day" },
+  { id: "holo", icon: "◎", label: "Hologram" },
+  { id: "wind", icon: "💨", label: "Wind" },
+  { id: "exit", icon: "⏻", label: "Exit" },
+];
 
 const SCENE_MS = 26_000, HOLD_MS = 60_000;
 export const SCENES = [
@@ -55,9 +73,13 @@ export function enterTv(app: App, given?: string) {
   const pair = h("div", { class: "tv-pair" },
     h("div", { class: "tv-qr", html: qrSvg(link) }),
     h("div", {}, h("small", {}, "Use your phone as the remote"), h("strong", {}, code), h("small", { class: "tv-url" }, link.replace(/^https?:\/\//, "").replace(/#.*/, ""))));
+  const menuEl = h("div", { class: "tv-menu", "aria-hidden": "true" }, ...MENU.map((m) => h("div", { class: "tv-tile", "data-id": m.id }, h("span", { class: "tv-tile-icon" }, m.icon), h("span", {}, m.label))));
+  const searchText = h("span", { class: "tv-search-text" }), searchList = h("div", { class: "tv-search-list" });
+  const searchEl = h("div", { class: "tv-search", "aria-hidden": "true" }, h("div", { class: "tv-search-bar" }, h("span", { class: "tv-search-icon" }, "⌕"), searchText, h("i", { class: "tv-caret" })), searchList);
+  const chip = h("div", { class: "tv-chip" }, "📱 Remote connected");
   const el = h("div", { class: "tv", role: "region", "aria-label": "Atlas TV" },
-    h("div", { class: "tv-brand" }, "ATLAS", h("span", {}, "TV")), clock, pair,
-    h("div", { class: "tv-caption" }, title, sub), dots);
+    h("div", { class: "tv-brand" }, "ATLAS", h("span", {}, "TV")), clock, pair, chip,
+    h("div", { class: "tv-caption" }, title, sub), dots, menuEl, searchEl);
   document.body.append(el);
 
   let scene = 0, timer = 0, holdUntil = 0, spin: (() => void) | null = null, windOn = false, step = 0;
@@ -114,36 +136,131 @@ export function enterTv(app: App, given?: string) {
   }
   const schedule = () => { clearTimeout(timer); timer = window.setTimeout(() => { if (Date.now() >= holdUntil) void show(scene + 1); schedule(); }, SCENE_MS); };
 
-  // The remote.
+  // ---- The remote: paired, then steering ----
+  let connected = false, lastHeard = 0, chipTimer = 0, closeDirect: (() => void) | null = null;
+  const heard = () => {
+    lastHeard = Date.now();
+    if (connected) return;
+    connected = true;
+    pair.classList.add("gone");
+    chip.classList.add("on"); clearTimeout(chipTimer); chipTimer = window.setTimeout(() => chip.classList.remove("on"), 3200);
+  };
+  // A remote gone quiet for a while: show the code again for the next one.
+  const quietTimer = window.setInterval(() => { if (connected && Date.now() - lastHeard > 75_000) { connected = false; pair.classList.remove("gone"); } }, 10_000);
+
+  let menuOpen = false, focus = 0, menuTimer = 0;
+  const drawMenu = () => {
+    menuEl.classList.toggle("on", menuOpen);
+    menuEl.querySelectorAll(".tv-tile").forEach((t, i) => t.classList.toggle("focus", i === focus));
+    (menuEl.children[focus] as HTMLElement | undefined)?.scrollIntoView({ inline: "center", block: "nearest", behavior: "smooth" });
+    clearTimeout(menuTimer);
+    if (menuOpen) menuTimer = window.setTimeout(() => { menuOpen = false; drawMenu(); }, 9000);
+  };
+  let searchOpen = false, query = "", hits: { name: string; detail: string; lon: number; lat: number; radius: number }[] = [], pickAt = 0;
+  const drawSearch = () => {
+    searchEl.classList.toggle("on", searchOpen);
+    searchText.textContent = query || "Type on your phone…";
+    searchText.classList.toggle("empty", !query);
+    searchList.replaceChildren(...hits.map((x, i) => h("div", { class: "tv-hit" + (i === pickAt ? " focus" : "") }, h("strong", {}, x.name), h("small", {}, x.detail))));
+    if (searchOpen) send(code, "state", { t: "suggest", q: query, items: hits.map((x) => x.name), focus: pickAt });
+  };
+  const openSearch = (open: boolean) => { searchOpen = open; if (open) { menuOpen = false; drawMenu(); query = ""; hits = []; pickAt = 0; } drawSearch(); };
+
+  async function flyTo(q: string, hit?: { name: string; detail: string; lon: number; lat: number; radius: number }) {
+    cleanScene();
+    openSearch(false);
+    say(`Finding ${q}…`);
+    // Atlas's own named places first (mountains, rivers, cities, landmarks), then any address.
+    const local = hit ?? searchPlaces(q, 1)[0];
+    const r = local ? { name: local.name, detail: local.detail, lon: local.lon, lat: local.lat, radius: local.radius } : (await geocode(q, null).catch(() => []))[0];
+    if (!r) { say(`Couldn't find ${q}`); return; }
+    app.select({ lon: r.lon, lat: r.lat, height: 0 }, { title: r.name, context: r.detail ?? "" });
+    void flyToPlace(app.globe, { name: r.name, lon: r.lon, lat: r.lat, radius: r.radius || 6000 });
+    say(r.name, r.detail ?? "");
+  }
+  /** Whatever is in the middle of the screen becomes the chosen place, and the camera leans in. */
+  function chooseMiddle() {
+    stopSpin();
+    const c = viewer.canvas, p = app.globe.pick(new Cartesian2(c.clientWidth / 2, c.clientHeight / 2));
+    if (!p) return;
+    app.select(p);
+    zoomBy(1.8);
+    say("Here", `${Math.abs(p.lat).toFixed(2)}° ${p.lat >= 0 ? "N" : "S"}, ${Math.abs(p.lon).toFixed(2)}° ${p.lon >= 0 ? "E" : "W"}`);
+    window.setTimeout(() => { const t = app.place?.name?.title; if (t) say(t, app.place?.name?.context ?? ""); }, 1800);
+  }
+  function activate(id: string) {
+    menuOpen = false; drawMenu();
+    if (id === "search") { openSearch(true); return; }
+    if (id.startsWith("scene:")) { const i = SCENES.findIndex((x) => x.id === id.slice(6)); if (i >= 0) void show(i); return; }
+    void onCmd(id.startsWith("lens:") ? { t: "lens", id: id.slice(5) } : ({ t: id } as Cmd));
+  }
+  /** The orb: drag spins the Earth under you, at a pace that suits the height. */
+  function pan(dx: number, dy: number) {
+    stopSpin();
+    const k = Math.min(0.9, (cam.positionCartographic.height / 6.371e6) * 0.75 + 0.0002);
+    cam.rotateLeft(dx * k);
+    cam.rotateDown(dy * k);
+    wake(800);
+  }
+  function zoomBy(f: number) {
+    stopSpin();
+    const hgt = cam.positionCartographic.height, target = Math.min(30_000_000, Math.max(250, hgt / f));
+    if (target < hgt) cam.zoomIn(hgt - target); else cam.zoomOut(target - hgt);
+    wake(800);
+  }
+
   const onCmd = async (c: Cmd) => {
+    heard();
+    if (c.t === "ping") return;
+    if (c.t === "rtc-offer") { closeDirect?.(); closeDirect = hostDirect(code, c.sdp, (m) => void onCmd(m)); return; }
     holdUntil = Date.now() + HOLD_MS;
-    if (c.t === "hello") { send(code, "state", { t: "state", scene: SCENES[scene].id, title: title.textContent ?? "", sub: sub.textContent ?? "" }); return; }
-    if (c.t === "next") { void show(scene + 1); return; }
-    if (c.t === "scene") { const i = SCENES.findIndex((s) => s.id === c.id); if (i >= 0) void show(i); return; }
-    if (c.t === "exit") { self.exit(); return; }
-    if (c.t === "wind") { setWind(!windOn); say(windOn ? "Wind on" : "Wind off", "The wind now, over the whole view"); return; }
-    if (c.t === "fly") {
-      cleanScene();
-      say(`Finding ${c.q}…`);
-      // Atlas's own named places first (mountains, rivers, cities, landmarks), then any address.
-      const local = searchPlaces(c.q, 1)[0];
-      const r = local ? { name: local.name, detail: local.detail, lon: local.lon, lat: local.lat, radius: local.radius } : (await geocode(c.q, null).catch(() => []))[0];
-      if (!r) { say(`Couldn't find ${c.q}`); return; }
-      app.select({ lon: r.lon, lat: r.lat, height: 0 }, { title: r.name, context: r.detail ?? "" });
-      void flyToPlace(app.globe, { name: r.name, lon: r.lon, lat: r.lat, radius: r.radius || 6000 });
-      say(r.name, r.detail ?? "");
-      return;
+    switch (c.t) {
+      case "hello": send(code, "state", { t: "state", scene: SCENES[scene].id, title: title.textContent ?? "", sub: sub.textContent ?? "" }); return;
+      case "pan": pan(c.dx, c.dy); return;
+      case "zoom": zoomBy(c.f); return;
+      case "dpad":
+        if (searchOpen) { if (hits.length) { pickAt = (pickAt + (c.dir === "down" ? 1 : c.dir === "up" ? -1 : 0) + hits.length) % hits.length; drawSearch(); } return; }
+        if (!menuOpen) { menuOpen = true; drawMenu(); return; }
+        if (c.dir === "left" || c.dir === "right") { focus = (focus + (c.dir === "right" ? 1 : -1) + MENU.length) % MENU.length; drawMenu(); }
+        else if (c.dir === "down") { menuOpen = false; drawMenu(); }
+        return;
+      case "menu": menuOpen = !menuOpen; if (searchOpen) openSearch(false); drawMenu(); return;
+      case "select":
+        if (searchOpen) { const x = hits[pickAt]; if (x) void flyTo(x.name, x); else if (query) void flyTo(query); return; }
+        if (menuOpen) { activate(MENU[focus].id); return; }
+        chooseMiddle(); return;
+      case "back":
+        if (searchOpen) { openSearch(false); return; }
+        if (menuOpen) { menuOpen = false; drawMenu(); return; }
+        app.actions.get("lens:close")?.run(); closeSpace(); return;
+      case "search": openSearch(c.open); return;
+      case "type":
+        if (!searchOpen) openSearch(true);
+        query = c.q; pickAt = 0;
+        hits = query.trim().length >= 2 ? searchPlaces(query, 5).map((x) => ({ name: x.name, detail: x.detail, lon: x.lon, lat: x.lat, radius: x.radius })) : [];
+        drawSearch(); return;
+      case "pick": { const x = hits[c.i]; if (x) void flyTo(x.name, x); return; }
+      case "next": void show(scene + 1); return;
+      case "scene": { const i = SCENES.findIndex((x) => x.id === c.id); if (i >= 0) void show(i); return; }
+      case "exit": self.exit(); return;
+      case "wind": setWind(!windOn); say(windOn ? "Wind on" : "Wind off", "The wind now, over the whole view"); return;
+      case "fly": void flyTo(c.q); return;
+      case "lens": stopSpin(); app.actions.get(`lens:${c.id}`)?.run(); say(title.textContent ?? "", ({ slice: "Cut open: the rock layers inside", block: "Lifted out as a 3D block", day: "A day passing, with its real shadows" } as Record<string, string>)[c.id] ?? ""); return;
+      case "holo": stopSpin(); app.actions.get("space:boot")?.run(); say(title.textContent ?? "", "As a hologram"); return;
     }
-    if (c.t === "lens") { stopSpin(); app.actions.get(`lens:${c.id}`)?.run(); say(title.textContent ?? "", { slice: "Cut open: the rock layers inside", block: "Lifted out as a 3D block", day: "A day passing, with its real shadows" }[c.id] ?? ""); return; }
-    if (c.t === "holo") { stopSpin(); app.actions.get("space:boot")?.run(); say(title.textContent ?? "", "As a hologram"); return; }
   };
   const unlisten = listen<Cmd>(code, "cmd", (c) => void onCmd(c));
-  const keys = (e: KeyboardEvent) => { if (e.key === "Escape") self.exit(); if (e.key === "ArrowRight") void onCmd({ t: "next" }); };
+  // A keyboard works too (a laptop on HDMI): arrows move, Enter picks, Escape leaves.
+  const keys = (e: KeyboardEvent) => {
+    if (e.key === "Escape") { if (menuOpen || searchOpen) void onCmd({ t: "back" }); else self.exit(); return; }
+    const dir = ({ ArrowUp: "up", ArrowDown: "down", ArrowLeft: "left", ArrowRight: "right" } as const)[e.key as "ArrowUp"];
+    if (dir) { e.preventDefault(); void onCmd({ t: "dpad", dir }); } else if (e.key === "Enter") void onCmd({ t: "select" });
+  };
   addEventListener("keydown", keys);
 
   const self = {
     exit() {
-      clearTimeout(timer); clearInterval(clockTimer); unlisten(); removeEventListener("keydown", keys);
+      clearTimeout(timer); clearInterval(clockTimer); clearInterval(quietTimer); unlisten(); closeDirect?.(); removeEventListener("keydown", keys);
       cleanScene(); app.actions.get("lens:close")?.run();
       el.remove(); document.body.classList.remove("tv-mode");
       if (location.hash.startsWith("#/tv")) history.replaceState(null, "", location.pathname + location.search);
@@ -156,34 +273,41 @@ export function enterTv(app: App, given?: string) {
   return self;
 }
 
-/** Cast: the device's own picker where the browser has one (Chrome, Edge), else how to. */
+/** Cast: put Atlas on the TV so that the phone stays free to be the remote. */
 export function openCast(app: App) {
   document.querySelector(".cast-sheet")?.remove();
   const code = newCode();
-  const tvLink = new URL(`#/tv/${code}`, location.href.replace(/#.*$/, "")).href;
+  const base = location.href.replace(/#.*$/, "");
+  const tvLink = new URL(`#/tv/${code}`, base).href, shortTv = new URL("tv/", base).href.replace(/^https?:\/\//, "");
   const close = () => sheet.remove();
   const canPresent = typeof (window as unknown as { PresentationRequest?: unknown }).PresentationRequest === "function";
+  const phone = matchMedia("(pointer: coarse)").matches && Math.min(innerWidth, innerHeight) < 600;
   const status = h("p", { class: "muted small" });
+  const codeBox = h("input", { class: "pro-url cast-code", placeholder: "Code on the TV", maxlength: "6", autocapitalize: "characters", "aria-label": "Code on the TV" }) as HTMLInputElement;
+  const toRemote = (c: string) => { location.href = remoteUrl(c); };
   const sheet = h("div", { class: "cast-sheet", role: "dialog", "aria-label": "Show Atlas on a TV" },
     h("button", { class: "cast-x", "aria-label": "Close", onclick: close }, "✕"),
     h("h2", {}, "📺 Atlas on a TV"),
-    h("p", { class: "muted" }, "TV mode plays by itself (the Earth live, great places, markets, your home) and your phone becomes the remote."),
-    h("div", { class: "cast-options" },
-      canPresent ? h("button", { class: "primary-btn", onclick: async () => {
+    h("p", { class: "muted" }, "The TV runs Atlas on its own and your phone becomes the controller: spin the Earth, zoom, search, open lenses."),
+    canPresent ? h("div", { class: "cast-step" },
+      h("strong", {}, "Cast it"),
+      h("p", {}, "Pick a Chromecast or Google TV. The TV loads Atlas by itself and this screen turns into the remote."),
+      h("button", { class: "primary-btn", onclick: async () => {
         try {
           const Req = (window as unknown as { PresentationRequest: new (urls: string[]) => { start(): Promise<unknown> } }).PresentationRequest;
           await new Req([tvLink]).start();
-          status.textContent = `Casting. Scan the code on the TV with your phone, or open the remote and enter ${code}.`;
-        } catch { status.textContent = "No TV picked, or this TV can't take it directly: use your browser's Cast option (menu › Cast…) with TV mode on this screen."; }
-      } }, "Cast to a TV") : "",
-      h("button", { class: canPresent ? "pill-btn" : "primary-btn", onclick: () => { close(); enterTv(app, code); } }, "TV mode on this screen"),
-      h("a", { class: "pill-btn", href: remoteUrl(code), target: "_blank", rel: "noopener" }, "Open the remote")),
-    status,
-    h("details", { class: "cast-how" }, h("summary", {}, "Other ways onto a TV"),
-      h("ul", {},
-        h("li", {}, h("strong", {}, "Chromecast or Google TV: "), "in Chrome, menu › Cast… › choose the TV, then TV mode on this screen."),
-        h("li", {}, h("strong", {}, "Apple TV or AirPlay TV: "), "Control Centre › Screen Mirroring, then TV mode on this screen."),
-        h("li", {}, h("strong", {}, "Smart TV browser: "), `open ${tvLink.replace(/^https?:\/\//, "")} on the TV.`),
-        h("li", {}, h("strong", {}, "A cable: "), "plug in a laptop over HDMI; it looks best this way."))));
+          status.textContent = "On the TV. Opening the remote…";
+          window.setTimeout(() => toRemote(code), 900);
+        } catch { status.textContent = "No TV picked, or this TV can only mirror. Use one of the ways below."; }
+      } }, "Cast to a TV")) : "",
+    h("div", { class: "cast-step" },
+      h("strong", {}, canPresent ? "Or open it on the TV" : "Open it on the TV"),
+      h("p", {}, "On the TV's web browser, or a laptop plugged into the TV, go to ", h("code", {}, shortTv), ". Then scan its code with your phone, or type it here:"),
+      h("div", { class: "build-log-form" }, codeBox, h("button", { class: "pill-btn", onclick: () => { const c = codeBox.value.toUpperCase().replace(/[^A-Z0-9]/g, ""); if (c.length === 6) toRemote(c); else status.textContent = "The code on the TV has six letters and numbers."; } }, "Be the remote"))),
+    phone ? h("p", { class: "cast-note" }, "Mirroring (AirPlay, Screen Mirroring, Cast screen) shows this phone's own screen on the TV, so it can't be the remote at the same time. Use it to show things off; for the controller, the TV needs to run Atlas itself.") : "",
+    h("div", { class: "cast-options" },
+      phone ? "" : h("button", { class: "pill-btn", onclick: () => { close(); enterTv(app, code); } }, "TV mode on this screen"),
+      phone ? "" : h("a", { class: "pill-btn", href: remoteUrl(code), target: "_blank", rel: "noopener" }, "Open its remote")),
+    status);
   document.body.append(sheet);
 }
