@@ -1,8 +1,9 @@
-// The Work map's lines: one per industry, like a metro line. Each runs from
-// the everyday tool (if there is one) to the pro tool for the people who run
-// that kind of work, and on to the specialists who serve them: Build → Build
-// Pro → suppliers and plant hire; Mining Pro → mining equipment and
-// services. Typing what you do lights up the stations that fit (pure).
+// Work's fields: one per industry. Each field's tools sit on the same three
+// rungs, so every field reads the same way:
+//   Everyday  for anyone: look around the field, or your own project;
+//   Pro       for people who do the work (Mining Pro, Build Pro, a site scout);
+//   Services  for companies that serve the work (mining equipment, plant hire).
+// Describing what you do ranks the tools that fit (pure).
 
 import { INDUSTRIES } from "./scoutModel";
 
@@ -26,6 +27,22 @@ const SERVES: Record<string, [label: string, who: string, words: string]> = {
   tech: ["Field IT and data centres", "Companies that install and service networks, servers and data-centre plant", "data centre field engineer it support msp remote hands ups cooling network installer"],
 };
 
+/** The three rungs of every field (see the top of this file and docs/work-design.md). */
+export type Tier = "everyday" | "pro" | "services";
+export const TIERS: { id: Tier; label: string; for: (noun: string) => string }[] = [
+  { id: "everyday", label: "Everyday", for: (n) => `For anyone into ${n}` },
+  { id: "pro", label: "Pro", for: (n) => `For people who work in ${n}` },
+  { id: "services", label: "Services", for: (n) => `For companies that serve ${n}` },
+];
+/** The groups fields are shown in, when choosing one. */
+export const FAMILIES = [
+  { id: "make", label: "Make and build" },
+  { id: "serve", label: "Shops and hospitality" },
+  { id: "money", label: "Money and trade" },
+  { id: "people", label: "Culture and community" },
+] as const;
+export type Family = (typeof FAMILIES)[number]["id"];
+
 export interface Station {
   id: string;
   label: string;
@@ -39,6 +56,8 @@ export interface Station {
   key?: string;
 }
 export interface Line { id: string; label: string; color: string; stations: Station[] }
+/** How a field is shown: its icon (a key of ui/icons), its group, what to call the work in a sentence, and a line about it. */
+export interface FieldLook { icon: string; family: Family; noun: string; blurb: string }
 
 export const LINES: Line[] = [
   // Industries where people work around a place: the everyday look round first, then the pro's scout, then the companies that serve them.
@@ -60,6 +79,7 @@ export const LINES: Line[] = [
     { id: "fn-construction", label: "Suppliers & plant hire", who: "Cranes, lifts, plant and materials for sites", tool: "services:construction", words: "crane plant hire equipment rental lifts scaffolding building supplier materials merchant construction supplier", key: "atlas.pro.services.v1" },
   ] },
   { id: "mine", label: "Mining", color: "#ac8e68", stations: [
+    { id: "explore-mine", label: "Mines and minerals", who: "The world's great mines, what each metal is for, and what's under your feet", tool: "theme:minerals/commodities", words: "minerals metals commodities copper lithium gold rocks geology curious mines of the world" },
     { id: "mining", label: "Mining Pro", who: "Mine operators: pit to port, communities, permits, tailings", tool: "mining", words: "mine miner mining operator quarry pit smelter tailings community relations", key: "atlas.pro.mines.v1" },
     { id: "fn-mining", label: "Mining equipment & services", who: "Companies that sell to and service mines", tool: "services:mining", words: "mining equipment drill rigs haul trucks mining services oem dealer technician mining supplier", key: "atlas.pro.services.v1" },
   ] },
@@ -74,33 +94,73 @@ export const LINES: Line[] = [
     { id: "bank-coverage", label: "Branch coverage", who: "Bankers: each bank's share of branches around a place, and the areas more than 2 km from any branch", tool: "bank:coverage", words: "banker branch network retail banking branch planning market share banking desert financial inclusion credit union manager" },
   ] },
   { id: "freight", label: "Freight & trade", color: "#0a84ff", stations: [
+    { id: "explore-freight", label: "Ships, live", who: "Cargo ships, tankers and ferries moving right now", tool: "action:live:ships", words: "ships boats vessels marine traffic container ships tankers" },
     { id: "shipping", label: "Freight Desk", who: "Forwarders, shipping agents and shippers", tool: "shipping", words: "freight forwarder shipping agent shipper logistics container import export customs broker ocean cargo vessel port", key: "atlas.pro.shipping.v1" },
     { id: "network", label: "Business network", who: "Your sites, suppliers and customers, and what flows between them", tool: "network", words: "supply chain suppliers distributor wholesale manufacturer business sites partners customers", key: "atlas.pro.networks.v1" },
   ] },
   { id: "aid", label: "Aid & development", color: "#30d158", stations: [
+    { id: "explore-aid", label: "Where people live", who: "How many people live where, their homes, health and who's online", tool: "theme:people", words: "population people density homes poverty" },
     { id: "field", label: "Field Ops", who: "Programme managers: who's out of reach of water, health, school", tool: "field", words: "ngo aid programme manager development humanitarian charity field coordinator water health school", key: "atlas.pro.field.v1" },
     { id: "relief", label: "Relief Pipeline", who: "Humanitarian logisticians: port to people", tool: "relief", words: "humanitarian logistics relief supply chain warehouse emergency response wfp unhcr food distribution", key: "atlas.pro.relief.v1" },
   ] },
   { id: "farm", label: "Farming", color: "#8bd346", stations: [
-    { id: "grow", label: "Grow", who: "Your fields and crops", tool: "grow", words: "farmer grower fields crops garden allotment", key: "atlas.work.fields.v1" },
+    { id: "grow", label: "Grow", who: "Your fields and crops: growth stage, harvest, water and frost", tool: "grow", words: "farmer grower fields crops garden allotment", key: "atlas.work.fields.v1" },
+    { id: "flock", label: "Flock", who: "Animals in your care: herds, flocks, vets and their records", tool: "flock", words: "livestock sheep cattle cows herd flock vet hens animals rancher" },
     { id: "fn-agriculture", label: "Farm machinery & service", who: "Dealers and servicers of tractors, combines, irrigation", tool: "services:agriculture", words: "tractor dealer farm machinery combine irrigation agricultural equipment ag dealer", key: "atlas.pro.services.v1" },
   ] },
   { id: "energy", label: "Energy", color: "#ffd60a", stations: [
+    { id: "explore-energy", label: "Power around you", who: "Power plants, lines and wind and solar farms on the map", tool: "theme:built/energy", words: "power plants electricity grid power lines energy" },
     { id: "fn-energy", label: "Wind & solar O&M", who: "Operations and maintenance for wind and solar farms", tool: "services:energy", words: "wind turbine solar farm renewable energy o&m operations maintenance technician inverter power plant", key: "atlas.pro.services.v1" },
   ] },
   { id: "health", label: "Health", color: "#ff375f", stations: [
+    { id: "explore-health", label: "Care near you", who: "The nearest hospital, and clinics, doctors and pharmacies around a place", tool: "theme:health", words: "hospital clinic doctor pharmacy patient care near me" },
     { id: "fn-medical", label: "Medical equipment", who: "Companies that install and service hospital equipment", tool: "services:medical", words: "medical devices hospital equipment biomedical imaging scanner service engineer healthcare", key: "atlas.pro.services.v1" },
   ] },
   { id: "telecom", label: "Telecoms", color: "#64d2ff", stations: [
+    { id: "explore-telecom", label: "Who's connected", who: "Undersea cables, data centres and how many people are online", tool: "theme:built/internet", words: "internet cables connectivity online broadband" },
     { id: "fn-telecom", label: "Tower services", who: "Towers, generators and fuel runs", tool: "services:telecom", words: "telecom tower mast mobile network generator fuel rigger isp", key: "atlas.pro.services.v1" },
   ] },
   { id: "gov", label: "Government", color: "#5e5ce6", stations: [
+    { id: "explore-gov", label: "Who governs", who: "Your representatives, the districts and the people who run a place", tool: "theme:politics", words: "who represents me representative senator elections government citizen voter" },
     { id: "office", label: "Politics Pro", who: "Legislative offices: the district, casework, events, votes", tool: "office", words: "politician legislator congress councillor mayor office staffer casework constituents district campaign", key: "atlas.pro.offices.v1" },
   ] },
   { id: "host", label: "Hotels & buildings", color: "#ff6482", stations: [
+    { id: "explore-host", label: "Travel", who: "Go somewhere: the way there, the weather when you land, and stays near what you came for", tool: "travel", words: "trip holiday vacation travel book a hotel stay" },
     { id: "occupancy", label: "Live occupancy", who: "Rooms, floors and bookings from your booking system", tool: "occupancy", words: "hotel hospitality property manager facilities building manager bookings rooms landlord" },
   ] },
 ];
+
+/** Which rung a station sits on (pure). */
+export function tierOf(s: Station): Tier {
+  if (s.tool.startsWith("services:")) return "services";
+  if (/^(explore:|theme:|action:)/.test(s.tool) || ["build", "travel", "fin-markets", "fin-watch", "bank-near"].includes(s.id)) return "everyday";
+  return "pro";
+}
+
+export const LOOKS: Record<string, FieldLook> = {
+  build: { icon: "crane", family: "make", noun: "building", blurb: "Your own project, the builders who run sites, and the plant and suppliers behind them." },
+  architecture: { icon: "building", family: "make", noun: "architecture", blurb: "Great buildings, where a practice should be, local materials, and the surveyors who measure it all." },
+  mine: { icon: "pick", family: "make", noun: "mining", blurb: "The world's mines, running one from pit to port, and the companies that equip and service them." },
+  energy: { icon: "pylon", family: "make", noun: "energy", blurb: "The grid around you, and the crews who keep wind and solar farms turning." },
+  farm: { icon: "sprout", family: "make", noun: "farming", blurb: "Fields, crops and animals, and the dealers who keep the machinery running." },
+  telecom: { icon: "antenna", family: "make", noun: "telecoms", blurb: "How the world is wired, and the crews who keep towers powered." },
+  food: { icon: "fork", family: "serve", noun: "food", blurb: "Where to eat, where to open, what's grown nearby, and who fits out the kitchen." },
+  retail: { icon: "tag", family: "serve", noun: "retail", blurb: "Shops near you, the right street for a store, and who fits it out." },
+  fashion: { icon: "shirt", family: "serve", noun: "fashion", blurb: "Fashion streets, where a boutique belongs, makers nearby, and the machinery behind them." },
+  host: { icon: "suitcase", family: "serve", noun: "hotels", blurb: "Trips, and live rooms and bookings for the people who run hotels and buildings." },
+  realestate: { icon: "home", family: "serve", noun: "real estate", blurb: "Neighbourhoods, comparing addresses, and the firms that look after buildings." },
+  finance: { icon: "coin", family: "money", noun: "finance", blurb: "Markets as they open around the world, any company's owners and assets, and your watchlist." },
+  banking: { icon: "bank", family: "money", noun: "banking", blurb: "Banks near you, any bank's group and figures, and branch coverage for bankers." },
+  freight: { icon: "ship", family: "money", noun: "freight", blurb: "Ships moving now, every shipment on its route, and your business's flows." },
+  tech: { icon: "chip", family: "money", noun: "tech", blurb: "Tech hubs, where a startup should base itself, and the engineers behind data centres." },
+  art: { icon: "palette", family: "people", noun: "art", blurb: "Museums and galleries, where the scene is, makers and suppliers, and art handlers." },
+  gaming: { icon: "gamepad", family: "people", noun: "gaming", blurb: "Arcades and venues, where to open one, and the people who keep machines running." },
+  sport: { icon: "trophy", family: "people", noun: "sport", blurb: "Stadiums and games, gyms and clubs, running a club, and the surfaces they play on." },
+  health: { icon: "medical", family: "people", noun: "health care", blurb: "Care near you, and the engineers who install and service hospital equipment." },
+  aid: { icon: "people", family: "people", noun: "aid work", blurb: "Where people live, who's out of reach of water, health and school, and getting supplies to them." },
+  gov: { icon: "flag", family: "people", noun: "government", blurb: "Who governs a place, and running a legislative office." },
+};
+export const lookOf = (line: Line): FieldLook => LOOKS[line.id] ?? { icon: "briefcase", family: "people", noun: line.label.toLowerCase(), blurb: "" };
 
 const norm = (w: string) => w.toLowerCase().replace(/[^a-z0-9&]/g, "").replace(/(ies)$/, "y").replace(/(es|s)$/, "");
 const STOP = new Set(["i", "a", "an", "the", "and", "or", "for", "of", "to", "in", "at", "we", "our", "my", "run", "work", "do", "am", "im", "company", "business", "out", "up", "all", "with", "who", "people"]);

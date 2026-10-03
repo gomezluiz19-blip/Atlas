@@ -37,7 +37,7 @@ import { firstSentence, headline } from "./place/headline";
 import { measureAt } from "./place/measure";
 import { yearName } from "./time/model";
 import { iconSvg } from "./ui/glyph";
-import { createLayersPanel, type LiveSwitch } from "./ui/layers";
+import { createLayersPanel } from "./ui/layers";
 import { createSearch, flyToPlace, freeArea, geocode, type Command, type Place as SearchPlace, type SearchResult } from "./ui/search";
 import { createRobot } from "./ui/robotCard";
 import { createAiSettings } from "./ui/aiSettings";
@@ -73,7 +73,7 @@ import { countryAt } from "./data/countries";
 import { plan } from "./robot/plan";
 import { describe } from "./robot/run";
 import { siteBrowser } from "./ui/sites";
-import { createCanvasTray } from "./ui/canvasTray";
+import { createViewStack } from "./ui/viewStack";
 import { SITES, sitesFor, type Site } from "./content/sites";
 import { MINES } from "./content/minerals";
 import { LINKS } from "./content/links";
@@ -327,6 +327,9 @@ const makeHub = createWork(app, MAKE_TOOLS, {
 /** Work: every pro tool as a station on its industry's line (the Work map). */
 const openStation = (st: Station) => {
   const ctx = workHub.ctx;
+  // A view of the world (a theme) or a live layer: the panel steps aside so the map can show it.
+  if (st.tool.startsWith("theme:")) { const [theme, sub] = st.tool.slice(6).split("/"); openMode("look"); app.setTheme(theme, sub); return; }
+  if (st.tool.startsWith("action:")) { ctx.close(); app.actions.get(st.tool.slice(7))?.run(); return; }
   if (st.tool.startsWith("explore:")) { void import("./work/scout").then((m) => m.openExplore(ctx, st.tool.slice(8))); return; }
   if (st.tool.startsWith("source:")) { void import("./work/sourcingUi").then((m) => m.openSourcing(ctx, st.tool.slice(7))); return; }
   if (st.tool.startsWith("scout:")) { void import("./work/scout").then((m) => m.openScout(ctx, st.tool.slice(6))); return; }
@@ -340,7 +343,7 @@ const openStation = (st: Station) => {
 };
 const workHub = createWork(app, [], {
   title: "Work",
-  intro: "Tools for the work you do, on the map. Each line is an industry; follow it out to the people who serve it.",
+  intro: "",
   top: () => [workMap(openStation)],
 });
 const lookHub = createWork(app, LOOK_TOOLS, {
@@ -835,7 +838,8 @@ app.connections = (themeId, subtabId) => {
 $("ui").append(createMapControls(globe.viewer));
 
 // Everything on the map, from every theme.
-$("ui").append(createCanvasTray(app));
+// Everything on the map as bubbles at the edge of the globe; + adds a view without leaving it.
+$("ui").append(createViewStack(app, () => (things ??= buildThings(app, overlays, [...PLACE_TOOLS, ...MAKE_TOOLS, ...LOOK_TOOLS]))));
 
 // Map style popover.
 const layersBtn = $("layers-btn");
@@ -862,16 +866,6 @@ app.actions.set("city:life", { label: "Living city (3D, simulated movement)", ru
     cam.flyToBoundingSphere(new BoundingSphere(target, 1), { offset: new HeadingPitchRange(cam.heading, CesiumMath.toRadians(-40), range * 1.05), duration: 1.4 });
   });
 }
-const LIVE: LiveSwitch[] = [
-  { label: "Planes", about: "Every aircraft in view, live over ADS-B, flying at its real height. Tap one for its card; follow it.", on: () => traffic.isOn("plane"), set: (v) => traffic.set("plane", v), status: () => (traffic.count("plane") ? `${traffic.count("plane").toLocaleString()} live` : traffic.note("plane")) },
-  { label: "Ships", about: "Vessels live over AIS: cargo, tankers, ferries, fishing boats. Tap one for its card.", on: () => traffic.isOn("ship"), set: (v) => traffic.set("ship", v), status: () => (traffic.count("ship") ? `${traffic.count("ship").toLocaleString()} live` : traffic.note("ship")) },
-  { label: "Living city", about: "Close in over a town: its buildings and trees in 3D, and simulated cars and people moving on the real streets, as many as usual for the hour.", on: () => cityLife.isOn(), set: (v) => cityLife.set(v), status: () => { const n = cityLife.counts(); return n.buildings ? `${n.cars} cars, ${n.people} people` : "zoom in to a town"; } },
-  // The other live overlays, so everything happening now is switched from one place.
-  ...(["quakes", "radar", "aurora"] as const).map((id) => {
-    const o = OVERLAYS.find((x) => x.id === id)!;
-    return { label: o.label, about: o.about, on: () => overlays.isOn(id), set: (v: boolean) => void overlays.set(id, v) } satisfies LiveSwitch;
-  }),
-];
 for (const kind of ["plane", "ship"] as const)
   app.actions.set(`live:${kind}s`, { label: kind === "plane" ? "Live planes" : "Live ships", run: () => traffic.set(kind, true), isOn: () => traffic.isOn(kind), stop: () => traffic.set(kind, false) });
 // A shared flight or ship (#follow=p:a1b2c3@lon,lat): open Atlas following it.
@@ -881,13 +875,13 @@ const followHash = () => {
 };
 followHash();
 addEventListener("hashchange", followHash);
-let layers = createLayersPanel(globe, LIVE);
+let layers = createLayersPanel(globe);
 $("ui").append(layers);
 layersBtn.innerHTML = icons.layers;
 const toggleLayers = (open = layers.hidden) => {
   if (open) {
     // Rebuilt on open so it matches the canvas (layers can be removed from the tray).
-    const fresh = createLayersPanel(globe, LIVE);
+    const fresh = createLayersPanel(globe);
     layers.replaceWith(fresh);
     layers = fresh;
   }
@@ -897,29 +891,39 @@ const toggleLayers = (open = layers.hidden) => {
 
 // Analysis layers from the Layers popover (and elsewhere) live on the shared canvas too.
 const GLOBE_LAYERS: { kind: OverlayKind; label: string; color: string }[] = [
-  { kind: "geology", label: "Geologic map", color: "#a2845e" },
-  { kind: "elevation", label: "Elevation colours", color: "#34c759" },
-  { kind: "slope", label: "Slope", color: "#ff9f0a" },
-  { kind: "contours", label: "Contour lines", color: "#d1d1d6" },
-  { kind: "species", label: "Species records", color: "#30d158" },
+  { kind: "geology", label: "🪨 Geologic map", color: "#a2845e" },
+  { kind: "elevation", label: "⛰️ Elevation colours", color: "#34c759" },
+  { kind: "slope", label: "📐 Slope", color: "#ff9f0a" },
+  { kind: "contours", label: "〰️ Contour lines", color: "#d1d1d6" },
+  { kind: "species", label: "🔬 Species records", color: "#30d158" },
 ];
+// Hidden for now from the stack of views: off on the globe, but still listed.
+const resting = new Set<OverlayKind>();
 globe.onApply = () => {
   for (const { kind, label, color } of GLOBE_LAYERS) {
     const key = `globe:${kind}`, on = globe.state.overlays[kind].on;
     if (on && !app.canvas.has(key))
       app.canvas.put({
         id: key, label, color, scope: "world", pinned: false,
-        show: () => {},
+        show: (v) => {
+          if (v === globe.state.overlays[kind].on) return;
+          if (v) resting.delete(kind); else resting.add(kind);
+          globe.state.overlays[kind].on = v;
+          globe.apply();
+        },
         remove: () => {
+          resting.delete(kind);
           globe.state.overlays[kind].on = false;
           globe.apply();
         },
       }, true);
-    else if (!on && app.canvas.has(key)) app.canvas.drop(key);
+    else if (on && resting.has(kind)) { resting.delete(kind); app.canvas.setOff(key, false); }
+    else if (!on && !resting.has(kind) && app.canvas.has(key)) app.canvas.drop(key);
   }
 };
 layersBtn.addEventListener("click", () => { const open = layers.hidden; for (const c of [placeHub.ctx, makeHub.ctx, lookHub.ctx]) c.close(); myPlaces.close(); pro.close(); space.close(); toggleLayers(open); });
 globe.viewer.scene.canvas.addEventListener("pointerdown", () => toggleLayers(false));
+addEventListener("atlas:add-view", () => toggleLayers(false));
 
 // Time: one slider from the ancient world to 2100 (borders of the time, the view from space, projections).
 const timeBar = new TimeBar(app);
@@ -1066,8 +1070,17 @@ const syncIntroChip = (p: typeof app.place) => {
 };
 app.actions.set("fin:company", { label: "Company explorer", run: (id) => { closePanels(workHub.panel); workHub.ctx.open(); void import("./finance/ui").then((m) => m.openCompany(workHub.ctx, app, "finance", id || undefined)); } });
 app.actions.set("reach:open", { label: "Getting around from here", run: () => { closePanels(placeHub.panel); placeHub.ctx.open(); void import("./travel/reachUi").then((m) => m.openReach(placeHub.ctx, app)); } });
+app.actions.set("travel:plan", { label: "Plan a trip", run: (arg) => {
+  const o = (() => { try { return JSON.parse(arg ?? "{}") as { to?: { name: string; lon: number; lat: number }; from?: { name: string; lon: number; lat: number }; depart?: string; back?: string; people?: number }; } catch { return {}; } })();
+  closePanels(placeHub.panel); placeHub.ctx.open();
+  void import("./travel/travelUi").then((m) => m.openTravel(placeHub.ctx, app, o.to, o));
+} });
 app.actions.set("travel:to", { label: "Travel here", run: () => { const p = app.place; closePanels(placeHub.panel); placeHub.ctx.open(); void import("./travel/travelUi").then((m) => m.openTravel(placeHub.ctx, app, p ? { name: p.name?.title ?? "this spot", lon: p.lon, lat: p.lat } : undefined)); } });
-app.actions.set("wind:toggle", { label: "Wind on the map", run: () => void import("./climate/windLayer").then((m) => app.toast(m.windLayer(app).toggle() ? "Wind on: the wind now, over the whole view." : "Wind off.", 3000)) });
+let windOn = () => false;
+app.actions.set("wind:toggle", { label: "Wind on the map",
+  run: () => void import("./climate/windLayer").then((m) => { const w = m.windLayer(app); windOn = () => w.isOn; app.toast(w.toggle() ? "Wind on: the wind now, over the whole view." : "Wind off.", 3000); }),
+  isOn: () => windOn(),
+  stop: () => void import("./climate/windLayer").then((m) => m.windLayer(app).toggle(false)) });
 app.actions.set("intro:play", { label: "Play this landmark's intro", run: () => { const p = app.place; if (p) withIntro(p.name?.title, p.lon, p.lat, (x) => x && arriveAt(x), true); } });
 app.onPlace = (p) => {
   syncIntroChip(p);

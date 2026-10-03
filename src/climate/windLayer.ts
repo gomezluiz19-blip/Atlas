@@ -46,6 +46,8 @@ export class WindLayer {
     this.on = true;
     this.flow ??= new FlowOverlay(this.app.globe.viewer, { maxHeight: Number.POSITIVE_INFINITY, maxDrops: 3000, fade: 0.07 });
     this.flow.show(true);
+    // On the stack of views like any layer: tap to hide it for a moment, x to switch it off.
+    this.app.canvas.put({ id: "wind", label: "💨 Wind", color: "#64d2ff", scope: "world", pinned: true, show: (v) => this.flow?.show(v), remove: () => this.stop() }, true);
     let t = 0;
     this.stopMove = this.app.globe.viewer.camera.moveEnd.addEventListener(() => { clearTimeout(t); t = window.setTimeout(() => void this.refresh(), 500); });
     this.timer = window.setInterval(() => { this.lastKey = ""; void this.refresh(); }, 15 * 60_000);
@@ -54,6 +56,7 @@ export class WindLayer {
 
   stop() {
     this.on = false;
+    this.app.canvas.drop("wind");
     this.flow?.show(false);
     this.flow?.set([]);
     this.stopMove?.(); this.stopMove = null;

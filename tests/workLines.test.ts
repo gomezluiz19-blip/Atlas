@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { fit, LINES, rank } from "../src/work/workLines";
+import { FAMILIES, fit, LINES, LOOKS, rank, tierOf } from "../src/work/workLines";
 
 const top = (q: string) => rank(q)[0]?.station.id;
 
@@ -7,7 +7,7 @@ describe("the Work map", () => {
   it("puts each pro tool on an industry line, specialists after the tool they serve", () => {
     const ids = (l: string) => LINES.find((x) => x.id === l)!.stations.map((s) => s.id);
     expect(ids("build")).toEqual(["build", "buildpro", "fn-construction"]);
-    expect(ids("mine")).toEqual(["mining", "fn-mining"]);
+    expect(ids("mine")).toEqual(["explore-mine", "mining", "fn-mining"]);
     expect(LINES.flatMap((l) => l.stations).filter((s) => s.tool.startsWith("services:")).map((s) => s.tool.slice(9)).sort()).toEqual(["agriculture", "architecture", "art", "construction", "energy", "fashion", "food", "gaming", "medical", "mining", "realestate", "retail", "sports", "tech", "telecom"]);
   });
   it("runs each new industry from the everyday look round, to the pro's scout, to the companies that serve them", () => {
@@ -40,5 +40,21 @@ describe("the Work map", () => {
   it("ignores filler words", () => {
     expect(rank("we run our company")).toEqual([]);
     expect(fit(LINES[0].stations[0], LINES[0], "")).toBe(0);
+  });
+  it("puts every field's tools on the three rungs, in order", () => {
+    const rungs = (l: string) => LINES.find((x) => x.id === l)!.stations.map(tierOf);
+    expect(rungs("mine")).toEqual(["everyday", "pro", "services"]);
+    expect(rungs("build")).toEqual(["everyday", "pro", "services"]);
+    expect(rungs("food")).toEqual(["everyday", "pro", "pro", "services"]);
+    expect(rungs("finance")).toEqual(["everyday", "pro", "everyday"]);
+    for (const line of LINES) expect(line.stations.filter((s) => s.tool.startsWith("services:")).every((s) => tierOf(s) === "services")).toBe(true);
+  });
+  it("gives every field a look and a group", () => {
+    const groups = new Set<string>(FAMILIES.map((f) => f.id));
+    for (const line of LINES) {
+      expect(LOOKS[line.id], line.id).toBeTruthy();
+      expect(groups.has(LOOKS[line.id].family)).toBe(true);
+      expect(line.stations.length).toBeGreaterThan(0);
+    }
   });
 });

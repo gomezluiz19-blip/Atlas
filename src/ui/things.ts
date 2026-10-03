@@ -9,6 +9,7 @@ import { NETWORKS } from "../globe/networks";
 import { OVERLAYS, type Overlays } from "../globe/overlays";
 import { LENSES } from "../lenses";
 import type { WorkTool } from "../work/hub";
+import type { OverlayKind } from "../globe/viewer";
 import type { Thing } from "./frontDoor";
 
 const THEME: Record<string, { emoji: string; words: string }> = {
@@ -46,9 +47,20 @@ const TOOL: Record<string, { emoji: string; words: string }> = {
   year: { emoji: "🌱", words: "seasons year months greening spring summer autumn winter solstice equinox rhythm" },
 };
 
+/** The analysis layers drawn by the globe itself (from the Layers popover, now stacked like any view). */
+const ANALYSIS: { kind: OverlayKind; label: string; emoji: string; about: string }[] = [
+  { kind: "geology", label: "Geologic map", emoji: "🪨", about: "Bedrock at the surface, coloured by rock unit and age" },
+  { kind: "elevation", label: "Elevation colours", emoji: "⛰️", about: "Height above sea level, and depth below it" },
+  { kind: "slope", label: "Slope", emoji: "📐", about: "How steep the ground is" },
+  { kind: "contours", label: "Contour lines", emoji: "〰️", about: "Lines of equal height, finer as you zoom in" },
+];
+const LIVE_OVERLAYS = new Set(["quakes", "radar", "aurora"]);
+
 export function buildThings(app: App, overlays: Overlays, tools: WorkTool[]): Thing[] {
   const out: Thing[] = [];
   const act = (id: string, arg?: string) => () => app.actions.get(id)?.run(arg);
+  const stop = (id: string) => () => app.actions.get(id)?.stop?.();
+  const themeLabel = (id: string) => app.themes.find((t) => t.id === id)?.label ?? id;
   for (const t of app.themes)
     out.push({ title: t.label, detail: t.intro, words: THEME[t.id]?.words, emoji: THEME[t.id]?.emoji ?? "🌍", group: "Open", run: () => app.setTheme(t.id) });
   const seen = new Set<string>();
@@ -57,24 +69,32 @@ export function buildThings(app: App, overlays: Overlays, tools: WorkTool[]): Th
       if (seen.has(l.label)) continue;
       seen.add(l.label);
       out.push({ title: l.label, detail: l.about, emoji: l.emoji, group: "Show on the map", words: themeId, on: () => layerIsOn(app, themeId, l),
-        run: () => void switchLayer(app, themeId, l, true).then(() => app.toast(`${l.label} on the map. Switch it off from “On the map”.`, 3000)) });
+        shelf: themeLabel(themeId), off: () => void switchLayer(app, themeId, l, false),
+        run: () => void switchLayer(app, themeId, l, true).then(() => app.toast(`${l.label} on the map. Tap its bubble at the edge of the globe to hide it.`, 3000)) });
     }
   for (const [id, title, emoji, detail, words] of [
     ["live:planes", "Live planes", "✈️", "Every aircraft in view, moving live at its real height", "planes flights aircraft flying overhead air traffic adsb flight tracker"],
     ["city:life", "Living city", "🏙️", "3D buildings and trees, with cars and people moving on the real streets", "3d city buildings traffic people pedestrians cars simulation streets living"],
     ["live:ships", "Live ships", "🚢", "Vessels moving live over AIS: cargo, tankers, ferries", "ships boats vessels marine traffic ais shipping ferries"],
   ] as const)
-    out.push({ title, detail, emoji, group: "Show on the map", words, on: () => !!app.actions.get(id)?.isOn?.(), run: act(id) });
+    out.push({ title, detail, emoji, group: "Show on the map", words, on: () => !!app.actions.get(id)?.isOn?.(), run: act(id), off: stop(id), shelf: "Live" });
+  out.push({ title: "Wind", detail: "The wind now, flowing over the whole view", emoji: "💨", group: "Show on the map", words: "wind breeze gusts air flow weather", shelf: "Live",
+    on: () => !!app.actions.get("wind:toggle")?.isOn?.(), run: () => { if (!app.actions.get("wind:toggle")?.isOn?.()) act("wind:toggle")(); }, off: stop("wind:toggle") });
   for (const n of NETWORKS)
     if (!seen.has(n.label)) {
       seen.add(n.label);
-      out.push({ title: n.label, detail: n.about, emoji: NET_EMOJI[n.id] ?? "🗺️", group: "Show on the map", words: n.id === "roads" ? "roads motorways" : n.id, on: () => !!app.actions.get(`net:${n.id}`)?.isOn?.(), run: act(`net:${n.id}`) });
+      out.push({ title: n.label, detail: n.about, emoji: NET_EMOJI[n.id] ?? "🗺️", group: "Show on the map", words: n.id === "roads" ? "roads motorways" : n.id, on: () => !!app.actions.get(`net:${n.id}`)?.isOn?.(), run: act(`net:${n.id}`), off: stop(`net:${n.id}`), shelf: "Networks" });
     }
   for (const o of OVERLAYS)
     if (o.id !== "labels" && !seen.has(o.label)) {
       seen.add(o.label);
-      out.push({ title: o.label, detail: o.about, emoji: OVERLAY_EMOJI[o.id] ?? "✨", group: "Show on the map", on: () => overlays.isOn(o.id), run: () => void overlays.set(o.id, true) });
+      out.push({ title: o.label, detail: o.about, emoji: OVERLAY_EMOJI[o.id] ?? "✨", group: "Show on the map", on: () => overlays.isOn(o.id), run: () => void overlays.set(o.id, true), off: () => void overlays.set(o.id, false), shelf: LIVE_OVERLAYS.has(o.id) ? "Live" : "The whole Earth" });
     }
+  for (const a of ANALYSIS) {
+    const st = () => app.globe.state.overlays[a.kind];
+    out.push({ title: a.label, detail: a.about, emoji: a.emoji, group: "Show on the map", words: "analysis terrain layer", shelf: "Analysis",
+      on: () => st().on, run: () => { st().on = true; app.globe.apply(); }, off: () => { st().on = false; app.globe.apply(); } });
+  }
   out.push({ title: "Where people live", detail: "Every town and city as a glow", emoji: "👥", group: "Show on the map", words: "population density heat map", run: act("people:view", "pop") });
   for (const v of VIEWS)
     out.push({ title: v.label, detail: `${v.about}, country by country`, emoji: v.emoji, group: "Show on the map", words: `people ${v.group}`, run: act("people:view", v.id) });

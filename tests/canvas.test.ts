@@ -59,4 +59,36 @@ describe("canvas", () => {
     expect(c.visible()).toHaveLength(0);
     expect(b.log).toContain("remove");
   });
+
+  it("hides a view for now without losing it, and brings it back", () => {
+    const c = new Canvas();
+    const { it, log } = item("wind");
+    c.put(it);
+    c.setOff("wind", true);
+    expect(c.visible()).toHaveLength(0);
+    expect(c.listed().map((i) => [i.id, i.off])).toEqual([["wind", true]]);
+    c.setTheme("water");
+    expect(log).toEqual(["show", "hide"]);
+    c.setOff("wind", false);
+    expect(log).toEqual(["show", "hide", "show"]);
+    expect(c.listed()[0].off).toBe(false);
+  });
+
+  it("keeps a view hidden when its owner redraws it", () => {
+    const c = new Canvas();
+    c.put(item("globe:geology").it);
+    c.setOff("globe:geology", true);
+    const again = item("globe:geology");
+    c.put(again.it);
+    expect(c.listed()[0].off).toBe(true);
+    expect(again.log).toEqual([]);
+  });
+
+  it("lists another theme's own layers only in that theme", () => {
+    const c = new Canvas();
+    c.setTheme("built");
+    c.put(item("net:ports", { theme: "built" }).it);
+    c.setTheme("water");
+    expect(c.listed()).toHaveLength(0);
+  });
 });

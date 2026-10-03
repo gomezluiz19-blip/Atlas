@@ -84,13 +84,19 @@ function dayStrip(land: string, rise: string, set: string): HTMLElement {
     h("small", {}, `You land ${dusk ? "around " + (Math.abs(l - r) < Math.abs(l - s) ? "sunrise" : "sunset") : dark ? "in the dark" : "in daylight"} · sunrise ${rise.slice(11, 16)}, sunset ${set.slice(11, 16)}`));
 }
 
-export function openTravel(ctx: WorkCtx, app: App, dest?: Pt) {
+export interface TravelPrefill { from?: Pt; depart?: string; back?: string; people?: number }
+
+export function openTravel(ctx: WorkCtx, app: App, dest?: Pt, pre: TravelPrefill = {}) {
   map ??= new OpsMap(app, "travel", "#0a84ff");
   const today = new Date().toISOString().slice(0, 10);
   const home = (() => { try { const all = JSON.parse(localStorage.getItem("atlas.myplaces.v1") ?? "[]") as (Pt & { kind?: string })[]; return all.find((p) => p.kind === "home") ?? all[0] ?? null; } catch { return null; } })();
   let from: Pt | null = home ? { name: home.name, lon: home.lon, lat: home.lat } : null;
   let to: Pt | null = dest ?? null;
   let depart = addDays(today, 14), back = addDays(today, 19), time = "09:00", people = 2;
+  if (pre.from) from = pre.from;
+  if (pre.depart && pre.depart >= today) depart = pre.depart;
+  if (pre.back && pre.back > depart) back = pre.back; else if (pre.depart) back = addDays(depart, 5);
+  if (pre.people) people = Math.max(1, Math.min(9, pre.people));
 
   const status = h("p", { class: "muted small" });
   const body = h("div", {});
@@ -151,7 +157,8 @@ export function openTravel(ctx: WorkCtx, app: App, dest?: Pt) {
       stayBox,
       bookBlock(a, b, apA[0]?.iata, apB[0]?.iata, ways),
       h("div", { class: "row-btns" },
-        h("button", { class: "primary-btn", onclick: () => save(a, b, best, apB[0]?.name) }, "＋ Save to my trips"),
+        h("button", { class: "primary-btn", onclick: () => play(a, b, best, apB[0]?.name) }, "▶ Play the trip"),
+        h("button", { class: "pill-btn", onclick: () => save(a, b, best, apB[0]?.name) }, "＋ Save to my trips"),
         h("button", { class: "pill-btn", onclick: () => void flyToPlace(app.globe, { name: b.name, lon: b.lon, lat: b.lat, radius: 4000 }) }, `Look around ${b.name}`)),
       h("p", { class: "fineprint" }, "Times and carbon are typical door-to-door estimates; prices and timetables are on the booking sites. Weather by Open-Meteo; stays and sights from OpenStreetMap."));
     void staysFor(b, stayBox, [f.line, ...pts], [f.flow]);
@@ -210,11 +217,11 @@ export function openTravel(ctx: WorkCtx, app: App, dest?: Pt) {
       h("p", { class: "fineprint" }, `Each opens already searched for ${nightsBetween(depart, back)} nights, ${people} ${people === 1 ? "traveller" : "travellers"}.`));
   }
 
-  function save(a: Pt, b: Pt, way: WayEstimate, airport?: string) {
-    const trips = new ListStore<Journey>("atlas.work.journeys.v1");
+  /** The trip as a journey: there, the stay, and home again. */
+  function journeyOf(a: Pt, b: Pt, way: WayEstimate, airport?: string): Journey {
     const id = () => newId();
     const mode = way.way === "fly" ? "fly" : way.way === "train" ? "train" : way.way === "bus" ? "bus" : "drive";
-    const j: Journey = {
+    return {
       id: id(), name: `${b.name}, ${DAY(depart)}`, start: depart, time, origin: { name: a.name, lon: a.lon, lat: a.lat }, created: Date.now(),
       steps: [
         { id: id(), kind: "move", mode, to: { name: b.name, detail: airport, lon: b.lon, lat: b.lat } },
@@ -223,8 +230,13 @@ export function openTravel(ctx: WorkCtx, app: App, dest?: Pt) {
       ],
       notes: `Dates: ${datesBetween(depart, back)[0]} to ${back}. ${people} travellers.`,
     };
-    trips.push(j);
+  }
+  function save(a: Pt, b: Pt, way: WayEstimate, airport?: string) {
+    new ListStore<Journey>("atlas.work.journeys.v1").push(journeyOf(a, b, way, airport));
     app.toast(`Saved to your trips: Create › Plan › Trips, and My plans.`, 5000);
+  }
+  function play(a: Pt, b: Pt, way: WayEstimate, airport?: string) {
+    void import("./playTrip").then((m) => m.playTrip(app, journeyOf(a, b, way, airport)));
   }
 
   const swap = () => { const t = fromBox.value; fromBox.value = toBox.value; toBox.value = t; [from, to] = [to, from]; };

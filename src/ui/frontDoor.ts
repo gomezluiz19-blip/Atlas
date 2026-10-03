@@ -17,6 +17,10 @@ export interface Thing {
   run(): void;
   /** For switches: whether it's on now. */
   on?(): boolean;
+  /** For map layers: switches it off again. */
+  off?(): void;
+  /** For map layers you can stack (the Add a view sheet): the shelf it sits on ("Live", "Earth", "Analysis"). */
+  shelf?: string;
 }
 
 /** Words that say how, not what: "show me the railways on the map". */

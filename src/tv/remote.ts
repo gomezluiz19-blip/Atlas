@@ -40,7 +40,9 @@ function start(code: string) {
   const titleEl = $("strong", {}, title), subEl = $("small", {}, sub), link = $("span", { class: "r-link-state" }, "");
   const tv = joinTv(code, (s: State) => {
     if (s.t === "state") { title = s.title || "Atlas"; sub = s.sub ?? ""; titleEl.textContent = title; subEl.textContent = sub; root.classList.add("live"); }
-    if (s.t === "suggest") { showSuggestions(s.items, s.focus); if (!root.classList.contains("typing") && !s.q) enterTyping(false); }
+    if (s.t === "suggest") { if (editing) return; showSuggestions(s.items, s.focus); if (!root.classList.contains("typing") && !s.q) enterTyping(false); }
+    if (s.t === "input") editField(s.kind, s.label, s.value);
+    if (s.t === "form" && s.kind === "trip") tripSheet();
   });
   const cmd = (c: Cmd) => tv.send(c);
   window.setInterval(() => { cmd({ t: "ping" }); link.textContent = tv.direct ? "⚡ direct" : "via relay"; }, 4000);
@@ -147,20 +149,87 @@ function start(code: string) {
   const closeType = $("button", { class: "r-type-x", "aria-label": "Close search" }, "✕");
   const sugg = $("div", { class: "r-sugg" });
   const typeBar = $("div", { class: "r-type" }, $("span", { class: "r-type-icon" }, "⌕"), field, closeType);
-  let typed = 0;
-  field.addEventListener("input", () => { clearTimeout(typed); typed = window.setTimeout(() => cmd({ t: "type", q: field.value }), 90); });
-  field.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); cmd({ t: "select" }); leaveTyping(false); } });
-  closeType.addEventListener("click", () => leaveTyping(true));
+  const typeIcon = typeBar.querySelector<HTMLElement>(".r-type-icon")!;
+  const doneBtn = $("button", { class: "r-type-done" }, "Done");
+  typeBar.insertBefore(doneBtn, closeType);
+  // `editing`: the keyboard is filling a field on the TV (a Work tool's "To", a date), not searching.
+  let typed = 0, editing = false;
+  const sendField = (done: boolean) => cmd({ t: "set", value: field.value, done });
+  field.addEventListener("input", () => {
+    clearTimeout(typed);
+    typed = window.setTimeout(() => (editing ? sendField(false) : cmd({ t: "type", q: field.value })), 90);
+  });
+  field.addEventListener("change", () => { if (editing && field.type !== "text") sendField(false); });
+  const finish = () => {
+    clearTimeout(typed);
+    if (editing) { sendField(true); leaveTyping(false); return; }
+    cmd({ t: "select" }); leaveTyping(false);
+  };
+  field.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); finish(); } });
+  doneBtn.addEventListener("click", () => { buzz(10); finish(); });
+  closeType.addEventListener("click", () => leaveTyping(!editing));
   function enterTyping(tellTv: boolean) {
-    root.classList.add("typing");
+    editing = false;
+    field.type = "text"; field.placeholder = "Where to?"; typeIcon.textContent = "⌕";
+    root.classList.add("typing"); root.classList.remove("editing");
     field.value = ""; sugg.replaceChildren();
     field.focus();
     if (tellTv) cmd({ t: "search", open: true });
   }
+  /** The TV's focus is on a field: the keyboard (or the phone's own date/time picker) fills it live. */
+  function editField(kind: "text" | "date" | "number" | "time", label: string, value: string) {
+    editing = true;
+    field.type = kind; field.placeholder = label; field.value = value; typeIcon.textContent = kind === "date" ? "📅" : kind === "time" ? "🕒" : kind === "number" ? "#" : "✎";
+    field.setAttribute("aria-label", label);
+    sugg.replaceChildren($("p", { class: "r-edit-label" }, `Filling “${label}” on the TV`));
+    root.classList.add("typing", "editing");
+    field.focus();
+    try { if (kind !== "text") (field as HTMLInputElement & { showPicker?: () => void }).showPicker?.(); } catch { /* needs a gesture */ }
+  }
   function leaveTyping(tellTv: boolean) {
-    root.classList.remove("typing");
+    root.classList.remove("typing", "editing");
     field.blur();
     if (tellTv) cmd({ t: "search", open: false });
+    editing = false;
+  }
+
+  // ---- Plan a trip: a few fields on the phone, the whole plan on the TV ----
+  function tripSheet() {
+    root.querySelector(".r-sheet")?.remove();
+    const iso = (d: Date) => d.toISOString().slice(0, 10);
+    const day = (n: number) => iso(new Date(Date.now() + n * 864e5));
+    const input = (attrs: Record<string, string>) => $("input", { autocomplete: "off", ...attrs }) as HTMLInputElement;
+    const to = input({ type: "text", placeholder: "Lisbon, Kyoto, the Grand Canyon…", autocapitalize: "words", enterkeyhint: "next" });
+    const from = input({ type: "text", placeholder: "Home", autocapitalize: "words", enterkeyhint: "next" });
+    const depart = input({ type: "date", value: day(21), min: day(0) });
+    const back = input({ type: "date", value: day(26), min: day(0) });
+    let people = 2;
+    const count = $("strong", {}, "2");
+    const step = (d: number) => { const b = $("button", { type: "button", class: "r-step" }, d > 0 ? "+" : "−"); b.addEventListener("click", () => { buzz(6); people = Math.max(1, Math.min(9, people + d)); count.textContent = String(people); }); return b; };
+    depart.addEventListener("change", () => { back.min = depart.value; if (back.value < depart.value) back.value = iso(new Date(new Date(depart.value).getTime() + 5 * 864e5)); });
+    const go = $("button", { class: "r-primary", type: "submit" }, "Plan it on the TV ✈");
+    const x = $("button", { class: "r-type-x", type: "button", "aria-label": "Close" }, "✕");
+    const row = (label: string, el: Node) => $("label", { class: "r-field" }, $("span", {}, label), el);
+    const form = $("form", { class: "r-sheet" },
+      $("header", {}, $("h2", {}, "✈ Plan a trip"), x),
+      row("To", to), row("From", from),
+      $("div", { class: "r-two" }, row("Leave", depart), row("Back", back)),
+      $("div", { class: "r-field r-people" }, $("span", {}, "Travellers"), $("div", {}, step(-1), count, step(1))),
+      go, $("p", { class: "r-sheet-note" }, "The TV lays out the journey: the flight or drive, the days, and a ▶ to fly it."));
+    const close = () => { form.classList.add("out"); setTimeout(() => form.remove(), 300); };
+    x.addEventListener("click", close);
+    to.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); from.focus(); } });
+    from.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); go.click(); } });
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      if (!to.value.trim()) { to.classList.add("shake"); to.focus(); return; }
+      buzz(16);
+      cmd({ t: "trip", to: to.value.trim(), from: from.value.trim() || undefined, depart: depart.value, back: back.value, people });
+      close();
+    });
+    to.addEventListener("animationend", () => to.classList.remove("shake"));
+    root.append(form);
+    to.focus();
   }
   function showSuggestions(items: string[], focus: number) {
     sugg.replaceChildren(...items.map((name, i) => {
@@ -192,7 +261,8 @@ function start(code: string) {
 
   // ---- More: a different TV, exit ----
   const more = $("details", { class: "r-more" }, $("summary", { "aria-label": "More" }, "⋯"),
-    $("div", {}, (() => { const b = $("button", {}, "Next in the playlist ▶"); b.addEventListener("click", () => cmd({ t: "next" })); return b; })(),
+    $("div", {}, (() => { const b = $("button", {}, "✈ Plan a trip"); b.addEventListener("click", () => { (b.closest("details") as HTMLDetailsElement).open = false; tripSheet(); }); return b; })(),
+      (() => { const b = $("button", {}, "Next in the playlist ▶"); b.addEventListener("click", () => cmd({ t: "next" })); return b; })(),
       (() => { const b = $("button", {}, "💨 Wind on the TV"); b.addEventListener("click", () => cmd({ t: "wind" })); return b; })(),
       (() => { const b = $("button", {}, "◎ Hologram of this place"); b.addEventListener("click", () => cmd({ t: "holo" })); return b; })(),
       (() => { const b = $("button", {}, "Exit TV mode"); b.addEventListener("click", () => cmd({ t: "exit" })); return b; })(),

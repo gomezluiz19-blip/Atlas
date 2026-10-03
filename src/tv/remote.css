@@ -79,3 +79,28 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .r-sugg-row.focus { border-color: var(--accent); background: rgba(90, 200, 250, .14); }
 @keyframes r-in { from { opacity: 0; transform: translateY(6px); } }
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+
+/* Filling a field on the TV: same bar, with a Done */
+.r-type-done { display: none; border: 0; border-radius: 999px; padding: 10px 16px; background: #0a84ff; color: #fff; font-weight: 700; }
+.editing .r-type-done { display: block; }
+.editing .r-type input[type="date"], .editing .r-type input[type="time"] { color-scheme: light; }
+.r-edit-label { margin: 4px 6px; color: var(--dim); font-size: 13px; }
+
+/* Plan a trip: a sheet that rises over the orb */
+.r-sheet { position: fixed; z-index: 20; left: 0; right: 0; bottom: 0; max-height: 92vh; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; padding: 18px 18px calc(18px + env(safe-area-inset-bottom, 0px)); border-radius: 26px 26px 0 0; background: #0c1522; border-top: 1px solid var(--line); box-shadow: 0 -30px 80px rgba(0, 0, 0, .6); animation: r-sheet-in .38s cubic-bezier(.2, .8, .2, 1) both; user-select: text; -webkit-user-select: text; }
+.r-sheet.out { animation: r-sheet-in .28s ease reverse both; }
+@keyframes r-sheet-in { from { transform: translateY(100%); } }
+.r-sheet header { display: flex; align-items: center; justify-content: space-between; }
+.r-sheet h2 { margin: 0; font-size: 22px; }
+.r-sheet .r-type-x { background: var(--card); color: var(--text); }
+.r-field { display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 0; }
+.r-field > span { color: var(--dim); font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
+.r-field input { width: 100%; box-sizing: border-box; padding: 14px; border-radius: 14px; border: 1px solid var(--line); background: var(--card); color: var(--text); font: 600 17px/1.2 -apple-system, system-ui, sans-serif; outline: none; }
+.r-field input:focus { border-color: var(--accent); box-shadow: 0 0 0 4px rgba(90, 200, 250, .18); }
+.r-two { display: flex; gap: 10px; }
+.r-people { flex-direction: row; align-items: center; justify-content: space-between; }
+.r-people > div { display: flex; align-items: center; gap: 14px; }
+.r-people strong { font-size: 20px; min-width: 1ch; text-align: center; }
+.r-step { width: 42px; height: 42px; border-radius: 50%; border: 1px solid var(--line); background: var(--card); color: var(--text); font-size: 22px; }
+.r-sheet .r-primary { max-width: none; background: linear-gradient(135deg, #5ac8fa, #0a84ff); color: #fff; }
+.r-sheet-note { margin: 0; color: var(--dim); font-size: 13px; text-align: center; }
