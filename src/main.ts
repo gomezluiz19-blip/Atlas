@@ -1066,6 +1066,11 @@ const syncIntroChip = (p: typeof app.place) => {
 };
 app.actions.set("fin:company", { label: "Company explorer", run: (id) => { closePanels(workHub.panel); workHub.ctx.open(); void import("./finance/ui").then((m) => m.openCompany(workHub.ctx, app, "finance", id || undefined)); } });
 app.actions.set("reach:open", { label: "Getting around from here", run: () => { closePanels(placeHub.panel); placeHub.ctx.open(); void import("./travel/reachUi").then((m) => m.openReach(placeHub.ctx, app)); } });
+app.actions.set("travel:plan", { label: "Plan a trip", run: (arg) => {
+  const o = (() => { try { return JSON.parse(arg ?? "{}") as { to?: { name: string; lon: number; lat: number }; from?: { name: string; lon: number; lat: number }; depart?: string; back?: string; people?: number }; } catch { return {}; } })();
+  closePanels(placeHub.panel); placeHub.ctx.open();
+  void import("./travel/travelUi").then((m) => m.openTravel(placeHub.ctx, app, o.to, o));
+} });
 app.actions.set("travel:to", { label: "Travel here", run: () => { const p = app.place; closePanels(placeHub.panel); placeHub.ctx.open(); void import("./travel/travelUi").then((m) => m.openTravel(placeHub.ctx, app, p ? { name: p.name?.title ?? "this spot", lon: p.lon, lat: p.lat } : undefined)); } });
 app.actions.set("wind:toggle", { label: "Wind on the map", run: () => void import("./climate/windLayer").then((m) => app.toast(m.windLayer(app).toggle() ? "Wind on: the wind now, over the whole view." : "Wind off.", 3000)) });
 app.actions.set("intro:play", { label: "Play this landmark's intro", run: () => { const p = app.place; if (p) withIntro(p.name?.title, p.lon, p.lat, (x) => x && arriveAt(x), true); } });

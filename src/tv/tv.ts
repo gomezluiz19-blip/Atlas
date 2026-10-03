@@ -18,14 +18,18 @@ import { h } from "../ui/dom";
 import { searchPlaces } from "../place/places";
 import { flyToPlace, geocode } from "../ui/search";
 import { hostDirect, listen, newCode, remoteUrl, send, type Cmd } from "./link";
+import { activeScope, back as spatialBack, clearFocus, ensureFocus, move } from "./spatial";
 
 /** The on-screen menu the remote's ring moves through. */
 const MENU: { id: string; icon: string; label: string }[] = [
   { id: "search", icon: "⌕", label: "Search" },
+  { id: "trip", icon: "✈️", label: "Plan a trip" },
+  { id: "trips", icon: "🧳", label: "My trips" },
+  { id: "myplace", icon: "🏠", label: "My place" },
+  { id: "work", icon: "💼", label: "Work" },
   { id: "scene:live", icon: "🌍", label: "Live Earth" },
   { id: "scene:places", icon: "🏔", label: "Great places" },
   { id: "scene:markets", icon: "📈", label: "Markets" },
-  { id: "scene:home", icon: "🏠", label: "Home" },
   { id: "lens:slice", icon: "⛰", label: "Cut open" },
   { id: "lens:block", icon: "🧊", label: "3D block" },
   { id: "lens:day", icon: "☀️", label: "A day" },
@@ -134,7 +138,7 @@ export function enterTv(app: App, given?: string) {
     const unlook = spin;
     spin = () => { unlook(); cam.lookAtTransform(Matrix4.IDENTITY); };
   }
-  const schedule = () => { clearTimeout(timer); timer = window.setTimeout(() => { if (Date.now() >= holdUntil) void show(scene + 1); schedule(); }, SCENE_MS); };
+  const schedule = () => { clearTimeout(timer); timer = window.setTimeout(() => { if (Date.now() >= holdUntil && !activeScope()) void show(scene + 1); schedule(); }, SCENE_MS); };
 
   // ---- The remote: paired, then steering ----
   let connected = false, lastHeard = 0, chipTimer = 0, closeDirect: (() => void) | null = null;
@@ -155,6 +159,15 @@ export function enterTv(app: App, given?: string) {
     (menuEl.children[focus] as HTMLElement | undefined)?.scrollIntoView({ inline: "center", block: "nearest", behavior: "smooth" });
     clearTimeout(menuTimer);
     if (menuOpen) menuTimer = window.setTimeout(() => { menuOpen = false; drawMenu(); }, 9000);
+  };
+  // While a phone is driving, whatever screen opens (a Work panel, the hologram, a lens) gets the focus ring at once.
+  const focusTimer = window.setInterval(() => { if (!connected || menuOpen || searchOpen) return; const s = activeScope(); if (s) ensureFocus(s); }, 700);
+  /** Puts away open Work panels and the trips shelf, so a new scene starts clean. */
+  const closeWork = () => {
+    document.querySelector(".tv-trips")?.remove();
+    void import("../travel/playTrip").then((m) => m.clearTrip());
+    document.querySelectorAll<HTMLElement>(".work-panel:not([hidden]) button[aria-label='Close']").forEach((b) => b.click());
+    clearFocus();
   };
   let searchOpen = false, query = "", hits: { name: string; detail: string; lon: number; lat: number; radius: number }[] = [], pickAt = 0;
   const drawSearch = () => {
@@ -191,6 +204,11 @@ export function enterTv(app: App, given?: string) {
   function activate(id: string) {
     menuOpen = false; drawMenu();
     if (id === "search") { openSearch(true); return; }
+    if (id === "trip") { send(code, "state", { t: "form", kind: "trip" }); say("Plan a trip", "Fill it in on your phone: where, when and who"); return; }
+    if (id === "trips") { showTrips(); return; }
+    if (id !== "trip" && id !== "holo" && !id.startsWith("lens:")) closeWork();
+    if (id === "myplace") { holdUntil = Date.now() + 20 * 60_000; const i = SCENES.findIndex((x) => x.id === "home"); void show(i); return; }
+    if (id === "work") { holdUntil = Date.now() + 20 * 60_000; cleanScene(); app.actions.get("mode:work")?.run(); say("Work", "Tools for your industry, on the map"); return; }
     if (id.startsWith("scene:")) { const i = SCENES.findIndex((x) => x.id === id.slice(6)); if (i >= 0) void show(i); return; }
     void onCmd(id.startsWith("lens:") ? { t: "lens", id: id.slice(5) } : ({ t: id } as Cmd));
   }
@@ -209,6 +227,53 @@ export function enterTv(app: App, given?: string) {
     wake(800);
   }
 
+  // ---- Driving Atlas's own screens: press, type into fields, plan and play trips ----
+  let editing: HTMLInputElement | HTMLTextAreaElement | null = null;
+  function pressFocused(scope: HTMLElement) {
+    const el = ensureFocus(scope);
+    if (!el) return;
+    if (el instanceof HTMLInputElement && /^(text|search|date|number|time|email|url|tel|)$/.test(el.type) || el instanceof HTMLTextAreaElement) {
+      editing = el;
+      const kind = el instanceof HTMLInputElement && /^(date|number|time)$/.test(el.type) ? (el.type as "date" | "number" | "time") : "text";
+      const label = el.getAttribute("aria-label") ?? el.getAttribute("placeholder") ?? "Type";
+      send(code, "state", { t: "input", kind, label, value: el.value });
+      return;
+    }
+    if (el instanceof HTMLSelectElement) { el.selectedIndex = (el.selectedIndex + 1) % el.options.length; el.dispatchEvent(new Event("change", { bubbles: true })); return; }
+    el.click();
+    // The screen may have changed under the focus: find a new spot a moment later.
+    window.setTimeout(() => { const s2 = activeScope(); if (s2) ensureFocus(s2); }, 450);
+  }
+  async function planTrip(c: Extract<Cmd, { t: "trip" }>) {
+    holdUntil = Date.now() + 20 * 60_000;
+    cleanScene();
+    say(`Planning ${c.to}…`, "The way there, the time change, the weather and where to stay");
+    const find = async (q: string) => { const l = searchPlaces(q, 1)[0]; if (l) return { name: l.name, lon: l.lon, lat: l.lat }; const g = (await geocode(q, null).catch(() => []))[0]; return g ? { name: g.name, lon: g.lon, lat: g.lat } : null; };
+    const to = await find(c.to);
+    if (!to) { say(`Couldn't find ${c.to}`); return; }
+    const from = c.from ? await find(c.from) : null;
+    app.actions.get("travel:plan")?.run(JSON.stringify({ to, from: from ?? undefined, depart: c.depart, back: c.back, people: c.people }));
+    say(to.name, "Use the ring to look through the plan; ▶ Play the trip flies it");
+  }
+  /** Your saved trips as big cards; pick one and it plays on the globe. */
+  function showTrips() {
+    document.querySelector(".tv-trips")?.remove();
+    const trips = (() => { try { return JSON.parse(localStorage.getItem("atlas.work.journeys.v1") ?? "[]") as import("../work/journeyModel").Journey[]; } catch { return []; } })();
+    const box = h("div", { class: "tv-trips" }, h("h2", {}, "🧳 My trips"));
+    if (!trips.length) box.append(h("p", {}, "No trips yet. Plan one: press ☰ on the remote and choose Plan a trip."));
+    for (const j of trips.slice(-8).reverse()) {
+      const stops = j.steps.map((st) => (st.kind === "move" ? st.to.name : st.place.name)).filter((n, i, a) => a.indexOf(n) === i);
+      box.append(h("button", { class: "tv-trip", onclick: () => { box.remove(); clearFocus(); cleanScene(); holdUntil = Date.now() + 20 * 60_000; void import("../travel/playTrip").then((m) => m.playTrip(app, j)); } },
+        h("strong", {}, j.name), h("small", {}, `${j.start} · from ${j.origin?.name ?? "home"} · ${stops.join(" → ")}`), h("span", {}, "▶ Play")));
+    }
+    el.append(box);
+    menuOpen = false; drawMenu();
+    ensureFocus(box);
+  }
+  // Steps of a playing trip (or anything else that captions itself) become the TV's big titles.
+  const onCaption = (e: Event) => { e.preventDefault(); const d = (e as CustomEvent<{ title: string; sub: string }>).detail; say(d.title, d.sub); };
+  window.addEventListener("atlas:caption", onCaption);
+
   const onCmd = async (c: Cmd) => {
     heard();
     if (c.t === "ping") return;
@@ -218,20 +283,37 @@ export function enterTv(app: App, given?: string) {
       case "hello": send(code, "state", { t: "state", scene: SCENES[scene].id, title: title.textContent ?? "", sub: sub.textContent ?? "" }); return;
       case "pan": pan(c.dx, c.dy); return;
       case "zoom": zoomBy(c.f); return;
-      case "dpad":
+      case "dpad": {
+        const scope = !menuOpen && !searchOpen ? activeScope() : null;
+        if (scope) { move(scope, c.dir); return; }
         if (searchOpen) { if (hits.length) { pickAt = (pickAt + (c.dir === "down" ? 1 : c.dir === "up" ? -1 : 0) + hits.length) % hits.length; drawSearch(); } return; }
         if (!menuOpen) { menuOpen = true; drawMenu(); return; }
         if (c.dir === "left" || c.dir === "right") { focus = (focus + (c.dir === "right" ? 1 : -1) + MENU.length) % MENU.length; drawMenu(); }
         else if (c.dir === "down") { menuOpen = false; drawMenu(); }
         return;
+      }
       case "menu": menuOpen = !menuOpen; if (searchOpen) openSearch(false); drawMenu(); return;
-      case "select":
+      case "select": {
+        const scope = !menuOpen && !searchOpen ? activeScope() : null;
+        if (scope) { pressFocused(scope); return; }
         if (searchOpen) { const x = hits[pickAt]; if (x) void flyTo(x.name, x); else if (query) void flyTo(query); return; }
         if (menuOpen) { activate(MENU[focus].id); return; }
         chooseMiddle(); return;
+      }
+      case "set": {
+        const el = editing;
+        if (!el || !el.isConnected) return;
+        el.value = c.value;
+        el.dispatchEvent(new Event("input", { bubbles: true }));
+        el.dispatchEvent(new Event("change", { bubbles: true }));
+        if (c.done) { el.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true })); editing = null; }
+        return;
+      }
+      case "trip": void planTrip(c); return;
       case "back":
         if (searchOpen) { openSearch(false); return; }
         if (menuOpen) { menuOpen = false; drawMenu(); return; }
+        { const scope = activeScope(); if (scope?.classList.contains("tv-trips")) { scope.remove(); clearFocus(); return; } if (scope && spatialBack(scope)) return; }
         app.actions.get("lens:close")?.run(); closeSpace(); return;
       case "search": openSearch(c.open); return;
       case "type":
@@ -260,7 +342,8 @@ export function enterTv(app: App, given?: string) {
 
   const self = {
     exit() {
-      clearTimeout(timer); clearInterval(clockTimer); clearInterval(quietTimer); unlisten(); closeDirect?.(); removeEventListener("keydown", keys);
+      clearTimeout(timer); clearInterval(clockTimer); clearInterval(quietTimer); clearInterval(focusTimer); unlisten(); closeDirect?.(); removeEventListener("keydown", keys);
+      window.removeEventListener("atlas:caption", onCaption); clearFocus();
       cleanScene(); app.actions.get("lens:close")?.run();
       el.remove(); document.body.classList.remove("tv-mode");
       if (location.hash.startsWith("#/tv")) history.replaceState(null, "", location.pathname + location.search);

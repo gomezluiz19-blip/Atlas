@@ -14,10 +14,14 @@ export type Cmd = { id?: string } & (
   | { t: "pan"; dx: number; dy: number } | { t: "zoom"; f: number } | { t: "dpad"; dir: "up" | "down" | "left" | "right" }
   | { t: "select" } | { t: "back" } | { t: "menu" }
   | { t: "holo" } | { t: "wind" } | { t: "next" } | { t: "exit" } | { t: "hello" } | { t: "ping" }
+  | { t: "set"; value: string; done?: boolean }
+  | { t: "trip"; to: string; from?: string; depart?: string; back?: string; people?: number }
   | { t: "rtc-offer"; sdp: string });
 export type State = { id?: string } & (
   | { t: "state"; scene: string; title: string; sub?: string }
   | { t: "suggest"; q: string; items: string[]; focus: number }
+  | { t: "input"; kind: "text" | "date" | "number" | "time"; label: string; value: string }
+  | { t: "form"; kind: "trip" }
   | { t: "rtc-answer"; sdp: string });
 
 const RELAY = "https://ntfy.sh";
