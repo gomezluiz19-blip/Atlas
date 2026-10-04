@@ -1,4 +1,4 @@
-# Atlas product audit (September 2026)
+# Terreno product audit (September 2026)
 
 A pass over the whole product, as if preparing it for users and investors:
 what a new user meets, what makes them come back, what breaks trust, and
@@ -12,16 +12,16 @@ and what still needs a decision.
 
 **Now:** three modes at the top, and nothing removed.
 
-- **My Places** is the daily reason to open Atlas: your home, farm, site or business, with Today's brief,
+- **My Places** is the daily reason to open Terreno: your home, farm, site or business, with Today's brief,
   your places, and the tools to run them (Grow, Flock, Build, live occupancy).
-- **Explore** is the reason to show someone Atlas: the Earth and space through themes and lenses.
+- **Explore** is the reason to show someone Terreno: the Earth and space through themes and lenses.
 - **Create** is the reason to share it: Plan, Present, Video, Teach.
 
 ## First five minutes
 
 | Finding | Status |
 |---|---|
-| No explanation of what Atlas is for | ✅ First-visit welcome: three ways in, with example requests |
+| No explanation of what Terreno is for | ✅ First-visit welcome: three ways in, with example requests |
 | Saving your place took four steps across two panels | ✅ An address box in My Places: Find → save form, one step |
 | An empty My Places shows nothing of what it can do | ✅ "Try a demo farm": animals, fields and paddocks, dated from today, removable in one tap |
 | The report that makes people say "how does it know?" didn't exist | ✅ About this place: slope and aspect, rock below, frost dates, growing heat and suitable crops, rain, nearest river, a sowing calendar |
@@ -33,7 +33,7 @@ and what still needs a decision.
 | Nothing tells you what to do today | ✅ Today's brief: frost, heat, heavy rain, gales; births and vaccinations due (grouped); harvest windows and irrigation per field; projects behind; blight and flystrike weather |
 | Brief items only opened the tool | ✅ Tapping one opens the exact animal, field or project |
 | Recording things meant forms | ✅ Plain-words logging for Flock, Grow and Build: typed or spoken (Flock), in the search box, or in the box under the brief; shows what it will save first |
-| Atlas AI didn't know about your place | ✅ Tools for the brief and for logging |
+| Terreno AI didn't know about your place | ✅ Tools for the brief and for logging |
 | Records could be lost with the browser | ✅ Back up everything / Restore (never includes the AI key); asks the browser to keep storage |
 | No signal in the field | ✅ Works offline and installs as an app (terrain and data cached) |
 | Accounts and sync across devices | ⏳ Needs a backend (see "Decisions") |
@@ -46,7 +46,7 @@ and what still needs a decision.
 | Flock had species but no breeds | ✅ About 150 breeds with typical weights; weight against the breed; routine care in one tap |
 | Grow suggested irrigating crops ready to harvest | ✅ Fixed: no irrigation advice once a crop is ripening |
 | Nothing on what might go wrong with a crop | ✅ "Watch for": common pests and diseases for 40 crops by stage |
-| Nothing to share with a vet or adviser | ✅ The place report prints or saves as a PDF, with a link back to Atlas |
+| Nothing to share with a vet or adviser | ✅ The place report prints or saves as a PDF, with a link back to Terreno |
 | Grow had 10 crops | ✅ 42, grouped, including hay and alfalfa per cut, winter wheat, garden vegetables and orchard crops |
 | Look knew little about the famous features themselves | ✅ About 270 features with key facts (rivers, lakes, falls, canyons, deserts, peaks, volcanoes, craters, deeps, forests, metros), plus a 10 m gazetteer (about 11,700 names) and detailed rivers |
 | Duplicated or crowded cards | ✅ Facts collapse to one line in the place card; panels don't repeat them |
@@ -87,7 +87,7 @@ vet practices are good places to find them.
 **How:**
 
 1. Sit with each person for 30 minutes on their own phone.
-2. Say only "this is Atlas; save your place".
+2. Say only "this is Terreno; save your place".
 3. Watch without helping, and note where they hesitate.
 4. Before leaving, ask them to log one real thing.
 

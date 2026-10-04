@@ -1,5 +1,5 @@
 // What's on near your place: concerts, games, markets and talks in the next
-// two weeks from the ticketing services Atlas can reach, and festivals known
+// two weeks from the ticketing services Terreno can reach, and festivals known
 // to Wikidata when none are connected.
 import { EVENT_SOURCES, eventsNear, festivalsNear, type EventItem } from "../data/events";
 import { h } from "../ui/dom";
@@ -26,6 +26,6 @@ export function openEventsHere(ctx: WorkCtx, place: MyPlace, back?: () => void) 
       fests.length ? h("div", { class: "list" }, ...fests.slice(0, 20).map((f) => h("a", { class: "list-row", href: f.url ?? "#", target: "_blank", rel: "noopener" },
         h("span", { class: "list-text" }, h("span", { class: "list-title" }, f.name), h("span", { class: "list-sub" }, [f.when, f.about].filter(Boolean).join(" · "))),
         h("span", { class: "chev", html: "&rsaquo;" })))) : "",
-      h("p", { class: "muted small" }, sources.length ? `From ${sources.join(", ")}.` : "Events come from Ticketmaster, SeatGeek or Eventbrite when Atlas's edge holds their keys; festivals from Wikidata."));
+      h("p", { class: "muted small" }, sources.length ? `From ${sources.join(", ")}.` : "Events come from Ticketmaster, SeatGeek or Eventbrite when Terreno's edge holds their keys; festivals from Wikidata."));
   })();
 }

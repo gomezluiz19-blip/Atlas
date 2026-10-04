@@ -40,3 +40,15 @@ describe("Saving to the browser", () => {
     delete g.dispatchEvent;
   });
 });
+
+import { imagery, imageryTile } from "../src/globe/imagery";
+describe("Imagery provider", () => {
+  it("is Esri by default, with Esri's row/column order", () => {
+    expect(imageryTile(3, 4, 5, imagery({}))).toBe("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/3/5/4");
+  });
+  it("switches to MapTiler or Mapbox when chosen and keyed, and not otherwise", () => {
+    expect(imageryTile(3, 4, 5, imagery({ imagery: "maptiler", maptilerKey: "k" }))).toBe("https://api.maptiler.com/tiles/satellite-v2/3/4/5.jpg?key=k");
+    expect(imagery({ imagery: "mapbox", mapboxToken: "t" }).id).toBe("mapbox");
+    expect(imagery({ imagery: "maptiler" }).id).toBe("esri");
+  });
+});

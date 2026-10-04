@@ -16,7 +16,7 @@ deploy), or put them in `.env.local` for development:
 
 Listings from several services are merged, and an event listed twice appears once.
 
-**About keys in a website.** Everything Atlas uses is sent to the browser, so these keys are visible to
+**About keys in a website.** Everything Terreno uses is sent to the browser, so these keys are visible to
 anyone who looks. Ticketmaster and SeatGeek keys are meant for this (they identify the app and are
 rate-limited). An Eventbrite private token can do more than read events; use one from an account that
 only owns the public events you want to show, or route Eventbrite through a small proxy (like the AI

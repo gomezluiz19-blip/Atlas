@@ -2,7 +2,7 @@
 // worldwide network of volunteer receivers shares it (adsb.lol, then
 // airplanes.live, then the OpenSky Network). Ships report over AIS: Finland's
 // Digitraffic shares the Baltic's openly; anywhere else takes an AISStream
-// key held by Atlas's edge (it relays the live stream).
+// key held by Terreno's edge (it relays the live stream).
 //
 // Reports arrive every few seconds to a minute; between them each craft is
 // moved on along its heading at its speed (dead reckoning), so they glide

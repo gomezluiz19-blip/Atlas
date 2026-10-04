@@ -161,7 +161,7 @@ export function createMyPlaces(app: App, store: PlaceStore, scene: PlaceScene, o
       h("h2", { class: "mp-title" }, "Save this place"),
       h("label", { class: "mp-field wide" }, h("span", {}, "Name"), name),
       h("label", { class: "mp-field wide" }, h("span", {}, "What is it?"), kind),
-      h("p", { class: "fineprint" }, `${lat.toFixed(5)}, ${lon.toFixed(5)}. Tip: tap right on the building so Atlas can find its outline.`),
+      h("p", { class: "fineprint" }, `${lat.toFixed(5)}, ${lon.toFixed(5)}. Tip: tap right on the building so Terreno can find its outline.`),
       h("button", { class: "primary-btn", onclick: async () => {
         const p = blankPlace(name.value.trim() || "My place", lon, lat, kind.value as PlaceKind);
         store.save(p);

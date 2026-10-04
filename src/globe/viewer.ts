@@ -21,6 +21,7 @@ import { GBIF_DENSITY_TILES } from "../data/inaturalist";
 import { createAnalyticLayer, type AnalyticKind } from "./analyticLayers";
 import { initMotion } from "./motion";
 import { currentQuality } from "./quality";
+import { imagery } from "./imagery";
 import { createTerrariumTerrain, terrainOptions } from "./terrain";
 
 export type BaseMap = "satellite" | "plain";
@@ -111,11 +112,8 @@ export class Globe {
       { show: false },
     );
     this.viewer.imageryLayers.add(this.backup);
-    const esri = new UrlTemplateImageryProvider({
-      url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-      maximumLevel: 19,
-      credit: "Imagery: Esri, Maxar, Earthstar Geographics, and the GIS User Community",
-    });
+    const src = imagery();
+    const esri = new UrlTemplateImageryProvider({ url: src.template, maximumLevel: src.maximumLevel, credit: src.credit });
     this.satellite = new ImageryLayer(esri);
     this.viewer.imageryLayers.add(this.satellite);
     this.watchImagery(esri);

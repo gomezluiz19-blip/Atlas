@@ -1,22 +1,22 @@
-# Atlas Pro: connecting bookings
+# Terreno Pro: connecting bookings
 
-Atlas Pro shows how full a saved building is, live: the building in 3D floor by
+Terreno Pro shows how full a saved building is, live: the building in 3D floor by
 floor, every room, arrivals and departures, and the next 14 nights. It needs
 reservations (and, optionally, live room status) from wherever the building is
 managed: a property-management system (PMS), a CRM, or a spreadsheet.
 
-Atlas runs entirely in the browser, so it never holds a CRM's secret API keys.
+Terreno runs entirely in the browser, so it never holds a CRM's secret API keys.
 There are three ways in:
 
 | Way in | Good for | Setup |
 | --- | --- | --- |
 | **Demo feed** | Trying it | One tap. A simulated hotel on the saved building. |
 | **Reservations export** | Any system, today | Export bookings as CSV and import the file. |
-| **Live link** | Real time | A URL Atlas polls every 30 seconds (see below). |
+| **Live link** | Real time | A URL Terreno polls every 30 seconds (see below). |
 
 ## 1. Reservations export (CSV)
 
-Any spreadsheet or export with a header row. Atlas recognises these columns
+Any spreadsheet or export with a header row. Terreno recognises these columns
 (case-insensitive, English or Spanish); only arrival and departure are required:
 
 | Meaning | Header names recognised |
@@ -35,7 +35,7 @@ Commas, semicolons and tabs all work. **Guest names are never read.**
 ## 2. Live link
 
 Any `https://` URL that returns either the CSV above, or JSON in this shape,
-with CORS allowing the Atlas site to read it:
+with CORS allowing the Terreno site to read it:
 
 ```json
 {
@@ -69,7 +69,7 @@ with CORS allowing the Atlas site to read it:
 1. Keep reservations in a Google Sheet (many CRMs and booking systems can sync
    to one through Zapier, Make or their own integrations).
 2. *File → Share → Publish to the web*, choose the sheet and *CSV*, and copy the link.
-3. Paste it into *Connect a live link* in Atlas Pro.
+3. Paste it into *Connect a live link* in Terreno Pro.
 
 ### A connector service
 
@@ -78,18 +78,18 @@ HubSpot, Salesforce…), run a small service that holds the vendor's API key,
 calls its API on a schedule or on its webhooks, and serves the JSON above with:
 
 ```
-Access-Control-Allow-Origin: https://<your Atlas site>
+Access-Control-Allow-Origin: https://<your Terreno site>
 Cache-Control: no-store
 ```
 
 Put an unguessable token in the URL path (or keep the service on a private
-network) so the occupancy feed isn't public, and return only what Atlas needs:
+network) so the occupancy feed isn't public, and return only what Terreno needs:
 room numbers, dates, guest counts and room status. No names, emails or
 payment details.
 
 ## Cameras
 
-Cameras placed in My Places can be connected in Atlas Pro to count people,
+Cameras placed in My Places can be connected in Terreno Pro to count people,
 vehicles and bikes live. Detection runs on the viewer's device with a small
 TensorFlow.js model (COCO-SSD, loaded only when a camera is connected); video
 never leaves the browser, and it only recognises kinds of things, never who
@@ -100,7 +100,7 @@ A camera can be connected by:
 
 - **A snapshot link** (a URL that returns the current still image, which most
   IP cameras and NVRs offer) or **a video link** (MP4/WebM, or HLS in Safari).
-  The camera or a relay must send `Access-Control-Allow-Origin` for Atlas to
+  The camera or a relay must send `Access-Control-Allow-Origin` for Terreno to
   analyse the pixels; without it the feed can be shown but not counted.
   RTSP streams need a relay that converts them for the web (e.g. go2rtc or
   MediaMTX on the local network).
@@ -108,4 +108,4 @@ A camera can be connected by:
 - **A video file**, to run the counts on recorded footage.
 
 Check local rules on video recording and signage before pointing cameras at
-public spaces; Atlas stores no frames, only counts in memory.
+public spaces; Terreno stores no frames, only counts in memory.

@@ -285,7 +285,7 @@ async function analyse(p: Plan, box: HTMLElement, redraw: (extra?: import("./lay
           ["Airports", String(countInside(z.pts, aps).count)],
           ["Landmark mines", String(countInside(z.pts, MINES).count)],
         ));
-      }), h("p", { class: "fineprint" }, "World datasets (Natural Earth, WRI power plants, Atlas mines): good for regions, too coarse for single streets. For local detail, pair with Built › Overview."));
+      }), h("p", { class: "fineprint" }, "World datasets (Natural Earth, WRI power plants, Terreno mines): good for regions, too coarse for single streets. For local detail, pair with Built › Overview."));
     } else {
       const routes = p.items.filter((i) => i.kind === "line");
       if (!routes.length) { box.replaceChildren(h("p", { class: "muted small" }, "Draw a proposed route to see its length, terrain and what it crosses.")); return; }

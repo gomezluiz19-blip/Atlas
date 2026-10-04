@@ -1,6 +1,6 @@
 {
-  "name": "Atlas",
-  "short_name": "Atlas",
+  "name": "Terreno",
+  "short_name": "Terreno",
   "description": "The whole Earth, and your own corner of it: your place's daily brief, lenses on any feature, and maps to make things with.",
   "start_url": "./",
   "scope": "./",

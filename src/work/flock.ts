@@ -261,7 +261,7 @@ export function openFlock(ctx: WorkCtx) {
     h("div", { class: "pro-actions" },
       f.org === "adoption" || f.org === "rescue" ? h("button", { class: "pill-btn", onclick: listing }, f.org === "adoption" ? "Share an adoption listing" : "Share a care update") : "",
       h("button", { class: "link-btn", onclick: exportCsv }, "Export (CSV)"),
-      h("button", { class: "link-btn", onclick: () => download(`${f.name}.atlas-flock.json`, JSON.stringify(f)) }, "Save as a file"),
+      h("button", { class: "link-btn", onclick: () => download(`${f.name}.terreno-flock.json`, JSON.stringify(f)) }, "Save as a file"),
       h("button", { class: "link-btn", onclick: () => setup(ctx) }, "Settings")),
   );
 }
@@ -276,7 +276,7 @@ function setup(ctx: WorkCtx) {
       save();
       openFlock(ctx);
     } catch {
-      ctx.app.toast("That file isn't an Atlas Flock file.", 5000);
+      ctx.app.toast("That file isn't an Terreno Flock file.", 5000);
     }
   } }) as HTMLInputElement;
   ctx.show("Flock", ctx.home,

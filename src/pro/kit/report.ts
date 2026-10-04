@@ -50,15 +50,17 @@ h1{font-size:26px;margin:0 0 4px;letter-spacing:-.01em}.sub{color:#6b6961;margin
 .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.kpis div{background:#f5f4f0;border-radius:10px;padding:10px 12px;display:flex;flex-direction:column}.kpis b{font-size:22px}.kpis span{font-size:12px;color:#6b6961}
 ul{padding-left:18px;margin:0}li{margin:4px 0}table{width:100%;border-collapse:collapse;font-size:12.5px}th,td{text-align:left;padding:6px 8px;border-bottom:1px solid #ecebe6;vertical-align:top}th{font-weight:600;color:#55534e}
 footer{margin-top:32px;color:#8a877f;font-size:11.5px}@media print{body{margin:0}.noprint{display:none}}
-</style></head><body><p class="noprint"><button onclick="print()">Print or save as PDF</button></p><h1>${esc(title)}</h1><p class="sub">${esc(subtitle)}</p>${body}<footer>${esc(footer)}</footer></body></html>`;
+</style></head><body><p class="noprint"><button id="print">Print or save as PDF</button></p><h1>${esc(title)}</h1><p class="sub">${esc(subtitle)}</p>${body}<footer>${esc(footer)}</footer></body></html>`;
 }
 
 /** Opens the report in a new window, ready to print. */
-export function printReport(title: string, subtitle: string, sections: Section[], footer = "Made with Atlas") {
+export function printReport(title: string, subtitle: string, sections: Section[], footer = "Made with Terreno") {
   const w = window.open("", "_blank");
   if (!w) return false;
   w.document.open();
   w.document.write(reportHtml(title, subtitle, sections, footer));
   w.document.close();
+  // No inline handlers: the report window inherits the site's Content Security Policy.
+  w.document.getElementById("print")?.addEventListener("click", () => w.print());
   return true;
 }

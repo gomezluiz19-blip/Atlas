@@ -66,7 +66,7 @@ const coord = (lat: number, lon: number) => `${Math.abs(lat).toFixed(4)}° ${lat
 /** One place's page: the built app's HTML with the place's own head and content. */
 export function renderPage(appHtml: string, p: PageData, site = ""): string {
   const word = KIND_WORD[p.kind] ?? "place";
-  const title = `${p.name}: ${word} · Atlas`;
+  const title = `${p.name}: ${word} · Terreno`;
   const promise = "Its ground, climate, people, how to get there, hazards and stories, all on one page and on a 3D globe.";
   const desc = `${p.description} ${promise}`.slice(0, 300);
   const url = site ? `${site}p/${p.slug}/` : "";
@@ -75,7 +75,7 @@ export function renderPage(appHtml: string, p: PageData, site = ""): string {
     `<base href="../../" />`,
     `<link rel="stylesheet" href="./page.css" />`,
     url ? `<link rel="canonical" href="${esc(url)}" />` : "",
-    `<meta property="og:title" content="${esc(`${p.name} · Atlas`)}" />`,
+    `<meta property="og:title" content="${esc(`${p.name} · Terreno`)}" />`,
     `<meta property="og:description" content="${esc(desc)}" />`,
     `<meta property="og:type" content="website" />`,
     url ? `<meta property="og:url" content="${esc(url)}" />` : "",
@@ -83,14 +83,14 @@ export function renderPage(appHtml: string, p: PageData, site = ""): string {
     `<script>window.ATLAS_PAGE=${JSON.stringify(p.slug)}</script>`,
   ].filter(Boolean).join("\n    ");
   const article = `<article class="seo-page">
-      <p class="seo-kicker">Atlas · ${esc(word)}</p>
+      <p class="seo-kicker">Terreno · ${esc(word)}</p>
       <h1>${esc(p.name)}</h1>
       <p>${esc(p.description)}</p>
       ${p.facts.length ? `<dl>${p.facts.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join("")}</dl>` : ""}
       <p>${coord(p.lat, p.lon)}</p>
       <p>${esc(promise)}</p>
-      ${p.nearby.length ? `<nav><h2>Nearby on Atlas</h2><ul>${p.nearby.map((n) => `<li><a href="./p/${n.slug}/">${esc(n.name)}</a></li>`).join("")}</ul></nav>` : ""}
-      <p><a href="./#/p/${p.slug}">Open ${esc(p.name)} in Atlas</a></p>
+      ${p.nearby.length ? `<nav><h2>Nearby on Terreno</h2><ul>${p.nearby.map((n) => `<li><a href="./p/${n.slug}/">${esc(n.name)}</a></li>`).join("")}</ul></nav>` : ""}
+      <p><a href="./#/p/${p.slug}">Open ${esc(p.name)} in Terreno</a></p>
     </article>`;
   return appHtml
     .replace(/<meta charset="UTF-8" \/>/i, (m) => `${m}\n    ${head}`)

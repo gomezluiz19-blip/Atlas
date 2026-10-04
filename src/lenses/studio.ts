@@ -1,5 +1,5 @@
 // Lens Studio: say what you want to see anywhere on Earth ("birdwatching",
-// "a coffee crawl with bakeries", "is it a surf day?") and Atlas builds the
+// "a coffee crawl with bakeries", "is it a surf day?") and Terreno builds the
 // lens. Then try it on a real place, tweak its blocks, keep it, and share it
 // as a link. Everyone's lenses are in the gallery to try and remix.
 import type { App } from "../app";
@@ -73,7 +73,7 @@ export function createLensStudio(app: App, deps: {
         next = lensFromJson({ ...raw, id: refine && def ? def.id : undefined });
       }
     } catch (e) {
-      app.toast(`Atlas AI couldn't answer (${(e as Error).message}). Using the built-in designer.`, 4500);
+      app.toast(`Terreno AI couldn't answer (${(e as Error).message}). Using the built-in designer.`, 4500);
     }
     if (!next) {
       const made = composeLens(p);
@@ -113,7 +113,7 @@ export function createLensStudio(app: App, deps: {
   async function share(d: LensDef) {
     const link = (findLens(d.id) && !isMade(d.id) && !d.id.includes("-")) || (cloudOn() && isMade(d.id)) ? `${location.origin}${location.pathname}#/lens/${d.id}` : `${location.origin}${location.pathname}#/lens/~${await packJson(d)}`;
     try {
-      if (navigator.share && matchMedia("(pointer: coarse)").matches) await navigator.share({ title: `${d.name}: a lens on Atlas`, url: link });
+      if (navigator.share && matchMedia("(pointer: coarse)").matches) await navigator.share({ title: `${d.name}: a lens on Terreno`, url: link });
       else { await navigator.clipboard.writeText(link); app.toast("Link copied. Anyone who opens it gets the lens.", 3000); }
     } catch { /* dismissed */ }
   }
@@ -178,14 +178,14 @@ export function createLensStudio(app: App, deps: {
     const others = allLenses().filter((d) => !mine.some((m) => m.id === d.id));
     el.replaceChildren(
       h("header", { class: "ls-top" },
-        h("div", {}, h("span", { class: "ls-kicker" }, "✨ Lens Studio"), h("h2", {}, "Make a lens"), h("p", {}, "Describe what you want to see anywhere on Earth. Atlas builds a lens you can try on any place, tweak, keep and share.")),
+        h("div", {}, h("span", { class: "ls-kicker" }, "✨ Lens Studio"), h("h2", {}, "Make a lens"), h("p", {}, "Describe what you want to see anywhere on Earth. Terreno builds a lens you can try on any place, tweak, keep and share.")),
         h("button", { class: "icon-btn", "aria-label": "Close", html: icons.close, onclick: close })),
       h("div", { class: "ls-ask" }, input,
         h("button", { class: "primary-btn", disabled: busy, onclick: () => void design(input.value) }, busy ? "Making…" : aiOn() ? "Design with Claude" : "Make it")),
       status ? h("p", { class: busy ? "ls-status busy" : "ls-status" }, busy ? h("span", { class: "spinner small" }) : "", status) : "",
       !def ? h("div", { class: "ls-ideas" }, ...IDEAS.map((i) => h("button", { class: "pf-chip", onclick: () => void design(i) }, i))) : "",
       def ? editor(def) : "",
-      !aiOn() ? h("p", { class: "ls-fine" }, "Connect Atlas AI (in the account menu) and Claude designs lenses from any description. Without it, Atlas's built-in designer knows the common ones.") : "",
+      !aiOn() ? h("p", { class: "ls-fine" }, "Connect Terreno AI (in the account menu) and Claude designs lenses from any description. Without it, Terreno's built-in designer knows the common ones.") : "",
       mine.length ? h("section", { class: "ls-gallery" }, h("h3", {}, "Made by you"), ...mine.map(galleryCard)) : "",
       h("section", { class: "ls-gallery" }, h("h3", {}, "Made by people"), ...[...others, ...remote.filter((r) => !others.some((o) => o.id === r.id) && !mine.some((m) => m.id === r.id))].map(galleryCard)));
     if (cloudOn() && !remoteAsked) {

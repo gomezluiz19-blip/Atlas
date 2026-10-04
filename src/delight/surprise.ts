@@ -1,5 +1,5 @@
 // "Show me something amazing": one tap to somewhere unexpected, and why it's
-// worth seeing. Draws from Atlas's curated wonders (rivers, peaks, volcanoes,
+// worth seeing. Draws from Terreno's curated wonders (rivers, peaks, volcanoes,
 // craters, deeps, forests, deserts), its hand-picked sites and the great
 // wildlife places, never the same one twice in a row, and not one you've
 // seen lately.

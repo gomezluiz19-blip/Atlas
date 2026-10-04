@@ -110,7 +110,7 @@ export function leagueMap(c: Club, redraw: () => void): { features: WorkFeature[
 }
 
 export function leaguePanel(c: Club, redraw: () => void, choose: () => void) {
-  if (!c.league && !c.mlbId) return h("div", {}, empty("Tell Atlas which league the club plays in to see it among its rivals."), h("button", { class: "pill-btn", onclick: choose }, "Pick the league"));
+  if (!c.league && !c.mlbId) return h("div", {}, empty("Tell Terreno which league the club plays in to see it among its rivals."), h("button", { class: "pill-btn", onclick: choose }, "Pick the league"));
   const got = once(`league:${c.mlbId ?? c.league?.id}`, () => rivals(c), redraw);
   if (got === "loading") return h("p", { class: "muted small" }, `Loading ${c.league?.name ?? "the league"}…`);
   if (got === "failed") return empty("The league couldn't be loaded just now.");

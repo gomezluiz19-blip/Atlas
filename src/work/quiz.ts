@@ -156,7 +156,7 @@ function openQuiz(ctx: WorkCtx, id: string, back: () => void) {
     h("section", { class: "group" }, h("h2", { class: "group-title" }, `Results${mine.length ? ` · ${mine.length}` : ""}`),
       resultsView(ctx, q, again)),
     h("div", { class: "pro-actions" },
-      h("button", { class: "link-btn", onclick: () => download(`${q.title}.atlas-quiz.json`, JSON.stringify(q)) }, "Save as a file"),
+      h("button", { class: "link-btn", onclick: () => download(`${q.title}.terreno-quiz.json`, JSON.stringify(q)) }, "Save as a file"),
       h("button", { class: "link-btn danger", onclick: () => { if (confirm(`Delete "${q.title}"?`)) { quizzes.remove(q.id); openQuizzes(ctx, back); } } }, "Delete quiz")),
   );
 }

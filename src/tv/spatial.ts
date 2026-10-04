@@ -1,4 +1,4 @@
-// Moving around Atlas's own screens with a remote's arrows, the way a TV
+// Moving around Terreno's own screens with a remote's arrows, the way a TV
 // does: a focus ring sits on one button, link or field at a time, and up,
 // down, left, right move it to the nearest thing in that direction. Select
 // presses it; back presses the screen's own Back or Close. Works on whatever

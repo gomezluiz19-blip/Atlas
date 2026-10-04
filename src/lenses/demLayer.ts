@@ -10,7 +10,7 @@ export type DemPaint = (h: number, lat: number) => [number, number, number, numb
 
 class DemProvider extends UrlTemplateImageryProvider {
   constructor(private paint: DemPaint, maxLevel: number, rectangle?: Rectangle) {
-    super({ url: "about:blank?{z}/{x}/{y}", maximumLevel: maxLevel, enablePickFeatures: false, rectangle, credit: "Analysis: Atlas, from Terrain Tiles on AWS" });
+    super({ url: "about:blank?{z}/{x}/{y}", maximumLevel: maxLevel, enablePickFeatures: false, rectangle, credit: "Analysis: Terreno, from Terrain Tiles on AWS" });
   }
   override requestImage(x: number, y: number, level: number) {
     return elevation.tile(level, x, y).then((tile) => {

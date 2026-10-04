@@ -8,7 +8,7 @@ describe("TV pairing", () => {
   });
   it("cleans what people type", () => { expect(cleanCode(" abc-23 4x ")).toBe("ABC234"); });
   it("points the remote next to the app", () => {
-    expect(remoteUrl("ABC234", "https://x.github.io/Atlas/#/tv/ABC234")).toBe("https://x.github.io/Atlas/remote.html#ABC234");
-    expect(remoteUrl("ABC234", "https://x.github.io/Atlas/index.html")).toBe("https://x.github.io/Atlas/remote.html#ABC234");
+    expect(remoteUrl("ABC234", "https://x.github.io/Terreno/#/tv/ABC234")).toBe("https://x.github.io/Terreno/remote.html#ABC234");
+    expect(remoteUrl("ABC234", "https://x.github.io/Terreno/index.html")).toBe("https://x.github.io/Terreno/remote.html#ABC234");
   });
 });

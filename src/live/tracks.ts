@@ -213,7 +213,7 @@ export function createTraffic(app: App) {
     const inBaltic = v[0] < BALTIC[2] && v[2] > BALTIC[0] && v[1] < BALTIC[3] && v[3] > BALTIC[1];
     if (!inBaltic) {
       clearKind("ship");
-      note.ship = "Live ships are open in the Baltic (Finland's Digitraffic). Elsewhere they need an AISStream key on Atlas's edge.";
+      note.ship = "Live ships are open in the Baltic (Finland's Digitraffic). Elsewhere they need an AISStream key on Terreno's edge.";
       report("ship");
     } else {
       try {
@@ -330,7 +330,7 @@ export function createTraffic(app: App) {
           ? h("button", { class: "pill-btn", onclick: () => { following = null; lastTarget = null; renderCard(e); } }, "Stop following")
           : h("button", { class: "pill-btn primary", onclick: () => follow(t.id) }, ship ? "Follow this ship" : "Follow this flight"),
         h("button", { class: "pill-btn", onclick: () => { const p = shown(e, Date.now()); camera.flyTo({ destination: Cartesian3.fromDegrees(p.lon, p.lat, (ship ? 0 : p.alt) + (ship ? 6000 : 40_000)), duration: 1.6 }); } }, "Look from above"),
-        h("button", { class: "pill-btn", title: "A link that opens Atlas following it", onclick: () => void share(e) }, "Share")),
+        h("button", { class: "pill-btn", title: "A link that opens Terreno following it", onclick: () => void share(e) }, "Share")),
       age,
       h("p", { class: "fineprint" }, ship ? "The white line is where it has been; blue dashes, where it will be in 20 minutes at this speed." : "The white line is where it has flown; blue dashes, where it will be in 4 minutes on this heading."));
     card.hidden = false;
@@ -345,14 +345,14 @@ export function createTraffic(app: App) {
   };
   document.addEventListener("keydown", (ev) => { if (ev.key === "Escape" && !card.hidden) closeCard(); });
 
-  /** A link that opens Atlas on this craft, following it. */
+  /** A link that opens Terreno on this craft, following it. */
   const share = async (e: Entry) => {
     const p = shown(e, Date.now());
     const link = `${location.origin}${location.pathname}#follow=${e.track.id}@${p.lon.toFixed(3)},${p.lat.toFixed(3)}`;
     const title = e.track.kind === "ship" ? `${e.track.label} at sea, live` : `Flight ${e.track.label}, live`;
     try {
       if (navigator.share) await navigator.share({ title, url: link });
-      else { await navigator.clipboard.writeText(link); app.toast("Link copied: it opens Atlas following this, live.", 3500); }
+      else { await navigator.clipboard.writeText(link); app.toast("Link copied: it opens Terreno following this, live.", 3500); }
     } catch { /* cancelled */ }
   };
   /** Opens a shared craft: its kind on, the camera there, then follows it once it's seen. */

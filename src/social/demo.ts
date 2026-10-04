@@ -1,4 +1,4 @@
-// Example people, so Atlas has a neighbourhood from the first visit. They're
+// Example people, so Terreno has a neighbourhood from the first visit. They're
 // made up (and say so on their pages); the places they love are real.
 import type { Profile, Spot, SpotKind } from "./model";
 
@@ -40,7 +40,7 @@ export const DEMO_PROFILES: Profile[] = [
     handle: "msokafor", name: "Ada Okafor", role: "teacher", demo: true, skin: "paper",
     avatar: { emoji: "🌋", color: "#ff9f0a" },
     now: "Planning a field trip to the Seven Sisters chalk cliffs",
-    bio: "Geography teacher in south London. I use Atlas to show my students that the ground under their feet has a story: chalk that was sea floor, a river that used to be somewhere else, a barrier that keeps the Thames out of their homes.\n\nMy lessons and quizzes are in Teach. Ask me about rocks. Actually, don't.",
+    bio: "Geography teacher in south London. I use Terreno to show my students that the ground under their feet has a story: chalk that was sea floor, a river that used to be somewhere else, a barrier that keeps the Thames out of their homes.\n\nMy lessons and quizzes are in Teach. Ask me about rocks. Actually, don't.",
     home: { name: "London, United Kingdom", lon: -0.1276, lat: 51.5072 },
     banner: { lon: 0.0368, lat: 51.4966 },
     spots: [

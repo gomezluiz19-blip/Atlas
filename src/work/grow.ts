@@ -1,5 +1,5 @@
 // Work › Grow: fields drawn on the satellite map, each with its crop and
-// planting date. Atlas follows the season from the weather there: heat units
+// planting date. Terreno follows the season from the weather there: heat units
 // (growing degree days) and the growth stage, when the harvest should come,
 // how much water the crop is using against the rain, how much to irrigate this
 // week, and frost or heat ahead. Plant health from space (NDVI) as a layer.
@@ -142,7 +142,7 @@ export function openGrow(ctx: WorkCtx) {
   };
   const total = store.all().reduce((s, f) => s + areaM2(f.pts), 0);
   ctx.show("Grow", ctx.home,
-    h("p", { class: "mp-intro" }, "Draw your fields on the satellite map and say what's planted. Atlas follows each crop's season from the local weather: growth stage, harvest date, water use and irrigation, and frost or heat on the way."),
+    h("p", { class: "mp-intro" }, "Draw your fields on the satellite map and say what's planted. Terreno follows each crop's season from the local weather: growth stage, harvest date, water use and irrigation, and frost or heat on the way."),
     h("div", { class: "chips wrap" },
       h("button", { class: "chip", onclick: () => void addField() }, "+ Draw a field"),
       h("button", { class: "chip" + (ndvi ? " on" : ""), "aria-pressed": String(!!ndvi), onclick: () => { setNdvi(app, !ndvi); openGrow(ctx); } }, ndvi ? "Plant health: on" : "Plant health from space")),

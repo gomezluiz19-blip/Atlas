@@ -2,7 +2,7 @@
 // Robinhood and Interactive Brokers all export positions as CSV with a symbol
 // column and either a market value or a quantity and a price; this finds those
 // columns by name, cleans "$1,234.56" style numbers and matches symbols to the
-// companies Atlas maps. The rest come back as "not mapped yet".
+// companies Terreno maps. The rest come back as "not mapped yet".
 import { findCompany } from "./companies";
 import type { Holding } from "./model";
 

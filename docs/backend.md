@@ -1,6 +1,6 @@
-# Atlas's back end
+# Terreno's back end
 
-Atlas runs as a static site with no back end, and everything keeps working that way. Two small
+Terreno runs as a static site with no back end, and everything keeps working that way. Two small
 pieces, each switched on by a couple of settings, make it a shared, multi-device product:
 
 | Piece | What it does | Switched on by |
@@ -8,7 +8,7 @@ pieces, each switched on by a couple of settings, make it a shared, multi-device
 | **Supabase** (auth, Postgres, storage) | Real sign-in (a six-digit code by email), pages everyone can find, guestbooks and follows between people, lenses and guides published for everyone, field notes and watches that follow you between devices | `SUPABASE_URL`, `SUPABASE_ANON_KEY` |
 | **The edge** (a Cloudflare Worker) | One cache in front of the free public services (so a crowd of visitors looks like one polite client), and the keeper of service keys that mustn't ship in the page | `ATLAS_EDGE`, `ATLAS_EDGE_KEYS` |
 
-Neither needs the other. Without them, Atlas behaves exactly as today: accounts, pages and lenses
+Neither needs the other. Without them, Terreno behaves exactly as today: accounts, pages and lenses
 live on the device and travel as links.
 
 ## Supabase (about 15 minutes)
@@ -17,8 +17,8 @@ live on the device and travel as links.
 2. **SQL editor › New query**: paste `docs/backend.sql`, Run. Also run `docs/stories-backend.sql` for
    the shared story library, and `docs/workspaces.sql` for team workspaces in the Pro tools.
 3. **Authentication › Providers › Email**: on. Turn *Confirm email* on.
-4. **Authentication › Email templates › Magic link**: Atlas signs in with the code, so make sure the
-   template shows it, e.g. `Your Atlas code is {{ .Token }}`. (Keep the link too if you like.)
+4. **Authentication › Email templates › Magic link**: Terreno signs in with the code, so make sure the
+   template shows it, e.g. `Your Terreno code is {{ .Token }}`. (Keep the link too if you like.)
 5. **Authentication › URL configuration**: set *Site URL* to the published site.
 6. **Project settings › API**: copy the *Project URL* and the *anon public* key.
 7. **GitHub › Settings › Secrets and variables › Actions › Variables**: add `SUPABASE_URL` and
@@ -29,7 +29,7 @@ For local development: put them in `.env` as `VITE_SUPABASE_URL` / `VITE_SUPABAS
 What changes for people:
 
 - **Sign in** asks for an email, then the six-digit code sent to it. A returning person gets their
-  page back on any device; a new one makes a page (handles are unique across Atlas).
+  page back on any device; a new one makes a page (handles are unique across Terreno).
 - **Your page** is published as you edit it (a second after each change) and shared as `#/u/handle`.
 - **Guestbooks, follows** go to the server, so the person whose page it is sees them.
 - **People › Profiles** lists everyone who has a page, newest first.
@@ -67,8 +67,8 @@ invite, change roles, rename or delete; anyone can leave. Roles are checked in t
 
 ```sh
 npx wrangler deploy proxy/atlas-edge-worker.js --name atlas-edge
-npx wrangler secret put ALLOWED_ORIGINS      # https://you.github.io,http://localhost:5173
-npx wrangler secret put USER_AGENT           # Atlas (https://you.github.io; you@example.com)
+npx wrangler secret put ALLOWED_ORIGINS      # https://terreno.site,http://localhost:5173
+npx wrangler secret put USER_AGENT           # Terreno (https://terreno.site; hello@terreno.site)
 # Any of these that you use (they then never appear in the web page):
 npx wrangler secret put TICKETMASTER_KEY
 npx wrangler secret put SEATGEEK_CLIENT_ID
@@ -89,9 +89,9 @@ Before real traffic, still decide (see `data-licensing.md`): a commercial Open-M
 self-hosting it; a hosted geocoder (Stadia, MapTiler, Geoapify) in place of public Nominatim; and
 imagery licensing.
 
-## Alerts when Atlas is closed
+## Alerts when Terreno is closed
 
-Watches (see *Watch a place*) check while Atlas is open, and show what changed when you come back.
+Watches (see *Watch a place*) check while Terreno is open, and show what changed when you come back.
 Push notifications to a closed browser need a scheduled job that evaluates watches and sends Web
 Push. The pieces are ready (the `push_subscriptions` table; `VAPID_PUBLIC_KEY`); the job itself is
 a Supabase Edge Function on a schedule, next on the list once Supabase is connected.

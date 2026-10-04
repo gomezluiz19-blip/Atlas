@@ -1,10 +1,10 @@
-// Atlas AI settings: connect the task robot to Claude with your own key or a proxy.
+// Terreno AI settings: connect the task robot to Claude with your own key or a proxy.
 import { MODELS, loadAi, saveAi, testAi, type AiConfig, type AiMode } from "../robot/llm";
 import { h } from "./dom";
 import { icons } from "./icons";
 
 export function createAiSettings() {
-  const panel = h("div", { class: "popover ai-panel", hidden: true, role: "dialog", "aria-label": "Atlas AI" });
+  const panel = h("div", { class: "popover ai-panel", hidden: true, role: "dialog", "aria-label": "Terreno AI" });
   const render = () => {
     const c: AiConfig = loadAi();
     const status = h("p", { class: "muted small" });
@@ -23,7 +23,7 @@ export function createAiSettings() {
       mode === "key" ? key : mode === "proxy" ? proxy : "",
       mode !== "off" ? h("label", { class: "mp-field" }, h("span", {}, "Model"), model) : "");
     panel.replaceChildren(
-      h("div", { class: "mp-head" }, h("h2", {}, "Atlas AI"), h("button", { class: "icon-btn", "aria-label": "Close", html: icons.close, onclick: () => (panel.hidden = true) })),
+      h("div", { class: "mp-head" }, h("h2", {}, "Terreno AI"), h("button", { class: "icon-btn", "aria-label": "Close", html: icons.close, onclick: () => (panel.hidden = true) })),
       h("p", { class: "mp-intro" }, "Connect the search box's task robot to Claude. It understands any request or question, acts on the globe (places, layers, views, history, tools) and answers in a sentence or two."),
       h("div", { class: "ai-modes" }, ...modes.map(([m, label, about]) =>
         h("label", { class: "ai-mode" }, h("input", { type: "radio", name: "ai-mode", checked: mode === m, onchange: () => { mode = m; fields(); } }), h("span", {}, h("strong", {}, label), h("span", { class: "muted small" }, about))))),

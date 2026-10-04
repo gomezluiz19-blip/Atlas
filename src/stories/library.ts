@@ -1,7 +1,7 @@
 // Where stories live. With a Supabase project configured (VITE_SUPABASE_URL and
 // VITE_SUPABASE_ANON_KEY; see docs/stories-backend.md), stories are published
 // to one shared library that everyone searches, uses and remixes. Without it,
-// the library is the featured stories that ship with Atlas, the stories made
+// the library is the featured stories that ship with Terreno, the stories made
 // on this device, and any story opened from a link; sharing still works,
 // because a link can carry the whole story.
 import { config } from "../config";

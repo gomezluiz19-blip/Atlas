@@ -289,7 +289,7 @@ export const SECTORS: Record<Vertical, SectorDef> = {
     types: { "Haul truck": { every: 500, perDay: 19, life: 90_000 }, "Drill rig": { every: 250, perDay: 16, life: 60_000 }, "Underground loader": { every: 250, perDay: 17, life: 40_000 }, Crusher: { every: 1000, perDay: 20, life: 150_000 }, Automation: { every: 2000, perDay: 24, life: 60_000 } },
     focus: ["copper", "gold", "iron", "lithium", "zinc", "nickel"], methods: ["open pit", "underground"],
     insight: minesInsight,
-    market: { how: "world", label: "Every mine: Atlas's major mines and Wikidata's operating mines", load: () => worldMines().then((ms) => ms.map((m) => ({ id: m.id, name: m.name, lon: m.lon, lat: m.lat, country: m.country, tags: [...m.commodities, ...(m.method ? [m.method] : [])], detail: m.operator }))) },
+    market: { how: "world", label: "Every mine: Terreno's major mines and Wikidata's operating mines", load: () => worldMines().then((ms) => ms.map((m) => ({ id: m.id, name: m.name, lon: m.lon, lat: m.lat, country: m.country, tags: [...m.commodities, ...(m.method ? [m.method] : [])], detail: m.operator }))) },
     demo: () => { throw new Error("mining demo lives in demo.ts"); },
   },
   agriculture: {

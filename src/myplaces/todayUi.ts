@@ -37,7 +37,7 @@ async function risksFor(place: MyPlace, records: ReturnType<typeof localRecords>
   return hours ? { hutton: huttonPeriods(hours), flystrike: flystrikeDays(hours) } : undefined;
 }
 
-/** Today's items for a place (for Atlas AI and anything else that wants them as data). */
+/** Today's items for a place (for Terreno AI and anything else that wants them as data). */
 export async function briefFor(place: MyPlace): Promise<TodayItem[]> {
   const days = await siteWeather(place.lon, place.lat).catch(() => null);
   const records = localRecords();

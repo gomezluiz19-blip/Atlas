@@ -97,7 +97,7 @@ export function exploreTheme(app: App, feeds: Feeds, overlays: Overlays, openSit
       h("button", { class: "look-tile", onclick: go("work:learn") }, h("span", { class: "look-tile-icon", style: "--c:#30d158", html: icons.book }), h("span", {}, h("strong", {}, "Learn"), h("small", {}, "Games, daily challenge, places to learn"))),
       h("button", { class: "look-tile surprise-tile", onclick: go("surprise") }, h("span", { class: "look-tile-icon", style: "--c:#ff9f0a", html: iconSvg("🎲", 18) ?? icons.sparkle }), h("span", {}, h("strong", {}, "Show me something amazing"), h("small", {}, "Somewhere unexpected, and why"))));
   };
-  /** First visit: what Atlas is for, in three taps. */
+  /** First visit: what Terreno is for, in three taps. */
   const welcome = (app: App) => {
     let seen = false;
     try { seen = localStorage.getItem("atlas.welcomed") === "1"; } catch { /* private mode */ }
@@ -106,7 +106,7 @@ export function exploreTheme(app: App, feeds: Feeds, overlays: Overlays, openSit
     const done = () => { try { localStorage.setItem("atlas.welcomed", "1"); } catch { /* ignore */ } card.remove(); };
     const go = (action: string) => () => { done(); app.actions.get(action)?.run(); };
     card.append(
-      h("div", { class: "welcome-head" }, h("strong", {}, "Welcome to Atlas"), h("button", { class: "icon-btn", "aria-label": "Dismiss", html: icons.close, onclick: done })),
+      h("div", { class: "welcome-head" }, h("strong", {}, "Welcome to Terreno"), h("button", { class: "icon-btn", "aria-label": "Dismiss", html: icons.close, onclick: done })),
       h("p", {}, "The whole Earth, and your own corner of it. Three ways in:"),
       h("button", { class: "welcome-row", onclick: go("mode:place") }, h("span", { class: "welcome-icon", style: "--c:#ff9f0a", html: icons.home }), h("span", {}, h("strong", {}, "My Places"), h("small", {}, "Save your home, farm or site for a daily brief and the tools to run it"))),
       h("button", { class: "welcome-row", onclick: done }, h("span", { class: "welcome-icon", style: "--c:#0a84ff", html: icons.eye }), h("span", {}, h("strong", {}, "Explore"), h("small", {}, "Tap any mountain, sea, river or city and look at it through a lens"))),

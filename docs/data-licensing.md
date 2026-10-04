@@ -1,6 +1,6 @@
-# Data sources and licences: what's needed to charge for Atlas
+# Data sources and licences: what's needed to charge for Terreno
 
-Atlas runs today on free and open services. Most can stay; several can't be
+Terreno runs today on free and open services. Most can stay; several can't be
 used in a paid product (or at scale) as they are. This list covers every
 external service the code calls, what its terms allow, and what to do before
 launch. Terms change: confirm each one with the provider before relying on it.
@@ -13,7 +13,7 @@ commercially as used, needs a licence or a replacement.
 
 | Source | Used for | Status | What to do |
 |---|---|---|---|
-| Esri World Imagery (`server.arcgisonline.com`) | Satellite imagery, Block lens texture, Save picture | ❌ | Commercial apps need an Esri account (Location Platform / ArcGIS) with API keys and usage billing; check whether exporting images (Block "Save picture") and offline storage are allowed. Alternatives: MapTiler Satellite, Mapbox Satellite, Cesium ion (Bing / Google 3D tiles), Maxar. |
+| Esri World Imagery (`server.arcgisonline.com`) | Satellite imagery, Block lens texture, Save picture | ❌ | Commercial apps need an Esri account (Location Platform / ArcGIS) with API keys and usage billing; check whether exporting images (Block "Save picture") and offline storage are allowed. Alternatives: MapTiler Satellite, Mapbox Satellite, Cesium ion (Bing / Google 3D tiles), Maxar. **Switching is configuration only:** set `VITE_IMAGERY=maptiler` with `VITE_MAPTILER_KEY` (or `mapbox` with `VITE_MAPBOX_TOKEN`), or keep Esri with a licensed `VITE_ESRI_KEY` (src/globe/imagery.ts). |
 | open.er-api.com (ExchangeRate-API, free tier) | Money & trade: today's exchange rate | ⚠️ attribution | Free without a key, updated daily; the terms ask for a "Rates By Exchange Rate API" link (it is in the page's data note). For commercial volume, a paid ExchangeRate-API plan, or the ECB rates via Frankfurter (fewer currencies). |
 | Esri Wayback (`wayback.maptiles.arcgis.com`) | Rewind: then and now | ❌ | Same Esri terms. Alternative: Sentinel-2 (Copernicus, free) time series via Sentinel Hub or your own tiles. |
 | Esri reference overlays (roads, places) | Street and place names over imagery | ❌ | Same Esri terms, or switch to a vector basemap provider's labels. |
@@ -31,10 +31,10 @@ relies on the browser's normal cache until a licence allows storing it.
 |---|---|---|---|
 | Photon (`photon.komoot.io`) | Search suggestions | ⚠️ | The public instance is for fair, light use. Self-host Photon or use a provider (Geoapify, Stadia, MapTiler, LocationIQ). |
 | Nominatim (`nominatim.openstreetmap.org`) | Geocoding fallback, reverse geocoding | ⚠️ | Usage policy: at most 1 request a second, no heavy use, a real User-Agent. Same fix as above. |
-| Overpass API (3 public mirrors) | Buildings, water, mines, transit, forests, places to learn | ⚠️ | Public instances are for light use. Atlas now caches answers for a week. At scale, self-host Overpass (or a hosted plan). OSM data is ODbL: keep "© OpenStreetMap contributors" visible, and share-alike applies to any database you build from it. |
+| Overpass API (3 public mirrors) | Buildings, water, mines, transit, forests, places to learn | ⚠️ | Public instances are for light use. Terreno now caches answers for a week. At scale, self-host Overpass (or a hosted plan). OSM data is ODbL: keep "© OpenStreetMap contributors" visible, and share-alike applies to any database you build from it. |
 | Wikidata (company facts, owners, subsidiaries, figures) | Work › Finance and Banking | ✅ | CC0. Figures are as companies and volunteers recorded them; show them as such. |
-| Finnhub quotes (`VITE_FINNHUB_KEY`, optional) | Live stock quote in the Company explorer | ⚠️ | The free plan is for personal use. For a product, buy a market-data licence (Finnhub, Polygon, Twelve Data, Intrinio) and keep the key in the edge, not the page. Without a key, Atlas shows tickers and links to Google and Yahoo Finance. |
-| Valhalla routing (`valhalla1.openstreetmap.de`, run by FOSSGIS) | Getting around: walk, bike and drive reach, times to your places | ⚠️ | The public server is for fair, light use. Valhalla itself is MIT-licensed: self-host it (or use a hosted plan such as Stadia Maps) before launch. Routes are over OSM data (ODbL): keep the credit. Without the router, Atlas falls back to estimated circles. |
+| Finnhub quotes (`VITE_FINNHUB_KEY`, optional) | Live stock quote in the Company explorer | ⚠️ | The free plan is for personal use. For a product, buy a market-data licence (Finnhub, Polygon, Twelve Data, Intrinio) and keep the key in the edge, not the page. Without a key, Terreno shows tickers and links to Google and Yahoo Finance. |
+| Valhalla routing (`valhalla1.openstreetmap.de`, run by FOSSGIS) | Getting around: walk, bike and drive reach, times to your places | ⚠️ | The public server is for fair, light use. Valhalla itself is MIT-licensed: self-host it (or use a hosted plan such as Stadia Maps) before launch. Routes are over OSM data (ODbL): keep the credit. Without the router, Terreno falls back to estimated circles. |
 | Booking sites (Google Flights, Skyscanner, Kayak, Booking.com, Airbnb, Google Hotels, Rome2Rio) | Travel: "Book it" links | ✅ | Plain links that open each site already searched; no data is taken from them. To earn on bookings, join their affiliate programmes and add the partner IDs to the links. |
 | OpenRailwayMap tiles | Railway detail layer | ⚠️ | CC BY-SA, with a tile-usage policy against heavy use; self-host from OSM data if it matters. |
 
@@ -56,10 +56,10 @@ relies on the browser's normal cache until a licence allows storing it.
 
 | Source | Used for | Status | What to do |
 |---|---|---|---|
-| Wikipedia REST feed (In the news, most read, on this day) | World now | ✅ attribution | Text CC BY-SA 4.0: credit Wikipedia and link the articles (Atlas links every story). |
-| GDELT DOC API | World now headlines, In the news | ✅ | Free and open, with attribution ("GDELT Project"); headlines link to the publishers' own pages, which Atlas never copies. |
+| Wikipedia REST feed (In the news, most read, on this day) | World now | ✅ attribution | Text CC BY-SA 4.0: credit Wikipedia and link the articles (Terreno links every story). |
+| GDELT DOC API | World now headlines, In the news | ✅ | Free and open, with attribution ("GDELT Project"); headlines link to the publishers' own pages, which Terreno never copies. |
 | NASA EONET | Natural events | ✅ | Public domain (US government); credit NASA EONET. |
-| adsb.lol | Live planes, flight routes | ✅ | Data under ODbL; attribution required. Free, no key; be polite (Atlas polls every 10 s per viewer, 5 s edge cache). |
+| adsb.lol | Live planes, flight routes | ✅ | Data under ODbL; attribution required. Free, no key; be polite (Terreno polls every 10 s per viewer, 5 s edge cache). |
 | airplanes.live | Live planes (fallback) | ⚠️ non-commercial | Free for non-commercial use; commercial use needs their permission. |
 | OpenSky Network | Live planes (fallback; the whole world when zoomed out) | ⚠️ non-commercial | Anonymous access is rate-limited and for research/non-commercial use; commercial use needs a licence from OpenSky. |
 | Finland Digitraffic (AIS) | Live ships in the Baltic | ✅ | CC BY 4.0 (Fintraffic). |
@@ -74,9 +74,9 @@ relies on the browser's normal cache until a licence allows storing it.
 | historical-basemaps (A. Ourednik) | Borders through history | ⚠️ | GPL-3.0 data. Get legal advice, or ask the author about a licence for a closed-source product. |
 | TeleGeography Submarine Cable Map | Undersea cables | ❌ | CC BY-NC-SA 3.0: non-commercial. License it from TeleGeography or drop the layer in paid tiers. |
 | Shipping lanes (Benden 2022), WRI power plants | Built › networks | ✅ | CC BY 4.0. |
-| CelesTrak | Satellites | ✅ | Free; follow the polling guidelines (Atlas fetches once per session). |
+| CelesTrak | Satellites | ✅ | Free; follow the polling guidelines (Terreno fetches once per session). |
 | Launch Library 2 (The Space Devs) | Rocket launches | ⚠️ | Free tier is 15 requests an hour; paid plans exist for products. |
-| Hand-compiled content (features, breeds, crops, care, sowing, sites) | Facts and guidance | ✅ | Written for Atlas from commonly cited figures; keep sources noted. |
+| Hand-compiled content (features, breeds, crops, care, sowing, sites) | Facts and guidance | ✅ | Written for Terreno from commonly cited figures; keep sources noted. |
 
 ## Economy: raw materials, companies, policies
 
@@ -86,8 +86,8 @@ relies on the browser's normal cache until a licence allows storing it.
 | World Bank Commodity Price Data (Pink Sheet) | Ten years of prices | ✅ | CC BY 4.0; attribute the World Bank. Bundled annual averages. |
 | IEA Global Critical Minerals Outlook, Energy Institute Statistical Review, FAO, USDA, ICCO, worldsteel | Processing shares, oil/LNG and crop producers | ✅ | Rounded figures cited from published reports (facts, not reproduced tables); credit the source on screen. For more detail, IEA data needs its own licence. |
 | Lithium, cobalt and rare-earth prices | Price history for materials the Pink Sheet doesn't carry | ⚠️ | Rounded yearly averages of widely reported spot prices, labelled indicative. For live prices, license a feed (Fastmarkets, Benchmark, Argus). |
-| Company revenue by region, sites and suppliers | Portfolio map | ✅ | From companies' own annual reports, rounded; judgement weights are Atlas's. For a real product, a licensed fundamentals feed (and the user's own holdings via a broker API) would replace them. |
-| Policies and scenarios | Policy radar, What if lab | ✅ | Written by Atlas from public announcements; review and date-stamp regularly. |
+| Company revenue by region, sites and suppliers | Portfolio map | ✅ | From companies' own annual reports, rounded; judgement weights are Terreno's. For a real product, a licensed fundamentals feed (and the user's own holdings via a broker API) would replace them. |
+| Policies and scenarios | Policy radar, What if lab | ✅ | Written by Terreno from public announcements; review and date-stamp regularly. |
 
 ## Enterprise: schools, construction, cities
 
@@ -95,7 +95,7 @@ relies on the browser's normal cache until a licence allows storing it.
 |---|---|---|---|
 | NYC Open Data: DOB Permit Issuance (`data.cityofnewyork.us/resource/ipu4-2q9a`) | Construction Pro › Planner: live permits | ✅ | NYC Open Data is free to use under the City's Terms of Use (no warranty; don't imply City endorsement). Socrata asks heavier users to register an app token (`X-App-Token`); add one at the edge before launch. Newer filings are in DOB NOW (`rbx6-tga4`), worth adding next. |
 | NYC Open Data: 311 Service Requests (`erm2-nwe9`) | City Ops › 311 | ✅ | Same terms. Requests carry approximate locations; don't present them as exact addresses. Use an app token at volume. |
-| NYC Open Data: Facilities Database (`ji82-xba5`, City Planning) | City Ops › Agencies: "Load real facilities" | ✅ | Same terms. Sizes and condition aren't in it, so Atlas draws typical sizes and an unknown (middling) condition until you edit them. |
+| NYC Open Data: Facilities Database (`ji82-xba5`, City Planning) | City Ops › Agencies: "Load real facilities" | ✅ | Same terms. Sizes and condition aren't in it, so Terreno draws typical sizes and an unknown (middling) condition until you edit them. |
 | Google Maps directions and Street View links | Construction Pro and City Ops: directions, street view | ✅ | Plain links that open Google Maps; no data is taken from it. |
 | OSHA complaint page | Construction Pro: "File a complaint with OSHA" | ✅ | A link to the U.S. Department of Labor's own page. |
 | Demo district, region and city | Education Pro, Construction Pro, City Ops | ✅ | Generated in the app. Every company name, union status, facility, person and figure is invented and labelled as a demo. |
@@ -105,7 +105,7 @@ relies on the browser's normal cache until a licence allows storing it.
 
 | Source | Used for | Status | What to do |
 |---|---|---|---|
-| Anthropic API (Claude) | Atlas AI | ✅ paid | Keep the key server-side: use the proxy in `docs/ai-proxy.md`, add per-user rate limits, and budget for usage. |
+| Anthropic API (Claude) | Terreno AI | ✅ paid | Keep the key server-side: use the proxy in `docs/ai-proxy.md`, add per-user rate limits, and budget for usage. |
 
 ## Launch checklist, in order
 

@@ -1,4 +1,4 @@
--- Atlas's servers: run this once in a new Supabase project (SQL editor › New query › Run).
+-- Terreno's servers: run this once in a new Supabase project (SQL editor › New query › Run).
 -- Everything is protected by row-level security: anyone can read what's public; people can
 -- only write their own things. The story library has its own file (stories-backend.sql).
 
@@ -89,7 +89,7 @@ create table if not exists private_items (
 alter table private_items enable row level security;
 create policy "only you" on private_items for all using (user_id = auth.uid()) with check (user_id = auth.uid());
 
--- Browser push subscriptions, for alerts when Atlas is closed (see backend.md › Alerts).
+-- Browser push subscriptions, for alerts when Terreno is closed (see backend.md › Alerts).
 create table if not exists push_subscriptions (
   user_id  uuid not null references auth.users on delete cascade default auth.uid(),
   endpoint text primary key,

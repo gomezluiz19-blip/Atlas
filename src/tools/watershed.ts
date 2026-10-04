@@ -34,7 +34,7 @@ export class WatershedTool implements Tool {
       app.panel.show(
         "Watershed",
         h("p", {}, "Click on a stream or valley to outline every slope that drains through that point: its watershed, or drainage basin."),
-        h("p", { class: "muted" }, "Your click snaps to the nearest channel. Large basins take a few seconds while Atlas zooms out to fit them."),
+        h("p", { class: "muted" }, "Your click snaps to the nearest channel. Large basins take a few seconds while Terreno zooms out to fit them."),
       );
   }
 
@@ -94,7 +94,7 @@ export class WatershedTool implements Tool {
       "Watershed",
       h("div", { class: "callout" }, h("div", { class: "callout-label" }, "Drainage area"), h("div", { class: "callout-value" }, formatArea(ws.areaM2)), h("p", {}, `All of this land drains through the outlet at ${formatLonLat(ws.outlet.lon, ws.outlet.lat)}.`)),
       ws.truncated
-        ? h("p", { class: "warning" }, "This basin is bigger than the largest area Atlas analyses at once, so the outline is cut off at the edge and the area is a minimum.")
+        ? h("p", { class: "warning" }, "This basin is bigger than the largest area Terreno analyses at once, so the outline is cut off at the edge and the area is a minimum.")
         : "",
       h(
         "div",

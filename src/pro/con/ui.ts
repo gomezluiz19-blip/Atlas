@@ -14,12 +14,13 @@ import { loadJson, saveJson } from "../../util/storage";
 import { flyToPlace, geocode } from "../../ui/search";
 import type { WorkCtx } from "../../work/hub";
 import { WorkLayer, type WorkFeature } from "../../work/layer";
+import { openDataImporter } from "../kit/opendata";
 import { teamCard, teamSync } from "../kit/team";
 import { downloadCsv, pickFile, printReport } from "../kit/report";
 import { kpis, list, row, title } from "../kit/ui";
 import { demoRegion } from "./demo";
 import {
-  addDays, daysBetween, demand, directionsUrl, floorsUp, fromDobPermits, isoDay, MATERIALS, masonryEstimate, peakWorkers, pipeline, routePlan, sitesFromCsv, STAGE_COLOR, STAGES, stageAt, stageDates,
+  addDays, daysBetween, demand, directionsUrl, floorsUp, fromDobPermits, isoDay, MATERIALS, masonryEstimate, peakWorkers, pipeline, routePlan, sitesFromCsv, sitesFromRows, STAGE_COLOR, STAGES, stageAt, stageDates,
   tradeWindows, unionFlags, variance, windowsFor, type Flag, type Kind, type Material, type SafetyNote, type Site, type Stage, type UnionStatus,
 } from "./model";
 
@@ -243,7 +244,7 @@ export function openConstruction(ctx: WorkCtx, app: App, role?: string) {
     let mat: Material = "brick";
     const box = h("div", { class: "con-body" });
     const d = demand(R!.sites, day, 6);
-    const tabs = h("div", { class: "segmented con-tabs" }, ...(Object.keys(MATERIALS) as Material[]).map((m) => h("button", { "aria-selected": String(m === mat), onclick: (e: Event) => { mat = m; tabs.querySelectorAll("button").forEach((b) => b.setAttribute("aria-selected", String(b === e.currentTarget))); paint(); } }, MATERIALS[m].label)));
+    const tabs = h("div", { class: "segmented con-tabs", role: "tablist", "aria-label": "Material" }, ...(Object.keys(MATERIALS) as Material[]).map((m) => h("button", { role: "tab", "aria-selected": String(m === mat), onclick: (e: Event) => { mat = m; tabs.querySelectorAll("button").forEach((b) => b.setAttribute("aria-selected", String(b === e.currentTarget))); paint(); } }, MATERIALS[m].label)));
     function paint() {
       const tot = d.totals[mat], max = Math.max(1, ...tot), unit = MATERIALS[mat].unit;
       const leads = d.bySite.filter((x) => x.m === mat).sort((a, b) => b.qty - a.qty);
@@ -296,6 +297,7 @@ export function openConstruction(ctx: WorkCtx, app: App, role?: string) {
             take(sites, "NYC DOB");
           } catch { msg.textContent = "Couldn't reach NYC Open Data. Check the connection."; }
         } }, "Load permits")), msg),
+      openDataImporter(app, { roles: ["name", "address", "date", "type", "value", "owner", "contractor", "status", "stories"], what: "permits as sites", onImport: (rows, map, label) => take(sitesFromRows(rows, map, today, "import", label), label) }),
       h("div", { class: "edu-form" },
         h("strong", {}, "A spreadsheet"),
         h("p", { class: "muted small" }, "CSV with name, lat, lon and any of: address, stories, start, finish, value, kind, gc, owner, union."),
@@ -384,7 +386,7 @@ export function openConstruction(ctx: WorkCtx, app: App, role?: string) {
       { heading: "Sites", table: { head: ["Site", "Stage", "Done", "Stories", "Value", "GC", "Union"], rows: R!.sites.map((s) => [s.name, stageAt(s, day).stage, `${Math.round(stageAt(s, day).overall * 100)}%`, s.stories, usd(s.value), s.gc, s.union]) } },
       { heading: `${R!.craft}: needed now`, lines: R!.sites.filter((s) => unionFlags(s, day, R!.craft).some((f) => f.level === "now")).map((s) => `${s.name}: ${unionFlags(s, day, R!.craft)[0].text}`) },
       { heading: "Materials, next 6 months", table: { head: ["Material", ...d.months], rows: (Object.keys(MATERIALS) as Material[]).map((m) => [`${MATERIALS[m].label} (${MATERIALS[m].unit})`, ...d.totals[m]]) } },
-    ], "Made with Atlas. Demo figures are rules of thumb.");
+    ], "Made with Terreno. Demo figures are rules of thumb.");
   }
 
   if (R) home(); else start();

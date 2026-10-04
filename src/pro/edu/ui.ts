@@ -83,7 +83,7 @@ export function openEducation(ctx: WorkCtx, app: App) {
       h("button", { class: "primary-btn", onclick: () => { d = demoDistrict(today); persist(); home(); } }, "Open the demo district"),
       h("h3", { class: "group-title" }, "Or start your own"),
       h("div", { class: "pf-add" }, name, h("button", { class: "pill-btn", onclick: () => { if (!name.value.trim()) return; d = { id: `d${Date.now()}`, name: name.value.trim(), schools: [], staff: [] }; persist(); home(); } }, "Create")),
-      h("p", { class: "fineprint" }, "Everything stays on this device until Atlas's back end is connected; then it syncs to your district's account with roles for principals, APs and office staff."));
+      h("p", { class: "fineprint" }, "Everything stays on this device until Terreno's back end is connected; then it syncs to your district's account with roles for principals, APs and office staff."));
   }
 
   // ---- The district ----

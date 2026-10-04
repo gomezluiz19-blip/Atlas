@@ -1,4 +1,4 @@
-// Everything Atlas can measure at one place, read with the same layer readers
+// Everything Terreno can measure at one place, read with the same layer readers
 // as Ask the map (so a place page and an answer always agree), with the
 // ground read exactly at the spot rather than averaged over a cell.
 import type { Criterion, Needs } from "../answers/criteria";

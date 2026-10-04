@@ -1,4 +1,4 @@
-// Who's signed in, and every profile Atlas knows: the example people, the
+// Who's signed in, and every profile Terreno knows: the example people, the
 // accounts made on this device, and pages opened from links. Until the
 // servers are switched on, an account lives in this browser (so signing in is
 // a preview: nothing is sent anywhere).

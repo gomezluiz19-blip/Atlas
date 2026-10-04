@@ -1,4 +1,4 @@
-// The places Atlas knows by name (its curated features, ~3,900 world labels
+// The places Terreno knows by name (its curated features, ~3,900 world labels
 // and ~7,800 towns, lakes and parks), each at a permanent address, plus any
 // Wikidata place ("eiffel-tower~q243") and any spot on Earth ("@lat,lon").
 import type { Place } from "../app";
@@ -40,7 +40,7 @@ export function placeIndex(): Promise<Index> {
   return index;
 }
 
-/** What Atlas needs to open a place: where it is, what to call it, and the feature behind it. */
+/** What Terreno needs to open a place: where it is, what to call it, and the feature behind it. */
 export interface Resolved {
   slug: string;
   name: string;
@@ -100,7 +100,7 @@ export async function findNamed(name: string, lon: number, lat: number, maxKm = 
   return e ? fromEntry(ix, ix.slugOf.get(e)!, e) : null;
 }
 
-/** The address of a chosen place: its name if Atlas knows it, its Wikidata item, or its coordinates. */
+/** The address of a chosen place: its name if Terreno knows it, its Wikidata item, or its coordinates. */
 export async function slugOfPlace(p: Place): Promise<string> {
   const f = p.feature as (LabelData & { notable?: Notable }) | undefined;
   const title = p.name?.title;

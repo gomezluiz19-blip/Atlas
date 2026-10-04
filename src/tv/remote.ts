@@ -1,4 +1,4 @@
-// The phone remote for Atlas TV, a controller rather than a list of buttons.
+// The phone remote for Terreno TV, a controller rather than a list of buttons.
 //   The orb: a pearly sphere you hold like a trackball. Drag to spin the
 //     Earth on the TV (its meridians turn under your thumb), flick and it
 //     coasts, pinch to zoom, tap to pick what's in the middle, double-tap to
@@ -31,7 +31,7 @@ function pairScreen(note = "") {
   input.addEventListener("animationend", () => input.classList.remove("shake"));
   root.replaceChildren($("div", { class: "r-pair" },
     $("div", { class: "r-orb-mini" }),
-    $("div", { class: "r-brand" }, "ATLAS ", $("span", {}, "REMOTE")),
+    $("div", { class: "r-brand" }, "TERRENO ", $("span", {}, "REMOTE")),
     $("p", {}, "Scan the code on the TV with your camera, or type it here."), input, go, note ? $("p", { class: "r-note" }, note) : ""));
 }
 
@@ -39,7 +39,7 @@ function start(code: string) {
   let title = "Connecting…", sub = `TV ${code}`;
   const titleEl = $("strong", {}, title), subEl = $("small", {}, sub), link = $("span", { class: "r-link-state" }, "");
   const tv = joinTv(code, (s: State) => {
-    if (s.t === "state") { title = s.title || "Atlas"; sub = s.sub ?? ""; titleEl.textContent = title; subEl.textContent = sub; root.classList.add("live"); }
+    if (s.t === "state") { title = s.title || "Terreno"; sub = s.sub ?? ""; titleEl.textContent = title; subEl.textContent = sub; root.classList.add("live"); }
     if (s.t === "suggest") { if (editing) return; showSuggestions(s.items, s.focus); if (!root.classList.contains("typing") && !s.q) enterTyping(false); }
     if (s.t === "input") editField(s.kind, s.label, s.value);
     if (s.t === "form" && s.kind === "trip") tripSheet();

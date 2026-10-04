@@ -1,12 +1,12 @@
-// Atlas AI proxy: a Cloudflare Worker that forwards the task robot's requests
+// Terreno AI proxy: a Cloudflare Worker that forwards the task robot's requests
 // to Anthropic's Messages API with your key, so visitors don't need their own.
-// It only accepts calls from your site's origins, only allows the models Atlas
+// It only accepts calls from your site's origins, only allows the models Terreno
 // uses, caps the response length, and rate-limits each visitor.
 //
 // Deploy (see docs/ai-proxy.md):
 //   npx wrangler deploy proxy/atlas-ai-worker.js --name atlas-ai
 //   npx wrangler secret put ANTHROPIC_API_KEY
-//   Set ALLOWED_ORIGINS, e.g. "https://you.github.io,http://localhost:5173"
+//   Set ALLOWED_ORIGINS, e.g. "https://terreno.site,http://localhost:5173"
 
 const MODELS = new Set(["claude-sonnet-5", "claude-haiku-4-5-20251001", "claude-opus-5-5"]);
 const MAX_TOKENS = 1024;

@@ -24,6 +24,8 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      # Known vulnerabilities in what ships to visitors block a deploy (critical ones; review highs by hand).
+      - run: npm audit --omit=dev --audit-level=critical
       - run: npm test
       - id: pages
         uses: actions/configure-pages@v5
@@ -39,13 +41,17 @@ jobs:
           VITE_SEATGEEK_CLIENT_ID: ${{ vars.SEATGEEK_CLIENT_ID }}
           VITE_EVENTBRITE_TOKEN: ${{ secrets.EVENTBRITE_TOKEN }}
           VITE_EVENTBRITE_ORG_ID: ${{ vars.EVENTBRITE_ORG_ID }}
-          # The Atlas AI proxy (docs/ai-proxy.md): a URL, not a secret; the API key stays in the proxy.
+          # The Terreno AI proxy (docs/ai-proxy.md): a URL, not a secret; the API key stays in the proxy.
           VITE_ATLAS_AI_PROXY: ${{ vars.ATLAS_AI_PROXY }}
           VITE_ATLAS_EDGE: ${{ vars.ATLAS_EDGE }}
           VITE_ATLAS_EDGE_KEYS: ${{ vars.ATLAS_EDGE_KEYS }}
           VITE_FEEDBACK_URL: ${{ vars.FEEDBACK_URL }}
           VITE_VAPID_PUBLIC_KEY: ${{ vars.VAPID_PUBLIC_KEY }}
           VITE_FINNHUB_KEY: ${{ secrets.FINNHUB_KEY }}
+          VITE_IMAGERY: ${{ vars.IMAGERY }}
+          VITE_ESRI_KEY: ${{ secrets.ESRI_KEY }}
+          VITE_MAPTILER_KEY: ${{ secrets.MAPTILER_KEY }}
+          VITE_MAPBOX_TOKEN: ${{ secrets.MAPBOX_TOKEN }}
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist

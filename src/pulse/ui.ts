@@ -1,4 +1,4 @@
-// Pulse on the globe: everything you have in Atlas as one living picture.
+// Pulse on the globe: everything you have in Terreno as one living picture.
 // Places and sites glow, plans brighten as they near, ships ride their lanes,
 // relief loads move between warehouses. Drag the time scrub (a month back, a
 // quarter ahead) and the world moves with it, or press play. "What if" plays

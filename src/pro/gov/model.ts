@@ -6,6 +6,8 @@
 // what each agency should look at, projects running late or over, where a
 // service is thin on the ground (coverage gaps), 311 as a heat map over time.
 
+import type { FieldMap, Row } from "../../data/opendata";
+
 export interface Agency { id: string; name: string; short: string; color: string; emoji: string; budget: number; headcount: number; vacancies: number; overtime: number; head: string }
 export type FacilityKind = "firehouse" | "precinct" | "school" | "hospital" | "library" | "garage" | "park" | "shelter" | "plant" | "yard" | "office" | "other";
 export interface Facility {
@@ -193,5 +195,17 @@ export function facilitiesFromCsv(text: string, agencies: Agency[]): Facility[] 
     const staff = Number(get(c.staff)) || 0;
     return [{ id: `csv-${i}-${lat.toFixed(5)}`, agency, name: get(c.name) || `Facility ${i + 1}`, kind, lon, lat, borough: get(c.boro), floors: Math.max(1, Number(get(c.floors)) || 2), w: 30, d: 22, bearing: 0,
       condition: Math.max(1, Math.min(5, Number(get(c.cond)) || 3)), built: 0, staff, authorized: staff, workOrders: 0, status: "open", source: "import" }];
+  });
+}
+
+/** Facilities from any open-data table (pure): each row a facility of one agency, its kind read from its type column. */
+export function facilitiesFromRows(rows: Row[], map: FieldMap, agencyId: string): Facility[] {
+  const kindOf = (t: string): FacilityKind => /fire/i.test(t) ? "firehouse" : /police|precinct/i.test(t) ? "precinct" : /school/i.test(t) ? "school" : /hospital|health|clinic/i.test(t) ? "hospital" : /librar/i.test(t) ? "library" : /garage|sanitation|depot/i.test(t) ? "garage" : /park|playground|recreation|pool/i.test(t) ? "park" : /shelter/i.test(t) ? "shelter" : /treatment|plant|pump/i.test(t) ? "plant" : /yard/i.test(t) ? "yard" : /office|admin|hall/i.test(t) ? "office" : "other";
+  return rows.map((r, i) => {
+    const p = (k?: string) => (k ? r.props[k] ?? "" : "");
+    const kind = kindOf(`${p(map.type)} ${p(map.name)}`);
+    return { id: `od-${agencyId}-${i}-${r.lat.toFixed(5)}`, agency: agencyId, name: (p(map.name) || p(map.address) || `Facility ${i + 1}`).slice(0, 80), kind, lon: r.lon, lat: r.lat, borough: "",
+      floors: kind === "hospital" ? 8 : kind === "school" ? 3 : kind === "office" ? 6 : 2, w: 30, d: 22, bearing: 0, condition: 3, built: 0, staff: 0, authorized: 0, workOrders: 0,
+      status: /closed|inactive/i.test(p(map.status)) ? "closed" : "open", source: "import" } satisfies Facility;
   });
 }

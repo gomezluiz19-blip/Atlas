@@ -10,7 +10,7 @@ Still to build once Supabase is connected: the scheduled job that sends push ale
 
 The original plan, for reference:
 
-Atlas is a static site; every figure comes from the browser calling ~30 public services directly, and
+Terreno is a static site; every figure comes from the browser calling ~30 public services directly, and
 everything people make lives only in their browser. Before real users:
 
 1. **Keys out of the browser.** Build-time `VITE_*` keys ship in the public JavaScript. The Eventbrite token
@@ -39,7 +39,7 @@ checklist for connecting Supabase and Cloudflare.
 ## Also pending
 
 - Switch on the back end: connect Supabase and deploy the edge Worker (`docs/backend.md`); then the
-  scheduled job that sends push alerts for watches while Atlas is closed.
+  scheduled job that sends push alerts for watches while Terreno is closed.
 - A pass on real phones and a school Chromebook against live data (this environment can only use
   stand-in data), including the people detector loading for cameras.
 - Nightly data jobs (place pages refresh, politics and country snapshots) and privacy-friendly analytics.

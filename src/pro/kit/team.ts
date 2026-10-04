@@ -136,7 +136,7 @@ export function teamCard(app: App, s: TeamSync, b: Bound): HTMLElement {
   const off: () => void = s.onStatus(() => paint()) as () => void;
   paint();
   const msg = h("p", { class: "muted small" });
-  const fail = (e: unknown) => { msg.textContent = (e as Error).message || "Couldn't reach Atlas's servers."; };
+  const fail = (e: unknown) => { msg.textContent = (e as Error).message || "Couldn't reach Terreno's servers."; };
 
   const backup = () => h("div", { class: "team-row" },
     h("button", { class: "pill-btn", onclick: () => {
@@ -158,7 +158,7 @@ export function teamCard(app: App, s: TeamSync, b: Bound): HTMLElement {
     msg.textContent = "";
     const l = s.link;
     if (!cloudOn()) {
-      body.replaceChildren(h("p", { class: "muted small" }, "This workspace lives in this browser. To share it with your team (roles, live sync, version history), Atlas's back end needs switching on: see docs/backend.md › Team workspaces."), backup());
+      body.replaceChildren(h("p", { class: "muted small" }, "This workspace lives in this browser. To share it with your team (roles, live sync, version history), Terreno's back end needs switching on: see docs/backend.md › Team workspaces."), backup());
       return;
     }
     if (!cloudUser()) {

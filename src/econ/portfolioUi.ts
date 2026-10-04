@@ -40,7 +40,7 @@ export function openPortfolio(ctx: WorkCtx, app: App) {
   const add = () => {
     const c = findCompany(ask.value);
     const v = Number(amount.value) || 1000;
-    if (!c) { note.textContent = `Atlas maps ${COMPANIES.length} big companies so far; try one from the list.`; return; }
+    if (!c) { note.textContent = `Terreno maps ${COMPANIES.length} big companies so far; try one from the list.`; return; }
     hs = [...hs.filter((x) => x.id !== c.id), { id: c.id, value: (hs.find((x) => x.id === c.id)?.value ?? 0) + v }];
     save(hs); ask.value = ""; amount.value = ""; note.textContent = ""; render();
   };
@@ -58,14 +58,14 @@ export function openPortfolio(ctx: WorkCtx, app: App) {
     }
     importNote.replaceChildren(
       h("p", {}, r.holdings.length ? `Added ${r.holdings.length} holding${r.holdings.length === 1 ? "" : "s"}.` : "No mapped companies found in that."),
-      r.unknown.length ? h("p", { class: "muted small" }, `Not mapped yet: ${r.unknown.slice(0, 12).map((u) => u.symbol).join(", ")}${r.unknown.length > 12 ? "…" : ""} (Atlas maps ${COMPANIES.length} big companies so far).`) : "");
+      r.unknown.length ? h("p", { class: "muted small" }, `Not mapped yet: ${r.unknown.slice(0, 12).map((u) => u.symbol).join(", ")}${r.unknown.length > 12 ? "…" : ""} (Terreno maps ${COMPANIES.length} big companies so far).`) : "");
   };
   const importer = h("details", { class: "md-adjust pf-import" }, h("summary", {}, "Import from your broker"),
     h("p", { class: "muted small" }, "Export your positions as CSV (Fidelity, Schwab, Vanguard, E*TRADE, Robinhood, Interactive Brokers all can), then choose the file or paste it. It stays on this device."),
     h("div", { class: "pf-import-row" }, h("button", { class: "pill-btn", onclick: () => void pickFile(".csv,text/csv,text/plain").then((t) => t && take(t)) }, "Choose a CSV file"),
       h("button", { class: "pill-btn", onclick: () => take(paste.value) }, "Import pasted")),
     paste, importNote,
-    h("p", { class: "fineprint" }, "Connecting a brokerage account directly (read-only, through an aggregator such as SnapTrade or Plaid Investments) needs Atlas's back end; see docs/brokers.md."));
+    h("p", { class: "fineprint" }, "Connecting a brokerage account directly (read-only, through an aggregator such as SnapTrade or Plaid Investments) needs Terreno's back end; see docs/brokers.md."));
   amount.addEventListener("keydown", (e) => { if (e.key === "Enter") add(); });
 
   const tabs = h("div", { class: "segmented pf-tabs", role: "tablist" }, ...([["earn", "Where it earns"], ["made", "Made of"], ["policy", "Policies"], ["whatif", "What if"]] as [Tab, string][]).map(([id, label]) => {

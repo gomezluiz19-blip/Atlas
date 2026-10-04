@@ -141,7 +141,7 @@ class AnalyticImageryProvider extends UrlTemplateImageryProvider {
       url: "about:blank?{z}/{x}/{y}",
       maximumLevel: MAX_ELEVATION_ZOOM,
       enablePickFeatures: false,
-      credit: "Analysis: Atlas, from Terrain Tiles on AWS",
+      credit: "Analysis: Terreno, from Terrain Tiles on AWS",
     });
   }
   override requestImage(x: number, y: number, level: number) {

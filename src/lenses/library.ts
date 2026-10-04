@@ -1,4 +1,4 @@
-// Where made lenses live: the examples that ship with Atlas (each by one of
+// Where made lenses live: the examples that ship with Terreno (each by one of
 // the example people), the ones made on this device, and ones opened from
 // links. "My lenses" (made or kept) join the lens strip for every place.
 import { deleteLensRemote, pushLens } from "../cloud/sync";

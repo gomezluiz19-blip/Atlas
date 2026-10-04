@@ -1,4 +1,4 @@
-// Atlas service worker: the app opens instantly on a return visit, keeps
+// Terreno service worker: the app opens instantly on a return visit, keeps
 // working with a weak or no connection, and moves to a new deploy seamlessly.
 // - Pages: the navigation is fetched while the worker starts (navigation
 //   preload), network first, falling back to the cached copy.
@@ -123,7 +123,7 @@ self.addEventListener("fetch", (e) => {
   }
 });
 
-// A watch's notification: open (or focus) Atlas on that watch.
+// A watch's notification: open (or focus) Terreno on that watch.
 self.addEventListener("notificationclick", (e) => {
   e.notification.close();
   const url = e.notification.data?.url ?? "./";

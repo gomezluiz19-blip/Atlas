@@ -1,4 +1,4 @@
-// The living city: when you come down close over a town, Atlas builds it
+// The living city: when you come down close over a town, Terreno builds it
 // around you from OpenStreetMap and sets it going. Buildings rise in soft
 // clay tones over the real satellite ground, trees stand in the parks, and
 // small toy-like cars drive the real streets (keeping to their side, turning

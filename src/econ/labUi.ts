@@ -71,7 +71,7 @@ export function openLab(ctx: WorkCtx, app: App) {
         h("div", {}, h("h4", {}, "Hit hardest"), ...rows.slice(0, 6).map((r) => h("div", { class: "ec-wl", title: r.reasons.map((x) => x.text).join("; ") }, h("span", {}, r.c.name), pctTag(r.pct)))),
         h("div", {}, h("h4", {}, "Gain most"), ...rows.slice(-6).reverse().filter((r) => r.pct > 0).map((r) => h("div", { class: "ec-wl", title: r.reasons.map((x) => x.text).join("; ") }, h("span", {}, r.c.name), pctTag(r.pct))))),
       moves[0] ? h("button", { class: "pill-btn", onclick: () => void import("./deskUi").then((d) => d.openDesk(ctx, app, moves[0].id)) }, `${market(moves[0].id)!.name} on the commodity desk ›`) : "",
-      h("p", { class: "fineprint" }, "Rough changes in yearly profit for the companies Atlas maps; judgement-based shock sizes anchored on past episodes. For comparing exposures, not forecasting."));
+      h("p", { class: "fineprint" }, "Rough changes in yearly profit for the companies Terreno maps; judgement-based shock sizes anchored on past episodes. For comparing exposures, not forecasting."));
   }
 
   const bar = whatIfBar({

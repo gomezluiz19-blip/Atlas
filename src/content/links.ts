@@ -1,4 +1,4 @@
-// How the themes connect. At the foot of every view of a place, Atlas offers
+// How the themes connect. At the foot of every view of a place, Terreno offers
 // the next questions people tend to ask about it: other views of the same
 // place (which keep what's on the map), and layers to add without leaving.
 

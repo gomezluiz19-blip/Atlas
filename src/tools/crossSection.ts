@@ -209,6 +209,6 @@ export class CrossSectionTool implements Tool {
     sec.points.forEach(([lon, lat], i) => {
       rows.push(`${sec.distance[i].toFixed(1)},${lon.toFixed(6)},${lat.toFixed(6)},${sec.elevation[i].toFixed(1)}`);
     });
-    downloadText("atlas-cross-section.csv", rows.join("\n"));
+    downloadText("terreno-cross-section.csv", rows.join("\n"));
   }
 }

@@ -1,4 +1,4 @@
-// Where Atlas Pro's data comes from. All three run in the browser:
+// Where Terreno Pro's data comes from. All three run in the browser:
 //   - demo:  a simulated hotel, so the live views can be tried at once;
 //   - csv:   a reservations export from any CRM or property-management system;
 //   - url:   a live link polled every few seconds, e.g. a Google Sheet published
@@ -153,6 +153,6 @@ export async function fetchFeed(url: string): Promise<Omit<Feed, "at">> {
     return parseFeedJson(Array.isArray(data) ? { reservations: data } : data);
   }
   const { reservations, columns } = reservationsFromTable(parseTable(text));
-  if (!columns) throw new Error("the link didn't return reservations Atlas recognises (it needs arrival and departure columns)");
+  if (!columns) throw new Error("the link didn't return reservations Terreno recognises (it needs arrival and departure columns)");
   return { rooms: [], reservations, updates: [] };
 }

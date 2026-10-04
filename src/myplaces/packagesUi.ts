@@ -45,5 +45,5 @@ export function openPackages(ctx: WorkCtx, back?: () => void) {
     h("button", { class: "primary-btn", onclick: add }, "Add"),
     ...open.map(card),
     done.length ? h("details", {}, h("summary", { class: "group-title" }, `Delivered · ${done.length}`), ...done.map(card)) : "",
-    h("p", { class: "muted small" }, "Atlas knows the carrier from the number and links to its tracking page. Carriers only share live tracking with their own accounts, so set the step and the date here (or paste the next email)."));
+    h("p", { class: "muted small" }, "Terreno knows the carrier from the number and links to its tracking page. Carriers only share live tracking with their own accounts, so set the step and the date here (or paste the next email)."));
 }

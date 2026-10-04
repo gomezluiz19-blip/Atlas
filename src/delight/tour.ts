@@ -1,4 +1,4 @@
-// The tour: a minute that shows what Atlas can do by doing it. Each step
+// The tour: a minute that shows what Terreno can do by doing it. Each step
 // lights up one part and makes it happen live: a question typed into the
 // search, a mountain's page, the mountain cut open, the mountain as a
 // hologram, the planet's wind and planes moving, the world of 1914, the tools
@@ -52,7 +52,7 @@ function clearSearch() {
 let windOn = false;
 
 const STEPS: Step[] = [
-  { title: "The whole Earth, live", text: "And your own corner of it. In the next minute Atlas will show you what it can do, for real, on the real planet. Leave any time." },
+  { title: "The whole Earth, live", text: "And your own corner of it. In the next minute Terreno will show you what it can do, for real, on the real planet. Leave any time." },
   { target: ".search", kicker: "Ask", title: "One box understands anything", text: "A place, an address, coordinates, a year, something to show, or a question across every layer at once. This one finds flat land near an airport that stays warm in winter.",
     before: () => typeInSearch("flat land near an airport, warm in winter"), after: () => clearSearch() },
   { target: ".sheet", kicker: "Know", title: "Every place, every layer", text: "Its ground, climate, water, people, hazards and past, in one page with an address you can share. Here's Mount Fuji.",
@@ -70,7 +70,7 @@ const STEPS: Step[] = [
     before: async (app) => { run(app, "mode:work"); await wait(1200); } },
   { target: ".work-panel:not([hidden])", kicker: "Yours", title: "Your place, every day", text: "Save your home, farm or business for a morning brief (frost, storms, deliveries), your cameras, how long to get anywhere, trips, and a hologram of your lot with its trees and water.",
     before: async (app) => { run(app, "mode:place"); await wait(1200); } },
-  { title: "That's Atlas", text: "Start with your own place, plan somewhere to go, or let Atlas surprise you.", finale: true },
+  { title: "That's Terreno", text: "Start with your own place, plan somewhere to go, or let Terreno surprise you.", finale: true },
 ];
 
 export function startTour(app: App) {

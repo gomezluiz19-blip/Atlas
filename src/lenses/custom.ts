@@ -392,7 +392,7 @@ export function renderLens(host: LensHost, s: Subject, def: LensDef, opts: { aut
   const judged = lensJudges(def);
   let settled = 0;
   const total = def.blocks.filter((b) => JUDGED.includes(b.type)).length;
-  const watchBtn = h("button", { class: "cl-watch", title: "Atlas checks for you and tells you when it's a good time here", onclick: () => host.app.actions.get("watch:add")?.run(JSON.stringify({ lens: def.id, subject: s })) }, "🔔 Tell me when");
+  const watchBtn = h("button", { class: "cl-watch", title: "Terreno checks for you and tells you when it's a good time here", onclick: () => host.app.actions.get("watch:add")?.run(JSON.stringify({ lens: def.id, subject: s })) }, "🔔 Tell me when");
   ctx.paintVerdict = () => {
     const j = judge(ctx.verdicts);
     if (!j) return;

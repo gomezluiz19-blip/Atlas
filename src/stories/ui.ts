@@ -86,7 +86,7 @@ export function openLibrary(ctx: WorkCtx, back: (() => void) | null = ctx.home) 
     h("div", { class: "chips wrap story-topics" },
       ...TOPICS.map((t) => chip(`${TOPIC_EMOJI[t]} ${t}`, state.tag === t, () => (state.tag = state.tag === t ? undefined : t)))),
     results,
-    lib.kind === "device" ? h("p", { class: "fineprint" }, "This copy of Atlas isn't connected to the shared library yet, so published stories stay on this device and travel by link. Setup: docs/stories-backend.md.") : "");
+    lib.kind === "device" ? h("p", { class: "fineprint" }, "This copy of Terreno isn't connected to the shared library yet, so published stories stay on this device and travel by link. Setup: docs/stories-backend.md.") : "");
   void refresh();
 }
 

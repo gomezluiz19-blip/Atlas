@@ -1,4 +1,4 @@
-// The three things Atlas is for, as one switch at the top:
+// The three things Terreno is for, as one switch at the top:
 //   Explore: the whole Earth (and space) through themes and lenses;
 //   Create: plans, stories, videos and lessons made from the map;
 //   Work: pro tools for the work you do, drawn as industry lines;

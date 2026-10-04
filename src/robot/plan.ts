@@ -1,8 +1,8 @@
-// The task robot's planner: turns a plain-language request into steps Atlas
+// The task robot's planner: turns a plain-language request into steps Terreno
 // can carry out, e.g. "where does rain go in downtown Chicago, and show the
 // storm drains and railways" becomes:
 //   find "downtown Chicago" → add railways → rain path → city water.
-// No language model: a vocabulary of the things Atlas can do, matched against
+// No language model: a vocabulary of the things Terreno can do, matched against
 // the request, plus rules for finding the place. Anything it can't place is
 // reported back rather than guessed at.
 
@@ -36,7 +36,7 @@ const layer = (action: string, label: string): Step => ({ kind: "layer", action,
 
 // Most specific phrases first; each match is removed before the next rule runs.
 const RULES: Rule[] = [
-  // Atlas Pro: live operations for a saved building
+  // Terreno Pro: live operations for a saved building
   { re: /\b(how (full|busy|booked)|occupancy|occupied|vacanc(y|ies)|bookings?|reservations?|check.?ins?|guests? (in|at|staying)|rooms? (free|available|left))\b/, step: layer("pro:occupancy", "Show live occupancy (Pro)") },
   // Live: the world's news, planes and ships
   { re: /\b(news|headlines?|what'?s happening( in the world)?|current events|world now|breaking)\b/, step: layer("news:open", "Open World now: the biggest stories") },

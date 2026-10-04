@@ -89,7 +89,7 @@ function glowLayer(area: Area): ImageryLayer {
       ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
     }
     ctx.globalCompositeOperation = "source-over";
-  }, { maximumLevel: 14, credit: "Answers across layers: Atlas" });
+  }, { maximumLevel: 14, credit: "Answers across layers: Terreno" });
 }
 
 /** The part of the world you can see between the panels, trimmed to something worth scoring cell by cell. */
@@ -330,7 +330,7 @@ export function openAsk(ctx: WorkCtx, question?: string, preset?: { title: strin
   const chips = h("div", { class: "ask-examples" }, ...EXAMPLES.map((q) => h("button", { class: "fl-chip", onclick: () => { input.value = q; read(); void answer(); } }, q)));
   ctx.show("Ask the map", ctx.home,
     h("div", { class: "ask-hero" },
-      h("p", { class: "ask-lede" }, "Ask for places that meet many things at once. Atlas reads the ground, climate, towns, roads, rivers, hazards and country figures together, for everywhere on screen."),
+      h("p", { class: "ask-lede" }, "Ask for places that meet many things at once. Terreno reads the ground, climate, towns, roads, rivers, hazards and country figures together, for everywhere on screen."),
       input, go),
     understood, notes, progress, results,
     state.query ? "" : h("div", {}, h("div", { class: "ask-label" }, "Try"), chips));

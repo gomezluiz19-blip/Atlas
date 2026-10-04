@@ -1,4 +1,4 @@
-# Showing Atlas
+# Showing Terreno
 
 A guide for demo days: students, teachers, early users and investors. What to set up, what to show each
 audience, and what to say when something's slow.
@@ -7,17 +7,17 @@ audience, and what to say when something's slow.
 
 - [ ] **Deploy the latest `main`** and open the live site once on the demo machine, so the service worker
       caches the app and the tiles for the places you'll show.
-- [ ] **Connect Atlas AI** if you can: account button › Connect Atlas AI › a proxy URL (docs/ai-proxy.md)
+- [ ] **Connect Terreno AI** if you can: account button › Connect Terreno AI › a proxy URL (docs/ai-proxy.md)
       or your own key. Without it, search requests and Lens Studio use the built-in planner and designer,
       which cover the demos below.
 - [ ] **Feedback**: set `VITE_FEEDBACK_URL` (a Formspree or similar endpoint) to collect notes centrally.
       Without it, notes stay on the device; read them from account › Send feedback › *Notes left on this
       device*, and download them after.
-- [ ] **A clean slate for each visitor**: account button › About Atlas › *Start fresh* (tap twice). The
-      next visitor gets the opening titles and the one-minute tour; Atlas AI and feedback notes are kept.
+- [ ] **A clean slate for each visitor**: account button › About Terreno › *Start fresh* (tap twice). The
+      next visitor gets the opening titles and the one-minute tour; Terreno AI and feedback notes are kept.
 - [ ] **Link previews**: deploy with the site's address known (the GitHub Pages workflow sets
-      `ATLAS_SITE_URL`), so links you send show the Atlas card with its image.
-- [ ] Chrome or Safari, full screen, a mouse or trackpad. On phones, Atlas works one-handed; add it to the
+      `ATLAS_SITE_URL`), so links you send show the Terreno card with its image.
+- [ ] Chrome or Safari, full screen, a mouse or trackpad. On phones, Terreno works one-handed; add it to the
       home screen for full screen.
 
 ## Five minutes for anyone
@@ -34,7 +34,7 @@ audience, and what to say when something's slow.
 6. **Make a lens.** From Maya's page, her *Birdwatching* lens: it opens on Reifel sanctuary with what's been
    seen this month, the hides, the best window for the weather, and a verdict. Then Lens Studio: type
    `a coffee crawl with bakeries` and press *Make it*; try it on any city.
-7. **Watch it.** On any lens with a verdict, *🔔 Tell me when*: Atlas checks and tells you when it's a
+7. **Watch it.** On any lens with a verdict, *🔔 Tell me when*: Terreno checks and tells you when it's a
    good time (Kenji's *Aurora watch* on Tromsø is the showstopper on a stormy night).
 8. **A guide.** Priya's page › *Lisbon in a day* › ▶: the route draws itself and the globe flies stop to
    stop with her words.
@@ -44,7 +44,7 @@ audience, and what to say when something's slow.
 - Sign in as **Maya** (student). Show her page, her journal, her guestbook (sign it).
 - On a phone: account › *Field note*: a photo, a line, pinned where they're standing, in their journal.
 - Explore › Learn: the daily challenge, games and the passport (each country you explore stamps it).
-- Search `1914`, or ask *"Show me the Roman Empire"* (with Atlas AI).
+- Search `1914`, or ask *"Show me the Roman Empire"* (with Terreno AI).
 - Let them make their own page: account › Sign in or join › any email (nothing is sent) › pick a face and
   *Student*. Their page opens in edit mode: add their Top 8 by searching (`Eiffel Tower`, a local park) or
   *Restaurants, cafés, bars and parks near …*. Then *Share* copies a link that carries the whole page.

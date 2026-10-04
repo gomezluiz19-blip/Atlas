@@ -175,7 +175,7 @@ export class Recording {
       g.textBaseline = "bottom";
       g.shadowColor = "rgba(0,0,0,0.7)";
       g.shadowBlur = 4 * u;
-      g.fillText(`Made with Atlas · ${credits}`.slice(0, 180), w - 16 * u, hh - 12 * u);
+      g.fillText(`Made with Terreno · ${credits}`.slice(0, 180), w - 16 * u, hh - 12 * u);
       g.shadowBlur = 0;
       g.textAlign = "left";
     }

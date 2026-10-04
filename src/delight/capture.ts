@@ -1,6 +1,6 @@
-// Stills and short films of anything Atlas draws in WebGL (the globe, a
+// Stills and short films of anything Terreno draws in WebGL (the globe, a
 // hologram), framed like a title card: the name large, a line under it, the
-// date, and a quiet Atlas mark. A still is one frame; a film records a few
+// date, and a quiet Terreno mark. A still is one frame; a film records a few
 // seconds while the view moves, for a board deck, an update or a post.
 import { coverCrop, pickMime } from "../work/videoModel";
 
@@ -34,7 +34,7 @@ export function drawCard(g: CanvasRenderingContext2D, w: number, h: number, f: F
   g.font = `600 ${Math.round(15 * s)}px Inter, -apple-system, system-ui, sans-serif`;
   g.textAlign = "right";
   g.fillStyle = "rgba(255,255,255,0.85)";
-  g.fillText("ATLAS", w - pad, pad + 4 * s);
+  g.fillText("TERRENO", w - pad, pad + 4 * s);
   g.fillStyle = "rgba(255,255,255,0.6)";
   g.fillText(new Date().toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" }), w - pad, pad + 26 * s);
   g.restore();
@@ -49,7 +49,7 @@ const save = (blob: Blob, name: string) => {
   a.remove();
   setTimeout(() => URL.revokeObjectURL(a.href), 30_000);
 };
-const fileName = (title: string, ext: string) => `${title.replace(/[^\w\- ]+/g, "").trim().replace(/\s+/g, "-").toLowerCase() || "atlas"}-${new Date().toISOString().slice(0, 10)}.${ext}`;
+const fileName = (title: string, ext: string) => `${title.replace(/[^\w\- ]+/g, "").trim().replace(/\s+/g, "-").toLowerCase() || "terreno"}-${new Date().toISOString().slice(0, 10)}.${ext}`;
 
 /**
  * Takes a still. `onNextFrame` must call its callback right after the source

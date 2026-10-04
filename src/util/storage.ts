@@ -27,7 +27,7 @@ export function loadJson<T>(key: string, fallback: T, ok: (v: unknown) => boolea
   } catch { return fallback; }
 }
 
-/** About how many bytes Atlas keeps in this browser (strings are stored as UTF-16). */
+/** About how many bytes Terreno keeps in this browser (strings are stored as UTF-16). */
 export function storageUsed(prefix = "atlas."): number {
   let n = 0;
   try { for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i)!; if (k.startsWith(prefix)) n += (k.length + (localStorage.getItem(k)?.length ?? 0)) * 2; } } catch { /* blocked */ }

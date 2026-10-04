@@ -1,4 +1,4 @@
-// Atlas Pro: live operations for a saved building. Connect a reservations
+// Terreno Pro: live operations for a saved building. Connect a reservations
 // source (demo feed, a CRM/PMS export, or a live link) and see how full the
 // place is: the building in 3D floor by floor, the key numbers, every room,
 // the next two weeks, and a time slider to watch it fill up.
@@ -36,7 +36,7 @@ export interface ProUi {
 }
 
 export function createPro(app: App, store: PlaceStore, scene: PlaceScene, showPlace: (id: string) => void): ProUi {
-  const panel = h("div", { class: "popover pro-panel", hidden: true, role: "dialog", "aria-label": "Atlas Pro" });
+  const panel = h("div", { class: "popover pro-panel", hidden: true, role: "dialog", "aria-label": "Terreno Pro" });
   let placeId: string | null = null;
   let feed: Feed | null = null;
   let error = "";
@@ -98,7 +98,7 @@ export function createPro(app: App, store: PlaceStore, scene: PlaceScene, showPl
             if (!/^https:\/\//.test(v)) { app.toast("Use an https:// link"); return; }
             connect({ source: { kind: "url", url: v, everySec: 30 }, rooms: [] });
           } }, "Connect")))),
-      h("p", { class: "fineprint" }, "Direct connections to booking systems and CRMs need their secret keys kept on a server. The format a connector should serve is in docs/pro-connectors.md in the Atlas repository."),
+      h("p", { class: "fineprint" }, "Direct connections to booking systems and CRMs need their secret keys kept on a server. The format a connector should serve is in docs/pro-connectors.md in the Terreno repository."),
       cameras.el(p),
     );
   };

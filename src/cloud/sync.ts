@@ -1,4 +1,4 @@
-// What goes to Atlas's servers and what comes back. The device stays the
+// What goes to Terreno's servers and what comes back. The device stays the
 // source of truth while you're using it (everything works offline); your own
 // page and lenses are pushed shortly after each change, and other people's
 // pages, lenses and guestbooks are fetched when you open them.

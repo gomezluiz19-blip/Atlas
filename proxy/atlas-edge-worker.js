@@ -1,5 +1,5 @@
-// Atlas's edge: a Cloudflare Worker between visitors and the free public
-// services Atlas reads, and the keeper of service keys that mustn't ship in
+// Terreno's edge: a Cloudflare Worker between visitors and the free public
+// services Terreno reads, and the keeper of service keys that mustn't ship in
 // the web page. Deploy with Wrangler (docs/backend.md › The edge).
 //
 //   GET/POST /f/<encoded URL>   a cached passthrough to an allowed public service
@@ -68,7 +68,7 @@ export default {
 
     const url = new URL(req.url);
     if (url.pathname === "/ws/ais") return aisRelay(req, env, url);
-    let target, init = { method: req.method, headers: { "User-Agent": env.USER_AGENT ?? "Atlas (https://github.com/)", Accept: "application/json" } }, maxAge;
+    let target, init = { method: req.method, headers: { "User-Agent": env.USER_AGENT ?? "Terreno (https://terreno.site)", Accept: "application/json" } }, maxAge;
 
     if (url.pathname.startsWith("/f/")) {
       target = decodeURIComponent(url.pathname.slice(3)) + url.search;
@@ -86,7 +86,7 @@ export default {
       target = u.toString();
       maxAge = 900;
     } else {
-      return new Response("Atlas edge", { headers: head });
+      return new Response("Terreno edge", { headers: head });
     }
 
     // POST bodies (Overpass queries) are part of the cache key.
@@ -95,12 +95,12 @@ export default {
     const key = new Request(`https://atlas-edge.cache/${await sha(`${target}|${body ?? ""}|${init.headers["Accept-Language"] ?? ""}`)}`);
     const cache = caches.default;
     const hit = await cache.match(key);
-    if (hit) return new Response(hit.body, { status: hit.status, headers: { ...Object.fromEntries(hit.headers), ...head, "X-Atlas-Cache": "hit" } });
+    if (hit) return new Response(hit.body, { status: hit.status, headers: { ...Object.fromEntries(hit.headers), ...head, "X-Terreno-Cache": "hit" } });
 
     const res = await fetch(target, init);
     const out = new Response(res.body, { status: res.status, headers: { "Content-Type": res.headers.get("Content-Type") ?? "application/json", "Cache-Control": `public, max-age=${maxAge}` } });
     if (res.ok) ctx.waitUntil(cache.put(key, out.clone()));
-    return new Response(out.body, { status: out.status, headers: { ...Object.fromEntries(out.headers), ...head, "X-Atlas-Cache": "miss" } });
+    return new Response(out.body, { status: out.status, headers: { ...Object.fromEntries(out.headers), ...head, "X-Terreno-Cache": "miss" } });
   },
 };
 

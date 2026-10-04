@@ -29,7 +29,7 @@ describe("the World Heritage List", () => {
     const many = listingIntro(row(1133));
     expect(many.where).toMatch(/and \d+ more countries/);
   });
-  it("joins listings onto the intros Atlas already has, by place or by name", () => {
+  it("joins listings onto the intros Terreno already has, by place or by name", () => {
     expect(joinFor(row(274), INTROS)?.id).toBe("machu-picchu");
     expect(joinFor(row(166), INTROS)?.id).toBe("sydney-opera-house");
     expect(joinFor(row(488), INTROS)?.id).toBe("tower-of-london");

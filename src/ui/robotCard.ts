@@ -51,7 +51,7 @@ export function createRobot(app: App, resolver: Resolver, ai?: Omit<AiDeps, "res
         hideTimer = window.setTimeout(() => (el.hidden = true), 20000);
       } catch (e) {
         if (my !== job) return;
-        app.toast(`Atlas AI: ${(e as Error).message}${fallback ? " Using the built-in planner." : ""}`, 6000);
+        app.toast(`Terreno AI: ${(e as Error).message}${fallback ? " Using the built-in planner." : ""}`, 6000);
         if (fallback) await this.run(request, fallback);
         else draw(request, [{ label: "Ask Claude", status: "failed", note: (e as Error).message }], [], true);
       }

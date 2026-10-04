@@ -1,4 +1,4 @@
--- Atlas story library: one table and four functions on Supabase (Postgres).
+-- Terreno story library: one table and four functions on Supabase (Postgres).
 -- Run it once in the Supabase SQL editor. Anyone can read published stories;
 -- writes only go through the functions, which check what's sent. A story's
 -- author gets an edit key (kept on their device) to update it later.

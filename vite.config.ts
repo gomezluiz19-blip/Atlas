@@ -4,6 +4,7 @@ import { join, resolve } from "node:path";
 import { gzipSync } from "node:zlib";
 import { defineConfig, type Plugin } from "vite";
 import { FEATURES } from "./src/content/features";
+import { LEGAL_PAGES, legalPage, type Company } from "./src/legal/markdown";
 import { pagesFor, renderPage, sitemap, type LabelRow } from "./src/place/prerender";
 
 /** Gzipped bytes every visitor downloads at startup; the build fails in CI past these. */
@@ -12,6 +13,42 @@ const BUDGET = { app: 700 * 1024, cesium: 1250 * 1024 };
 /** Startup data (intros, sites, features, minerals) changes less often than the code: its own file. */
 const DATA = /src\/(intros\/(heritage|more|footholds|nature)|content\/(features|links|minerals|sites|wildlife)|ui\/taxonIcons)\.ts$/;
 const VENDOR = /node_modules\/(satellite\.js|lucide|topojson-client)\//;
+
+/**
+ * A Content Security Policy for the built site (GitHub Pages can't send headers, so it's a meta tag). Scripts
+ * only from the site itself (and WebAssembly for Cesium), so an injected <script> from anywhere else, or an inline
+ * one, can't run; no plugins; no <base> hijacking. 'unsafe-eval' is needed because Cesium's widgets use Knockout,
+ * which compiles its bindings from strings. Data, tiles and images still come from the public services it reads.
+ */
+export const CSP = [
+  "default-src 'self'", "script-src 'self' 'unsafe-eval' 'wasm-unsafe-eval' blob:", "worker-src 'self' blob:", "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+  "font-src 'self' data: https://fonts.gstatic.com", "img-src 'self' data: blob: https:", "media-src 'self' blob: https:", "connect-src 'self' https: wss: data: blob:",
+  "frame-src https:", "object-src 'none'", "base-uri 'self'", "form-action 'self'",
+].join("; ");
+function contentSecurityPolicy(): Plugin {
+  return { name: "atlas-csp", apply: "build", transformIndexHtml: (html) => html.replace("<head>", `<head>\n    <meta http-equiv="Content-Security-Policy" content="${CSP}" />`) };
+}
+
+/** The legal and trust pages (docs/legal) at /legal/<name>.html, and /.well-known/security.txt once there's a security contact. */
+function legalPages(): Plugin {
+  let outDir = "dist";
+  return {
+    name: "atlas-legal-pages",
+    apply: "build",
+    configResolved(c) { outDir = c.build.outDir; },
+    closeBundle() {
+      const company = JSON.parse(readFileSync("docs/legal/company.json", "utf8")) as Company;
+      mkdirSync(join(outDir, "legal"), { recursive: true });
+      for (const [name] of LEGAL_PAGES) writeFileSync(join(outDir, "legal", `${name}.html`), legalPage(name, readFileSync(join("docs", "legal", `${name}.md`), "utf8"), company));
+      const contact = company.security_email || company.contact_email;
+      if (contact) {
+        mkdirSync(join(outDir, ".well-known"), { recursive: true });
+        const expires = new Date(Date.now() + 300 * 86_400_000).toISOString();
+        writeFileSync(join(outDir, ".well-known", "security.txt"), `Contact: mailto:${contact}\nExpires: ${expires}\nPreferred-Languages: en\nPolicy: https://${readFileSync("public/CNAME", "utf8").trim()}/legal/security.html\n`);
+      }
+    },
+  };
+}
 
 /** Writes a real page for every named place (p/<address>/), and a sitemap when the site's URL is known. */
 function placePages(): Plugin {
@@ -39,8 +76,8 @@ function placePages(): Plugin {
       const app = precache.filter((f) => f.endsWith(".js") && !/cesium/.test(f)).reduce((t, f) => t + gz(f), 0);
       const cesium = precache.filter((f) => /cesium/.test(f)).reduce((t, f) => t + gz(f), 0);
       const kb = (n: number) => `${Math.round(n / 1024)} kB`;
-      console.log(`Startup download (gzip): Atlas ${kb(app)}, Cesium ${kb(cesium)}, in ${precache.length} files`);
-      const over = [app > BUDGET.app && `Atlas startup code is ${kb(app)}, over its ${kb(BUDGET.app)} budget`, cesium > BUDGET.cesium && `Cesium is ${kb(cesium)}, over its ${kb(BUDGET.cesium)} budget`].filter(Boolean);
+      console.log(`Startup download (gzip): Terreno ${kb(app)}, Cesium ${kb(cesium)}, in ${precache.length} files`);
+      const over = [app > BUDGET.app && `Terreno startup code is ${kb(app)}, over its ${kb(BUDGET.app)} budget`, cesium > BUDGET.cesium && `Cesium is ${kb(cesium)}, over its ${kb(BUDGET.cesium)} budget`].filter(Boolean);
       if (over.length) { if (process.env.CI) this.error(over.join("; ")); else this.warn(over.join("; ")); }
     },
     closeBundle() {
@@ -77,7 +114,7 @@ function linkPreview(): Plugin {
       const img = `${site || "./"}og.png`;
       const meta = (property: string, content: string) => ({ tag: "meta", attrs: { property, content }, injectTo: "head" as const });
       return [
-        meta("og:title", "Atlas"),
+        meta("og:title", "Terreno"),
         meta("og:description", "The whole Earth, and your own corner of it: every place on one page, lenses you can make, time travel, and a page of the places you love."),
         meta("og:type", "website"),
         meta("og:image", img),
@@ -94,11 +131,11 @@ export default defineConfig({
   // Relative base so the build works from any static host or subfolder.
   base: "./",
   worker: { format: "es" },
-  plugins: [linkPreview(), placePages()],
+  plugins: [contentSecurityPolicy(), linkPreview(), placePages(), legalPages()],
   build: {
     chunkSizeWarningLimit: 6000,
     // Cesium, small libraries and the bundled data each in their own file, so a deploy that
-    // only changes Atlas's code leaves them cached, and they download in parallel.
+    // only changes Terreno's code leaves them cached, and they download in parallel.
     // The app, and the phone remote for TV mode (a page of its own, no globe).
     rollupOptions: { input: { main: resolve(__dirname, "index.html"), remote: resolve(__dirname, "remote.html") }, output: { manualChunks: (id) => (/node_modules\/@?cesium/.test(id) ? "cesium" : VENDOR.test(id) ? "vendor" : DATA.test(id) ? "atlas-data" : undefined) } },
   },
