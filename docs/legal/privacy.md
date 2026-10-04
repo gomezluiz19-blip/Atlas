@@ -51,7 +51,7 @@ models, and we don't make automated decisions about you that have legal or simil
   services about it. They receive the request and your IP address, not your account details. Where our edge
   service is switched on, many of these requests pass through it instead, so the provider sees our server, not
   you. The list is on the subprocessors page.
-- **Atlas AI.** If you turn on Atlas AI, the requests you type are sent to Anthropic (Claude) through our proxy
+- **Terreno AI.** If you turn on Terreno AI, the requests you type are sent to Anthropic (Claude) through our proxy
   to be answered. Anthropic doesn't use API data to train its models by default.
 - **The law.** We'll disclose information if the law requires it, and we'll tell you first unless we're not
   allowed to. If our business is sold or merged, your information may transfer to the new owner under this

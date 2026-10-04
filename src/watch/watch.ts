@@ -1,10 +1,10 @@
 // Watch a place: any lens that gives a verdict ("good time for birding",
 // "surf's up", "aurora reaching here") can keep an eye on a place for you.
-// Atlas checks while it's open (and when you come back), and tells you when
+// Terreno checks while it's open (and when you come back), and tells you when
 // the verdict turns good: a notification if you've allowed them, and a note
-// in the Watching list either way. With Atlas's servers, watches follow you
+// in the Watching list either way. With Terreno's servers, watches follow you
 // between devices (and, once the scheduled job is on, alerts arrive with
-// Atlas closed; see docs/backend.md).
+// Terreno closed; see docs/backend.md).
 import type { App } from "../app";
 import { deletePrivate, pullPrivate, pushPrivate } from "../cloud/sync";
 import { judgeLens, lensJudges, type Judgement } from "../lenses/custom";
@@ -86,7 +86,7 @@ export function createWatch(app: App, deps: { openLens(id: string, s: Subject): 
     write([w, ...all]);
     pushPrivate("watch", w.id, w);
     changed();
-    app.toast(`🔔 Watching ${s.name} for ${d.name.toLowerCase()}. Atlas will tell you when it's a good time.`, 5000);
+    app.toast(`🔔 Watching ${s.name} for ${d.name.toLowerCase()}. Terreno will tell you when it's a good time.`, 5000);
     // Ask for notifications once, right after the first watch: the moment it makes sense.
     if (typeof Notification !== "undefined" && Notification.permission === "default") setTimeout(() => void Notification.requestPermission().catch(() => {}), 900);
     void check(w.id);
@@ -114,12 +114,12 @@ export function createWatch(app: App, deps: { openLens(id: string, s: Subject): 
             h("span", { class: "wt-icon" }, d?.icon ?? "🔔"),
             h("span", {}, h("strong", {}, `${d?.name ?? "A lens"} · ${w.subject.name}`), h("small", {}, j ? `${j.face} ${j.label} · ${j.why[0] ?? ""} · checked ${ago(j.at)}` : "Checking…"))),
           h("button", { class: "icon-btn", "aria-label": "Stop watching", html: icons.close, onclick: () => { remove(w.id); render(); } }));
-      })) : h("p", { class: "muted small" }, "Open a lens that gives a verdict (Birdwatching, Surf check, Stargazing, Aurora watch…) on any place and tap “Tell me when”. Atlas checks for you."),
+      })) : h("p", { class: "muted small" }, "Open a lens that gives a verdict (Birdwatching, Surf check, Stargazing, Aurora watch…) on any place and tap “Tell me when”. Terreno checks for you."),
       all.length ? h("div", { class: "wt-foot" },
         h("button", { class: "pill-btn", onclick: () => void check().then(render) }, "Check now"),
         typeof Notification !== "undefined" && Notification.permission !== "granted"
           ? h("button", { class: "link-btn", onclick: () => void Notification.requestPermission().then(render) }, Notification.permission === "denied" ? "Notifications are blocked in this browser" : "Allow notifications") : "") : "",
-      h("p", { class: "fineprint" }, "Atlas checks every half hour while it's open, and when you come back."));
+      h("p", { class: "fineprint" }, "Terreno checks every half hour while it's open, and when you come back."));
   }
   listeners.add(() => { if (!panel.hidden) render(); });
 

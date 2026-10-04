@@ -23,7 +23,7 @@ This policy is part of the [Terms of Service](terms.html). It applies to everyon
 8. **Misuse the data sources** the Service shows, against their own terms (for example bulk downloading imagery).
 9. **Resell or sublicense the Service**, or use it to build a competing product, without our agreement.
 10. **Pretend to be someone else**, or misrepresent your connection to an organization.
-11. **Use Atlas AI** to produce content that breaks this policy or Anthropic's usage policies.
+11. **Use Terreno AI** to produce content that breaks this policy or Anthropic's usage policies.
 
 ## If something's wrong
 

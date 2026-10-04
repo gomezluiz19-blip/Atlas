@@ -1,4 +1,4 @@
-// Every site on the World Heritage List as an intro. Where Atlas already
+// Every site on the World Heritage List as an intro. Where Terreno already
 // has an intro for the place (the same spot, or a nearby one sharing a
 // distinctive word of its name), the listing joins it: its UNESCO name
 // becomes another name to find it by, and the year it was inscribed is
@@ -58,7 +58,7 @@ export function listingIntro([id, name, cs, cat, year, lon, lat]: WhcRow): Intro
   };
 }
 
-/** The intro a listing belongs with, if Atlas already has one (pure). */
+/** The intro a listing belongs with, if Terreno already has one (pure). */
 export function joinFor(row: WhcRow, intros: IntroPlace[]): IntroPlace | null {
   const [, name, , , , lon, lat] = row;
   const w = words(name);

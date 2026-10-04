@@ -67,7 +67,7 @@ export function drawCard(ctx: CanvasRenderingContext2D, globe: CanvasImageSource
   ctx.fillText(link.length > 56 ? `${link.slice(0, 55)}…` : link, x, H - 72);
   ctx.font = font(700, 28);
   ctx.fillStyle = "#fff";
-  const brand = "ATLAS";
+  const brand = "TERRENO";
   ctx.fillText(brand, W - x - ctx.measureText(brand).width, H - 72);
   if (t.fact) {
     ctx.font = font(450, 42);
@@ -99,7 +99,7 @@ export async function shareCard(app: App, t: CardText) {
   const blob = await new Promise<Blob | null>((r) => canvas.toBlob(r, "image/png"));
   if (!blob) { app.toast("Couldn't make the card.", 3000); return; }
   chime("surprise");
-  const file = new File([blob], `${t.title.replace(/[^\w-]+/g, "-").toLowerCase() || "atlas"}.png`, { type: "image/png" });
+  const file = new File([blob], `${t.title.replace(/[^\w-]+/g, "-").toLowerCase() || "terreno"}.png`, { type: "image/png" });
   const url = URL.createObjectURL(blob);
   const close = () => { sheet.remove(); URL.revokeObjectURL(url); };
   const canShare = !!navigator.canShare?.({ files: [file] });

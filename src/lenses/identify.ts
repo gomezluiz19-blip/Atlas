@@ -81,7 +81,7 @@ export async function identify(place: Place, radiusHint?: number): Promise<Subje
   const f = (place.feature ?? {}) as { kind?: string; name?: string };
   const name = place.name?.title ?? f.name ?? "This place";
   const text = `${place.name?.title ?? ""} ${place.name?.context ?? ""}`;
-  // A feature Atlas knows by name settles it (Vredefort is a crater even though it's worn flat).
+  // A feature Terreno knows by name settles it (Vredefort is a crater even though it's worn flat).
   const known = featureFor({ name, lon: place.lon, lat: place.lat });
   const KNOWN: Record<string, SubjectKind> = { crater: "crater", volcano: "volcano", peak: "peak", deep: "sea", forest: "forest", river: "river", metro: "city", lake: "lake", waterfall: "river", canyon: "canyon", desert: "desert" };
   const hinted = (known ? KNOWN[known.kind] : null) ?? kindFromHint(f.kind, text);

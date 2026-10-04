@@ -2,7 +2,7 @@
 // the camera on a phone), a line or two, and what it is (a sighting, a view,
 // something to eat), pinned to your location and kept in your journal.
 // Photos are made small on the device first and kept in its database; with
-// Atlas's servers on, they're uploaded so the note shows everywhere.
+// Terreno's servers on, they're uploaded so the note shows everywhere.
 import "./notes.css";
 import type { App } from "../app";
 import { cloudOn, upload } from "../cloud/client";
@@ -88,7 +88,7 @@ export function openFieldNote(app: App, deps: { signIn(then: () => void): void; 
     loc.querySelector(".fn-where-text")?.replaceChildren(h("strong", {}, "Finding you…"));
     navigator.geolocation.getCurrentPosition(
       (pos) => { where = { lon: pos.coords.longitude, lat: pos.coords.latitude, label: "Where I'm standing", acc: pos.coords.accuracy }; paintWhere(); },
-      () => { paintWhere(); app.toast("Couldn't get your location. Allow location for Atlas, or choose a place on the map first.", 4500); },
+      () => { paintWhere(); app.toast("Couldn't get your location. Allow location for Terreno, or choose a place on the map first.", 4500); },
       { enableHighAccuracy: true, timeout: 12_000, maximumAge: 60_000 });
   }
   paintWhere();

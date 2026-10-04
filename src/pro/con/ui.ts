@@ -386,7 +386,7 @@ export function openConstruction(ctx: WorkCtx, app: App, role?: string) {
       { heading: "Sites", table: { head: ["Site", "Stage", "Done", "Stories", "Value", "GC", "Union"], rows: R!.sites.map((s) => [s.name, stageAt(s, day).stage, `${Math.round(stageAt(s, day).overall * 100)}%`, s.stories, usd(s.value), s.gc, s.union]) } },
       { heading: `${R!.craft}: needed now`, lines: R!.sites.filter((s) => unionFlags(s, day, R!.craft).some((f) => f.level === "now")).map((s) => `${s.name}: ${unionFlags(s, day, R!.craft)[0].text}`) },
       { heading: "Materials, next 6 months", table: { head: ["Material", ...d.months], rows: (Object.keys(MATERIALS) as Material[]).map((m) => [`${MATERIALS[m].label} (${MATERIALS[m].unit})`, ...d.totals[m]]) } },
-    ], "Made with Atlas. Demo figures are rules of thumb.");
+    ], "Made with Terreno. Demo figures are rules of thumb.");
   }
 
   if (R) home(); else start();

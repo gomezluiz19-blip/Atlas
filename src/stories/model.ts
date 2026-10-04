@@ -86,7 +86,7 @@ export function remixOf(s: Story, newId: () => string): { deck: Deck; lineage: S
   };
 }
 
-/** "Remixed from The Nile by Ms Adeyemi, from … by Atlas". */
+/** "Remixed from The Nile by Ms Adeyemi, from … by Terreno". */
 export function creditLine(lineage: StoryRef[]): string {
   if (!lineage.length) return "";
   return "Remixed from " + lineage.map((r, i) => `${i ? "from " : ""}“${r.title}” by ${r.author}`).join(", ");

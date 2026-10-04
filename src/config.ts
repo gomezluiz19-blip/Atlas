@@ -18,7 +18,7 @@ export const config = {
   eventbriteOrg: (import.meta.env.VITE_EVENTBRITE_ORG_ID as string | undefined) || "",
   /** Live stock quotes in Finance (finnhub.io; a free key, personal use; see docs/data-licensing.md). */
   finnhubKey: (import.meta.env.VITE_FINNHUB_KEY as string | undefined) || "",
-  /** Atlas's edge (proxy/atlas-edge-worker.js): caches the free public services and holds service keys. */
+  /** Terreno's edge (proxy/atlas-edge-worker.js): caches the free public services and holds service keys. */
   edge: ((import.meta.env.VITE_ATLAS_EDGE as string | undefined) || "").replace(/\/$/, ""),
   /** Which keyed services the edge holds keys for: "ticketmaster,seatgeek,eventbrite". */
   edgeKeys: ((import.meta.env.VITE_ATLAS_EDGE_KEYS as string | undefined) || "").split(",").map((s) => s.trim()).filter(Boolean),

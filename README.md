@@ -1,14 +1,14 @@
-# Atlas
+# Terreno
 
-**Tap anywhere on Earth and learn about it.**
+**Tap anywhere on Earth and learn about it.** · [terreno.site](https://terreno.site)
 
-Atlas aims to do for GIS what Canva did for graphic design: make questions about any place on Earth
+Terreno aims to do for GIS what Canva did for graphic design: make questions about any place on Earth
 answerable in a tap, for anyone, while staying honest about the data. It starts simple (one card, eight
 themes) and goes deep when you want it to: rock sections, watersheds, life zones, climate trends.
 
 ## How it works for you
 
-Atlas does four things, switched at the top of the screen:
+Terreno does four things, switched at the top of the screen:
 
 - **Explore**: the whole Earth and space. Tap anything, flip through the themes, or look at it through a lens.
   **Space** and **Learn** are one tap away on the Earth card.
@@ -38,7 +38,7 @@ state drawn on them:
 Sites are amber, places violet, programmes green. **Still** saves a framed picture; **Film** records an eight-second
 orbit with a title card, for a deck, an update or a post.
 
-**Pulse (top bar).** Everything you have in Atlas as one living picture of the planet:
+**Pulse (top bar).** Everything you have in Terreno as one living picture of the planet:
 - Your places glow, and plans brighten as they near (the My plans scale).
 - Shipments ride their sea lanes to where the ship would be that day, and relief loads move between warehouses.
 - Building sites, mines, customers and business partners hold their places, joined by what flows between them.
@@ -58,7 +58,7 @@ Around the picture:
 - **Looks:** Midnight, Tide, Aurora, Moss, Ember, Sand or Paper.
 - **On the globe:** their places show as fine points of light in their colour.
 
-**Packages.** Paste a tracking number, or the whole shipping email: Atlas finds the numbers, knows the carrier from
+**Packages.** Paste a tracking number, or the whole shipping email: Terreno finds the numbers, knows the carrier from
 the pattern (UPS, FedEx, USPS, DHL, Amazon, Royal Mail, Canada Post, international post), picks out the delivery date,
 and links to the carrier's own tracking page. Set each one's step (on the way, out for delivery, delivered, problem);
 what's due shows on the dock and in My plans.
@@ -72,7 +72,7 @@ come up, best first. A field opens on its tools on the same three rungs in every
 - **Pro**, for people who do the work: Mining Pro, Build Pro, Restaurant site scout, Freight Desk.
 - **Services**, for companies that serve it: Mining equipment & services, Suppliers & plant hire.
 
-So Mining reads Mines and minerals → Mining Pro → Mining equipment & services. Atlas remembers your field and opens
+So Mining reads Mines and minerals → Mining Pro → Mining equipment & services. Terreno remembers your field and opens
 Work on it next time; the last tool you had open is one tap away, and tools you already use say so. The reasoning is
 in [docs/work-design.md](docs/work-design.md).
 
@@ -132,7 +132,7 @@ kickoff at a stadium. Rules of thumb for comparing exposures, not forecasts. Dat
 - **Crowd flow (Sport, Arts):** when a stadium or arena empties, streams of people run to each station and stop
   near it, queues build as 3D columns, and each station's clearing time shows. Close a station by tapping it, or
   change the crowd, the share going by transit and extra service, and watch the minutes move.
-- **Import from your broker (My portfolio):** download positions as CSV from your broker (or paste them) and Atlas
+- **Import from your broker (My portfolio):** download positions as CSV from your broker (or paste them) and Terreno
   finds the symbol and value columns itself. Linking an account directly is designed in
   [docs/brokers.md](docs/brokers.md).
 
@@ -231,7 +231,7 @@ these fields starts with the consumer, then the pros, then the companies that se
   - Permits and inspections, and open questions to the designer with their possible cost.
 - A printable client report, and CSV export. The demo is a contractor with four sites around Austin.
 
-**Overview (the default).** Just move the map. Atlas labels what's worth knowing as you go: seas, mountain
+**Overview (the default).** Just move the map. Terreno labels what's worth knowing as you go: seas, mountain
 ranges and cities when zoomed out; rivers, landmarks, stadiums, parks and museums when zoomed in (the Hudson,
 the Empire State Building and Madison Square Garden in Manhattan; the Thames, Big Ben and Wembley in London).
 Places are ranked by how many Wikipedia language editions write about them; where that bar leaves a view thin
@@ -263,7 +263,7 @@ Every view ends with **Connected** links: the next questions people ask about th
 ("How water moves through the city here", "Power for the mines"), and layers you can add without leaving.
 
 **Lenses: any feature, looked at properly.** Tap something (a mountain, a crater, a sea, a river, a
-forest, a city) and the card says what Atlas thinks it is, worked out from its name and the shape of the
+forest, a city) and the card says what Terreno thinks it is, worked out from its name and the shape of the
 ground, and offers the lenses that suit it, best first. Each lens is designed once and works anywhere:
 
 - **Slice** cuts the feature open along its grain and shows the real rock layers inside (Macrostrat columns
@@ -298,7 +298,7 @@ behind, seedlings just planted, and disease weather: blight (Hutton periods) for
 flystrike for sheep. Tap an item to open the animal, field or project it's about, or log what happened in
 the box beneath.
 
-**About this place.** The moment a place is saved, Atlas reports what it knows about the ground: its height,
+**About this place.** The moment a place is saved, Terreno reports what it knows about the ground: its height,
 slope and the way it faces (the sunny or shady side), the rock below from the geologic map, the average last
 spring and first autumn frost and frost-free days from ten years of daily weather, the yearly growing heat
 and the crops it suits, rain, and the nearest main river, with one tap to see where the rain goes, slice the
@@ -307,7 +307,7 @@ says what to sow indoors, plant out or sow outdoors in the next six weeks (and t
 garden crops and autumn jobs like garlic and overwintering broad beans. **Print or save it as a PDF** to share
 with a vet, adviser, landlord or neighbour.
 
-**Log it in plain words.** Type or say what happened and Atlas files it: *"Daisy had twins"* or *"wormed all
+**Log it in plain words.** Type or say what happened and Terreno files it: *"Daisy had twins"* or *"wormed all
 the sheep with Cydectin"* (Flock), *"sprayed Top field with fungicide"* or *"planted Barn plot with winter
 wheat"* (Grow's field diary, which also sets the crop and planting date), *"Oak Street: poured the level 2
 slab, 14 crew, structure 60%"* or *"Oak Street delivery of steel on Friday"* (Build's site log, progress and
@@ -327,16 +327,16 @@ building's own footprint, and how long the tank lasts, with links to where rain 
 pipes and drains around it), and **cameras & security** (cameras placed with two taps, their field of view
 drawn on the ground, optional links to live feeds, plus gates, alarms, lights and sensors). Everything is
 stored only in the browser, with export and import. The task robot knows your places too: *"weather at my
-hotel"*. When you open Atlas it flies to your place.
+hotel"*. When you open Terreno it flies to your place.
 
-**Atlas Pro: live operations.** For a saved building, *Live operations* connects its bookings (a demo
+**Terreno Pro: live operations.** For a saved building, *Live operations* connects its bookings (a demo
 feed, a reservations export from any CRM or booking system, or a live link polled every 30 seconds) and
 shows how full the place is: the building in 3D split into floors coloured by occupancy, the share of rooms
 taken and guests in the building, today's arrivals, departures and rooms being cleaned, every room by floor,
 and the next 14 nights, with a slider to watch the building fill up. Spanish column names work. Guest
 names are never read, and the data stays in the browser. Ask the robot *"how full is my hotel"*.
 **Camera analytics:** connect the cameras placed in My Places (a snapshot or video link, this device's
-camera, or a recorded video file) and Atlas counts people, vehicles and bikes on the device with a small
+camera, or a recorded video file) and Terreno counts people, vehicles and bikes on the device with a small
 TensorFlow.js model, draws what it sees on the picture and as dots on the map inside that camera's view,
 counts entries and exits across a line you draw, and keeps an hour of history. Video never leaves the
 browser, and it never identifies anyone. How to
@@ -421,7 +421,7 @@ Video and Teach under **Create**; Learn under **Explore**. All of them are open 
 - **The tour.** A step-by-step introduction shown once, after the first opening: one box for everything, a
   place's page, lenses, themes, time, and Explore, Create and My Places, ending with "Finished". Replay it from
   About or by typing "tour".
-- **Delight.** Atlas opens like a film: from black, a few words faded in and out ("Every place on Earth has a
+- **Delight.** Terreno opens like a film: from black, a few words faded in and out ("Every place on Earth has a
   story."), the name, then the Earth fades up in real sunlight with its night side dark, and a live line on
   what's happening on the planet right now (the biggest recent earthquake, the aurora, the next launch), each
   one tap from its place. After the first visit, just the name. Opening a place is an arrival: the camera comes
@@ -439,13 +439,13 @@ Video and Teach under **Create**; Learn under **Explore**. All of them are open 
   EC-Earth3P-HR via Open-Meteo), who governed it across the centuries ("Poland-Lithuania → Tsardom of
   Muscovy → Russian Empire → USSR → Ukraine"), each year opening the map of the time, and one tap to see
   it from space in past years.
-- **One front door.** The search box answers anything: a place (the ~11,900 places Atlas knows by name
+- **One front door.** The search box answers anything: a place (the ~11,900 places Terreno knows by name
   answer the first keystroke and open their page), an address or coordinates, a question for the map, a
   trip, or something to show or open, found in everyday words: "railways", "night lights", "homeowners",
   "plan a trip", "record a film", "nile story". Empty, it offers questions to ask, places to go and things to
   show.
 - **Every place has a page** with a permanent address: `#/p/nile`, and on the live site a real page at
-  `p/nile/` for each of the ~11,900 places Atlas knows by name (built with its own title, description,
+  `p/nile/` for each of the ~11,900 places Terreno knows by name (built with its own title, description,
   structured data and a sitemap, so search engines and link previews see the place, then the app opens on it).
   Wikidata places (`#/p/eiffel-tower~q243`) and any spot (`#/p/@35.36,138.73`) have addresses too. A page shows
   the place across every layer at once (height, slope, facing; climate; people; airports, rail, roads, ports;
@@ -459,7 +459,7 @@ Video and Teach under **Create**; Learn under **Explore**. All of them are open 
   volcanoes, plate boundaries, internet use, income, life expectancy). Every place on screen is scored against
   all of them at once from terrain tiles, last year's weather, towns, infrastructure, rivers, plates and World
   Bank figures; the map glows where they're met, and the best five places are pinned and ranked with the reasons
-  and what held each back. Things Atlas can't measure yet (prices, schools, crime) are said plainly.
+  and what held each back. Things Terreno can't measure yet (prices, schools, crime) are said plainly.
 - **Plan** trips told step by step, the way you'd say them: "fly to Manila, taxi to the Peninsula, stay 3
   nights, train to Baguio". Each leg travels its own way (fly, train, drive, taxi, bus, ferry, walk, bike) with
   times and distances; stays hold their own stops by day; the trip plays back on the globe, names itself and
@@ -473,7 +473,7 @@ Video and Teach under **Create**; Learn under **Explore**. All of them are open 
 - **Stories** are made to be shared. Find one in the library (by words, topic, most used or newest, or the
   part of the world on the map; Explore also shows "Stories about here"), play it as a flying tour, step
   through it or teach with it, and **remix** it into your own copy, which credits the original and its
-  sources ("Remixed from … by …, from … by Atlas"). Stories point on to other stories, offered when one ends:
+  sources ("Remixed from … by …, from … by Terreno"). Stories point on to other stories, offered when one ends:
   the featured Nile set links the river to the Aswan High Dam, Ancient Egypt, the Great Rift Valley and the
   Amazon. Publish your own with a summary, topics and who it's for. With a Supabase project connected
   ([docs/stories-backend.md](docs/stories-backend.md)) there's one shared library with uses, remixes, likes
@@ -539,8 +539,8 @@ Video and Teach under **Create**; Learn under **Explore**. All of them are open 
 The task robot opens these too: "Europe in 1914", "the Roman Empire in 100 AD", "plan a trip to Lisbon",
 "plant health in Iowa", "plan a field trip to the Science Museum", "my cattle", "construction site".
 
-**Works offline, installs as an app.** Add Atlas to a phone's home screen. The app, its bundled data and
-the terrain you've looked at stay cached, so Atlas opens in a field with no signal, with your records on the
+**Works offline, installs as an app.** Add Terreno to a phone's home screen. The app, its bundled data and
+the terrain you've looked at stay cached, so Terreno opens in a field with no signal, with your records on the
 device (satellite imagery follows the browser's own cache until an imagery licence allows storing it). **Back up everything** (in My Places) saves all your places, animals, fields,
 projects, plans, decks and quizzes to one file to keep or to restore on another device.
 
@@ -563,8 +563,8 @@ over a redrawing globe is one of the costliest things a browser composites); and
 translucency is switched off on low-tier devices.
 
 **Connect a home camera, whatever it is.** Pick the brand (Ring, Nest, Arlo, Blink, Wyze, eufy, SimpliSafe,
-Reolink, Tapo, UniFi, Hikvision/Dahua, Amcrest, Home Assistant) and Atlas shows the ways that work for it,
-best first: share the camera app's window into Atlas now, open the camera's own app from the place, a home
+Reolink, Tapo, UniFi, Hikvision/Dahua, Amcrest, Home Assistant) and Terreno shows the ways that work for it,
+best first: share the camera app's window into Terreno now, open the camera's own app from the place, a home
 bridge (go2rtc config generated for you) for live WebRTC, a direct stream link, or the maker's official API
 (coming). See [docs/cameras.md](docs/cameras.md).
 
@@ -601,7 +601,7 @@ credit union), the Bank explorer, and Branch coverage, each bank's share of the 
 as a ring and the areas more than 2 km from any branch shaded on the map. Companies on the place card's
 Money tab open straight into the explorer.
 
-**On a TV.** The 📺 button casts Atlas to a TV (or puts this screen in TV mode): big type, a playlist that
+**On a TV.** The 📺 button casts Terreno to a TV (or puts this screen in TV mode): big type, a playlist that
 runs by itself (Live Earth, great places, the markets, your home as a hologram), and a QR code that turns a
 phone into the remote: search on the phone and the TV flies there; tap a lens and it opens on the big screen.
 See [docs/tv.md](docs/tv.md).
@@ -632,7 +632,7 @@ for the area in view. The Built theme adds famous streets and squares and the wo
 
 **3D by default, and a living city.** Coming down toward the ground, the camera tilts toward the horizon
 (straight down from space, about 55° over a region, about 38° at street level; once per descent, and never
-against your own tilt). Below about 3 km over a town, Atlas builds the city around you from OpenStreetMap and
+against your own tilt). Below about 3 km over a town, Terreno builds the city around you from OpenStreetMap and
 sets it going: buildings rise to their mapped height in soft clay tones with deeper-toned roofs, trees stand in
 the parks (the mapped ones, and more scattered through green spaces), small toy-like cars drive the real street
 network (keeping to their side, following one-ways, turning at junctions, at each road's speed), and figurine
@@ -664,7 +664,7 @@ most visited that weren't already covered have full ones, with white models wher
 Pompeii, Florence's Duomo, Prague Castle, the Tower of London, Karnak, Petra's neighbours Baalbek and Hegra, Himeji,
 Tōdai-ji, the Temple of Heaven, the Red Fort, Humayun's Tomb, Prambanan and others. Every other site gets a plainer
 intro built from the List itself, played over the real ground and the buildings standing there: its name, where it
-is, the year it was inscribed, and whether it's cultural, natural or both. Where Atlas already had an intro for a
+is, the year it was inscribed, and whether it's cultural, natural or both. Where Terreno already had an intro for a
 place, its listing joins it instead, so that intro gains the UNESCO name and a "World Heritage since" year. A listing
 joins by its point, by a distinctive word in its name, or by an explicit claim; a few nearby but separate listings
 are kept apart on purpose. The List is a snapshot of whc.unesco.org/en/list from August 2026. It loads a few seconds
@@ -751,7 +751,7 @@ and answered within 30, median days to close, satisfaction asked at closing, the
 months by month and by category, and any group raising three or more in a year called out as a pattern. The register
 exports to CSV and imports from a spreadsheet or another system. A **commitments register** tracks what was
 promised, to whom, by when and whether it was kept on time; stakeholders nobody has spoken to in 90 days are listed.
-For the **tailings dam**, Atlas traces the steepest way down from it across a 40 km square of elevation and counts the
+For the **tailings dam**, Terreno traces the steepest way down from it across a 40 km square of elevation and counts the
 towns, mapped communities, camps and workplaces within 2 km of that path, nearest first, giving the GISTM consequence
 class by population at risk (Low to Extreme). A one-click **board report** brings it together, printable or as a PDF.
 
@@ -792,7 +792,7 @@ published distances. Ships over about 15,000 TEU can't use the Panama Canal's lo
 - **Risk.** Areas with standing security warnings (southern Red Sea and Gulf of Aden, Somali Basin, Gulf of Guinea,
   Hormuz, Black Sea, Singapore Strait), ports in sanctioned countries (a prompt to screen, not legal advice), and wave
   heights along each ship's next five days (Open-Meteo Marine).
-- **Live positions.** Give a ship its MMSI and Atlas finds it on AIS near where it should be: Digitraffic in the Baltic,
+- **Live positions.** Give a ship its MMSI and Terreno finds it on AIS near where it should be: Digitraffic in the Baltic,
   anywhere else through the edge's AISStream relay. Or paste a position from the carrier's tracking page. Without one,
   the position is worked out from when it sailed and its speed.
 - **Import and export.** Bookings come in by CSV (port names or UN/LOCODEs), and every shipment goes out with its
@@ -817,7 +817,7 @@ and border delays, trucks or flights a day, and cost per tonne-km.
 The demo runs from Mombasa up the Northern Corridor through Kampala to Juba, then out to Bor, Rumbek, Wau, Malakal and
 Bentiu, and on to Pibor, Akobo, Leer, Aweil, Maban and Kapoeta in the rains.
 
-**My plans.** Everything you've planned anywhere in Atlas, on one map in one colour: the darker the blue, the sooner it
+**My plans.** Everything you've planned anywhere in Terreno, on one map in one colour: the darker the blue, the sooner it
 happens, and past plans turn grey. It gathers trip stops and journeys, events, field trips, building phases, and from the
 Pro tools office events, fixtures, permit expiries, open commitments, deliveries and deal close dates. A trip's stops are
 joined leg by leg, each leg in the shade of where it arrives. Beside the map is a timeline (Today, This week, This month,
@@ -840,8 +840,8 @@ technicians who have to reach them, parts, and a market of every mine on Earth. 
   to get there, driving or flying to the airport nearest the site and driving the rest, with a connection or charter
   for small airports and roads half as slow again in the site's wet months. Parts come from the nearest depot that has
   them, with weeks of cover for each. Every site is checked against its contracted response time (and again with only
-  the technicians free right now), and Atlas suggests where one more base would bring the most machines back within it.
-- **Market**: Atlas's major mines plus every operating mine on Wikidata, each scored for fit (commodity, open pit or
+  the technicians free right now), and Terreno suggests where one more base would bring the most machines back within it.
+- **Market**: Terreno's major mines plus every operating mine on Wikidata, each scored for fit (commodity, open pit or
   underground, and whether it can be serviced from an existing base), with the good fits too far from any base called
   out as a market a new base would open. Deals by stage, value weighted by stage, win rate.
 - **Risk**: how concentrated the installed base is by commodity and country (a copper price fall hits service hours
@@ -856,7 +856,7 @@ prospects come from, and a demo:
 
 | Sector | Equipment | What each site's conditions tell you | Prospects |
 |---|---|---|---|
-| Mining equipment and services | haul trucks, drills, loaders, crushers, automation | diesel derating by altitude, battery-electric readiness | every mine (Atlas + Wikidata) |
+| Mining equipment and services | haul trucks, drills, loaders, crushers, automation | diesel derating by altitude, battery-electric readiness | every mine (Terreno + Wikidata) |
 | Farm machinery and irrigation | tractors, harvesters, planters, pivots | the growing season, planting with the rains, and the month to service before the rush | farmyards in the map view (OpenStreetMap) |
 | Wind, solar and power plant O&M | turbines, inverters, transformers | the dry, workable months for planned maintenance; heat and icing | every power station (Global Power Plant Database) |
 | Medical equipment | MRI, CT, X-ray, ventilators, vaccine fridges | grid reliability (backup power for scanners and cold chains), heat | hospitals on Wikidata |
@@ -885,7 +885,7 @@ door to door and yearly carbon. The network sums up: sites, partners, tonne-km, 
 slowest legs and the flows that make most of the carbon. A demo coffee roaster (Colombian and Ethiopian farms,
 their ports, Port Newark, a Red Hook roastery and three cafés) shows it moving.
 
-**World now.** The first tile in Explore (and the "Right now" line as Atlas opens) gathers what's happening
+**World now.** The first tile in Explore (and the "Right now" line as Terreno opens) gathers what's happening
 on Earth: the day's biggest stories as Wikipedia's editors pick them, each pinned where it's happening; the
 latest headlines from the big wire services and regional ones (Africanews, AllAfrica, The Hindu, Dawn, SCMP,
 The Straits Times, Arab News, MercoPress, via GDELT; no more than two from any one outlet); natural events still going on (wildfires, storms,
@@ -900,11 +900,11 @@ ground, orange climbing, blue in between, near-white at cruise), and keeps glidi
 heading at its speed and climb. Tap one for its card: callsign, airline, aircraft type and registration, the
 route (JFK → MIA) where it's known, live height, speed, heading and climb, and a warning if it's squawking an
 emergency. Its trail is drawn behind it and a dashed line shows where it will be in four minutes. **Follow**
-puts the camera behind it and keeps it there as it flies; **Share** makes a link that opens Atlas following it.
+puts the camera behind it and keeps it there as it flies; **Share** makes a link that opens Terreno following it.
 Ships work the same (name, type, status, destination; 20 minutes ahead). Planes come from volunteer ADS-B
 networks (adsb.lol, then airplanes.live, then the OpenSky Network, which also gives the whole world when you're
 zoomed out). Ships come from AIS: Finland's Digitraffic shares the Baltic openly; anywhere else needs a free
-AISStream key on Atlas's edge (AISStream refuses browsers, so the edge relays the stream).
+AISStream key on Terreno's edge (AISStream refuses browsers, so the edge relays the stream).
 
 **Right now, here.** Every place's Overview says what it's like there at this moment: the weather and the
 air (AQI, UV), where the sun is, how many planes are overhead and the highest, the strongest earthquake nearby
@@ -938,10 +938,10 @@ Library 2 (a rocket in flight gets an illustrative climb, labelled as such), ton
 and a solar system view: a zoom out from Earth to every planet in its real position for any date, with
 Saturn's rings, the asteroid belt, time controls and facts.
 
-**Atlas AI.** The search box's task robot can be backed by Claude: it understands any request or
-question, acts on the globe through Atlas's own tools, and answers briefly. Connect a key or a proxy
-under About › Atlas AI; see [docs/ai-proxy.md](docs/ai-proxy.md). Without it, the rule-based planner
-still handles requests. With it, Atlas AI can also read today's brief for your place ("what do I need to do
+**Terreno AI.** The search box's task robot can be backed by Claude: it understands any request or
+question, acts on the globe through Terreno's own tools, and answers briefly. Connect a key or a proxy
+under About › Terreno AI; see [docs/ai-proxy.md](docs/ai-proxy.md). Without it, the rule-based planner
+still handles requests. With it, Terreno AI can also read today's brief for your place ("what do I need to do
 today?") and log free-form sentences as records ("Daisy and Bramble both calved yesterday").
 
 Keyboard: `1`–`9` switch the first nine themes, `/` searches, `Esc` cancels a line or closes a chart.
@@ -971,7 +971,7 @@ These keys end up in the public page, so restrict them to your site's domain in 
 
 - **Elevation:** [Terrain Tiles on AWS](https://registry.opendata.aws/terrain-tiles/) (Mapzen/Tilezen),
   which blends SRTM, USGS 3DEP, ETOPO1 bathymetry, GMTED and others. About 30 m resolution in most places.
-- **Imagery:** Esri World Imagery (check Esri's terms before commercial use). If its tiles keep failing, Atlas
+- **Imagery:** Esri World Imagery (check Esri's terms before commercial use). If its tiles keep failing, Terreno
   switches in [Sentinel-2 cloudless](https://s2maps.eu) by EOX; Natural Earth II is the offline fallback.
 - **Geology:** [Macrostrat](https://macrostrat.org) stratigraphic columns, bedrock maps and map tiles (CC-BY 4.0).
 - **Life:** [iNaturalist](https://www.inaturalist.org) research-grade observations; [GBIF](https://www.gbif.org) occurrence-density tiles.
@@ -1025,7 +1025,7 @@ src/
   robot/               the task robot: plan.ts turns a request into steps, run.ts carries them out
   lenses/              lenses on a feature: identify.ts decides what it is, bar.ts offers lenses, one file per family
   myplaces/            My Places: store (saved in the browser), scene (3D buildings, devices), estimates (solar, rain), panel
-  pro/                 Atlas Pro: model (bookings → rooms, floors, forecast), sources (demo, CSV, live link), panel,
+  pro/                 Terreno Pro: model (bookings → rooms, floors, forecast), sources (demo, CSV, live link), panel,
                        vision/ (on-device camera analytics: detection, tracking, line counts, map positions)
   app.ts               place selection, place card, theme tab bar and subtabs, hosting tools inside subtabs
   themes/              one file per theme (explore, land and minerals (Earth), water, climate, life, built, countries); space/theme.ts
@@ -1081,7 +1081,7 @@ page at the same view.
 - Records stay in the browser until there's an account and sync: use Back up everything. Offline terrain
   is what you've already looked at (up to about 4,000 tiles).
 - Several data sources are free for non-commercial use only; see [docs/data-licensing.md](docs/data-licensing.md)
-  for what each allows and what's needed before charging for Atlas.
+  for what each allows and what's needed before charging for Terreno.
 - Lenses: what a feature is gets guessed from its name and the ground, and can be wrong; the lens strip
   says what it assumed. Rock below mapped units in Slice and Block is drawn to typical depths where no
   column exists. Sea level floods everything below the line, including land protected by dykes or not

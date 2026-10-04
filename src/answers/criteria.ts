@@ -148,13 +148,13 @@ const RULES: Rule[] = [
   { re: /\b(healthy|long[- ]lived|long life)\b/i, make: () => ({ key: "life", op: "gt", value: 79 }) },
 ];
 
-/** Things people ask for that Atlas can't measure yet, said plainly. */
+/** Things people ask for that Terreno can't measure yet, said plainly. */
 const NOT_YET: [RegExp, string][] = [
-  [/[€$£]\s?\d|\bprices?\b|\bunder \d+k\b|\bcost of land\b|\bhouse prices?\b|\brent\b/i, "Property and land prices aren't in Atlas yet; “cheap” is read as a lower-income country, a rough proxy."],
+  [/[€$£]\s?\d|\bprices?\b|\bunder \d+k\b|\bcost of land\b|\bhouse prices?\b|\brent\b/i, "Property and land prices aren't in Terreno yet; “cheap” is read as a lower-income country, a rough proxy."],
   [/\bschools?\b/i, "Schools need street-level data; look at a town's Built › Overview for now."],
   [/\bhospitals?\b|\bdoctors? nearby\b/i, "Distance to hospitals isn't in these answers yet."],
-  [/\bcrime\b|\bsafe neighbou?rhood\b/i, "Crime figures aren't in Atlas."],
-  [/\bjobs?\b|\bwork\b/i, "Jobs aren't in Atlas yet."],
+  [/\bcrime\b|\bsafe neighbou?rhood\b/i, "Crime figures aren't in Terreno."],
+  [/\bjobs?\b|\bwork\b/i, "Jobs aren't in Terreno yet."],
 ];
 
 export interface Parsed { criteria: Criterion[]; notYet: string[] }

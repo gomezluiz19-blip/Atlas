@@ -9,7 +9,7 @@ export class ServiceError extends Error {
   }
 }
 
-// Through Atlas's edge when it's set up: one cache in front of the free public services, so a crowd of
+// Through Terreno's edge when it's set up: one cache in front of the free public services, so a crowd of
 // visitors looks like one polite client (Nominatim allows a request a second; others throttle too).
 const EDGE = ((import.meta.env?.VITE_ATLAS_EDGE as string | undefined) || "").replace(/\/$/, "");
 const EDGE_HOSTS = /^https:\/\/(nominatim\.openstreetmap\.org|photon\.komoot\.io|api\.open-meteo\.com|archive-api\.open-meteo\.com|marine-api\.open-meteo\.com|climate-api\.open-meteo\.com|air-quality-api\.open-meteo\.com|query\.wikidata\.org|overpass-api\.de|api\.inaturalist\.org|macrostrat\.org|api\.worldbank\.org|restcountries\.com|services\.swpc\.noaa\.gov|earthquake\.usgs\.gov|[a-z]+\.wikipedia\.org|api\.gdeltproject\.org|eonet\.gsfc\.nasa\.gov|api\.adsb\.lol|api\.airplanes\.live|opensky-network\.org|meri\.digitraffic\.fi|api\.census\.gov|tigerweb\.geo\.census\.gov|statsapi\.mlb\.com|www\.wikidata\.org)\//;

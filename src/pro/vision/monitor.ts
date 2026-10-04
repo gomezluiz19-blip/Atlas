@@ -67,7 +67,7 @@ async function openFeed(kind: FeedKind, value: string | File): Promise<{ el: HTM
     return { el: v, stop: () => stream.getTracks().forEach((t) => t.stop()) };
   }
   if (kind === "screen") {
-    // Another window or tab (the camera's own app or website), shared by the person into Atlas.
+    // Another window or tab (the camera's own app or website), shared by the person into Terreno.
     const md = navigator.mediaDevices as MediaDevices & { getDisplayMedia?: (c: object) => Promise<MediaStream> };
     if (!md.getDisplayMedia) throw new Error("this browser can't share another window (try a computer with Chrome, Edge, Firefox or Safari)");
     const stream = await md.getDisplayMedia({ video: { frameRate: 15 }, audio: false, preferCurrentTab: false, selfBrowserSurface: "exclude" });

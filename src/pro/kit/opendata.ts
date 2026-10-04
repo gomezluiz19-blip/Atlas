@@ -14,11 +14,11 @@ export function openDataImporter(app: App, opts: { roles: FieldRole[]; what: str
   const load = async (file?: { name: string; text: string }) => {
     const src = file ? { kind: /\.csv$/i.test(file.name) ? "csv" as const : "geojson" as const, url: "", label: file.name } : detectSource(link.value);
     step2.replaceChildren();
-    if (!src) { msg.textContent = "That link isn't one Atlas can read yet. Use the dataset's page on a Socrata portal, an ArcGIS FeatureServer layer link, or a .geojson / .csv file link."; return; }
+    if (!src) { msg.textContent = "That link isn't one Terreno can read yet. Use the dataset's page on a Socrata portal, an ArcGIS FeatureServer layer link, or a .geojson / .csv file link."; return; }
     msg.textContent = `Loading from ${src.label}…`;
     try {
       const rows = file ? (src.kind === "csv" ? rowsFromCsv(file.text) : rowsFromJson(JSON.parse(file.text))) : await loadDataset(src);
-      if (!rows.length) { msg.textContent = "The dataset loaded, but no rows had a location Atlas could read."; return; }
+      if (!rows.length) { msg.textContent = "The dataset loaded, but no rows had a location Terreno could read."; return; }
       const map = guessFields(rows);
       const keys = [...new Set(rows.slice(0, 50).flatMap((r) => Object.keys(r.props)))].sort();
       msg.textContent = `${rows.length.toLocaleString()} rows with a location. Check which column is which, then import.`;

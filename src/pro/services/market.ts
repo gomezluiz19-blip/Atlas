@@ -1,4 +1,4 @@
-// The market: the world's mines as prospects. Atlas's own list of major mines
+// The market: the world's mines as prospects. Terreno's own list of major mines
 // (with method and commodities) joined with every operating mine Wikidata has
 // coordinates for, then scored for how well each fits what the company sells
 // and how easily it can be serviced from the company's bases. Pure scoring;
@@ -35,7 +35,7 @@ const bundled = (): Mine[] => MINES.map((m, i) => ({ id: `atlas${i}`, name: m.na
 
 let world: Promise<Mine[]> | null = null;
 
-/** Atlas's major mines plus Wikidata's operating mines (no duplicates within 5 km of a bundled one). */
+/** Terreno's major mines plus Wikidata's operating mines (no duplicates within 5 km of a bundled one). */
 export function worldMines(): Promise<Mine[]> {
   world ??= (async () => {
     const q = `SELECT ?m ?mLabel ?coord ?countryLabel ?opLabel ?prodLabel ?typeLabel WHERE {

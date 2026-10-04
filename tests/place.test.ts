@@ -53,9 +53,9 @@ describe("place pages", () => {
   });
 
   it("writes the app's page with the place's own head and content", () => {
-    const app = `<!doctype html><html><head><meta charset="UTF-8" /><meta name="description" content="Atlas" /><title>Atlas</title></head><body><div id="ui"></div></body></html>`;
+    const app = `<!doctype html><html><head><meta charset="UTF-8" /><meta name="description" content="Terreno" /><title>Terreno</title></head><body><div id="ui"></div></body></html>`;
     const html = renderPage(app, lyon, "https://x.io/atlas/");
-    expect(html).toContain("<title>Lyon: town or city · Atlas</title>");
+    expect(html).toContain("<title>Lyon: town or city · Terreno</title>");
     expect(html).toContain('<base href="../../" />');
     expect(html).toContain('window.ATLAS_PAGE="lyon"');
     expect(html).toContain('<link rel="canonical" href="https://x.io/atlas/p/lyon/" />');

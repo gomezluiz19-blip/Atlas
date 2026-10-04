@@ -1,4 +1,4 @@
-// Atlas's servers: one Supabase project (auth, Postgres, storage). Set
+// Terreno's servers: one Supabase project (auth, Postgres, storage). Set
 // VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY and sign-in becomes real (a
 // six-digit code by email), pages and lenses are published for everyone, and
 // what you make follows you to any device. Without them, everything keeps
@@ -54,7 +54,7 @@ export async function rest<T>(path: string, init: RequestInit & { prefer?: strin
     ...init,
     headers: { apikey: config.supabaseKey, Authorization: `Bearer ${t ?? config.supabaseKey}`, "Content-Type": "application/json", ...(init.prefer ? { Prefer: init.prefer } : {}), ...(init.headers ?? {}) },
   });
-  if (!res.ok) throw new Error(`Atlas servers: HTTP ${res.status}`);
+  if (!res.ok) throw new Error(`Terreno servers: HTTP ${res.status}`);
   return res.status === 204 || res.headers.get("content-length") === "0" ? (undefined as T) : ((await res.json()) as T);
 }
 

@@ -5,7 +5,7 @@
 //      Everyday (for anyone), Pro (for people who do the work), Services (for
 //      companies that serve it). Mining: Mines and minerals → Mining Pro →
 //      Mining equipment & services.
-// Atlas remembers your field, so Work opens on it next time; the last tool
+// Terreno remembers your field, so Work opens on it next time; the last tool
 // you had open is one tap away. (Design notes: docs/work-design.md.)
 import { h } from "../ui/dom";
 import { icons } from "../ui/icons";

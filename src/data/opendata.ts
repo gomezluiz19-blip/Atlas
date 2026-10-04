@@ -1,6 +1,6 @@
 // Any government open-data table with locations, read the same way: Socrata portals (NYC, Montgomery
 // County, Prince George's, most US cities and counties), ArcGIS feature services (DC, Arlington, Fairfax,
-// Alexandria and thousands of local GIS sites), plain GeoJSON, or CSV. Paste a dataset's link and Atlas
+// Alexandria and thousands of local GIS sites), plain GeoJSON, or CSV. Paste a dataset's link and Terreno
 // works out how to query it, finds the location in each row, and guesses which columns are the date,
 // address, type, value, owner and contractor, for the person to confirm before importing.
 
@@ -10,7 +10,7 @@ export interface Row { lon: number; lat: number; props: Record<string, string> }
 export type FieldRole = "name" | "address" | "date" | "type" | "value" | "owner" | "contractor" | "status" | "stories";
 export type FieldMap = Partial<Record<FieldRole, string>>;
 
-/** How to query a dataset from the link someone pasted (pure). Null if it isn't a link Atlas understands. */
+/** How to query a dataset from the link someone pasted (pure). Null if it isn't a link Terreno understands. */
 export function detectSource(link: string, limit = 2000): Source | null {
   let u: URL;
   try { u = new URL(link.trim()); } catch { return null; }
@@ -139,7 +139,7 @@ export async function loadDataset(src: Source, fetcher: typeof fetch = fetch): P
   return src.kind === "csv" ? rowsFromCsv(await res.text()) : rowsFromJson(await res.json());
 }
 
-/** Where to find permits and facilities in the places Atlas's first users are, and in New York (links to search, not promises). */
+/** Where to find permits and facilities in the places Terreno's first users are, and in New York (links to search, not promises). */
 export const PORTALS: { place: string; url: string; look: string }[] = [
   { place: "District of Columbia", url: "https://opendata.dc.gov/search?q=building%20permits", look: "\"Building Permits in <year>\" (ArcGIS: copy the FeatureServer link from \"I want to use this › API\")" },
   { place: "Montgomery County, MD", url: "https://data.montgomerycountymd.gov/browse?q=permits", look: "Residential and commercial permit datasets (Socrata: paste the dataset page link)" },

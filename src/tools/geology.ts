@@ -181,7 +181,7 @@ export class RockSectionTool implements Tool {
         const blob = await this.studio?.exportPng();
         if (blob) {
           const url = URL.createObjectURL(blob);
-          Object.assign(document.createElement("a"), { href: url, download: "atlas-rock-section.png" }).click();
+          Object.assign(document.createElement("a"), { href: url, download: "terreno-rock-section.png" }).click();
           setTimeout(() => URL.revokeObjectURL(url), 1000);
         }
       },
@@ -235,6 +235,6 @@ export class RockSectionTool implements Tool {
       const u = l.unit;
       rows.push([i + 1, `"${u.unit_name}"`, l.depthTop.toFixed(0), l.depthBottom.toFixed(0), (l.depthBottom - l.depthTop).toFixed(0), u.t_age, u.b_age, `"${u.lith.map((x) => x.name).join("; ")}"`, u.color].join(","));
     });
-    downloadText("atlas-rock-layers.csv", rows.join("\n"));
+    downloadText("terreno-rock-layers.csv", rows.join("\n"));
   }
 }

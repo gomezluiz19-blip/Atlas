@@ -1,4 +1,4 @@
-// Atlas Pro: the operations model for a building. Reservations (from a CRM or
+// Terreno Pro: the operations model for a building. Reservations (from a CRM or
 // property-management system) become room states at any moment, which roll up
 // into floors and the whole building: how full it is, who's arriving and
 // leaving, and the days ahead. Pure functions; no guest names are kept.

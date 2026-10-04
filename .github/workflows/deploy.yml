@@ -41,7 +41,7 @@ jobs:
           VITE_SEATGEEK_CLIENT_ID: ${{ vars.SEATGEEK_CLIENT_ID }}
           VITE_EVENTBRITE_TOKEN: ${{ secrets.EVENTBRITE_TOKEN }}
           VITE_EVENTBRITE_ORG_ID: ${{ vars.EVENTBRITE_ORG_ID }}
-          # The Atlas AI proxy (docs/ai-proxy.md): a URL, not a secret; the API key stays in the proxy.
+          # The Terreno AI proxy (docs/ai-proxy.md): a URL, not a secret; the API key stays in the proxy.
           VITE_ATLAS_AI_PROXY: ${{ vars.ATLAS_AI_PROXY }}
           VITE_ATLAS_EDGE: ${{ vars.ATLAS_EDGE }}
           VITE_ATLAS_EDGE_KEYS: ${{ vars.ATLAS_EDGE_KEYS }}

@@ -1,4 +1,4 @@
-// Puts people into Atlas: the account button and menu, profile pages, Lens
+// Puts people into Terreno: the account button and menu, profile pages, Lens
 // Studio and made lenses, their links (#/u/maya, #/lens/birdwatching, or a
 // whole page or lens carried in the link), and their actions for search,
 // the task robot, the place card and the tour.
@@ -72,7 +72,7 @@ export function wireSocial(app: App, deps: SocialDeps) {
       syncLenses();
       if (fresh) {
         profiles.open(p.handle, true);
-        app.toast(`Welcome to Atlas, ${p.name.split(" ")[0]}. This is your page: add the places you love, starting with your Top 8.`, 6500);
+        app.toast(`Welcome to Terreno, ${p.name.split(" ")[0]}. This is your page: add the places you love, starting with your Top 8.`, 6500);
       } else {
         profiles.open(p.handle);
         app.toast(`You're ${p.name} now${role ? `, ${role.label.toLowerCase()}` : ""}. ${p.demo ? "Everything here is yours to try; switch back from the account menu." : ""}`.trim(), 5000);

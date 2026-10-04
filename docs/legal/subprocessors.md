@@ -8,7 +8,7 @@
 | Cloudflare, Inc. | Edge service (keys, caching), content delivery | Request metadata (IP address, URL); no saved content | Global network |
 | GitHub, Inc. (Microsoft) | Hosting the web app | Request metadata | Global network |
 | Email delivery provider (to be confirmed: e.g. Resend or Postmark) | Sign-in codes and account email | Email address | United States |
-| Anthropic, PBC | Atlas AI, only when switched on | The requests you type, and the place in view | United States |
+| Anthropic, PBC | Terreno AI, only when switched on | The requests you type, and the place in view | United States |
 
 We'll give organizations at least 30 days' notice before adding a subprocessor (see the Data Processing Addendum).
 

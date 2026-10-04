@@ -228,8 +228,8 @@ export interface SearchOptions {
   examples?: string[];
   /** Instant matches from data already on the device (labels, curated places). */
   local?: (q: string) => SearchResult[];
-  /** What Atlas can show and do that matches ("railways", "homeowners", "plan a trip"), by group. */
-  /** Atlas's own things for a query; a group marked lead is so plainly what was meant that it goes first. */
+  /** What Terreno can show and do that matches ("railways", "homeowners", "plan a trip"), by group. */
+  /** Terreno's own things for a query; a group marked lead is so plainly what was meant that it goes first. */
   things?: (q: string) => { heading: string; items: SearchResult[]; lead?: boolean }[];
   /** The front door, shown when the box is empty (after recent searches and examples). */
   frontDoor?: () => { heading: string; items: SearchResult[] }[];

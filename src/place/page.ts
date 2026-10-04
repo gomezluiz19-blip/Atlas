@@ -1,4 +1,4 @@
-// A place's page: one address for everything Atlas knows about it. The card
+// A place's page: one address for everything Terreno knows about it. The card
 // under a tapped mountain, river, town or spot becomes a page with a
 // permanent link: what it is, the place across every layer at once (each
 // figure opens its theme), places like it, stories that pass through, what's

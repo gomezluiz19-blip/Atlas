@@ -1,4 +1,4 @@
-// The lens strip in the place card: what Atlas thinks you tapped, and the
+// The lens strip in the place card: what Terreno thinks you tapped, and the
 // lenses that suit it, best first. Opening a lens gives it a panel; opening
 // another (or choosing a new place) closes the last one and tidies up.
 import type { App, Place } from "../app";
@@ -98,7 +98,7 @@ export function createLenses(app: App, lenses: Lens[]) {
       h("div", { class: "lens-row" }, ...tiles,
         rest.length && !showAll ? h("button", { class: "lens-tile make gap", style: `--c:#8e8e93`, title: "Views that suit it less", onmouseenter: say(`${rest.length} more views: ${rest.map((l) => lookOf(l).name).join(", ")}`), onmouseleave: reset, onclick: () => { showAll = true; render(); } },
           h("span", { class: "lens-glyph" }, `+${rest.length}`), h("span", { class: "lens-name" }, "More")) : "",
-        h("button", { class: "lens-tile make gap", style: `--c:${FAMILY.yours.color}`, title: "Describe a view and Atlas builds it", onmouseenter: say("Make your own: describe a view and Atlas builds it"), onmouseleave: reset, onclick: () => app.actions.get("lens:studio")?.run() },
+        h("button", { class: "lens-tile make gap", style: `--c:${FAMILY.yours.color}`, title: "Describe a view and Terreno builds it", onmouseenter: say("Make your own: describe a view and Terreno builds it"), onmouseleave: reset, onclick: () => app.actions.get("lens:studio")?.run() },
           h("span", { class: "lens-glyph", html: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>' }), h("span", { class: "lens-name" }, "Make one"))),
       hint);
   };

@@ -121,7 +121,7 @@ function home(ctx: WorkCtx, d: Desk) {
     view === "board" ? board(ctx, d, att) : view === "routes" ? routesPanel(ctx, d) : view === "ports" ? portsPanel(ctx, d) : view === "carbon" ? carbonPanel(ctx, d) : riskPanel(ctx, d, att),
     h("div", { class: "mp-foot" }, h("span", {}, d.demo ? "A demo desk: its customers, ships and shipments are made up; the ports and lanes are real." : "Saved in this browser."),
       h("button", { class: "link-btn danger", onclick: () => { if (confirm(`Remove ${d.name}?`)) { store.remove(d.id); map?.clear(); openShipping(ctx); } } }, "Remove")),
-    note("Sea routes are the shortest way through a graph of straits, canals and capes (great-circle legs), within a few percent of published port-to-port distances; ships over about 15,000 TEU can't use Panama. Where a ship is comes from its last live AIS position if there's a recent one (Digitraffic in the Baltic, or AISStream through Atlas's edge), otherwise from when it sailed and its speed. Carbon uses typical well-to-wake factors per TEU-km or tonne-km scaled by the square of speed: an estimate, not a certified account."));
+    note("Sea routes are the shortest way through a graph of straits, canals and capes (great-circle legs), within a few percent of published port-to-port distances; ships over about 15,000 TEU can't use Panama. Where a ship is comes from its last live AIS position if there's a recent one (Digitraffic in the Baltic, or AISStream through Terreno's edge), otherwise from when it sailed and its speed. Carbon uses typical well-to-wake factors per TEU-km or tonne-km scaled by the square of speed: an estimate, not a certified account."));
 }
 
 // ---- Board -------------------------------------------------------------------------------------------
@@ -231,7 +231,7 @@ async function refreshLive(ctx: WorkCtx, d: Desk) {
     if (tr) { v.last = { lon: tr.lon, lat: tr.lat, t: tr.t, knots: tr.speed / 0.514444, status: tr.status, source: inBaltic(tr) ? "Digitraffic AIS" : "AISStream" }; found++; }
   }
   save(d);
-  ctx.app.toast(found ? `Updated ${found} of ${ships.length} ships from live AIS.` : shipsWorldwide() ? "None of your ships were heard near where they should be." : "Live AIS here needs Atlas's edge (it holds an AISStream key); the Baltic works without it.", 6000);
+  ctx.app.toast(found ? `Updated ${found} of ${ships.length} ships from live AIS.` : shipsWorldwide() ? "None of your ships were heard near where they should be." : "Live AIS here needs Terreno's edge (it holds an AISStream key); the Baltic works without it.", 6000);
   openShipping(ctx);
 }
 

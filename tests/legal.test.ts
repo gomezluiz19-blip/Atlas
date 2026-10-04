@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { fill, LEGAL_PAGES, legalPage, toHtml, type Company } from "../src/legal/markdown";
 
-const blank: Company = { company: "", product: "Atlas", contact_email: "", security_email: "", address: "", governing_law: "", effective_date: "", reviewed_by_counsel: false };
+const blank: Company = { company: "", product: "Terreno", contact_email: "", security_email: "", address: "", governing_law: "", effective_date: "", reviewed_by_counsel: false };
 
 describe("Legal pages", () => {
   it("renders the Markdown subset safely", () => {

@@ -1,7 +1,7 @@
 // Going somewhere: the airports at each end, the ways there door to door
 // (flying, train, driving, bus) with time and carbon, the time change and when
 // you land in local time, the weather on the days you're there, where to stay
-// for what you came to see, and links to book each part. Atlas doesn't sell
+// for what you came to see, and links to book each part. Terreno doesn't sell
 // tickets: the links open the booking sites already searched for this trip.
 // Pure functions; the screen is travelUi.ts.
 import type { Airport } from "../data/infra";

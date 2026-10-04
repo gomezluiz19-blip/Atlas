@@ -54,7 +54,7 @@ function build(app: App, scene: PlaceScene, store?: PlaceStore) {
   const summary = h("p", { class: "muted small cam-summary" });
   const list = h("div", { class: "cam-list" });
   const el = h("div", { class: "cam-section" }, summary, list,
-    h("p", { class: "fineprint" }, "Everything runs on this device: video never leaves the browser. Atlas sees kinds of things (people, vehicles, bikes) and movement, never who someone is. Map positions are approximate."));
+    h("p", { class: "fineprint" }, "Everything runs on this device: video never leaves the browser. Terreno sees kinds of things (people, vehicles, bikes) and movement, never who someone is. Map positions are approximate."));
   let place: MyPlace | null = null;
 
   /** Saves a change to a camera (its line or zones) back to My Places. */
@@ -215,7 +215,7 @@ function build(app: App, scene: PlaceScene, store?: PlaceStore) {
       status.textContent = s.status === "running" ? (s.mode === "people" ? `Live · ${n("person", s.tick?.counts.person ?? 0)} in view` : "Live · watching for movement") : s.status === "loading-model" ? "Getting ready…" : s.status === "starting" ? "Connecting…" : s.status === "error" ? "Problem" : "Not connected";
       status.className = `cam-status ${s.status}`;
       mode.textContent = s.status === "running" ? (s.mode === "people" ? "People" : "Motion") : "";
-      mode.title = s.mode === "motion" ? "The people detector couldn't load (offline or blocked), so Atlas is watching for movement instead." : "Counting people, vehicles and bikes";
+      mode.title = s.mode === "motion" ? "The people detector couldn't load (offline or blocked), so Terreno is watching for movement instead." : "Counting people, vehicles and bikes";
       if (s.status === "running" || s.status === "loading-model" || s.status === "starting") {
         if (mon.el && mon.el.parentElement !== box) box.replaceChildren(mon.el, overlay, hint);
         if (layout !== "live") {
@@ -284,11 +284,11 @@ function build(app: App, scene: PlaceScene, store?: PlaceStore) {
               h("li", {}, "Come back and tap Share; pick that window or tab.")),
             h("button", { class: "primary-btn", disabled: !canShare, onclick: () => start("screen", "") }, "Share its window"));
           if (w === "app") steps.push(h("a", { class: "primary-btn", href: b.web ?? "#", target: "_blank", rel: "noopener noreferrer" }, `Open ${b.name} ↗`), h("p", { class: "muted small" }, "On a phone this opens the app if it's installed."));
-          if (w === "bridge") steps.push(h("p", { class: "small" }, b.bridge ?? "Scrypted, Home Assistant or go2rtc at home can give Atlas a stream link."), h("p", { class: "muted small" }, "Give the bridge an https address (Home Assistant Cloud, Tailscale Funnel or a Cloudflare Tunnel), then paste its WebRTC, HLS or MJPEG link:"), linkRow("https://…/api/webrtc?src=front_door"));
+          if (w === "bridge") steps.push(h("p", { class: "small" }, b.bridge ?? "Scrypted, Home Assistant or go2rtc at home can give Terreno a stream link."), h("p", { class: "muted small" }, "Give the bridge an https address (Home Assistant Cloud, Tailscale Funnel or a Cloudflare Tunnel), then paste its WebRTC, HLS or MJPEG link:"), linkRow("https://…/api/webrtc?src=front_door"));
           if (w === "rtsp") {
             const rtsp = h("input", { class: "pro-url", placeholder: b.rtsp && /^rtsp/.test(b.rtsp) ? b.rtsp : "rtsp://user:pass@camera-ip:554/…", "aria-label": "The camera's RTSP address" }) as HTMLInputElement;
             const out = h("pre", { class: "cam-code" });
-            const show = () => { const name = (cam.label ?? "camera").toLowerCase().replace(/[^a-z0-9]+/g, "_"); const l = go2rtcLinks("https://YOUR-BRIDGE", name); out.textContent = `# go2rtc.yaml\n${go2rtcConfig(name, rtsp.value.trim() || rtsp.placeholder)}\n# then paste one of these into Atlas:\n${l.webrtc}\n${l.hls}`; };
+            const show = () => { const name = (cam.label ?? "camera").toLowerCase().replace(/[^a-z0-9]+/g, "_"); const l = go2rtcLinks("https://YOUR-BRIDGE", name); out.textContent = `# go2rtc.yaml\n${go2rtcConfig(name, rtsp.value.trim() || rtsp.placeholder)}\n# then paste one of these into Terreno:\n${l.webrtc}\n${l.hls}`; };
             rtsp.addEventListener("input", show); show();
             steps.push(b.rtsp && !/^rtsp/.test(b.rtsp) ? h("p", { class: "small" }, b.rtsp) : "", h("p", { class: "muted small" }, "Run go2rtc (one small program) on a computer at home, give it this camera:"), rtsp, out, linkRow("https://…/api/webrtc?src=…"));
           }

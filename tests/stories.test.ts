@@ -26,7 +26,7 @@ describe("remix", () => {
     const mine = storyFromDeck(r1.deck, { author: { name: "Ms Adeyemi" }, lineage: r1.lineage, title: "The Nile for Year 5" });
     const r2 = remixOf({ ...mine, id: "s2" }, id);
     expect(r2.lineage.map((x) => x.id)).toEqual(["s2", "atlas-nile"]);
-    expect(creditLine(r2.lineage)).toBe("Remixed from “The Nile for Year 5” by Ms Adeyemi, from “The Nile, from source to sea” by Atlas");
+    expect(creditLine(r2.lineage)).toBe("Remixed from “The Nile for Year 5” by Ms Adeyemi, from “The Nile, from source to sea” by Terreno");
     expect(r1.deck.slides[0].id).not.toBe(nile.slides[0].id);
   });
 });

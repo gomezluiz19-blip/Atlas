@@ -164,6 +164,6 @@ export class WaterFlowTool implements Tool {
   private exportCsv(trace: FlowTrace) {
     const rows = ["distance_m,longitude,latitude,elevation_m,ponded"];
     trace.points.forEach((q, i) => rows.push(`${trace.distance[i].toFixed(1)},${q.lon.toFixed(6)},${q.lat.toFixed(6)},${q.elevation.toFixed(1)},${q.ponded ? 1 : 0}`));
-    downloadText("atlas-flow-path.csv", rows.join("\n"));
+    downloadText("terreno-flow-path.csv", rows.join("\n"));
   }
 }

@@ -202,7 +202,7 @@ const tool = (id: string, label: string, about: string, color: string, icon: str
 const PLACE_TOOLS: WorkTool[] = [
   tool("reach", "Getting around", "Walk, bike or drive: how far you get in 15 minutes, which way wins to the places you go, and what's within a short walk", "#30d158", icons.route, (ctx) => void import("./travel/reachUi").then((m) => m.openReach(ctx, app))),
   tool("travel", "Travel", "Go somewhere: the way there drawn on the globe, the time change and the weather when you land, stays near what you came for, and where to book", "#0a84ff", icons.suitcase, (ctx) => void import("./travel/travelUi").then((m) => m.openTravel(ctx, app))),
-  tool("myplans", "My plans", "Everything you've planned across Atlas on one map: the darker the blue, the sooner", "#1f6fe5", icons.flag, (ctx) => void import("./plans/ui").then((m) => m.openPlans(ctx))),
+  tool("myplans", "My plans", "Everything you've planned across Terreno on one map: the darker the blue, the sooner", "#1f6fe5", icons.flag, (ctx) => void import("./plans/ui").then((m) => m.openPlans(ctx))),
   tool("packages", "Packages", "What's on the way to you: paste a tracking number or the shipping email", "#bf5af2", icons.suitcase, (ctx) => void import("./myplaces/packagesUi").then((m) => m.openPackages(ctx))),
   tool("grow", "Grow", "Fields and crops: growth stage, harvest, water and frost", "#30d158", icons.sprout, openGrow),
   tool("flock", "Flock", "Animals in your care: farms, vets, rescues and adoption", "#8bd346", icons.paw, openFlock),
@@ -302,7 +302,7 @@ const placeHub = createWork(app, PLACE_TOOLS, {
     if (!main) return [
       h("div", { class: "today-card first" },
         h("div", { class: "today-head" }, h("strong", {}, "Start with your place")),
-        h("p", { class: "small" }, "Save your home, farm, site or business and Atlas gives you a daily brief there: frost, heat, storms, and what's due for your animals, fields and projects."),
+        h("p", { class: "small" }, "Save your home, farm, site or business and Terreno gives you a daily brief there: frost, heat, storms, and what's due for your animals, fields and projects."),
         addressBox(),
         ...list,
         h("button", { class: "pill-btn", onclick: () => { loadDemo(myStore); openMode("place"); app.toast("Hillside Farm is a demo: sheep, cattle, hens and three fields. Remove it any time from the bottom of My Places.", 7000); } }, "Or try a demo farm")),
@@ -328,7 +328,7 @@ keepStorage();
   addEventListener(STORAGE_FULL, () => {
     if (Date.now() - warned < 120_000) return;
     warned = Date.now();
-    app.toast("This browser's storage for Atlas is full, so your latest changes aren't saved here. Back up (My Place › Your data) and remove what you no longer need, or share the workspace with your team to keep it in the cloud.", 12_000);
+    app.toast("This browser's storage for Terreno is full, so your latest changes aren't saved here. Back up (My Place › Your data) and remove what you no longer need, or share the workspace with your team to keep it in the cloud.", 12_000);
   });
 }
 const makeHub = createWork(app, MAKE_TOOLS, {
@@ -392,7 +392,7 @@ const myPlaces = createMyPlaces(app, myStore, myScene, {
   onShow: () => closePanels(myPlaces.panel),
 });
 $("ui").append(myPlaces.panel);
-// Atlas Pro: live operations (bookings from a CRM or booking system) for a saved building.
+// Terreno Pro: live operations (bookings from a CRM or booking system) for a saved building.
 const pro = createPro(app, myStore, myScene, (id) => { myPlaces.open(id); myPlaces.close(); });
 
 // ---- My Place, booted: your place as a hologram, with a dock of what you do there -------------------
@@ -663,7 +663,7 @@ const openStoryHash = () => {
   if (/^#(story|s)=/.test(hash)) void import("./stories/ui").then((m) => { closePanels(makeHub.panel); modes.set("make"); void m.openFromHash(makeHub.ctx, hash); });
 };
 openStoryHash();
-// Pasting a story link into a tab that already has Atlas open.
+// Pasting a story link into a tab that already has Terreno open.
 addEventListener("hashchange", openStoryHash);
 for (const y of YEARS)
   app.actions.set(`work:borders:${y}`, { label: `Borders in ${yearLabel(y)}`, run: () => void showYear(app, y).catch(() => app.toast("Couldn't load the historical borders. Check the connection.", 5000)), isOn: () => borders(app).year === y });
@@ -769,7 +769,7 @@ const asCommand = (q: string): Command | null => {
   if (answer) return answer;
   const p = plan(q);
   // With Claude connected, anything that reads as a request or question goes to it.
-  if (aiOn() && looksLikeAsk(q)) return { title: "Ask Atlas AI", steps: [p.steps.length ? describe(p).join(" → ") : "Claude will work out the steps"], run: () => void robot.ask(q.trim(), p.steps.length ? p : null) };
+  if (aiOn() && looksLikeAsk(q)) return { title: "Ask Terreno AI", steps: [p.steps.length ? describe(p).join(" → ") : "Claude will work out the steps"], run: () => void robot.ask(q.trim(), p.steps.length ? p : null) };
   if (!p.steps.length) return null;
   const steps = describe(p);
   return { title: steps.length === 1 ? steps[0] : `Do ${steps.length} things`, steps, run: () => void robot.run(q.trim(), p) };
@@ -784,7 +784,7 @@ $("search-slot").replaceWith(createSearch(globe, {
   ],
   onPick: pick,
   local: (q) => [
-    // Places Atlas knows by name open their page.
+    // Places Terreno knows by name open their page.
     ...searchPlaces(q, 4).map((r): SearchResult => ({ name: r.name, detail: r.detail, lon: r.lon, lat: r.lat, radius: r.radius, source: "local", icon: iconOfKind(r.kind), run: () => void openPlace(r.slug) })),
     ...siteMatches(q), ...searchLocal(feeds, q).map((m) => ({
     name: m.name, detail: m.detail, lon: m.lon, lat: m.lat, source: "local" as const,
@@ -801,7 +801,7 @@ $("search-slot").replaceWith(createSearch(globe, {
     const time: SearchResult[] = Number.isFinite(year) && year >= -3000 && year <= 2100 && (Math.abs(year) >= 100 || y![2])
       ? [{ name: `Go to ${yearName(year)}`, detail: year < 2000 ? "The world's borders at the time" : year < new Date().getUTCFullYear() ? "The Earth from space that year" : "Projections for places", lon: 0, lat: 0, radius: 0, source: "thing", svg: iconSvg("⏳", 18) ?? icons.sparkle, run: () => timeBar.goToYear(year) }]
       : [];
-    // One word that names an Atlas thing outright ("tour", "seasons", "railways"), and no place
+    // One word that names an Terreno thing outright ("tour", "seasons", "railways"), and no place
     // is called exactly that: the thing leads, ahead of places and commands.
     const words = tokens(q);
     const lead = found[0] && words.length === 1 && scoreThing(found[0], q) >= 3 && !searchPlaces(q, 4).some((p) => tokens(p.name).join(" ") === words[0]) ? found[0] : null;
@@ -903,7 +903,7 @@ app.actions.set("city:life", { label: "Living city (3D, simulated movement)", ru
 }
 for (const kind of ["plane", "ship"] as const)
   app.actions.set(`live:${kind}s`, { label: kind === "plane" ? "Live planes" : "Live ships", run: () => traffic.set(kind, true), isOn: () => traffic.isOn(kind), stop: () => traffic.set(kind, false) });
-// A shared flight or ship (#follow=p:a1b2c3@lon,lat): open Atlas following it.
+// A shared flight or ship (#follow=p:a1b2c3@lon,lat): open Terreno following it.
 const followHash = () => {
   const m = /^#follow=([ps]:[\w-]+)@(-?[\d.]+),(-?[\d.]+)/.exec(location.hash);
   if (m) setTimeout(() => traffic.openShared(m[1], Number(m[2]), Number(m[3])), 2500);
@@ -975,7 +975,7 @@ app.actions.set("time:go", { label: "Go to a year", run: (arg) => {
 } });
 
 // About / data sources.
-// Atlas on a TV: TV mode plays by itself and a phone is the remote (src/tv). A link to #/tv/CODE opens it.
+// Terreno on a TV: TV mode plays by itself and a phone is the remote (src/tv). A link to #/tv/CODE opens it.
 const tvLink = /^#\/tv(\/([A-Za-z0-9]{6}))?$/.exec(location.hash);
 // The economy views from anywhere (search, the Minerals theme, the robot): the commodity desk (optionally on one material), your portfolio, the What if lab.
 for (const [id, label, load] of [
@@ -993,9 +993,9 @@ for (const [id, label, load] of [
 ] as const)
   app.actions.set(id, { label, run: (arg) => { const hub = id === "econ:lab" ? makeHub : workHub; closePanels(hub.panel); hub.ctx.open(); load(arg); } });
 app.actions.set("tv:mode", { label: "TV mode", run: (code) => void import("./tv/tv").then((m) => { closePanels(); m.enterTv(app, code || undefined); }) });
-app.actions.set("tv:cast", { label: "Show Atlas on a TV", run: () => void import("./tv/tv").then((m) => m.openCast(app)) });
+app.actions.set("tv:cast", { label: "Show Terreno on a TV", run: () => void import("./tv/tv").then((m) => m.openCast(app)) });
 {
-  const castBtn = h("button", { class: "round-btn cast-btn", "aria-label": "Show Atlas on a TV", title: "Show Atlas on a TV", html: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 16.5V6.8A1.8 1.8 0 0 1 4.8 5h14.4A1.8 1.8 0 0 1 21 6.8v10.4a1.8 1.8 0 0 1-1.8 1.8H14"/><path d="M3 19.5h.01M3 13a6.5 6.5 0 0 1 6.5 6.5M3 16a3.5 3.5 0 0 1 3.5 3.5"/></svg>', onclick: () => app.actions.get("tv:cast")?.run() });
+  const castBtn = h("button", { class: "round-btn cast-btn", "aria-label": "Show Terreno on a TV", title: "Show Terreno on a TV", html: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 16.5V6.8A1.8 1.8 0 0 1 4.8 5h14.4A1.8 1.8 0 0 1 21 6.8v10.4a1.8 1.8 0 0 1-1.8 1.8H14"/><path d="M3 19.5h.01M3 13a6.5 6.5 0 0 1 6.5 6.5M3 16a3.5 3.5 0 0 1 3.5 3.5"/></svg>', onclick: () => app.actions.get("tv:cast")?.run() });
   document.querySelector(".topbar-actions")?.prepend(castBtn);
   if (tvLink) setTimeout(() => app.actions.get("tv:mode")?.run(tvLink[2]?.toUpperCase()), 2600);
 }
@@ -1004,11 +1004,11 @@ about.innerHTML = icons.info;
 const soundBtn = h("button", { class: "pill-btn sound-toggle", "aria-pressed": String(soundOn()) }, soundOn() ? "Sounds on" : "Sounds off") as HTMLButtonElement;
 soundBtn.addEventListener("click", () => { const on = !soundOn(); setSound(on); soundBtn.textContent = on ? "Sounds on" : "Sounds off"; soundBtn.setAttribute("aria-pressed", String(on)); });
 const aboutPanel = h("div", { class: "popover about", hidden: true },
-  h("div", { class: "about-head" }, h("h2", { class: "group-title" }, "About Atlas"), h("button", { class: "icon-btn", "aria-label": "Close", html: icons.close, onclick: () => (aboutPanel.hidden = true) })),
-  h("p", {}, "Atlas does three things, switched at the top. Explore: the whole Earth and space; tap anything, then flip through the themes or look at it through a lens. Create: trips, stories, videos and lessons made from the map. My Places: your home, farm, site or business, with a daily brief and the tools to run it."),
-  h("p", {}, "You can also type a request into the search box, like \u201cstorm drains and railways in Chicago\u201d, and Atlas will plan the steps and do them."),
+  h("div", { class: "about-head" }, h("h2", { class: "group-title" }, "About Terreno"), h("button", { class: "icon-btn", "aria-label": "Close", html: icons.close, onclick: () => (aboutPanel.hidden = true) })),
+  h("p", {}, "Terreno does three things, switched at the top. Explore: the whole Earth and space; tap anything, then flip through the themes or look at it through a lens. Create: trips, stories, videos and lessons made from the map. My Places: your home, farm, site or business, with a daily brief and the tools to run it."),
+  h("p", {}, "You can also type a request into the search box, like \u201cstorm drains and railways in Chicago\u201d, and Terreno will plan the steps and do them."),
   h("p", {}, "People have pages here too: the places they love, a journal, and lenses they've made. Make your own from the account button, and a lens of your own in Lens Studio."),
-  h("button", { class: "pill-btn about-ai", onclick: () => { aboutPanel.hidden = true; aiSettings.open(); } }, aiOn() ? "Atlas AI: connected · settings" : "Connect Atlas AI (Claude)…"),
+  h("button", { class: "pill-btn about-ai", onclick: () => { aboutPanel.hidden = true; aiSettings.open(); } }, aiOn() ? "Terreno AI: connected · settings" : "Connect Terreno AI (Claude)…"),
   h("p", {}, "The themes are lenses on one shared map. What you add stays as you switch (see \"On the map\" at the top), and every view ends with Connected links to related views of the same place."),
   h("h2", { class: "group-title" }, "Where the data comes from"),
   h("ul", { class: "plain-list" },
@@ -1021,12 +1021,12 @@ const aboutPanel = h("div", { class: "popover about", hidden: true },
     h("li", {}, "Place names: OpenStreetMap Nominatim.")),
   h("p", { class: "fineprint" }, "Every dataset is a record of what's been measured or mapped. None of them is complete, so treat gaps as unknowns, not absences."),
   h("h2", { class: "group-title" }, "Your privacy"),
-  h("p", { class: "fineprint" }, "What you make in Atlas stays in this browser unless you sign in and sync it or share it with your team; there are no ads, no tracking and no selling of data. To answer you, Atlas asks public services about the places you look at (for example OpenStreetMap for names and Open-Meteo for weather), which sends them the coordinates, not who you are. With Atlas AI on, your requests go to Anthropic."),
+  h("p", { class: "fineprint" }, "What you make in Terreno stays in this browser unless you sign in and sync it or share it with your team; there are no ads, no tracking and no selling of data. To answer you, Terreno asks public services about the places you look at (for example OpenStreetMap for names and Open-Meteo for weather), which sends them the coordinates, not who you are. With Terreno AI on, your requests go to Anthropic."),
   h("p", { class: "fineprint about-legal" }, ...[["terms", "Terms"], ["privacy", "Privacy"], ["acceptable-use", "Acceptable use"], ["security", "Security"], ["accessibility", "Accessibility"], ["subprocessors", "Subprocessors"]].flatMap(([n, t], i) => [i ? " · " : "", h("a", { href: `legal/${n}.html`, target: "_blank", rel: "noopener" }, t)])),
   h("p", { class: "fineprint" }, "Keyboard: 1–9 switch themes · / searches · + and − zoom · Esc cancels a line or closes a chart. Double-click to zoom in on a spot."),
-  // Showing Atlas to people one after another on the same computer.
+  // Showing Terreno to people one after another on the same computer.
   (() => {
-    const row = h("div", { class: "about-row" }, h("span", { class: "muted small" }, "Showing Atlas to people one after another? Start fresh for the next visitor: the opening, the tour and a clean slate (Atlas AI and feedback notes are kept)."));
+    const row = h("div", { class: "about-row" }, h("span", { class: "muted small" }, "Showing Terreno to people one after another? Start fresh for the next visitor: the opening, the tour and a clean slate (Terreno AI and feedback notes are kept)."));
     const btn = h("button", { class: "pill-btn" }, "Start fresh") as HTMLButtonElement;
     btn.addEventListener("click", () => {
       if (btn.dataset.sure !== "1") { btn.dataset.sure = "1"; btn.textContent = "Tap again to clear"; setTimeout(() => { btn.dataset.sure = ""; btn.textContent = "Start fresh"; }, 4000); return; }
@@ -1100,9 +1100,9 @@ const social = wireSocial(app, {
   extras: () => [
     { label: `Watching${social ? ` (${social.watch.count()})` : ""}`, icon: iconSvg("🔔", 18) ?? icons.sparkle, run: () => app.actions.get("watch:open")?.run() },
     { label: "Take the tour", icon: icons.compass, run: () => startTour(app) },
-    { label: aiOn() ? "Atlas AI: connected" : "Connect Atlas AI", icon: icons.sparkle, run: () => aiSettings.open() },
+    { label: aiOn() ? "Terreno AI: connected" : "Connect Terreno AI", icon: icons.sparkle, run: () => aiSettings.open() },
     { label: "Send feedback", icon: icons.pencil, run: () => void import("./ui/feedback").then((m) => m.openFeedback(app)) },
-    { label: "About Atlas and its data", icon: icons.info, run: () => { aboutPanel.hidden = false; } },
+    { label: "About Terreno and its data", icon: icons.info, run: () => { aboutPanel.hidden = false; } },
     soundRow,
   ],
 });
@@ -1164,7 +1164,7 @@ globe.viewer.camera.moveEnd.addEventListener(syncHash);
 
 // The card follows the map. After you move the map yourself (drag, scroll, pinch, the zoom buttons), if the
 // place you chose has left the part of the map you can see (or you've pulled right out to the whole planet),
-// the card lets go of it and shows what's in view instead, with "Back to …" one tap away. Atlas's own camera
+// the card lets go of it and shows what's in view instead, with "Back to …" one tap away. Terreno's own camera
 // moves (arriving somewhere, time travel, framing an answer) never do this, nor do moves while a lens or a
 // drawing tool is working on the place.
 {

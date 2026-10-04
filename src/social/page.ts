@@ -201,8 +201,8 @@ export function createProfiles(app: App, deps: {
       onShare: () => void (async () => {
         const link = `${location.origin}${location.pathname}#/g/${p.handle}/${g.id}`;
         try {
-          if (navigator.share && matchMedia("(pointer: coarse)").matches) await navigator.share({ title: `${g.title}: a guide on Atlas`, url: link });
-          else { await navigator.clipboard.writeText(link); app.toast(p.demo || cloudOn() || !isMe(p.handle) ? "Link to this guide copied" : "Link copied. It opens the guide on your page for anyone once Atlas's servers are on; for now, share your page's link.", 4000); }
+          if (navigator.share && matchMedia("(pointer: coarse)").matches) await navigator.share({ title: `${g.title}: a guide on Terreno`, url: link });
+          else { await navigator.clipboard.writeText(link); app.toast(p.demo || cloudOn() || !isMe(p.handle) ? "Link to this guide copied" : "Link copied. It opens the guide on your page for anyone once Terreno's servers are on; for now, share your page's link.", 4000); }
         } catch { /* dismissed */ }
       })(),
     });
@@ -273,7 +273,7 @@ export function createProfiles(app: App, deps: {
       spotsByKind(p, own),
       lensesCard(p, own, first),
       guestbook(p, own, first),
-      p.demo ? h("p", { class: "pf-fine" }, `${first} is an example person, made up to show what a page on Atlas can be. The places are real.`) : h("p", { class: "pf-fine" }, `On Atlas since ${dayText(p.joined)}.`));
+      p.demo ? h("p", { class: "pf-fine" }, `${first} is an example person, made up to show what a page on Terreno can be. The places are real.`) : h("p", { class: "pf-fine" }, `On Terreno since ${dayText(p.joined)}.`));
   }
 
   function topEight(p: Profile, own: boolean, first: string): HTMLElement {
@@ -479,7 +479,7 @@ export function createProfiles(app: App, deps: {
     const lean = { ...p, demo: undefined };
     const link = p.demo || !isMe(p.handle) || cloudOn() ? `${location.origin}${location.pathname}#/u/${p.handle}` : `${location.origin}${location.pathname}#/u/~${await packJson(lean)}`;
     try {
-      if (navigator.share && matchMedia("(pointer: coarse)").matches) await navigator.share({ title: `${p.name} on Atlas`, url: link });
+      if (navigator.share && matchMedia("(pointer: coarse)").matches) await navigator.share({ title: `${p.name} on Terreno`, url: link });
       else { await navigator.clipboard.writeText(link); app.toast(isMe(p.handle) ? "Link to your page copied. It carries the whole page, so it works anywhere." : "Link copied", 3500); }
     } catch { /* dismissed */ }
   }
@@ -491,9 +491,9 @@ export function createProfiles(app: App, deps: {
       if (!p) {
         if (!cloudOn()) { app.toast(`There's no one called @${handle} on this device yet.`, 3500); return; }
         void fetchProfile(handle.replace(/^@/, "").toLowerCase()).then((r) => {
-          if (!r) { app.toast(`There's no one called @${handle} on Atlas.`, 3500); return; }
+          if (!r) { app.toast(`There's no one called @${handle} on Terreno.`, 3500); return; }
           remember(r); show(r); el.scrollTop = 0; frame(r);
-        }).catch(() => app.toast("Couldn't reach Atlas's servers just now.", 3500));
+        }).catch(() => app.toast("Couldn't reach Terreno's servers just now.", 3500));
         return;
       }
       editing = edit && isMe(p.handle);

@@ -182,7 +182,7 @@ export class PlaceScene {
     }
   }
 
-  /** Floor-by-floor colours for the place's own building (Atlas Pro), or null for plain. */
+  /** Floor-by-floor colours for the place's own building (Terreno Pro), or null for plain. */
   floors: { floor: number; color: string; label: string }[] | null = null;
 
   /** Floor slabs live in their own layer, so live updates don't redraw the whole neighbourhood. */
@@ -231,7 +231,7 @@ export class PlaceScene {
     }
   }
 
-  /** Live camera detections as dots on the ground (Atlas Pro). */
+  /** Live camera detections as dots on the ground (Terreno Pro). */
   readonly liveDs = new CustomDataSource("my-place-live");
 
   setLive(points: { lon: number; lat: number; color: string }[]) {

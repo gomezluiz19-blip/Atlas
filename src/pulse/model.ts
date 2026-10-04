@@ -1,4 +1,4 @@
-// Pulse: everything someone has in Atlas, as one living picture of the world
+// Pulse: everything someone has in Terreno, as one living picture of the world
 // at a moment in time. Their places glow; what they've planned brightens as
 // it nears; their shipments ride their sea lanes to where they'd be that day;
 // relief loads move between warehouses; building sites, mines, customers and

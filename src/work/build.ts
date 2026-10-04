@@ -1,5 +1,5 @@
 // Work › Build: model a construction project on the satellite map and follow
-// it. Draw the footprint, set the use and storeys, and Atlas raises a 3D model
+// it. Draw the footprint, set the use and storeys, and Terreno raises a 3D model
 // that grows with the schedule (scrub the timeline to any date, or see today's
 // actual progress), estimates floor area and cost, and flags the days the
 // weather stops cranes and concrete. Worksite management (daily log with
@@ -286,7 +286,7 @@ export function openProject(ctx: WorkCtx, id: string) {
     worksite(ctx, p, again),
     h("div", { class: "pro-actions" },
       h("button", { class: "link-btn", onclick: () => void flyToPlace(app.globe, { name: p.name, lon, lat, radius: Math.max(60, pathLength(p.ring) / 2, height * 1.2) }) }, "Show on map"),
-      h("button", { class: "link-btn", onclick: () => download(`${p.name}.atlas-build.json`, JSON.stringify(p)) }, "Save as a file"),
+      h("button", { class: "link-btn", onclick: () => download(`${p.name}.terreno-build.json`, JSON.stringify(p)) }, "Save as a file"),
       h("button", { class: "link-btn danger", onclick: () => { if (confirm(`Delete "${p.name}"?`)) { store.remove(p.id); scene?.entities.removeAll(); marks?.clear(); openBuild(ctx); } } }, "Delete project")),
   );
 }
@@ -328,7 +328,7 @@ function worksite(ctx: WorkCtx, p: BuildProject, again: () => void): HTMLElement
 <h2>Today</h2>${todayLog.length ? todayLog.map((l) => `<p>${l.crew !== undefined ? `<b>Crew ${l.crew}.</b> ` : ""}${esc(l.text)}</p>${l.photo ? `<img src="${l.photo}">` : ""}`).join("") : "<p class=m>No log entries.</p>"}
 <h2>Open issues</h2><ul>${p.issues.filter((i) => i.open).map((i) => `<li class="open">${esc(i.text)} <span class=m>(${i.date}, ${i.pt[1].toFixed(5)}, ${i.pt[0].toFixed(5)})</span></li>`).join("") || "<li class=m>None</li>"}</ul>
 <h2>Deliveries</h2><ul>${p.deliveries.filter((d) => d.date >= today()).map((d) => `<li>${d.date}: ${esc(d.text)}</li>`).join("") || "<li class=m>None scheduled</li>"}</ul>
-<p class="m">Made with Atlas.</p>`, "text/html");
+<p class="m">Made with Terreno.</p>`, "text/html");
   };
   return h("section", { class: "group build-pro" },
     h("h2", { class: "group-title" }, h("span", { class: "pro-badge" }, "PRO"), " Worksite"),

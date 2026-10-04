@@ -1,5 +1,5 @@
 // One front door: the search box answers anything. Beyond places and
-// addresses it finds what Atlas can show and do: a layer ("railways", "night
+// addresses it finds what Terreno can show and do: a layer ("railways", "night
 // lights", "where people live"), a theme, a view ("homeowners"), a tool
 // ("plan a trip", "make a video"), a lens, a story. This file is the matching;
 // main.ts lists the things.

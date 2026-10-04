@@ -405,7 +405,7 @@ export function openCityOps(ctx: WorkCtx, app: App, view?: string) {
       { heading: "To know this morning", lines: brief.map((b) => `${b.level === "now" ? "NOW · " : ""}${b.text}`) },
       { heading: "Agencies", table: { head: ["Agency", "Budget", "People", "Vacant", "Facilities", "Avg condition", "Staffing"], rows: C!.agencies.map((a) => { const s = agencyStats(C!, a.id); return [a.name, money(a.budget), a.headcount, `${Math.round((a.vacancies / Math.max(1, a.headcount)) * 100)}%`, s.facilities.length, s.avgCondition, `${s.staffing}%`]; }) } },
       { heading: "Capital projects", table: { head: ["Project", "Agency", "Built", "Planned", "Budget", "Forecast"], rows: C!.projects.map((p) => { const s = projectStatus(p, today); return [p.name, agency(p.agency)?.short ?? "", `${Math.round(p.progress * 100)}%`, `${Math.round(s.planned * 100)}%`, money(p.budget), money(s.eac)]; }) } },
-    ], "Made with Atlas. Demo figures are illustrative.");
+    ], "Made with Terreno. Demo figures are illustrative.");
   }
 
   if (C) home(); else start();

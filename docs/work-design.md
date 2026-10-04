@@ -66,7 +66,7 @@ tools. Each rung carries a plain sentence ("For companies that serve mining"), s
 itself.
 
 A field with no tool on a rung shows that rung faded on the chain ("None yet") rather than hiding it, so the shape
-stays the same and the gap is honest. Where it was cheap, gaps were filled from what Atlas already has:
+stays the same and the gap is honest. Where it was cheap, gaps were filled from what Terreno already has:
 - **Mining:** Mines and minerals (the Earth theme's minerals).
 - **Energy:** Power around you (Built › Energy).
 - **Telecoms:** Who's connected (Built › Online).

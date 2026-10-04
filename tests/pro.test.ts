@@ -3,7 +3,7 @@ import { detectColumns, floorOf, forecast, occupancyColor, parseDate, parseTable
 
 const at = (y: number, m: number, d: number, h = 12) => new Date(y, m - 1, d, h).getTime();
 
-describe("Atlas Pro model", () => {
+describe("Terreno Pro model", () => {
   it("reads CSV exports in English or Spanish, with quotes and semicolons", () => {
     expect(parseTable('Room,Arrival,Departure\n101,"2025-06-01",2025-06-03\n')).toEqual([["Room", "Arrival", "Departure"], ["101", "2025-06-01", "2025-06-03"]]);
     expect(parseTable("Habitación;Llegada;Salida\n201;01/06/2025;03/06/2025")[1]).toEqual(["201", "01/06/2025", "03/06/2025"]);
@@ -66,7 +66,7 @@ describe("Atlas Pro model", () => {
 
 import { demoData, parseFeedJson } from "../src/pro/sources";
 
-describe("Atlas Pro sources", () => {
+describe("Terreno Pro sources", () => {
   it("reads a connector's JSON leniently", () => {
     const f = parseFeedJson({
       rooms: [{ id: 101, floor: 1 }, { number: "202" }],

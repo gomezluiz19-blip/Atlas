@@ -2,7 +2,7 @@
 // show a friend first), the spots you love by kind (restaurants, cafés,
 // bars, trails, beaches…), a journal pinned to places, the lenses you've
 // made, and a guestbook. Pages wear a skin, like the personal pages of the
-// early web, and travel as links until Atlas's servers are switched on.
+// early web, and travel as links until Terreno's servers are switched on.
 export type Role = "explorer" | "student" | "teacher" | "owner";
 export const ROLES: { id: Role; label: string; short?: string; emoji: string; about: string }[] = [
   { id: "explorer", label: "Explorer", emoji: "🧭", about: "I love maps, places and the planet" },
@@ -39,7 +39,7 @@ export interface Spot {
   where?: string;
   country?: string;
   note?: string;
-  /** Its Atlas page, when it has one. */
+  /** Its Terreno page, when it has one. */
   slug?: string;
 }
 
@@ -92,7 +92,7 @@ export interface Profile {
   guestbook: Signature[];
   guides?: Guide[];
   joined: string;
-  /** Shipped with Atlas as an example. */
+  /** Shipped with Terreno as an example. */
   demo?: boolean;
 }
 

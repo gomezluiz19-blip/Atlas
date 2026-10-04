@@ -1,4 +1,4 @@
-// "About this place": what Atlas can tell you about the ground you're on,
+// "About this place": what Terreno can tell you about the ground you're on,
 // the moment you save it. The slope and the way it faces, the rock below,
 // frost dates and the growing season, rain, and the nearest river.
 import type { App } from "../app";
@@ -36,7 +36,7 @@ function sowingView(lastSpring: number | null, firstAutumn: number | null): HTML
 
 const esc = (t: string) => t.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!);
 
-/** A clean one-page version of the report to print or save as a PDF, with a link back to Atlas. */
+/** A clean one-page version of the report to print or save as a PDF, with a link back to Terreno. */
 function printReport(p: MyPlace, el: HTMLElement) {
   const rows = [...el.querySelectorAll(".report-row")].map((r) => {
     const label = r.querySelector(".report-label")?.textContent ?? "", value = r.querySelector(".report-value");
@@ -46,7 +46,7 @@ function printReport(p: MyPlace, el: HTMLElement) {
   const sow = [...el.querySelectorAll(".sowing > div:first-of-type .sow-row")].map((r) => `<li><b>${esc(r.querySelector("strong")?.textContent ?? "")}</b>: ${esc(r.querySelector("small")?.textContent ?? "")}</li>`).join("");
   const link = `${location.origin}${location.pathname}`;
   const w = window.open("", "_blank");
-  if (!w) { alert("Allow pop-ups for Atlas to print the report."); return; }
+  if (!w) { alert("Allow pop-ups for Terreno to print the report."); return; }
   w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${esc(p.name)} · About this place</title><style>
 body{font:14px/1.45 -apple-system,system-ui,sans-serif;color:#1d1d1f;max-width:720px;margin:32px auto;padding:0 20px}
 h1{font-size:26px;margin:0}p.sub{color:#6e6e73;margin:4px 0 20px}table{width:100%;border-collapse:collapse}
@@ -56,7 +56,7 @@ ul{padding-left:18px}li{margin:3px 0}footer{margin-top:28px;color:#6e6e73;font-s
 @media print{body{margin:0}a{color:inherit}}</style></head><body>
 <h1>${esc(p.name)}</h1><p class="sub">${esc([p.address, `${p.lat.toFixed(4)}, ${p.lon.toFixed(4)}`, new Date().toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" })].filter(Boolean).join(" · "))}</p>
 <table>${rows}</table>${sow ? `<h2>Sowing and planting in the next six weeks</h2><ul>${sow}</ul>` : ""}
-<footer>Made with Atlas: <a href="${esc(link)}">${esc(link)}</a>. Weather: ERA5 via Open-Meteo (CC BY 4.0). Geology: Macrostrat (CC BY 4.0). Terrain: Terrain Tiles on AWS. Estimates, not a survey.</footer>
+<footer>Made with Terreno: <a href="${esc(link)}">${esc(link)}</a>. Weather: ERA5 via Open-Meteo (CC BY 4.0). Geology: Macrostrat (CC BY 4.0). Terrain: Terrain Tiles on AWS. Estimates, not a survey.</footer>
 <script>setTimeout(()=>print(),400)</script></body></html>`);
   w.document.close();
 }

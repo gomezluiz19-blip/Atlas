@@ -54,7 +54,7 @@ footer{margin-top:32px;color:#8a877f;font-size:11.5px}@media print{body{margin:0
 }
 
 /** Opens the report in a new window, ready to print. */
-export function printReport(title: string, subtitle: string, sections: Section[], footer = "Made with Atlas") {
+export function printReport(title: string, subtitle: string, sections: Section[], footer = "Made with Terreno") {
   const w = window.open("", "_blank");
   if (!w) return false;
   w.document.open();

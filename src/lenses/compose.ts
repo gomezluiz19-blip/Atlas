@@ -1,4 +1,4 @@
-// Turning words into a lens. With Atlas AI connected, Claude designs the
+// Turning words into a lens. With Terreno AI connected, Claude designs the
 // recipe; without it, a composer that knows the common passions (birds,
 // stars, surf, coffee, wildflowers, fungi, light, trails, fishing…) and a
 // few hundred kinds of place builds one from the words it recognises.
@@ -146,6 +146,6 @@ export const LENS_SCHEMA = {
   required: ["name", "icon", "blurb", "blocks"],
 };
 
-export const LENS_SYSTEM = `You design "lenses" for Atlas, a 3D globe app. A lens is a recipe of building blocks that, applied to any place, shows what matters for one passion or purpose, and whether now is a good time for it.
+export const LENS_SYSTEM = `You design "lenses" for Terreno, a 3D globe app. A lens is a recipe of building blocks that, applied to any place, shows what matters for one passion or purpose, and whether now is a good time for it.
 Blocks: species (wildlife recorded nearby lately, from iNaturalist, by group), places (named OpenStreetMap features within the radius, by tags), weather (the next hours with a best window, judged by the "good" thresholds), marine (wave height, period, sea temperature), sky (tonight's darkness, moon phase, cloud), aurora (geomagnetic activity against what it takes to reach the place), sun (sunrise, sunset, golden hour), ground (elevation and relief), tip (advice from the maker).
 Pick only blocks that genuinely serve the request, most useful first. Use real, common OpenStreetMap tags. Set sensible "good" thresholds for the activity. Include one tip only if it's accurate and useful. Keep it friendly and suitable for all ages. Call make_lens exactly once.`;

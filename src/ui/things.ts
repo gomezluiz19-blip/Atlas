@@ -127,7 +127,7 @@ export function buildThings(app: App, overlays: Overlays, tools: WorkTool[]): Th
   ] as const)
     out.push({ title, detail, emoji, group: "Open", words, run: arg ? act(id, arg) : act(id) });
   out.push({ title: "Show me something amazing", detail: "Somewhere unexpected, and why it's worth seeing", emoji: "🎲", group: "Open", words: "surprise random wonder amazing beautiful inspire", run: act("surprise") });
-  out.push({ title: "Take the tour", detail: "A one-minute walk through what Atlas can do", emoji: "🧭", group: "Open", words: "tour help tutorial guide intro introduction how start learn", run: act("tour") });
+  out.push({ title: "Take the tour", detail: "A one-minute walk through what Terreno can do", emoji: "🧭", group: "Open", words: "tour help tutorial guide intro introduction how start learn", run: act("tour") });
   out.push({ title: "Time travel", detail: "The globe in any year: borders of the time, the view from space, projections", emoji: "⏳", group: "Open", words: "time history past then now future year years borders empires old", run: act("time:open") });
   return out;
 }

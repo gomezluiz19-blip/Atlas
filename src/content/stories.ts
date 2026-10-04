@@ -1,10 +1,10 @@
-// Stories that ship with Atlas: the start of the library. The Nile set is made
+// Stories that ship with Terreno: the start of the library. The Nile set is made
 // to show how stories connect: each ends by pointing to the others. Figures
 // are the commonly cited ones.
 import { overhead, TEMPLATES } from "../work/presentModel";
 
-const A = { name: "Atlas" };
-const ref = (id: string, title: string) => ({ id, title, author: "Atlas" });
+const A = { name: "Terreno" };
+const ref = (id: string, title: string) => ({ id, title, author: "Terreno" });
 const NILE = ref("atlas-nile", "The Nile, from source to sea");
 const DAM = ref("atlas-aswan", "The Aswan High Dam");
 const EGYPT = ref("atlas-egypt", "Ancient Egypt: a ribbon of green");

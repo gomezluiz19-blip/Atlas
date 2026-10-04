@@ -1,4 +1,4 @@
-// My plans: everything planned across Atlas on one map, in one colour, the
+// My plans: everything planned across Terreno on one map, in one colour, the
 // darker the sooner, with a timeline beside it grouped by when. Filter by
 // kind, stretch or shorten the horizon, tap anything to go there.
 import type { App } from "../app";
@@ -45,7 +45,7 @@ export function openPlans(ctx: WorkCtx, first = true) {
   const groups = (["Today", "This week", "This month", "Later", "Past"] as const).map((b) => ({ b, ps: shown.filter((p) => bucket(daysUntil(p.date, t)) === b) }));
   const next = shown.find((p) => daysUntil(p.date, t) >= 0);
   ctx.show("My plans", ctx.home,
-    h("p", { class: "muted small" }, "Everything you've planned in Atlas, on the map: the darker the blue, the sooner it happens."),
+    h("p", { class: "muted small" }, "Everything you've planned in Terreno, on the map: the darker the blue, the sooner it happens."),
     h("div", { class: "mp-scale" }, h("span", {}, "Today"), h("i", { style: `background: linear-gradient(90deg, ${[0, 0.25, 0.5, 0.75, 1].map((f) => shade(f * horizon, horizon)).join(", ")})` }), h("span", {}, `${horizon} days`)),
     h("div", { class: "chips wrap" }, ...[30, 90, 365].map((d) => h("button", { class: "chip" + (d === horizon ? " on" : ""), style: d === horizon ? "--c:#1f6fe5" : "", onclick: () => { horizon = d; openPlans(ctx, false); } }, d === 365 ? "A year" : `${d} days`))),
     sources.length > 1 ? h("div", { class: "chips wrap" }, ...sources.map((s) => h("button", { class: "chip" + (hidden.has(s) ? "" : " on"), style: hidden.has(s) ? "" : "--c:#1f6fe5", onclick: () => { if (hidden.has(s)) hidden.delete(s); else hidden.add(s); openPlans(ctx, false); } }, `${s} · ${all.filter((p) => p.source === s).length}`))) : "",

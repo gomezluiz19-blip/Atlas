@@ -26,7 +26,7 @@ export interface EventItem {
 
 export interface Festival { name: string; about?: string; when?: string; url?: string; lon: number; lat: number }
 
-// Each service works with a key in the build (development) or through Atlas's edge, which holds the key.
+// Each service works with a key in the build (development) or through Terreno's edge, which holds the key.
 const hasTm = () => !!config.ticketmasterKey || edgeHas("ticketmaster");
 const hasSg = () => !!config.seatgeekClientId || edgeHas("seatgeek");
 const hasEb = () => !!config.eventbriteOrg && (!!config.eventbriteToken || edgeHas("eventbrite"));

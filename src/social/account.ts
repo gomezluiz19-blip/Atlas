@@ -1,7 +1,7 @@
 // Signing in, and the account button in the top corner. Signed out, the
 // button is a quiet person glyph; signed in, it's your avatar. Its menu is
-// where Atlas keeps the things about you and about Atlas itself: your page,
-// the lenses you've made, switching accounts, the tour, sounds, Atlas AI.
+// where Terreno keeps the things about you and about Terreno itself: your page,
+// the lenses you've made, switching accounts, the tour, sounds, Terreno AI.
 import { h } from "../ui/dom";
 import { icons } from "../ui/icons";
 import { DEMO_PROFILES } from "./demo";
@@ -42,7 +42,7 @@ export function createAccount(opts: {
   const button = h("button", { class: "round-btn account-btn", "aria-label": "Your account", "aria-haspopup": "menu", "aria-expanded": "false" }) as HTMLButtonElement;
   const menu = h("div", { class: "popover account-menu", hidden: true, role: "menu" });
   const veil = h("div", { class: "signin-veil", hidden: true });
-  const sheet = h("div", { class: "signin", role: "dialog", "aria-modal": "true", "aria-label": "Sign in to Atlas" });
+  const sheet = h("div", { class: "signin", role: "dialog", "aria-modal": "true", "aria-label": "Sign in to Terreno" });
   veil.append(sheet);
   document.body.append(veil);
 
@@ -50,7 +50,7 @@ export function createAccount(opts: {
     const p = me();
     button.replaceChildren();
     if (p) { button.append(avatarEl(p, 30)); button.classList.add("signed-in"); button.setAttribute("aria-label", `${p.name}: your account`); }
-    else { button.innerHTML = PERSON; button.classList.remove("signed-in"); button.setAttribute("aria-label", "Sign in, and about Atlas"); }
+    else { button.innerHTML = PERSON; button.classList.remove("signed-in"); button.setAttribute("aria-label", "Sign in, and about Terreno"); }
   };
   paint();
   onAccount(() => { paint(); if (!menu.hidden) renderMenu(); });
@@ -66,7 +66,7 @@ export function createAccount(opts: {
       p
         ? h("button", { class: "am-me", onclick: () => { close(); opts.openProfile(p.handle); } }, avatarEl(p, 44), h("span", {}, h("strong", {}, p.name), h("small", {}, `@${p.handle} · See your page`)))
         : h("div", { class: "am-signin" },
-          h("strong", {}, "Your own Atlas"),
+          h("strong", {}, "Your own Terreno"),
           h("p", {}, "A page of the places you love, lenses you make, and your place's daily brief."),
           h("button", { class: "primary-btn", onclick: () => { close(); openSignIn(); } }, "Sign in or join")),
       p ? h("div", { class: "am-group" },
@@ -115,7 +115,7 @@ export function createAccount(opts: {
     email.addEventListener("keydown", (e) => { if (e.key === "Enter") go(); });
     const mine = localAccounts();
     sheet.replaceChildren(
-      head("Your own Atlas", "Keep a page of the places you love, make lenses to share, and follow the people who map the world with you."),
+      head("Your own Terreno", "Keep a page of the places you love, make lenses to share, and follow the people who map the world with you."),
       mine.length ? h("div", { class: "si-block" }, h("h3", {}, "On this device"),
         h("div", { class: "si-people" }, ...mine.slice(0, 4).map((p) => h("button", { class: "si-person", onclick: () => { signIn(p); done(p, false); } }, avatarEl(p, 40), h("strong", {}, p.name), h("small", {}, `@${p.handle}`))))) : "",
       h("div", { class: "si-block" },
@@ -128,11 +128,11 @@ export function createAccount(opts: {
       })),
       h("p", { class: "si-fine" }, cloudOn()
         ? "We'll email you a six-digit code: no password to remember. Your page is public, so people can find it; everything else you make stays yours."
-        : "This is a preview: your account lives in this browser, and nothing is sent anywhere. When Atlas's servers are switched on, you'll be able to sign in from any device."));
+        : "This is a preview: your account lives in this browser, and nothing is sent anywhere. When Terreno's servers are switched on, you'll be able to sign in from any device."));
     setTimeout(() => email.focus(), 60);
   }
 
-  /** With Atlas's servers: the six-digit code from the email. */
+  /** With Terreno's servers: the six-digit code from the email. */
   function codeStep(email: string) {
     const code = h("input", { class: "si-input si-code", inputmode: "numeric", autocomplete: "one-time-code", maxlength: 6, placeholder: "••••••", "aria-label": "Six-digit code" }) as HTMLInputElement;
     const err = h("p", { class: "si-err", role: "alert" });
@@ -192,13 +192,13 @@ export function createAccount(opts: {
         done(p, true);
       };
       if (!cloudOn()) { finish(); return; }
-      handleFree(hd).then((ok) => { if (ok) finish(); else { err.textContent = `@${hd} is taken. Try another.`; handle.focus(); } }).catch(() => (err.textContent = "Couldn't reach Atlas's servers. Try again in a moment."));
+      handleFree(hd).then((ok) => { if (ok) finish(); else { err.textContent = `@${hd} is taken. Try another.`; handle.focus(); } }).catch(() => (err.textContent = "Couldn't reach Terreno's servers. Try again in a moment."));
     };
     sheet.replaceChildren(
       head("Make your page", email),
       h("div", { class: "si-who" }, av, h("div", { class: "si-who-fields" }, name, h("div", { class: "si-at" }, h("span", {}, "@"), handle))),
       h("div", { class: "si-block" }, h("h3", {}, "Pick a face"), emojis, colors),
-      h("div", { class: "si-block" }, h("h3", {}, "What brings you to Atlas?"), roles),
+      h("div", { class: "si-block" }, h("h3", {}, "What brings you to Terreno?"), roles),
       err,
       h("div", { class: "si-actions" }, h("button", { class: "link-btn", onclick: startStep }, "Back"), h("button", { class: "primary-btn", onclick: create }, "Create my page")));
     setTimeout(() => name.focus(), 60);

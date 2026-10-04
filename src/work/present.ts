@@ -275,7 +275,7 @@ export function openFile(ctx: WorkCtx) {
       store.save(d);
       openDeck(ctx, d.id);
     } catch {
-      ctx.app.toast("That file isn't an Atlas story or presentation.", 5000);
+      ctx.app.toast("That file isn't an Terreno story or presentation.", 5000);
     }
   } }) as HTMLInputElement;
   fileIn.click();

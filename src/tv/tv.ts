@@ -1,4 +1,4 @@
-// TV mode: Atlas for a screen across the room. The panels go, the type gets
+// TV mode: Terreno for a screen across the room. The panels go, the type gets
 // big, and it plays by itself: the Earth live (wind and planes moving), a run
 // of great places, the world's markets, and your own place as a hologram. A
 // QR code in the corner pairs a phone, then steps aside. The phone is a
@@ -81,8 +81,8 @@ export function enterTv(app: App, given?: string) {
   const searchText = h("span", { class: "tv-search-text" }), searchList = h("div", { class: "tv-search-list" });
   const searchEl = h("div", { class: "tv-search", "aria-hidden": "true" }, h("div", { class: "tv-search-bar" }, h("span", { class: "tv-search-icon" }, "⌕"), searchText, h("i", { class: "tv-caret" })), searchList);
   const chip = h("div", { class: "tv-chip" }, "📱 Remote connected");
-  const el = h("div", { class: "tv", role: "region", "aria-label": "Atlas TV" },
-    h("div", { class: "tv-brand" }, "ATLAS", h("span", {}, "TV")), clock, pair, chip,
+  const el = h("div", { class: "tv", role: "region", "aria-label": "Terreno TV" },
+    h("div", { class: "tv-brand" }, "TERRENO", h("span", {}, "TV")), clock, pair, chip,
     h("div", { class: "tv-caption" }, title, sub), dots, menuEl, searchEl);
   document.body.append(el);
 
@@ -183,7 +183,7 @@ export function enterTv(app: App, given?: string) {
     cleanScene();
     openSearch(false);
     say(`Finding ${q}…`);
-    // Atlas's own named places first (mountains, rivers, cities, landmarks), then any address.
+    // Terreno's own named places first (mountains, rivers, cities, landmarks), then any address.
     const local = hit ?? searchPlaces(q, 1)[0];
     const r = local ? { name: local.name, detail: local.detail, lon: local.lon, lat: local.lat, radius: local.radius } : (await geocode(q, null).catch(() => []))[0];
     if (!r) { say(`Couldn't find ${q}`); return; }
@@ -227,7 +227,7 @@ export function enterTv(app: App, given?: string) {
     wake(800);
   }
 
-  // ---- Driving Atlas's own screens: press, type into fields, plan and play trips ----
+  // ---- Driving Terreno's own screens: press, type into fields, plan and play trips ----
   let editing: HTMLInputElement | HTMLTextAreaElement | null = null;
   function pressFocused(scope: HTMLElement) {
     const el = ensureFocus(scope);
@@ -356,7 +356,7 @@ export function enterTv(app: App, given?: string) {
   return self;
 }
 
-/** Cast: put Atlas on the TV so that the phone stays free to be the remote. */
+/** Cast: put Terreno on the TV so that the phone stays free to be the remote. */
 export function openCast(app: App) {
   document.querySelector(".cast-sheet")?.remove();
   const code = newCode();
@@ -368,13 +368,13 @@ export function openCast(app: App) {
   const status = h("p", { class: "muted small" });
   const codeBox = h("input", { class: "pro-url cast-code", placeholder: "Code on the TV", maxlength: "6", autocapitalize: "characters", "aria-label": "Code on the TV" }) as HTMLInputElement;
   const toRemote = (c: string) => { location.href = remoteUrl(c); };
-  const sheet = h("div", { class: "cast-sheet", role: "dialog", "aria-label": "Show Atlas on a TV" },
+  const sheet = h("div", { class: "cast-sheet", role: "dialog", "aria-label": "Show Terreno on a TV" },
     h("button", { class: "cast-x", "aria-label": "Close", onclick: close }, "✕"),
-    h("h2", {}, "📺 Atlas on a TV"),
-    h("p", { class: "muted" }, "The TV runs Atlas on its own and your phone becomes the controller: spin the Earth, zoom, search, open lenses."),
+    h("h2", {}, "📺 Terreno on a TV"),
+    h("p", { class: "muted" }, "The TV runs Terreno on its own and your phone becomes the controller: spin the Earth, zoom, search, open lenses."),
     canPresent ? h("div", { class: "cast-step" },
       h("strong", {}, "Cast it"),
-      h("p", {}, "Pick a Chromecast or Google TV. The TV loads Atlas by itself and this screen turns into the remote."),
+      h("p", {}, "Pick a Chromecast or Google TV. The TV loads Terreno by itself and this screen turns into the remote."),
       h("button", { class: "primary-btn", onclick: async () => {
         try {
           const Req = (window as unknown as { PresentationRequest: new (urls: string[]) => { start(): Promise<unknown> } }).PresentationRequest;
@@ -387,7 +387,7 @@ export function openCast(app: App) {
       h("strong", {}, canPresent ? "Or open it on the TV" : "Open it on the TV"),
       h("p", {}, "On the TV's web browser, or a laptop plugged into the TV, go to ", h("code", {}, shortTv), ". Then scan its code with your phone, or type it here:"),
       h("div", { class: "build-log-form" }, codeBox, h("button", { class: "pill-btn", onclick: () => { const c = codeBox.value.toUpperCase().replace(/[^A-Z0-9]/g, ""); if (c.length === 6) toRemote(c); else status.textContent = "The code on the TV has six letters and numbers."; } }, "Be the remote"))),
-    phone ? h("p", { class: "cast-note" }, "Mirroring (AirPlay, Screen Mirroring, Cast screen) shows this phone's own screen on the TV, so it can't be the remote at the same time. Use it to show things off; for the controller, the TV needs to run Atlas itself.") : "",
+    phone ? h("p", { class: "cast-note" }, "Mirroring (AirPlay, Screen Mirroring, Cast screen) shows this phone's own screen on the TV, so it can't be the remote at the same time. Use it to show things off; for the controller, the TV needs to run Terreno itself.") : "",
     h("div", { class: "cast-options" },
       phone ? "" : h("button", { class: "pill-btn", onclick: () => { close(); enterTv(app, code); } }, "TV mode on this screen"),
       phone ? "" : h("a", { class: "pill-btn", href: remoteUrl(code), target: "_blank", rel: "noopener" }, "Open its remote")),

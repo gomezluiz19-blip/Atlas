@@ -44,7 +44,7 @@ function legalPages(): Plugin {
       if (contact) {
         mkdirSync(join(outDir, ".well-known"), { recursive: true });
         const expires = new Date(Date.now() + 300 * 86_400_000).toISOString();
-        writeFileSync(join(outDir, ".well-known", "security.txt"), `Contact: mailto:${contact}\nExpires: ${expires}\nPreferred-Languages: en\nPolicy: legal/security.html\n`);
+        writeFileSync(join(outDir, ".well-known", "security.txt"), `Contact: mailto:${contact}\nExpires: ${expires}\nPreferred-Languages: en\nPolicy: https://${readFileSync("public/CNAME", "utf8").trim()}/legal/security.html\n`);
       }
     },
   };
@@ -76,8 +76,8 @@ function placePages(): Plugin {
       const app = precache.filter((f) => f.endsWith(".js") && !/cesium/.test(f)).reduce((t, f) => t + gz(f), 0);
       const cesium = precache.filter((f) => /cesium/.test(f)).reduce((t, f) => t + gz(f), 0);
       const kb = (n: number) => `${Math.round(n / 1024)} kB`;
-      console.log(`Startup download (gzip): Atlas ${kb(app)}, Cesium ${kb(cesium)}, in ${precache.length} files`);
-      const over = [app > BUDGET.app && `Atlas startup code is ${kb(app)}, over its ${kb(BUDGET.app)} budget`, cesium > BUDGET.cesium && `Cesium is ${kb(cesium)}, over its ${kb(BUDGET.cesium)} budget`].filter(Boolean);
+      console.log(`Startup download (gzip): Terreno ${kb(app)}, Cesium ${kb(cesium)}, in ${precache.length} files`);
+      const over = [app > BUDGET.app && `Terreno startup code is ${kb(app)}, over its ${kb(BUDGET.app)} budget`, cesium > BUDGET.cesium && `Cesium is ${kb(cesium)}, over its ${kb(BUDGET.cesium)} budget`].filter(Boolean);
       if (over.length) { if (process.env.CI) this.error(over.join("; ")); else this.warn(over.join("; ")); }
     },
     closeBundle() {
@@ -114,7 +114,7 @@ function linkPreview(): Plugin {
       const img = `${site || "./"}og.png`;
       const meta = (property: string, content: string) => ({ tag: "meta", attrs: { property, content }, injectTo: "head" as const });
       return [
-        meta("og:title", "Atlas"),
+        meta("og:title", "Terreno"),
         meta("og:description", "The whole Earth, and your own corner of it: every place on one page, lenses you can make, time travel, and a page of the places you love."),
         meta("og:type", "website"),
         meta("og:image", img),
@@ -135,7 +135,7 @@ export default defineConfig({
   build: {
     chunkSizeWarningLimit: 6000,
     // Cesium, small libraries and the bundled data each in their own file, so a deploy that
-    // only changes Atlas's code leaves them cached, and they download in parallel.
+    // only changes Terreno's code leaves them cached, and they download in parallel.
     // The app, and the phone remote for TV mode (a page of its own, no globe).
     rollupOptions: { input: { main: resolve(__dirname, "index.html"), remote: resolve(__dirname, "remote.html") }, output: { manualChunks: (id) => (/node_modules\/@?cesium/.test(id) ? "cesium" : VENDOR.test(id) ? "vendor" : DATA.test(id) ? "atlas-data" : undefined) } },
   },

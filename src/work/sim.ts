@@ -179,7 +179,7 @@ function openSim(ctx: WorkCtx, id: string, back: () => void) {
       relTable, h("p", { class: "muted small" }, "🤝 alliance · ⇄ trade · ⛔ sanctions. On the map: green lines are alliances, blue dashed trade, red dashed sanctions.")),
     h("div", { class: "pro-actions" },
       h("button", { class: "link-btn", onclick: () => void flyToView(app, overhead(g.nations.reduce((s, n) => s + n.lon, 0) / g.nations.length, 25, 20_000_000), 2) }, "Show on the globe"),
-      h("button", { class: "link-btn", onclick: () => download(`${g.name}.atlas-summit.json`, JSON.stringify(g)) }, "Save as a file"),
+      h("button", { class: "link-btn", onclick: () => download(`${g.name}.terreno-summit.json`, JSON.stringify(g)) }, "Save as a file"),
       h("button", { class: "link-btn danger", onclick: () => { if (confirm(`Delete "${g.name}"?`)) { games.remove(g.id); lines?.clear(); if (fills) { app.globe.viewer.imageryLayers.remove(fills, true); fills = null; } openSims(ctx, back); } } }, "Delete game")),
   );
 }

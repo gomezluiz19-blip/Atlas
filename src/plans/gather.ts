@@ -1,4 +1,4 @@
-// Everything you've planned, from every part of Atlas, as dated places: trip
+// Everything you've planned, from every part of Terreno, as dated places: trip
 // stops and journeys, events and field trips, building phases, and from the
 // Pro tools, office events, fixtures, permits, commitments, deliveries and
 // deals. Read straight from what's saved in this browser, so it always

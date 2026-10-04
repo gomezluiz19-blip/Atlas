@@ -1,5 +1,5 @@
 // Lenses: ways of looking at any feature on Earth, designed once and applied
-// anywhere. Tap a mountain, sea, river, crater, forest or city and Atlas works
+// anywhere. Tap a mountain, sea, river, crater, forest or city and Terreno works
 // out what it is, then offers the lenses that suit it.
 import type { App } from "../app";
 

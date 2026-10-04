@@ -58,7 +58,7 @@ function boardingPass(o: { from: Pt; to: Pt; fromCode: string; toCode: string; w
   const landDate = addDays(o.depart, o.land.dayShift);
   return h("div", { class: "bpass" },
     h("div", { class: "bp-main" },
-      h("div", { class: "bp-top" }, h("span", {}, "ATLAS · ", o.way.way === "fly" ? "BOARDING PASS" : "TRAVEL PASS"), h("span", {}, `${WAYS[o.way.way].emoji} ${hrs(o.way.way === "fly" ? flightHours(km(o.from, o.to)) : o.way.hours)}`)),
+      h("div", { class: "bp-top" }, h("span", {}, "TERRENO · ", o.way.way === "fly" ? "BOARDING PASS" : "TRAVEL PASS"), h("span", {}, `${WAYS[o.way.way].emoji} ${hrs(o.way.way === "fly" ? flightHours(km(o.from, o.to)) : o.way.hours)}`)),
       h("div", { class: "bp-route" },
         h("div", { class: "bp-end-col" }, h("strong", { class: "bp-code" }, o.fromCode), h("small", {}, o.from.name)),
         arcSvg,

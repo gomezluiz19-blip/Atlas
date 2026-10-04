@@ -1,5 +1,5 @@
 // The task robot, backed by Claude. Claude reads the request and uses tools
-// that are Atlas's own abilities (fly somewhere, switch on layers, open a
+// that are Terreno's own abilities (fly somewhere, switch on layers, open a
 // theme, show historical borders, open a tool), then answers in a sentence
 // or two. Runs from the browser with either the person's own Anthropic API key
 // (kept in this browser, sent only to Anthropic) or a small proxy that holds a
@@ -57,7 +57,7 @@ function tools(app: App): Tool[] {
     { name: "add_layers", description: `Switch on world map layers. Available: ${layers.map((l) => `${l} (${app.actions.get(l)!.label})`).join("; ")}.`, input_schema: { type: "object", properties: { layers: { type: "array", items: { type: "string", enum: layers } } }, required: ["layers"] } },
     { name: "open_view", description: `Open a theme's view about the selected place (fly_to first). Views: ${app.themes.map((t) => `${t.id} (${t.label}): ${t.subtabs.map((s) => `${s.id} = ${s.label}`).join(", ")}`).join(" | ")}.`, input_schema: { type: "object", properties: { view: { type: "string", enum: views } }, required: ["view"] } },
     { name: "show_borders", description: `Show the world's political borders in a past year (maps exist for ${yearLabel(YEARS[0])} to ${yearLabel(YEARS[YEARS.length - 1])}; the nearest map is used). Use a negative year for BC. Pass null to hide them.`, input_schema: { type: "object", properties: { year: { type: ["integer", "null"] } }, required: ["year"] } },
-    { name: "open_tool", description: "Open one of Atlas's tools: plan (trips, events, sites, zones, routes), present (slides), video (record the globe), grow (fields and crops), build (construction projects), flock (animals), teach (lessons, quizzes, field trips), learn (games for students, places to learn), space (satellites, ISS, launches), solar (the solar system view), myplace (the person's saved places and today's brief there: frost, heat, storms, animals and tasks due).", input_schema: { type: "object", properties: { tool: { type: "string", enum: [...WORK_TOOLS, "space", "solar", "myplace"] } }, required: ["tool"] } },
+    { name: "open_tool", description: "Open one of Terreno's tools: plan (trips, events, sites, zones, routes), present (slides), video (record the globe), grow (fields and crops), build (construction projects), flock (animals), teach (lessons, quizzes, field trips), learn (games for students, places to learn), space (satellites, ISS, launches), solar (the solar system view), myplace (the person's saved places and today's brief there: frost, heat, storms, animals and tasks due).", input_schema: { type: "object", properties: { tool: { type: "string", enum: [...WORK_TOOLS, "space", "solar", "myplace"] } }, required: ["tool"] } },
     { name: "today_brief", description: "Read today's brief for the person's own saved place (home, farm or site): weather to act on, animals due, fields to harvest or irrigate, projects behind. Use it for questions like 'what do I need to do today?' or 'anything due on the farm?'.", input_schema: { type: "object", properties: {} } },
     { name: "log_record", description: "Record something that happened at the person's place, as ONE plain sentence per call that names the animal (by name or tag), field or building project, e.g. 'Daisy had twins', 'weighed 101 at 590 kg', 'wormed all the sheep with Cydectin', 'sprayed Top field with fungicide', 'Oak Street: poured the slab, 14 crew'. Split a sentence about several animals into several calls.", input_schema: { type: "object", properties: { line: { type: "string" } }, required: ["line"] } },
     { name: "now_here", description: "Read what the selected place is like right now (fly_to first): weather, air quality and UV, the sun, how many planes are overhead and the highest, the strongest earthquake nearby this week, natural events nearby (fires, storms, volcanoes), and news mentioning it. Use it for 'what's it like in X now', 'what's flying over me', 'is the air OK in X'.", input_schema: { type: "object", properties: {} } },
@@ -66,7 +66,7 @@ function tools(app: App): Tool[] {
   ];
 }
 
-const SYSTEM = `You are the assistant inside Atlas, a 3D globe with real satellite imagery and terrain. People type requests in its search box.
+const SYSTEM = `You are the assistant inside Terreno, a 3D globe with real satellite imagery and terrain. People type requests in its search box.
 Act by calling tools: fly to places, switch on layers (including live planes and ships), read what a place is like right now, read the world's news, open views, look at a feature through a lens, show historical borders, open tools, read the brief for the person's own place, and log what happened there. Chain several calls for multi-part requests (place first, then layers, then a view).
 Then reply in at most three short sentences: what you showed and one interesting, accurate fact. Plain text, no markdown, no lists.
 Only use the layers, views and tools listed. If something isn't available, say so briefly and show the closest thing that is.
@@ -245,7 +245,7 @@ async function runTool(app: App, deps: AiDeps, u: Extract<Block, { type: "tool_u
 
 /** Checks the connection with a tiny request. */
 export async function testAi(c: AiConfig): Promise<string> {
-  const r = await call(c, { model: c.model, max_tokens: 30, messages: [{ role: "user", content: "Reply with just: Atlas AI is connected." }] });
+  const r = await call(c, { model: c.model, max_tokens: 30, messages: [{ role: "user", content: "Reply with just: Terreno AI is connected." }] });
   return r.content.map((b) => (b.type === "text" ? b.text : "")).join("").trim();
 }
 

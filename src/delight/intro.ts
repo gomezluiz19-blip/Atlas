@@ -30,7 +30,7 @@ const wait = (ms: number, skip: { on: boolean }) => new Promise<void>((r) => {
 export async function playIntro(app: App, opts: IntroOptions) {
   const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
   const { viewer } = app.globe, cam = viewer.camera;
-  const word = h("span", { class: "intro-word", "aria-label": "Atlas" }, ...[..."ATLAS"].map((c, i) => h("span", { style: `--i:${i}` }, c)));
+  const word = h("span", { class: "intro-word", "aria-label": "Terreno" }, ...[..."TERRENO"].map((c, i) => h("span", { style: `--i:${i}` }, c)));
   const words = h("div", { class: "intro-words", "aria-hidden": "true" }, ...WORDS.map((w, i) => h("span", { style: `--i:${i}` }, w)));
   const mark = h("div", { class: "intro-mark" }, word, words);
   const skipBtn = h("button", { class: "intro-skip" }, "Skip");
