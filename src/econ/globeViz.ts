@@ -5,7 +5,7 @@
 import { BoundingSphere, CallbackProperty, Cartesian2, Cartesian3, Color, HeadingPitchRange, Math as CesiumMath, ColorMaterialProperty, CustomDataSource, LabelStyle, NearFarScalar, VerticalOrigin } from "cesium";
 import type { App } from "../app";
 import { FlowOverlay, type FlowLine } from "../globe/flow";
-import { demand, wake } from "../globe/motion";
+import { demand, wake, ambient } from "../globe/motion";
 import { arc } from "../work/journey";
 import { COUNTRIES } from "./places";
 
@@ -35,7 +35,8 @@ export class EconLayer {
   constructor(private app: App, private id: string, private label: string, private color: string, private emoji = "") {
     void app.globe.viewer.dataSources.add(this.ds);
     this.flow = new FlowOverlay(app.globe.viewer, { maxHeight: Number.POSITIVE_INFINITY, maxDrops: 2400, fade: 0.1 });
-    demand(() => this.visible && (this.pulsing || performance.now() - this.born < 1600));
+    // Columns rising: full rate for a moment. Halos pulsing after that: the calm ambient rate.
+    demand(() => this.visible && performance.now() - this.born < 1600);
   }
 
   /** Draws a fresh scene: columns rise, flows start, halos pulse. */
@@ -94,15 +95,17 @@ export class EconLayer {
     this.flow.show(this.visible);
     this.ds.show = this.visible;
     this.app.canvas.put({ id: this.id, label: `${this.emoji} ${this.label}`.trim(), color: this.color, scope: "world", pinned: true,
-      show: (v) => { this.visible = v; this.ds.show = v; this.flow.show(v); if (v) this.flow.set(this.lines); wake(1500); },
+      show: (v) => { this.visible = v; this.ds.show = v; this.flow.show(v); if (v) this.flow.set(this.lines); ambient(this.app.globe.viewer.scene, this, v && this.pulsing); wake(1500); },
       remove: () => this.clear(false) }, true);
     this.pulsing = !!(opts.halos?.length || opts.pins?.length);
+    ambient(this.app.globe.viewer.scene, this, this.visible && this.pulsing);
     wake(2500);
   }
 
   clear(drop = true) {
     live.delete(this);
     this.pulsing = false;
+    ambient(this.app.globe.viewer.scene, this, false);
     this.ds.entities.removeAll();
     this.lines = [];
     this.flow.set([]);

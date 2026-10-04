@@ -7,14 +7,16 @@
 // facilities, condition, repairs, coverage), capital projects, 311, and bids
 // for vendors. Links out to Politics Pro for elected offices and Field Ops
 // for community organisations.
-import { CallbackProperty, Cartesian3, Color, ColorMaterialProperty, CustomDataSource, HeightReference, NearFarScalar, VerticalOrigin } from "cesium";
+import { CallbackProperty, Cartesian3, Color, ColorMaterialProperty, CustomDataSource, NearFarScalar, VerticalOrigin } from "cesium";
 import type { App } from "../../app";
 import { Massing, type MassBuilding } from "../../enterprise/massing";
-import { demand, wake } from "../../globe/motion";
+import { ambient, wake } from "../../globe/motion";
 import { makeTappable } from "../../globe/pickables";
 import { h } from "../../ui/dom";
+import { loadJson, saveJson } from "../../util/storage";
 import { flyToPlace, geocode } from "../../ui/search";
 import type { WorkCtx } from "../../work/hub";
+import { teamCard, teamSync } from "../kit/team";
 import { downloadCsv, pickFile, printReport } from "../kit/report";
 import { kpis, list, row, title } from "../kit/ui";
 import { demoCity } from "./demo";
@@ -24,8 +26,9 @@ import {
 } from "./model";
 
 const KEY = "atlas.pro.city.v1";
-const load = (): City | null => { try { const v = JSON.parse(localStorage.getItem(KEY) ?? "null"); return v && Array.isArray(v.facilities) ? v : null; } catch { return null; } };
-const save = (c: City) => { try { localStorage.setItem(KEY, JSON.stringify(c)); } catch { /* private mode or full: 311 can be big */ try { localStorage.setItem(KEY, JSON.stringify({ ...c, requests: [] })); } catch { /* give up */ } } };
+const load = () => loadJson<City | null>(KEY, null, (v) => !!v && Array.isArray((v as City).facilities));
+// A day of live 311 can be big: if the city doesn't fit, keep it without the requests rather than not at all.
+const save = (c: City) => { try { localStorage.setItem(KEY, JSON.stringify(c)); return true; } catch { return saveJson(KEY, { ...c, requests: [] }); } };
 type Tab = "desk" | "agencies" | "projects" | "311" | "bids";
 const TABS: [Tab, string][] = [["desk", "Mayor's desk"], ["agencies", "Agencies"], ["projects", "Projects"], ["311", "311"], ["bids", "Bids"]];
 const INCIDENT_EMOJI: Record<Incident["kind"], string> = { fire: "🔥", "water main": "💧", power: "⚡", collision: "🚑", flooding: "🌊", building: "🏚️", police: "🚓", weather: "⛈️" };
@@ -35,12 +38,12 @@ const S311 = "https://data.cityofnewyork.us/resource/erm2-nwe9.json";
 const FACDB = "https://data.cityofnewyork.us/resource/ji82-xba5.json";
 const heatColor = (t: number) => t > 0.66 ? "#ff3b30" : t > 0.33 ? "#ff9f0a" : "#ffd60a";
 
-let mass: Massing | null = null, projMass: Massing | null = null, live: CustomDataSource | null = null, liveOn = false;
+let mass: Massing | null = null, projMass: Massing | null = null, live: CustomDataSource | null = null;
 
 export function openCityOps(ctx: WorkCtx, app: App, view?: string) {
   mass ??= new Massing(app, "city:facilities", "City facilities", "#5e5ce6", "🏛️");
   projMass ??= new Massing(app, "city:projects", "Capital projects", "#ff9f0a", "🏗️");
-  if (!live) { live = new CustomDataSource("city-live"); void app.globe.viewer.dataSources.add(live); demand(() => liveOn); }
+  if (!live) { live = new CustomDataSource("city-live"); void app.globe.viewer.dataSources.add(live); }
   const today = isoDay();
   let C = load();
   let tab: Tab = TABS.some(([t]) => t === view) ? view as Tab : "desk";
@@ -48,9 +51,12 @@ export function openCityOps(ctx: WorkCtx, app: App, view?: string) {
   let onlyAgency: string | null = null;
   let playing = 0;
 
-  const persist = () => { if (C) save(C); };
+  // Shared with the team when this workspace is linked (pro/kit/team.ts); otherwise only on this device.
+  const bound = { title: () => C?.name ?? "City", get: () => C, set: (b: unknown) => { C = b as City; save(C!); }, reload: () => home() };
+  const sync = teamSync(app, KEY, bound);
+  const persist = () => { if (C) { save(C); sync.changed(); } };
   const stop = () => { if (playing) clearInterval(playing); playing = 0; };
-  const clearLive = () => { live!.entities.removeAll(); liveOn = false; };
+  const clearLive = () => { live!.entities.removeAll(); ambient(app.globe.viewer.scene, live, false); };
   const leave = () => { stop(); mass?.clear(); projMass?.clear(); clearLive(); app.canvas.drop("city:live"); ctx.home(); };
   const agency = (id: string) => C!.agencies.find((a) => a.id === id);
 
@@ -79,16 +85,15 @@ export function openCityOps(ctx: WorkCtx, app: App, view?: string) {
     for (const i of C.incidents.filter((x) => x.status !== "closed")) {
       const col = Color.fromCssColorString(i.severity >= 3 ? "#ff453a" : i.severity === 2 ? "#ff9f0a" : "#ffd60a");
       const base = 120 + i.severity * 90;
-      // Breathe in and out. The two axes are read separately each frame, so the minor one is kept a touch
-      // smaller (Cesium throws if it's ever the larger), with time stepped in 10 ms so both reads agree.
-      const phase = () => Math.sin((Math.floor((performance.now() - born) / 10) * 10) / 260);
-      const major = new CallbackProperty(() => base * (0.8 + 0.2 * phase()), false), minor = new CallbackProperty(() => base * 0.97 * (0.8 + 0.2 * phase()), false);
-      live!.entities.add({ position: Cartesian3.fromDegrees(i.lon, i.lat), ellipse: { semiMajorAxis: major, semiMinorAxis: minor,
-        material: new ColorMaterialProperty(new CallbackProperty(() => col.withAlpha(0.32 - 0.18 * phase()), false)) } });
-      const e = live!.entities.add({ position: Cartesian3.fromDegrees(i.lon, i.lat), label: { text: `${INCIDENT_EMOJI[i.kind]}`, font: "22px sans-serif", verticalOrigin: VerticalOrigin.CENTER, heightReference: HeightReference.CLAMP_TO_GROUND, disableDepthTestDistance: Number.POSITIVE_INFINITY, scaleByDistance: new NearFarScalar(2000, 1.2, 80_000, 0.7) } });
+      // A steady ring that breathes in brightness: only its colour changes, so no geometry is rebuilt per frame.
+      const pulse = () => 0.5 + 0.5 * Math.sin((performance.now() - born) / 300);
+      live!.entities.add({ position: Cartesian3.fromDegrees(i.lon, i.lat), ellipse: { semiMajorAxis: base, semiMinorAxis: base,
+        material: new ColorMaterialProperty(new CallbackProperty(() => col.withAlpha(0.18 + 0.32 * pulse()), false)) } });
+      const e = live!.entities.add({ position: Cartesian3.fromDegrees(i.lon, i.lat), label: { text: `${INCIDENT_EMOJI[i.kind]}`, font: "22px sans-serif", verticalOrigin: VerticalOrigin.CENTER, disableDepthTestDistance: Number.POSITIVE_INFINITY, scaleByDistance: new NearFarScalar(2000, 1.2, 80_000, 0.7) } });
       makeTappable(e, () => incidentPage(i));
     }
-    liveOn = true; wake(800);
+    wake(800);
+    ambient(app.globe.viewer.scene, live, C.incidents.some((x) => x.status !== "closed"));
     app.canvas.put({ id: "city:live", label: "🚨 Incidents and 311", color: "#ff453a", scope: "world", pinned: true, show: (v) => { live!.show = v; wake(600); }, remove: () => clearLive() }, true);
   }
   function drawHeat(from?: number, to?: number, type?: string) {
@@ -97,7 +102,7 @@ export function openCityOps(ctx: WorkCtx, app: App, view?: string) {
     const cells = heatCells(rs, 0.7, from, to), max = Math.max(1, ...cells.map((c) => c.n));
     for (const c of cells) {
       const t = c.n / max;
-      live!.entities.add({ position: Cartesian3.fromDegrees(c.lon, c.lat), point: { pixelSize: 8 + t * 26, color: Color.fromCssColorString(heatColor(t)).withAlpha(0.25 + t * 0.5), outlineWidth: 0, heightReference: HeightReference.CLAMP_TO_GROUND, disableDepthTestDistance: Number.POSITIVE_INFINITY, scaleByDistance: new NearFarScalar(3000, 1.3, 90_000, 0.5) } });
+      live!.entities.add({ position: Cartesian3.fromDegrees(c.lon, c.lat), point: { pixelSize: 8 + t * 26, color: Color.fromCssColorString(heatColor(t)).withAlpha(0.25 + t * 0.5), outlineWidth: 0, disableDepthTestDistance: Number.POSITIVE_INFINITY, scaleByDistance: new NearFarScalar(3000, 1.3, 90_000, 0.5) } });
     }
     wake(400);
   }
@@ -151,7 +156,8 @@ export function openCityOps(ctx: WorkCtx, app: App, view?: string) {
       h("div", { class: "edu-actions gov-links" },
         h("button", { class: "pill-btn", onclick: () => app.actions.get("work:office")?.run() }, "🏛️ Elected offices: Politics Pro"),
         h("button", { class: "pill-btn", onclick: () => app.actions.get("work:field")?.run() }, "🤝 Community organisations: Field Ops"),
-        C.demo ? h("button", { class: "link-btn danger", onclick: () => { localStorage.removeItem(KEY); C = null; start(); } }, "Remove the demo") : ""));
+        C.demo && !sync.link ? h("button", { class: "link-btn danger", onclick: () => { localStorage.removeItem(KEY); C = null; start(); } }, "Remove the demo") : ""),
+      teamCard(app, sync, bound));
   }
 
   // ---- Mayor's desk ----

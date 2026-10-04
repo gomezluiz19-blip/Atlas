@@ -3796,3 +3796,29 @@ body.tv-mode .lens-panel { transform: scale(1.15); transform-origin: top right; 
 .po-kpis { grid-template-columns: repeat(auto-fill, minmax(min(100%, 100px), 1fr)); }
 .po-kpi { container-type: inline-size; }
 .po-kpi strong { font-size: min(24px, 25cqi); white-space: nowrap; }
+
+/* While the globe moves: no live backdrop blur (it's recomputed every frame over WebGL), slightly more opaque
+   materials instead. See globe/motion.ts. */
+body.globe-moving { --material: rgba(250, 250, 252, 0.94); --material-strong: rgba(255, 255, 255, 0.985); }
+@media (prefers-color-scheme: dark) { body.globe-moving { --material: rgba(17, 19, 23, 0.94); --material-strong: rgba(24, 26, 31, 0.985); } }
+body.globe-moving * { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+
+/* ---- Team, versions and backup (pro/kit/team.ts) ---- */
+.team-card { border-radius: 14px; background: var(--fill); padding: 0 12px; margin-top: 4px; }
+.team-card summary { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 11px 0; font-weight: 600; font-size: 13.5px; cursor: pointer; list-style: none; }
+.team-card summary::-webkit-details-marker { display: none; }
+.team-pill { flex: none; padding: 2px 9px; border-radius: 999px; font-size: 11px; font-weight: 700; background: var(--fill-strong); color: var(--secondary); }
+.team-pill.saved { background: rgba(48, 209, 88, .15); color: #1a8f3c; }
+.team-pill.saving { background: rgba(10, 132, 255, .14); color: #0a6fd8; }
+.team-pill.offline { background: rgba(255, 159, 10, .16); color: #b25000; }
+.team-pill.viewer { background: rgba(94, 92, 230, .14); color: #4a48c8; }
+.team-body { display: flex; flex-direction: column; gap: 8px; padding-bottom: 12px; }
+.team-head { margin: 0; font-size: 13.5px; } .team-head span { color: var(--secondary); }
+.team-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.team-list { display: flex; flex-direction: column; gap: 2px; }
+.team-person, .team-ws { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 7px 10px; border-radius: 10px; background: var(--material-strong); font-size: 13px; }
+.team-ws { border: 0; color: var(--label); font: inherit; font-size: 13px; cursor: pointer; text-align: left; }
+.team-person small, .team-ws small { color: var(--secondary); font-size: 11.5px; }
+.team-actions { display: flex; gap: 6px; align-items: center; }
+.team-actions select { width: 104px; padding: 4px 6px; }
+.team-invite { grid-template-columns: 1fr 104px auto; }

@@ -2,11 +2,7 @@
 // systems) and printable reports (for a board, a donor, a chief of staff),
 // opened in their own window ready to print or save as PDF.
 
-/** One CSV cell, quoted when it needs to be (pure). */
-const cell = (v: unknown) => {
-  const s = v === undefined || v === null ? "" : String(v);
-  return /[",\n;]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
-};
+import { csvCell as cell } from "../../util/csv";
 
 /** Rows of objects to CSV text, columns in the order of `head` (pure). */
 export function toCsv(head: string[], rows: (string | number | boolean | undefined | null)[][]): string {

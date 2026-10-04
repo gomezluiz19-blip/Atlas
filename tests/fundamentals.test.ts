@@ -1,0 +1,42 @@
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { csvCell, csvText } from "../src/util/csv";
+import { loadJson, saveJson, STORAGE_FULL } from "../src/util/storage";
+
+describe("CSV export", () => {
+  it("neutralises text a spreadsheet would run as a formula", () => {
+    expect(csvCell("=HYPERLINK(\"http://x\")")).toBe("\"'=HYPERLINK(\"\"http://x\"\")\"");
+    expect(csvCell("+1 555")).toBe("'+1 555");
+    expect(csvCell("@SUM(A1)")).toBe("'@SUM(A1)");
+    expect(csvCell("-cmd")).toBe("'-cmd");
+  });
+  it("leaves numbers, negative ones included, and plain text alone", () => {
+    expect(csvCell(-12.5)).toBe("-12.5");
+    expect(csvCell("-12.5")).toBe("-12.5");
+    expect(csvCell("Engine 54")).toBe("Engine 54");
+    expect(csvCell(null)).toBe("");
+    expect(csvText([["a", "b, c"], [1, "x\"y"]])).toBe("a,\"b, c\"\n1,\"x\"\"y\"");
+  });
+});
+
+describe("Saving to the browser", () => {
+  const store = new Map<string, string>();
+  const g = globalThis as Record<string, unknown>;
+  afterEach(() => { store.clear(); delete g.localStorage; vi.restoreAllMocks(); });
+  it("round-trips and validates", () => {
+    g.localStorage = { getItem: (k: string) => store.get(k) ?? null, setItem: (k: string, v: string) => void store.set(k, v) };
+    expect(saveJson("atlas.t", { a: 1 })).toBe(true);
+    expect(loadJson("atlas.t", null)).toEqual({ a: 1 });
+    expect(loadJson("atlas.t", "no", (v) => Array.isArray(v))).toBe("no");
+    expect(loadJson("atlas.missing", 7)).toBe(7);
+  });
+  it("raises a warning instead of failing silently when storage is full", () => {
+    g.localStorage = { getItem: () => null, setItem: () => { throw new DOMException("full", "QuotaExceededError"); } };
+    const seen: unknown[] = [];
+    const target = new EventTarget();
+    g.dispatchEvent = (e: Event) => target.dispatchEvent(e);
+    target.addEventListener(STORAGE_FULL, (e) => seen.push((e as CustomEvent).detail));
+    expect(saveJson("atlas.big", { x: 1 })).toBe(false);
+    expect(seen).toEqual([{ key: "atlas.big", full: true }]);
+    delete g.dispatchEvent;
+  });
+});

@@ -16,6 +16,7 @@ import type { WorkCtx } from "./hub";
 import { WorkLayer } from "./layer";
 import { ORGS, SPECIES, age, counts, dueDate, dueList, gain, grazing, speciesById, thi, type Animal, type Flock, type HealthEvent, type Org } from "./flockModel";
 import { download, newId } from "./store";
+import { csvCell } from "../util/csv";
 import { CARE, breedsFor, findBreed } from "./breeds";
 import { applyLog, parseLog, type LogEntry } from "./flockLog";
 
@@ -446,7 +447,7 @@ export function openAnimal(ctx: WorkCtx, id: string) {
 
 function exportCsv() {
   const f = flock!;
-  const q = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+  const q = csvCell;
   const rows = [["name", "tag", "species", "breed", "sex", "born", "status", "paddock", "latest_kg", "bred", "due", "notes"],
     ...f.animals.map((a) => {
       const w = [...a.weights].sort((x, y) => x.date.localeCompare(y.date)).pop();

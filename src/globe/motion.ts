@@ -26,6 +26,18 @@ export function demand(active: Pred) { wants.push(active); }
 /** Asks for full-rate drawing for a moment (after a change the globe can't see). */
 export function wake(ms = 600) { activeUntil = Math.max(activeUntil, performance.now() + ms); }
 
+const ambients = new Set<unknown>();
+let ambientTimer = 0;
+/**
+ * Gentle background motion (a pulsing alert, a swinging crane, a throbbing incident): while any is on, the
+ * globe redraws about 20 times a second, never at the full rate and never while the tab is hidden.
+ */
+export function ambient(scene: Scene, key: unknown, on: boolean) {
+  if (on) ambients.add(key); else ambients.delete(key);
+  if (ambients.size && !ambientTimer) ambientTimer = setInterval(() => { if (typeof document === "undefined" || !document.hidden) scene.requestRender(); }, 50) as unknown as number;
+  else if (!ambients.size && ambientTimer) { clearInterval(ambientTimer); ambientTimer = 0; }
+}
+
 type Ev = { addEventListener(fn: (...a: never[]) => void, scope?: unknown): () => void; __raw?: Ev["addEventListener"] };
 /**
  * Runs `fn` every frame, as `scene.preRender` would, without counting as an
@@ -109,6 +121,13 @@ export function initMotion(viewer: Viewer) {
 
   // ---- While moving: coarser terrain, and lower resolution if frames are slow ----
   let moving = false, slow = 0, sharp = q.sse, baseScale = viewer.resolutionScale, struggled = 0, dropped = false;
+  // Frosted-glass panels blur whatever's behind them; over a globe redrawing every frame that blur is
+  // recomputed every frame too, the single biggest cost on many GPUs. While the camera moves the panels turn
+  // a touch more opaque instead, and the frost returns when it stops.
+  let glassTimer = 0;
+  const body = typeof document !== "undefined" ? document.body : null;
+  camera.moveStart.addEventListener(() => { clearTimeout(glassTimer); body?.classList.add("globe-moving"); });
+  camera.moveEnd.addEventListener(() => { clearTimeout(glassTimer); glassTimer = window.setTimeout(() => body?.classList.remove("globe-moving"), 180); });
   camera.moveStart.addEventListener(() => {
     moving = true; dropped = false;
     sharp = q.sse; baseScale = viewer.resolutionScale;
