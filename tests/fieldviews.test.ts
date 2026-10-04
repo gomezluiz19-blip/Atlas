@@ -69,3 +69,58 @@ describe("site potential", () => {
     expect(Math.max(...june.map((p) => p.alt))).toBeGreaterThan(60);
   });
 });
+
+import { clearance, disperse, kindOf } from "../src/fieldviews/crowdModel";
+import { faceAz, keyDays, sunHours, sunTable } from "../src/fieldviews/sunModel";
+import { csvRows, importPositions } from "../src/econ/brokerImport";
+
+describe("sun on a building", () => {
+  const b = { length: 40, depth: 18, floors: 10, floorHeight: 3, bearing: 90 }; // long side east–west: front faces south
+  it("faces the right way", () => {
+    expect(faceAz(b, "front")).toBe(180);
+    expect(faceAz({ ...b, bearing: 0 }, "front")).toBe(90);
+  });
+  it("gives the south face the most winter sun in the north, and a tower takes it from the low floors", () => {
+    const [winter] = keyDays(51.5, 2025);
+    const t = sunTable(b, 51.5, -0.1, winter.day);
+    const south = t.find((x) => x.face === "front")!, north = t.find((x) => x.face === "back")!;
+    expect(south.floors[0]).toBeGreaterThan(north.floors[0]);
+    const shaded = sunHours(b, "front", 0, 51.5, -0.1, winter.day, { distance: 20, height: 60 });
+    expect(shaded).toBeLessThan(south.floors[0]);
+    expect(sunHours(b, "front", 9, 51.5, -0.1, winter.day, { distance: 20, height: 20 })).toBe(south.floors[9]);
+  });
+});
+
+describe("crowd flow", () => {
+  const st = [{ id: "a", name: "Big station", kind: "rail" as const, lon: 0, lat: 0, km: 0.4 }, { id: "b", name: "Far bus", kind: "bus" as const, lon: 0, lat: 0, km: 1.2 }];
+  it("sends most of the crowd to the big, near station and clears it", () => {
+    const s = disperse(20000, 0.6, st);
+    expect(s[0].s.id).toBe("a");
+    expect(s.reduce((a, x) => a + x.people, 0)).toBeCloseTo(12000, -1);
+    const c = clearance(s);
+    expect(c.minutes).toBeGreaterThan(0);
+    const closed = disperse(20000, 0.6, [{ ...st[0], closed: true }, st[1]]);
+    expect(clearance(closed).minutes).toBeGreaterThan(c.minutes);
+    expect(clearance(disperse(20000, 0.6, st, 2)).minutes).toBeLessThan(c.minutes);
+  });
+  it("reads OpenStreetMap stops", () => {
+    expect(kindOf({ railway: "station", station: "subway" })).toBe("subway");
+    expect(kindOf({ highway: "bus_stop" })).toBe("bus");
+    expect(kindOf({ amenity: "cafe" })).toBeNull();
+  });
+});
+
+describe("broker import", () => {
+  it("splits CSV with quotes", () => {
+    expect(csvRows('a,"b, c",d\n1,2,3')).toEqual([["a", "b, c", "d"], ["1", "2", "3"]]);
+  });
+  it("reads a positions export and a pasted list", () => {
+    const fidelity = 'Account Number,Account Name,Symbol,Description,Quantity,Last Price,Current Value\nX1,Brokerage,AAPL,APPLE INC,10,$190.00,"$1,900.00"\nX1,Brokerage,ZZZZ,UNKNOWN CO,5,$10,$50.00\nX1,Brokerage,SPAXX**,CASH,,,"$500.00"';
+    const r = importPositions(fidelity);
+    expect(r.holdings).toEqual([{ id: "apple", value: 1900 }]);
+    expect(r.unknown[0].symbol).toBe("ZZZZ");
+    const ibkr = "Symbol,Position,Mark\nNVDA,4,120\nTSLA,2,250";
+    expect(importPositions(ibkr).holdings).toEqual([{ id: "nvidia", value: 480 }, { id: "tesla", value: 500 }]);
+    expect(importPositions("AAPL 5000\nNestlé, $7,000").holdings).toEqual([{ id: "apple", value: 5000 }, { id: "nestle", value: 7000 }]);
+  });
+});

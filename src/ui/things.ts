@@ -111,9 +111,21 @@ export function buildThings(app: App, overlays: Overlays, tools: WorkTool[]): Th
     ["econ:lab", "What if…", "⚡", "Play out a shock (a blockade, an export ban, a drought) and see prices, companies and your portfolio react", "what if scenario stress test shock simulate model blockade export ban recession tariffs"],
     ["view:matchday", "Matchday sun and shade", "🏟️", "Stands cast real shadows over the pitch through a match; the best kickoff, the weather and fans in reach", "stadium kickoff shade sun pitch match fixture"],
     ["view:soil", "Soil profile", "🪱", "The ground two metres down in 3D: texture, pH, carbon, water held, and what it suits", "soil quality ph clay sand loam farm field drainage"],
+    ["view:sun", "Sun on a building", "🏢", "Hours of sun on every floor of every face, and what a tower across the street would take", "sunlight daylight apartment facade south facing shadow building"],
+    ["view:crowd", "Crowd flow", "🚇", "How a crowd leaves a venue: stations, queues and clearing times", "crowd egress concert stadium exit stations queue"],
     ["view:site", "Site potential", "☀️", "Sun paths and a wind rose in 3D, and what the land could make from solar and wind", "solar wind farm site renewable yield irradiance energy potential"],
   ] as const)
     out.push({ title, detail, emoji, group: "Open", words, run: act(id) });
+  // The enterprise tools: schools, construction, a city.
+  for (const [id, arg, title, emoji, detail, words] of [
+    ["ent:edu", "", "Education Pro", "🏫", "Run schools from the map: cover for who's out, every room in 3D, repairs, drills, buses, trips and lessons", "principal school district superintendent substitute cover attendance teachers staff campus"],
+    ["ent:con", "", "Construction Pro", "🏗️", "The region's sites rising in 3D: stages, trades and when, the schedule, materials and the pipeline", "construction sites contractor general contractor developer pipeline permits building projects region"],
+    ["ent:con", "union", "Union site tracker", "✊", "Which sites need your craft now and soon, who's signatory, visits, safety and today's route", "union organizer business agent bricklayers ironworkers carpenters electricians signatory site visits building trades local"],
+    ["ent:con", "supplier", "Construction material demand", "🚚", "What the region's sites will need month by month, and who to call", "concrete rebar brick block drywall glazing supplier building materials sales leads"],
+    ["ent:gov", "", "City Ops", "🏛️", "A city's facilities, agencies, people, capital projects, incidents and 311 on one map, with the morning brief", "mayor city hall government agencies facilities municipal operations commissioner city manager"],
+    ["ent:gov", "311", "311 heat map", "📞", "A day of 311 requests as a heat map you can play hour by hour", "311 complaints service requests noise heat hot water potholes city"],
+  ] as const)
+    out.push({ title, detail, emoji, group: "Open", words, run: arg ? act(id, arg) : act(id) });
   out.push({ title: "Show me something amazing", detail: "Somewhere unexpected, and why it's worth seeing", emoji: "🎲", group: "Open", words: "surprise random wonder amazing beautiful inspire", run: act("surprise") });
   out.push({ title: "Take the tour", detail: "A one-minute walk through what Atlas can do", emoji: "🧭", group: "Open", words: "tour help tutorial guide intro introduction how start learn", run: act("tour") });
   out.push({ title: "Time travel", detail: "The globe in any year: borders of the time, the view from space, projections", emoji: "⏳", group: "Open", words: "time history past then now future year years borders empires old", run: act("time:open") });

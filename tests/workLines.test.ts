@@ -6,7 +6,7 @@ const top = (q: string) => rank(q)[0]?.station.id;
 describe("the Work map", () => {
   it("puts each pro tool on an industry line, specialists after the tool they serve", () => {
     const ids = (l: string) => LINES.find((x) => x.id === l)!.stations.map((s) => s.id);
-    expect(ids("build")).toEqual(["build", "buildpro", "fn-construction"]);
+    expect(ids("build")).toEqual(["build", "buildpro", "con-pro", "con-union", "con-supply", "fn-construction"]);
     expect(ids("mine")).toEqual(["explore-mine", "desk-mine", "mining", "fn-mining"]);
     expect(LINES.flatMap((l) => l.stations).filter((s) => s.tool.startsWith("services:")).map((s) => s.tool.slice(9)).sort()).toEqual(["agriculture", "architecture", "art", "construction", "energy", "fashion", "food", "gaming", "medical", "mining", "realestate", "retail", "sports", "tech", "telecom"]);
   });
@@ -14,7 +14,8 @@ describe("the Work map", () => {
     for (const id of ["food", "retail", "fashion", "art", "gaming", "realestate", "architecture", "tech"]) {
       const tools = LINES.find((x) => x.id === id)!.stations.map((s) => s.tool);
       const made = ["food", "fashion", "architecture", "art"].includes(id) ? [`source:${id}`] : [];
-      expect(tools).toEqual([`explore:${id}`, `scout:${id}`, ...made, `services:${id}`]);
+      const view = id === "realestate" ? ["view:sun"] : id === "art" ? ["view:crowd"] : [];
+      expect(tools).toEqual([`explore:${id}`, `scout:${id}`, ...view, ...made, `services:${id}`]);
     }
     expect(LINES.find((x) => x.id === "sport")!.stations[0].tool).toBe("explore:sport");
   });
@@ -44,7 +45,7 @@ describe("the Work map", () => {
   it("puts every field's tools on the three rungs, in order", () => {
     const rungs = (l: string) => LINES.find((x) => x.id === l)!.stations.map(tierOf);
     expect(rungs("mine")).toEqual(["everyday", "pro", "pro", "services"]);
-    expect(rungs("build")).toEqual(["everyday", "pro", "services"]);
+    expect(rungs("build")).toEqual(["everyday", "pro", "pro", "pro", "pro", "services"]);
     expect(rungs("food")).toEqual(["everyday", "pro", "pro", "services"]);
     expect(rungs("finance")).toEqual(["everyday", "pro", "everyday", "everyday", "pro"]);
     expect(rungs("commod")).toEqual(["everyday", "pro", "pro"]);
