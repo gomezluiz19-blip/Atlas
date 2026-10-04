@@ -4,7 +4,6 @@
 // in a thin trickle, buried culverts dim. OpenStreetMap draws waterways in the
 // direction they flow, so the drops go downstream.
 import { Cartesian2, Cartesian3, SceneTransforms, type Viewer } from "cesium";
-import { demand } from "./motion";
 
 export interface FlowLine {
   pts: [number, number][];
@@ -39,10 +38,28 @@ export class FlowOverlay {
   constructor(private viewer: Viewer, private opts: { maxHeight?: number; maxDrops?: number; /** How fast trails fade each frame (0–1): lower leaves longer streaks. */ fade?: number } = {}) {
     this.canvas.className = "flow-layer";
     viewer.canvas.after(this.canvas);
-    this.remove.push(viewer.scene.postRender.addEventListener(() => this.frame()));
-    demand(() => this.visible && this.drops.length > 0 && !document.hidden);
+    // While the camera moves, draw in step with the globe (after each of its frames) so the drops stay glued to
+    // the ground. While it's still, the drops run on their own animation frames and the globe isn't redrawn at
+    // all: animating a few thousand dots shouldn't cost a full 3D render sixty times a second.
+    this.remove.push(viewer.scene.postRender.addEventListener(() => { if (this.moving) this.frame(); }));
     this.remove.push(viewer.camera.moveStart.addEventListener(() => (this.moving = true)));
-    this.remove.push(viewer.camera.moveEnd.addEventListener(() => (this.moving = false)));
+    this.remove.push(viewer.camera.moveEnd.addEventListener(() => { this.moving = false; this.kick(); }));
+    const onVis = () => this.kick();
+    document.addEventListener("visibilitychange", onVis);
+    this.remove.push(() => document.removeEventListener("visibilitychange", onVis));
+  }
+
+  private raf = 0;
+  /** Starts the overlay's own animation loop if there's something to animate. */
+  private kick() {
+    if (this.raf || !this.visible || !this.drops.length || document.hidden) return;
+    const loop = () => {
+      this.raf = 0;
+      if (!this.visible || !this.drops.length || document.hidden) return;
+      if (!this.moving) this.frame();
+      this.raf = requestAnimationFrame(loop);
+    };
+    this.raf = requestAnimationFrame(loop);
   }
 
   set(lines: FlowLine[]) {
@@ -61,11 +78,12 @@ export class FlowOverlay {
     this.drops = [];
     this.lines.forEach((p, i) => { for (let n = Math.max(1, Math.round(want[i] * k)); n > 0; n--) this.drops.push({ p, d: Math.random() * p.len }); });
     this.clear();
+    this.kick();
   }
 
-  show(v: boolean) { this.visible = v; if (!v) this.clear(); }
+  show(v: boolean) { this.visible = v; if (!v) this.clear(); else this.kick(); }
 
-  destroy() { for (const r of this.remove) r(); this.canvas.remove(); }
+  destroy() { for (const r of this.remove) r(); if (this.raf) cancelAnimationFrame(this.raf); this.raf = 0; this.canvas.remove(); }
 
   private clear() { this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height); }
 
@@ -83,6 +101,8 @@ export class FlowOverlay {
     ctx.fillRect(0, 0, c.width, c.height);
     ctx.globalCompositeOperation = "lighter";
     const scene = this.viewer.scene, cam = this.viewer.camera.positionWC, toCam = new Cartesian3();
+    // One path per colour and brightness, filled once: a few canvas calls a frame instead of one per drop.
+    const paths = new Map<string, Path2D>();
     for (const drop of this.drops) {
       const p = drop.p;
       drop.d += p.line.speed * dt;
@@ -96,11 +116,16 @@ export class FlowOverlay {
       if (Cartesian3.dot(this.scratch, Cartesian3.subtract(cam, this.scratch, toCam)) < 0) continue;
       const s = SceneTransforms.worldToWindowCoordinates(scene, this.scratch, this.win);
       if (!s || s.x < -4 || s.y < -4 || s.x > w + 4 || s.y > h + 4) continue;
-      ctx.globalAlpha = p.line.dim ? 0.35 : 0.9;
-      ctx.fillStyle = p.line.color;
-      ctx.beginPath();
-      ctx.arc(s.x * dpr, s.y * dpr, (p.line.size ?? 1.8) * dpr, 0, Math.PI * 2);
-      ctx.fill();
+      const key = `${p.line.dim ? 1 : 0}${p.line.color}`, r = (p.line.size ?? 1.8) * dpr;
+      let path = paths.get(key);
+      if (!path) { path = new Path2D(); paths.set(key, path); }
+      path.moveTo(s.x * dpr + r, s.y * dpr);
+      path.arc(s.x * dpr, s.y * dpr, r, 0, Math.PI * 2);
+    }
+    for (const [key, path] of paths) {
+      ctx.globalAlpha = key[0] === "1" ? 0.35 : 0.9;
+      ctx.fillStyle = key.slice(1);
+      ctx.fill(path);
     }
     ctx.globalAlpha = 1;
     ctx.globalCompositeOperation = "source-over";

@@ -15,7 +15,7 @@ live on the device and travel as links.
 
 1. Create a project at <https://supabase.com> (the free tier is plenty to start).
 2. **SQL editor › New query**: paste `docs/backend.sql`, Run. Also run `docs/stories-backend.sql` for
-   the shared story library.
+   the shared story library, and `docs/workspaces.sql` for team workspaces in the Pro tools.
 3. **Authentication › Providers › Email**: on. Turn *Confirm email* on.
 4. **Authentication › Email templates › Magic link**: Atlas signs in with the code, so make sure the
    template shows it, e.g. `Your Atlas code is {{ .Token }}`. (Keep the link too if you like.)
@@ -41,6 +41,27 @@ What changes for people:
 
 Security: every table has row-level security (see the SQL). The anon key is designed to be public;
 it can only do what the policies allow: read what's public, and write your own things once signed in.
+
+## Team workspaces (5 minutes, after Supabase)
+
+Education Pro, Construction Pro and City Ops keep their whole state (a district, a region, a city) as one
+document. With the back end on, any of them can be shared as a **team workspace**:
+
+1. **SQL editor › New query**: paste `docs/workspaces.sql`, Run.
+2. That's all. In each tool, **👥 Team, versions and backup** at the bottom of its home screen shows:
+   - **Share**: makes this device's copy a workspace; you're its owner.
+   - **Invite** by email as *owner*, *editor* or *viewer*. The invitation is claimed when that person
+     signs in with that email (the `claim_invites()` function), and the workspace appears in their list.
+   - **Sync**: each change is saved to the team about 1.5 seconds later. A save made from an out-of-date
+     copy (someone else saved in between) is refused by the database, and the newer copy is loaded with a
+     message, so nobody's work is silently overwritten. Offline changes go up when the connection returns.
+   - **Earlier versions**: every save keeps the version before it (the latest 200); restoring one saves it
+     as a new version, so nothing is lost.
+   - **Backup**: download or restore the workspace as a file, with or without the back end.
+
+Security: row-level security on all four tables. Members read; owners and editors save; only owners
+invite, change roles, rename or delete; anyone can leave. Roles are checked in the database
+(`ws_role()`), not in the page.
 
 ## The edge (about 10 minutes)
 

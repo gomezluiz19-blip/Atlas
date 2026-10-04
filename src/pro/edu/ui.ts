@@ -9,10 +9,12 @@ import { Massing, type MassBuilding } from "../../enterprise/massing";
 import { addDays, isoDay } from "../../enterprise/seed";
 import { FlowOverlay, type FlowLine } from "../../globe/flow";
 import { h } from "../../ui/dom";
+import { loadJson, saveJson } from "../../util/storage";
 import { flyToPlace, geocode } from "../../ui/search";
 import type { WorkCtx } from "../../work/hub";
 import { WorkLayer, type WorkFeature } from "../../work/layer";
 import { kpis, list, row, title } from "../kit/ui";
+import { teamCard, teamSync } from "../kit/team";
 import { downloadCsv, printReport } from "../kit/report";
 import { demoDistrict } from "./demo";
 import {
@@ -21,8 +23,8 @@ import {
 } from "./model";
 
 const KEY = "atlas.pro.edu.v1";
-const load = (): District | null => { try { const v = JSON.parse(localStorage.getItem(KEY) ?? "null"); return v && Array.isArray(v.schools) ? v : null; } catch { return null; } };
-const save = (d: District) => { try { localStorage.setItem(KEY, JSON.stringify(d)); } catch { /* private mode */ } };
+const load = () => loadJson<District | null>(KEY, null, (v) => !!v && Array.isArray((v as District).schools));
+const save = (d: District) => saveJson(KEY, d);
 const LEVEL = { elementary: "Elementary", middle: "Middle school", high: "High school" } as const;
 const usd = (n: number) => `$${Math.round(n).toLocaleString("en-US")}`;
 const ROLE_ORDER: Role[] = ["principal", "assistant principal", "teacher", "aide", "counselor", "nurse", "office", "security", "custodian", "substitute"];
@@ -36,7 +38,10 @@ export function openEducation(ctx: WorkCtx, app: App) {
   const today = isoDay();
   let d = load();
 
-  const persist = () => { if (d) save(d); };
+  // Shared with the team when this workspace is linked (pro/kit/team.ts); otherwise only on this device.
+  const bound = { title: () => d?.name ?? "District", get: () => d, set: (b: unknown) => { d = b as District; save(d!); }, reload: () => home() };
+  const sync = teamSync(app, KEY, bound);
+  const persist = () => { if (d) { save(d); sync.changed(); } };
   const leave = () => { mass?.clear(); lines?.clear(); flow?.set([]); ctx.home(); };
 
   /** The campuses on the globe, coloured by today's state. */
@@ -53,7 +58,7 @@ export function openEducation(ctx: WorkCtx, app: App) {
     // Bus routes and where students live, faintly.
     const feats: WorkFeature[] = [];
     for (const s of (focus ? [focus] : d.schools)) {
-      for (const b of s.buses) feats.push({ id: b.id, kind: "line", pts: b.stops, color: "#ffcc00", solid: true });
+      for (const b of s.buses) feats.push({ id: b.id, kind: "line", pts: b.stops, color: "rgba(255, 204, 0, 0.5)", solid: true });
     }
     lines!.set(feats, focus ? `${focus.name}: buses and students` : "School buses");
   }
@@ -116,7 +121,8 @@ export function openEducation(ctx: WorkCtx, app: App) {
       h("div", { class: "edu-actions" },
         h("button", { class: "pill-btn", onclick: () => districtReport() }, "District report"),
         h("button", { class: "pill-btn", onclick: () => downloadCsv("staff.csv", ["Name", "Role", "School", "Subject", "Certificate", "Expires", "Absences (all)"], d!.staff.map((x) => [x.name, x.role, d!.schools.find((s) => s.id === x.school)?.name ?? "District pool", x.subject ?? "", x.cert?.name ?? "", x.cert?.expires ?? "", x.absences.length])) }, "Staff CSV"),
-        d.demo ? h("button", { class: "link-btn danger", onclick: () => { localStorage.removeItem(KEY); d = null; start(); } }, "Remove the demo") : ""));
+        d.demo && !sync.link ? h("button", { class: "link-btn danger", onclick: () => { localStorage.removeItem(KEY); d = null; start(); } }, "Remove the demo") : ""),
+      teamCard(app, sync, bound));
   }
 
   // ---- A school ----

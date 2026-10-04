@@ -10,9 +10,11 @@
 import type { App } from "../../app";
 import { Massing, type MassBuilding } from "../../enterprise/massing";
 import { h } from "../../ui/dom";
+import { loadJson, saveJson } from "../../util/storage";
 import { flyToPlace, geocode } from "../../ui/search";
 import type { WorkCtx } from "../../work/hub";
 import { WorkLayer, type WorkFeature } from "../../work/layer";
+import { teamCard, teamSync } from "../kit/team";
 import { downloadCsv, pickFile, printReport } from "../kit/report";
 import { kpis, list, row, title } from "../kit/ui";
 import { demoRegion } from "./demo";
@@ -24,8 +26,8 @@ import {
 type Role = "contractor" | "union" | "supplier" | "planner";
 interface Region { name: string; sites: Site[]; role: Role; craft: string; base: { name: string; lon: number; lat: number }; demo?: boolean }
 const KEY = "atlas.pro.con.v1";
-const load = (): Region | null => { try { const v = JSON.parse(localStorage.getItem(KEY) ?? "null"); return v && Array.isArray(v.sites) ? v : null; } catch { return null; } };
-const save = (r: Region) => { try { localStorage.setItem(KEY, JSON.stringify(r)); } catch { /* private mode */ } };
+const load = () => loadJson<Region | null>(KEY, null, (v) => !!v && Array.isArray((v as Region).sites));
+const save = (r: Region) => saveJson(KEY, r);
 
 const ROLES: [Role, string, string][] = [["contractor", "Contractor", "🦺"], ["union", "Union", "✊"], ["supplier", "Supplier", "🚚"], ["planner", "Planner", "📐"]];
 const CRAFTS = ["Bricklayers", "Ironworkers", "Carpenters", "Concrete / cement masons", "Electricians", "Plumbers & pipefitters", "Sheet metal workers", "Glaziers", "Roofers", "Operating engineers", "Laborers", "Painters", "Elevator constructors"];
@@ -48,7 +50,10 @@ export function openConstruction(ctx: WorkCtx, app: App, role?: string) {
   let day = today;
   let playing = 0;
 
-  const persist = () => { if (R) save(R); };
+  // Shared with the team when this workspace is linked (pro/kit/team.ts); otherwise only on this device.
+  const bound = { title: () => R?.name ?? "Region", get: () => R, set: (b: unknown) => { R = b as Region; save(R!); }, reload: () => home() };
+  const sync = teamSync(app, KEY, bound);
+  const persist = () => { if (R) { save(R); sync.changed(); } };
   const stop = () => { if (playing) cancelAnimationFrame(playing); playing = 0; };
   const leave = () => { stop(); mass?.clear(); route?.clear(); ctx.home(); };
 
@@ -124,7 +129,8 @@ export function openConstruction(ctx: WorkCtx, app: App, role?: string) {
       h("div", { class: "edu-actions" },
         h("button", { class: "pill-btn", onclick: () => regionReport() }, "Print the region report"),
         h("button", { class: "pill-btn", onclick: () => downloadCsv("sites.csv", ["Site", "Address", "Kind", "Stories", "Value", "Owner", "GC", "Start", "Finish", "Stage", "Union", "Lat", "Lon"], R!.sites.map((s) => [s.name, s.address, s.kind, s.stories, s.value, s.owner, s.gc, s.start, s.finish, stageAt(s, today).stage, s.union, s.lat, s.lon])) }, "Sites CSV"),
-        R.demo ? h("button", { class: "link-btn danger", onclick: () => { localStorage.removeItem(KEY); R = null; start(); } }, "Remove the demo") : ""));
+        R.demo && !sync.link ? h("button", { class: "link-btn danger", onclick: () => { localStorage.removeItem(KEY); R = null; start(); } }, "Remove the demo") : ""),
+      teamCard(app, sync, bound));
   }
 
   /** Scrub or play the region a year back and two years ahead. */

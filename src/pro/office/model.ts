@@ -5,6 +5,7 @@
 // with a stance for every member and stakeholder. Kept in this browser; pure
 // functions here, the screens in ui.ts.
 import { newId } from "../../work/store";
+import { csvCell } from "../../util/csv";
 
 export type Stance = "yes" | "lean-yes" | "undecided" | "lean-no" | "no" | "unknown";
 export const STANCES: { id: Stance; label: string; color: string }[] = [
@@ -132,7 +133,7 @@ export function contactsFromRows(rows: Record<string, string>[]): Contact[] {
 
 /** Contacts as CSV, for taking back out (pure). */
 export function contactsCsv(cs: Contact[], bills: Bill[]): string {
-  const esc = (v = "") => (/[",\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v);
+  const esc = (v = "") => csvCell(v);
   const head = ["name", "type", "organization", "title", "email", "phone", "address", "topics", "notes", "last contact", ...bills.map((b) => `stance: ${b.number ?? b.title}`)];
   return [head.join(","), ...cs.map((c) => [c.name, CONTACT_KINDS[c.kind].label, c.org, c.role, c.email, c.phone, c.address, c.topics.join("; "), c.notes, c.log[c.log.length - 1]?.at.slice(0, 10), ...bills.map((b) => stanceOf(c.stance[b.id]).label)].map((v) => esc(v)).join(","))].join("\n");
 }

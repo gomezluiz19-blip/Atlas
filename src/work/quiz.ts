@@ -7,6 +7,7 @@ import { Cartesian3 } from "cesium";
 import type { App } from "../app";
 import { yearLabel } from "../data/history";
 import { h } from "../ui/dom";
+import { csvCell } from "../util/csv";
 import { CAPITALS, LANDMARKS } from "./gameData";
 import { fmtDist } from "./geo";
 import type { WorkCtx } from "./hub";
@@ -188,7 +189,7 @@ function resultsView(ctx: WorkCtx, q: Quiz, again: () => void): HTMLElement {
           ...book.rows.map((r) => h("tr", {}, h("td", {}, r.student), h("td", {}, `${r.score}/${r.total}`), ...r.each.map((v) => h("td", { class: v >= 1 ? "best" : v > 0 ? "" : "miss" }, v >= 1 ? "✓" : v > 0 ? v.toFixed(1) : "✗")))),
           h("tr", { class: "quiz-avg" }, h("td", {}, "Class"), h("td", {}, pct(book.average)), ...book.perQuestion.map((v) => h("td", { class: v < 0.5 ? "miss" : "" }, pct(v))))))) : h("p", { class: "muted small" }, "No results yet. Students send you a code (or a file) when they finish."),
     book.rows.length ? h("div", { class: "pro-actions" },
-      h("button", { class: "link-btn", onclick: () => download(`${q.title} results.csv`, [["student", "score", "total", ...q.questions.map((_, i) => `q${i + 1}`)], ...book.rows.map((r) => [r.student, r.score, r.total, ...r.each.map((v) => v.toFixed(2))])].map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\n"), "text/csv") }, "Export (CSV)"),
+      h("button", { class: "link-btn", onclick: () => download(`${q.title} results.csv`, [["student", "score", "total", ...q.questions.map((_, i) => `q${i + 1}`)], ...book.rows.map((r) => [r.student, r.score, r.total, ...r.each.map((v) => v.toFixed(2))])].map((r) => r.map(csvCell).join(",")).join("\n"), "text/csv") }, "Export (CSV)"),
       book.perQuestion.some((v) => v < 0.5) ? h("span", { class: "muted small" }, `Worth revisiting: ${book.perQuestion.map((v, i) => (v < 0.5 ? `Q${i + 1}` : "")).filter(Boolean).join(", ")}`) : "") : "",
   );
 }

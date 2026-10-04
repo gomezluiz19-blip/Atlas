@@ -182,6 +182,13 @@ everything prints as a report or downloads as CSV.
   - *Bids*: what the city is buying, how many are bidding and what closes when.
   - Elected offices go to Politics Pro, and community organisations to Field Ops, from the same screen.
 
+**Teams.** Each of the three keeps its whole state as one workspace that can be shared from **👥 Team,
+versions and backup** on its home screen: invite people by email as owners, editors or viewers; changes
+sync a moment after they're made; a save from an out-of-date copy is refused (and the newer copy loaded,
+with a message) instead of overwriting a colleague; every earlier version is kept and can be restored; and
+the workspace can be downloaded or restored as a file at any time. Roles are enforced by the database
+(row-level security), not by the page. Setup: [docs/backend.md](docs/backend.md) › Team workspaces.
+
 The demo district, region and city are invented: no real school, firm, union status, facility or person is
 described, and figures are illustrative.
 
@@ -547,6 +554,13 @@ deploy that changes only the code leaves the rest cached; the service worker fet
 install, opens pages with navigation preload, keeps built files across deploys so an open tab never breaks,
 and keeps the last weather for offline. When idle, the screens people open next (landmark intros, the World
 Heritage List) are fetched ahead. The build prints what every visitor downloads and fails CI past a budget.
+Heavy scenes are built for the GPU: the enterprise tools' buildings (hundreds of floors) go into one batched
+primitive built on worker threads, recoloured in place when a slider moves instead of rebuilt, with ground
+heights looked up once rather than clamped every frame; ambient motion (pulsing alerts, cranes, incidents)
+redraws at a calm 20 fps rather than the full rate; animated flows run on their own canvas without forcing
+3D redraws while the camera is still; frosted-glass panels drop their live blur while the map moves (blur
+over a redrawing globe is one of the costliest things a browser composites); and order-independent
+translucency is switched off on low-tier devices.
 
 **Connect a home camera, whatever it is.** Pick the brand (Ring, Nest, Arlo, Blink, Wyze, eufy, SimpliSafe,
 Reolink, Tapo, UniFi, Hikvision/Dahua, Amcrest, Home Assistant) and Atlas shows the ways that work for it,

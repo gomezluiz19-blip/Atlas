@@ -20,6 +20,7 @@ import { GEOLOGIC_MAP_TILES } from "../data/macrostrat";
 import { GBIF_DENSITY_TILES } from "../data/inaturalist";
 import { createAnalyticLayer, type AnalyticKind } from "./analyticLayers";
 import { initMotion } from "./motion";
+import { currentQuality } from "./quality";
 import { createTerrariumTerrain, terrainOptions } from "./terrain";
 
 export type BaseMap = "satellite" | "plain";
@@ -82,6 +83,9 @@ export class Globe {
       creditContainer,
       // Errors are handled in keepRendering() rather than with Cesium's modal.
       showRenderLoopErrors: false,
+      // Order-independent translucency costs extra render passes and buffers every frame. Worth it where the
+      // GPU has headroom (overlapping glassy models blend exactly); on low-tier devices plain sorting is fine.
+      orderIndependentTranslucency: currentQuality().tier !== "low",
     });
     const { scene } = this.viewer;
     scene.globe.depthTestAgainstTerrain = true;

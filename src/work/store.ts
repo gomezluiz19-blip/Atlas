@@ -1,4 +1,5 @@
 // Saved Work projects (plans, presentations, fields), kept in this browser.
+import { saveJson } from "../util/storage";
 export class ListStore<T extends { id: string }> {
   private items: T[] = [];
 
@@ -49,11 +50,8 @@ export class ListStore<T extends { id: string }> {
   }
 
   private persist() {
-    try {
-      localStorage.setItem(this.key, JSON.stringify(this.items));
-    } catch {
-      /* storage full or blocked: keep working in memory */
-    }
+    // Storage full or blocked: keep working in memory, and saveJson raises the warning.
+    saveJson(this.key, this.items);
   }
 }
 

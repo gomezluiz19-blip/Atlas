@@ -57,6 +57,7 @@ import type { Station } from "./work/workLines";
 import { createModeBar, type Mode } from "./ui/modes";
 import { briefFor, todayCard } from "./myplaces/todayUi";
 import { backupRow, keepStorage } from "./myplaces/backup";
+import { STORAGE_FULL } from "./util/storage";
 import { hasDemo, loadDemo, removeDemo } from "./myplaces/demo";
 import { planLog } from "./myplaces/logAny";
 import { describeDrafts, parseSteps } from "./work/journeyModel";
@@ -321,6 +322,15 @@ const placeHub = createWork(app, PLACE_TOOLS, {
   ],
 });
 keepStorage();
+// A save the browser refused (storage full): say so once per visit, with what to do, instead of losing work silently.
+{
+  let warned = 0;
+  addEventListener(STORAGE_FULL, () => {
+    if (Date.now() - warned < 120_000) return;
+    warned = Date.now();
+    app.toast("This browser's storage for Atlas is full, so your latest changes aren't saved here. Back up (My Place › Your data) and remove what you no longer need, or share the workspace with your team to keep it in the cloud.", 12_000);
+  });
+}
 const makeHub = createWork(app, MAKE_TOOLS, {
   title: "Create",
   intro: "Make something from the map: a trip, a story, a video or a lesson.",
