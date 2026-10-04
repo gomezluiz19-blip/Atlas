@@ -126,6 +126,64 @@ kickoff at a stadium. Rules of thumb for comparing exposures, not forecasts. Dat
   each direction. From a year of hourly weather: kWh per kWp of solar, mean wind at 100 m, one 3.6 MW turbine's yearly
   MWh and capacity factor, month by month (sun in summer, wind in winter?), a verdict, and what a calmer year or a
   different power price would do.
+- **Sun on a building (Real estate):** a block with every floor of every face lit by its hours of direct sun on
+  midwinter, the equinox or midsummer (dark blue for none, gold for six hours or more), a grid of face by floor, and
+  a neighbour across the street you can raise to see what a new tower would take away.
+- **Crowd flow (Sport, Arts):** when a stadium or arena empties, streams of people run to each station and stop
+  near it, queues build as 3D columns, and each station's clearing time shows. Close a station by tapping it, or
+  change the crowd, the share going by transit and extra service, and watch the minutes move.
+- **Import from your broker (My portfolio):** download positions as CSV from your broker (or paste them) and Atlas
+  finds the symbol and value columns itself. Linking an account directly is designed in
+  [docs/brokers.md](docs/brokers.md).
+
+**Enterprise: schools, construction and a city, each run from the map.** Three platforms, each a demo you can
+open in a tap and then make your own. Every building is drawn as a glowing floor-by-floor model coloured by what
+matters (a classroom without cover, a floor not yet clad, a facility in poor shape), alerts pulse on the ground, and
+everything prints as a report or downloads as CSV.
+
+- **Education Pro (Work › Education).** For principals and districts. The district's campuses rise in 3D with each
+  floor coloured by today's worst room (red: a class without cover; amber: a repair). *Today* puts what a principal
+  must see first (staff out, cover suggested from the school's own substitutes then the district pool, urgent
+  repairs, drills due, trips to approve) and lets you confirm cover or log who's out. *Rooms* is every floor as a
+  grid of rooms; *Staff* is the roster by role with certificates coming due and observations; *Safety* holds drills
+  (fire every 30 days, lockdown every 120, and so on) and incidents; *Students* has attendance, where students live
+  and the buses; *Learning* joins it to the teaching side: field trips to approve with their route, lessons and
+  quizzes assigned and how far each class has got, quiz results from Teach, and Teach and Learn a tap away. A
+  morning arrival plays the buses running their routes and walkers streaming in.
+- **Construction Pro (Work › Building).** For every side of a region's construction. The region's sites rise as
+  they would on the day: grey frame, then brick, stone or glass as the facade goes on, blue as floors are fitted
+  out, ghost floors still to build, and a tower crane swinging on the ones going up. A time slider plays the region
+  from a year ago to two years ahead. Four roles:
+  - *Contractor* (the trailer): your jobs with weeks ahead or behind, floors up, crews, safety notes, a report for
+    the owner's meeting, and Build Pro for daily logs.
+  - *Union* (organizers and business agents): pick your craft (Bricklayers by default) and see which sites need it
+    now and in the next 90 days, each site's union status and its contractors' signatory status, prevailing-wage
+    jobs, when it was last visited and recent safety notes. Plan today's route through the sites that need you, the
+    ones not visited in 30 days or the non-union ones, and open turn-by-turn directions. Each site shows when every
+    trade is on site (a Gantt with yours highlighted), the masonry in square metres, bricks, mason-days and weeks for
+    a crew of eight, and logs visits and safety notes (with a link to file with OSHA).
+  - *Supplier* (materials and services): concrete, rebar, brick and block, drywall and glazing the region will need
+    month by month for six months, and the sites to call, biggest first, with the GC and distance from your yard.
+  - *Planner*: the pipeline by stage and value, what starts in the next 120 days, live NYC DOB permits (new
+    buildings and major alterations, by borough), a CSV of your own, or one site by address.
+- **City Ops (Work › Government).** For the people who run a city: the mayor's office, commissioners, facility
+  managers, and vendors. Every facility (firehouses, precincts, schools, hospitals, libraries, garages, plants) as a
+  3D model in its agency's colour or its condition, closed ones pulsing; capital projects rising with ghost floors
+  and cranes; live incidents throbbing on the map.
+  - *Mayor's desk*: the morning brief (incidents worst first, 311, projects in the red, facilities not fully open,
+    agencies with many vacancies, bids closing), the city in numbers (budget, workforce, vacancies, facilities in
+    poor condition, capital program), and every agency as a tile with its condition mix.
+  - *Agencies*: people, vacancies and overtime, every facility with its lead, staffing, condition and work orders,
+    and coverage gaps: where the city is farther than a set distance from the nearest firehouse, precinct,
+    library, hospital or school. Each facility can be updated (open, partly open, closed, condition, staff) and the
+    real ones loaded from NYC's Facilities Database.
+  - *Projects*: built against planned, weeks late, spent, and the forecast at completion.
+  - *311*: a day of requests as a heat map you can play hour by hour or filter to one kind, live from NYC Open Data.
+  - *Bids*: what the city is buying, how many are bidding and what closes when.
+  - Elected offices go to Politics Pro, and community organisations to Field Ops, from the same screen.
+
+The demo district, region and city are invented: no real school, firm, union status, facility or person is
+described, and figures are illustrative.
 
 **The places people work: Food, Retail, Fashion, Art, Gaming, Sport, Real estate, Architecture and Tech.** Each of
 these fields starts with the consumer, then the pros, then the companies that serve them:

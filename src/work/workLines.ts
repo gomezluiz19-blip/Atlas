@@ -15,6 +15,12 @@ const SOURCE_STATIONS: Record<string, [label: string, who: string, words: string
   art: ["Makers and suppliers", "Artists: foundries, studios, framers and suppliers within reach", "foundry framer fabrication art supplies casting printmaking"],
 };
 
+/** Views made for the pros of an industry, between the scout and the specialists. */
+const VIEW_STATIONS: Record<string, [label: string, who: string, tool: string, words: string]> = {
+  realestate: ["Sun on a building", "Hours of sun on every floor of every face, midwinter to midsummer, and what a tower across the street would take", "view:sun", "sunlight daylight apartment flat facade orientation south facing developer architect sun hours right to light shading"],
+  art: ["Crowd flow", "How an audience leaves a venue: which stations it heads for and how long each takes to clear", "view:crowd", "venue promoter concert crowd management egress transit event operations"],
+};
+
 /** The companies that serve each industry (Field Network sectors), kept here so the Work map doesn't load the sector engine. */
 const SERVES: Record<string, [label: string, who: string, words: string]> = {
   art: ["Art handling and installation", "Fine-art shippers, installers and display-case makers", "art handling fine art shipping installer display cases museum services conservation art logistics"],
@@ -64,12 +70,14 @@ export const LINES: Line[] = [
   ...INDUSTRIES.filter((i) => i.id !== "sport").map((i): Line => ({ id: i.id, label: i.label, color: i.color, stations: [
     { id: `explore-${i.id}`, label: i.explore.label, who: i.explore.who, tool: `explore:${i.id}`, words: i.words.explore },
     { id: `scout-${i.id}`, label: i.scout.label, who: i.scout.who, tool: `scout:${i.id}`, words: i.words.scout, key: "atlas.work.scout.v1" },
+    ...(VIEW_STATIONS[i.id] ? [{ id: `view-${i.id}`, label: VIEW_STATIONS[i.id][0], who: VIEW_STATIONS[i.id][1], tool: VIEW_STATIONS[i.id][2], words: VIEW_STATIONS[i.id][3] }] : []),
     ...(SOURCE_STATIONS[i.id] ? [{ id: `source-${i.id}`, label: SOURCE_STATIONS[i.id][0], who: SOURCE_STATIONS[i.id][1], tool: `source:${i.id}`, words: SOURCE_STATIONS[i.id][2] }] : []),
     ...(i.sector && SERVES[i.sector] ? [{ id: `fn-${i.sector}`, label: SERVES[i.sector][0], who: SERVES[i.sector][1], tool: `services:${i.sector}`, words: SERVES[i.sector][2], key: "atlas.pro.services.v1" }] : []),
   ] })),
   { id: "sport", label: "Sport", color: "#bf5af2", stations: [
     { id: "explore-sport", label: "Stadiums and games", who: "Grounds, gyms and pitches near you, and the world's great stadiums", tool: "explore:sport", words: "fan tickets match game stadium gym swim run" },
     { id: "scout-sport", label: "Gym and club scout", who: "Gyms, studios and clubs: where members will come from", tool: "scout:sport", words: "gym owner fitness studio personal trainer yoga studio climbing gym", key: "atlas.work.scout.v1" },
+    { id: "sport-crowd", label: "Crowd flow", who: "How the crowd leaves: stations, queues in 3D, clearing times, and what if a station closes or extra trains run", tool: "view:crowd", words: "crowd management egress stewarding transit police event safety stadium operations" },
     { id: "sport-matchday", label: "Matchday", who: "Sun, shade and heat at a stadium: the stands' shadows sweep the pitch in 3D through a match, the best kickoff for even light, the weather and the fans in reach", tool: "view:matchday", words: "stadium kickoff kick-off fixture scheduling pitch shade sun glare heat broadcaster groundsman venue operations matchday" },
     { id: "sports", label: "Sports Pro", who: "Clubs: fixtures, travel, fans, scouting", tool: "sports", words: "club team coach sports manager football soccer baseball league scouting", key: "atlas.pro.clubs.v1" },
     { id: "fn-sports", label: "Surfaces & facilities", who: "Pitch, turf and stadium equipment companies", tool: "services:sports", words: "pitch turf artificial grass stadium sports facilities groundskeeping floodlights", key: "atlas.pro.services.v1" },
@@ -77,6 +85,9 @@ export const LINES: Line[] = [
   { id: "build", label: "Building", color: "#ff9f0a", stations: [
     { id: "build", label: "Build", who: "Your own project: a house, an extension, a barn", tool: "build", words: "home renovation extension self build house barn homeowner", key: "atlas.work.build.v1" },
     { id: "buildpro", label: "Build Pro", who: "Builders and contractors running sites", tool: "buildpro", words: "contractor builder construction general contractor site manager project manager developer subcontractor civil engineering", key: "atlas.pro.build.v1" },
+    { id: "con-pro", label: "Construction Pro", who: "The region's sites rising in 3D: stages, trades and when, schedule, materials and the pipeline, for contractors, unions, suppliers and planners", tool: "ent:con", words: "construction sites region pipeline permits developer planner general contractor trailer project manager superintendent", key: "atlas.pro.con.v1" },
+    { id: "con-union", label: "Union site tracker", who: "Organizers and business agents: which sites need your craft now, who's signatory, visits, safety and today's route", tool: "ent:con:union", words: "union organizer business agent bricklayers ironworkers carpenters electricians laborers local hall signatory prevailing wage site visits masons building trades" },
+    { id: "con-supply", label: "Material demand", who: "Suppliers: what the region's sites will need month by month, and who to call", tool: "ent:con:supplier", words: "building materials supplier concrete ready mix rebar brick block drywall glazing sales leads merchant distributor" },
     { id: "fn-construction", label: "Suppliers & plant hire", who: "Cranes, lifts, plant and materials for sites", tool: "services:construction", words: "crane plant hire equipment rental lifts scaffolding building supplier materials merchant construction supplier", key: "atlas.pro.services.v1" },
   ] },
   { id: "mine", label: "Mining", color: "#ac8e68", stations: [
@@ -131,9 +142,18 @@ export const LINES: Line[] = [
     { id: "explore-telecom", label: "Who's connected", who: "Undersea cables, data centres and how many people are online", tool: "theme:built/internet", words: "internet cables connectivity online broadband" },
     { id: "fn-telecom", label: "Tower services", who: "Towers, generators and fuel runs", tool: "services:telecom", words: "telecom tower mast mobile network generator fuel rigger isp", key: "atlas.pro.services.v1" },
   ] },
+  { id: "edu", label: "Education", color: "#0a84ff", stations: [
+    { id: "edu-learn", label: "Learn", who: "Games, a daily challenge, your passport, and museums and libraries near you", tool: "learn", words: "student learn games quiz museum library homework" },
+    { id: "edu-teach", label: "Teach", who: "Teachers: lessons on the globe, quizzes, games, a politics simulation and field trips", tool: "teach", words: "teacher lesson quiz classroom field trip curriculum" },
+    { id: "edu-pro", label: "Education Pro", who: "Principals and districts: staff and cover, every room in 3D, repairs, drills, attendance, buses, field trips and lessons", tool: "ent:edu", words: "principal headteacher district superintendent school administrator assistant principal school operations substitute cover attendance staff", key: "atlas.pro.edu.v1" },
+  ] },
   { id: "gov", label: "Government", color: "#5e5ce6", stations: [
     { id: "explore-gov", label: "Who governs", who: "Your representatives, the districts and the people who run a place", tool: "theme:politics", words: "who represents me representative senator elections government citizen voter" },
-    { id: "office", label: "Politics Pro", who: "Legislative offices: the district, casework, events, votes", tool: "office", words: "politician legislator congress councillor mayor office staffer casework constituents district campaign", key: "atlas.pro.offices.v1" },
+    { id: "city-ops", label: "City Ops", who: "Mayors, deputy mayors and city hall: every facility, agency and person, capital projects, incidents and 311 on one map", tool: "ent:gov", words: "mayor city hall city government deputy mayor chief of staff commissioner agency municipal county executive city manager operations facilities 311 capital projects public works", key: "atlas.pro.city.v1" },
+    { id: "city-311", label: "311 and incidents", who: "Agency operations: a day of 311 as a heat map you can play, and incidents live", tool: "ent:gov:311", words: "311 service requests complaints emergency management operations center incidents dispatch" },
+    { id: "city-bids", label: "City bids", who: "Vendors and procurement: what the city is buying, from whom, and where the work is", tool: "ent:gov:bids", words: "vendor procurement bids rfp contracts government contractor tender public sector sales" },
+    { id: "office", label: "Politics Pro", who: "Legislative offices: the district, casework, events, votes", tool: "office", words: "politician legislator congress councillor city councillor city council member mayor office staffer casework constituents district campaign", key: "atlas.pro.offices.v1" },
+    { id: "gov-orgs", label: "Civic organisations", who: "Community boards, nonprofits and advocacy groups: who you serve, where, and the gaps", tool: "field", words: "community board nonprofit advocacy group civic association tenant association neighborhood organization council" },
   ] },
   { id: "host", label: "Hotels & buildings", color: "#ff6482", stations: [
     { id: "explore-host", label: "Travel", who: "Go somewhere: the way there, the weather when you land, and stays near what you came for", tool: "travel", words: "trip holiday vacation travel book a hotel stay" },
@@ -149,7 +169,7 @@ export function tierOf(s: Station): Tier {
 }
 
 export const LOOKS: Record<string, FieldLook> = {
-  build: { icon: "crane", family: "make", noun: "building", blurb: "Your own project, the builders who run sites, and the plant and suppliers behind them." },
+  build: { icon: "crane", family: "make", noun: "building", blurb: "Your own project, the builders who run sites, the region's sites in 3D for contractors, unions, suppliers and planners, and the plant behind them." },
   architecture: { icon: "building", family: "make", noun: "architecture", blurb: "Great buildings, where a practice should be, local materials, and the surveyors who measure it all." },
   mine: { icon: "pick", family: "make", noun: "mining", blurb: "The world's mines, running one from pit to port, and the companies that equip and service them." },
   energy: { icon: "pylon", family: "make", noun: "energy", blurb: "The grid around you, and the crews who keep wind and solar farms turning." },
@@ -170,6 +190,7 @@ export const LOOKS: Record<string, FieldLook> = {
   sport: { icon: "trophy", family: "people", noun: "sport", blurb: "Stadiums and games, gyms and clubs, running a club, and the surfaces they play on." },
   health: { icon: "medical", family: "people", noun: "health care", blurb: "Care near you, and the engineers who install and service hospital equipment." },
   aid: { icon: "people", family: "people", noun: "aid work", blurb: "Where people live, who's out of reach of water, health and school, and getting supplies to them." },
+  edu: { icon: "graduate", family: "people", noun: "education", blurb: "Learning for anyone, lessons and quizzes for teachers, and the whole school day in 3D for principals and districts." },
   gov: { icon: "flag", family: "people", noun: "government", blurb: "Who governs a place, and running a legislative office." },
 };
 export const lookOf = (line: Line): FieldLook => LOOKS[line.id] ?? { icon: "briefcase", family: "people", noun: line.label.toLowerCase(), blurb: "" };

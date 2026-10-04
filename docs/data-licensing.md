@@ -89,6 +89,18 @@ relies on the browser's normal cache until a licence allows storing it.
 | Company revenue by region, sites and suppliers | Portfolio map | ✅ | From companies' own annual reports, rounded; judgement weights are Atlas's. For a real product, a licensed fundamentals feed (and the user's own holdings via a broker API) would replace them. |
 | Policies and scenarios | Policy radar, What if lab | ✅ | Written by Atlas from public announcements; review and date-stamp regularly. |
 
+## Enterprise: schools, construction, cities
+
+| Source | Used for | Status | What to do |
+|---|---|---|---|
+| NYC Open Data: DOB Permit Issuance (`data.cityofnewyork.us/resource/ipu4-2q9a`) | Construction Pro › Planner: live permits | ✅ | NYC Open Data is free to use under the City's Terms of Use (no warranty; don't imply City endorsement). Socrata asks heavier users to register an app token (`X-App-Token`); add one at the edge before launch. Newer filings are in DOB NOW (`rbx6-tga4`), worth adding next. |
+| NYC Open Data: 311 Service Requests (`erm2-nwe9`) | City Ops › 311 | ✅ | Same terms. Requests carry approximate locations; don't present them as exact addresses. Use an app token at volume. |
+| NYC Open Data: Facilities Database (`ji82-xba5`, City Planning) | City Ops › Agencies: "Load real facilities" | ✅ | Same terms. Sizes and condition aren't in it, so Atlas draws typical sizes and an unknown (middling) condition until you edit them. |
+| Google Maps directions and Street View links | Construction Pro and City Ops: directions, street view | ✅ | Plain links that open Google Maps; no data is taken from it. |
+| OSHA complaint page | Construction Pro: "File a complaint with OSHA" | ✅ | A link to the U.S. Department of Labor's own page. |
+| Demo district, region and city | Education Pro, Construction Pro, City Ops | ✅ | Generated in the app. Every company name, union status, facility, person and figure is invented and labelled as a demo. |
+| Rules of thumb (stage shares, trades per stage, 60 bricks per m², 500 bricks a mason-day, material per m² of floor, coverage distances) | Construction Pro, City Ops | ⚠️ | Planning figures, said so on screen. Replace with your own estimating data when you have it. |
+
 ## AI
 
 | Source | Used for | Status | What to do |

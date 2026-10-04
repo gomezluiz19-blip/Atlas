@@ -331,10 +331,19 @@ const openStation = (st: Station) => {
   // A view of the world (a theme) or a live layer: the panel steps aside so the map can show it.
   if (st.tool.startsWith("theme:")) { const [theme, sub] = st.tool.slice(6).split("/"); openMode("look"); app.setTheme(theme, sub); return; }
   if (st.tool.startsWith("action:")) { ctx.close(); app.actions.get(st.tool.slice(7))?.run(); return; }
+  if (st.tool.startsWith("ent:")) {
+    const which = st.tool.slice(4);
+    void (which === "edu" ? import("./pro/edu/ui").then((m) => m.openEducation(ctx, app))
+      : which.startsWith("con") ? import("./pro/con/ui").then((m) => m.openConstruction(ctx, app, which.split(":")[1]))
+      : import("./pro/gov/ui").then((m) => m.openCityOps(ctx, app, which.split(":")[1])));
+    return;
+  }
   if (st.tool.startsWith("view:")) {
     const which = st.tool.slice(5);
     void (which === "matchday" ? import("./fieldviews/matchdayUi").then((m) => m.openMatchday(ctx, app))
       : which === "soil" ? import("./fieldviews/soilUi").then((m) => m.openSoil(ctx, app))
+      : which === "sun" ? import("./fieldviews/sunUi").then((m) => m.openSun(ctx, app))
+      : which === "crowd" ? import("./fieldviews/crowdUi").then((m) => m.openCrowd(ctx, app))
       : import("./fieldviews/siteUi").then((m) => m.openSite(ctx, app)));
     return;
   }
@@ -353,7 +362,9 @@ const openStation = (st: Station) => {
     return;
   }
   if (st.tool.startsWith("services:")) { void import("./pro/services/ui").then((m) => m.openServices(ctx, st.tool.slice(9) as Parameters<typeof m.openServices>[1])); return; }
-  [...WORK_TOOLS, ...PLACE_TOOLS].find((t) => t.id === st.tool)?.open(ctx);
+  const t = [...WORK_TOOLS, ...PLACE_TOOLS].find((x) => x.id === st.tool);
+  if (t) t.open(ctx);
+  else app.actions.get(`work:${st.tool}`)?.run(); // Create and Explore tools (Teach, Learn) open in their own hub
 };
 const workHub = createWork(app, [], {
   title: "Work",
@@ -964,6 +975,11 @@ for (const [id, label, load] of [
   ["view:matchday", "Matchday sun and shade", () => void import("./fieldviews/matchdayUi").then((m) => m.openMatchday(workHub.ctx, app))],
   ["view:soil", "Soil profile", () => void import("./fieldviews/soilUi").then((m) => m.openSoil(workHub.ctx, app))],
   ["view:site", "Site potential", () => void import("./fieldviews/siteUi").then((m) => m.openSite(workHub.ctx, app))],
+  ["ent:edu", "Education Pro", () => void import("./pro/edu/ui").then((m) => m.openEducation(workHub.ctx, app))],
+  ["ent:con", "Construction Pro", (arg?: string) => void import("./pro/con/ui").then((m) => m.openConstruction(workHub.ctx, app, arg || undefined))],
+  ["ent:gov", "City Ops", (arg?: string) => void import("./pro/gov/ui").then((m) => m.openCityOps(workHub.ctx, app, arg || undefined))],
+  ["view:sun", "Sun on a building", () => void import("./fieldviews/sunUi").then((m) => m.openSun(workHub.ctx, app))],
+  ["view:crowd", "Crowd flow", () => void import("./fieldviews/crowdUi").then((m) => m.openCrowd(workHub.ctx, app))],
 ] as const)
   app.actions.set(id, { label, run: (arg) => { const hub = id === "econ:lab" ? makeHub : workHub; closePanels(hub.panel); hub.ctx.open(); load(arg); } });
 app.actions.set("tv:mode", { label: "TV mode", run: (code) => void import("./tv/tv").then((m) => { closePanels(); m.enterTv(app, code || undefined); }) });

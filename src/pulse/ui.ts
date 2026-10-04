@@ -147,7 +147,7 @@ export function openPulse(app: App) {
     const node = NODES[CHOKEPOINTS[c].edges[0].split("-")[1]] ?? NODES[CHOKEPOINTS[c].edges[0].split("-")[0]];
     const t0 = performance.now();
     // The strait seals: a red ring that breathes.
-    theatre.entities.add({ position: P([node[0], node[1]]), ellipse: { semiMajorAxis: new CallbackProperty(() => 120_000 + 60_000 * Math.sin((performance.now() - t0) / 300), false), semiMinorAxis: new CallbackProperty(() => 120_000 + 60_000 * Math.sin((performance.now() - t0) / 300), false), material: C("#ff453a", 0.25), outline: false } as never });
+    theatre.entities.add({ position: P([node[0], node[1]]), ellipse: { semiMajorAxis: new CallbackProperty(() => 120_000 + 60_000 * Math.sin(Math.floor((performance.now() - t0) / 10) / 30), false), semiMinorAxis: new CallbackProperty(() => 0.95 * (120_000 + 60_000 * Math.sin(Math.floor((performance.now() - t0) / 10) / 30)), false), material: C("#ff453a", 0.25), outline: false } as never });
     theatre.entities.add({ position: P([node[0], node[1]], 2000), label: { text: `${CHOKEPOINTS[c].label} closed`, font: "800 15px Inter, system-ui, sans-serif", fillColor: C("#ff6b5f"), outlineColor: C("#000", 0.8), outlineWidth: 4, style: LabelStyle.FILL_AND_OUTLINE, pixelOffset: new Cartesian2(0, -26), disableDepthTestDistance: Number.POSITIVE_INFINITY } });
     // The new world, then each affected ship's new way round drawn growing.
     world = worldAt(t, closed);
