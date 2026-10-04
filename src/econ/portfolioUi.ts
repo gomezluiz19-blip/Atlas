@@ -6,6 +6,8 @@ import { Cartesian3 } from "cesium";
 import type { App } from "../app";
 import { h } from "../ui/dom";
 import type { WorkCtx } from "../work/hub";
+import { pickFile } from "../pro/kit/report";
+import { importPositions } from "./brokerImport";
 import { bars, pctTag } from "./charts";
 import { COMPANIES, company, findCompany } from "./companies";
 import { EconLayer, flyTilted, type Flow } from "./globeViz";
@@ -43,6 +45,27 @@ export function openPortfolio(ctx: WorkCtx, app: App) {
     save(hs); ask.value = ""; amount.value = ""; note.textContent = ""; render();
   };
   ask.addEventListener("keydown", (e) => { if (e.key === "Enter") add(); });
+  // From a broker: their positions export (CSV), or lines pasted from a statement.
+  const paste = h("textarea", { class: "pro-url pf-paste", rows: 4, placeholder: "Paste a positions export, or lines like “AAPL 5000”", "aria-label": "Positions" }) as HTMLTextAreaElement;
+  const importNote = h("div", { class: "pf-import-note" });
+  const take = (text: string) => {
+    const r = importPositions(text);
+    if (r.holdings.length) {
+      const by = new Map(hs.map((x) => [x.id, x.value]));
+      for (const x of r.holdings) by.set(x.id, x.value);
+      hs = [...by].map(([id, value]) => ({ id, value }));
+      save(hs); render();
+    }
+    importNote.replaceChildren(
+      h("p", {}, r.holdings.length ? `Added ${r.holdings.length} holding${r.holdings.length === 1 ? "" : "s"}.` : "No mapped companies found in that."),
+      r.unknown.length ? h("p", { class: "muted small" }, `Not mapped yet: ${r.unknown.slice(0, 12).map((u) => u.symbol).join(", ")}${r.unknown.length > 12 ? "…" : ""} (Atlas maps ${COMPANIES.length} big companies so far).`) : "");
+  };
+  const importer = h("details", { class: "md-adjust pf-import" }, h("summary", {}, "Import from your broker"),
+    h("p", { class: "muted small" }, "Export your positions as CSV (Fidelity, Schwab, Vanguard, E*TRADE, Robinhood, Interactive Brokers all can), then choose the file or paste it. It stays on this device."),
+    h("div", { class: "pf-import-row" }, h("button", { class: "pill-btn", onclick: () => void pickFile(".csv,text/csv,text/plain").then((t) => t && take(t)) }, "Choose a CSV file"),
+      h("button", { class: "pill-btn", onclick: () => take(paste.value) }, "Import pasted")),
+    paste, importNote,
+    h("p", { class: "fineprint" }, "Connecting a brokerage account directly (read-only, through an aggregator such as SnapTrade or Plaid Investments) needs Atlas's back end; see docs/brokers.md."));
   amount.addEventListener("keydown", (e) => { if (e.key === "Enter") add(); });
 
   const tabs = h("div", { class: "segmented pf-tabs", role: "tablist" }, ...([["earn", "Where it earns"], ["made", "Made of"], ["policy", "Policies"], ["whatif", "What if"]] as [Tab, string][]).map(([id, label]) => {
@@ -149,7 +172,7 @@ export function openPortfolio(ctx: WorkCtx, app: App) {
   ctx.show("My portfolio", () => { layer?.clear(); ctx.home(); },
     h("p", { class: "mp-intro" }, "Where you're invested, as a map: where your companies earn, what they're made of, the policies about to bite and how a shock would land."),
     holdingsBox,
-    h("div", { class: "pf-add" }, ask, amount, h("button", { class: "primary-btn", onclick: add }, "Add")), note,
+    h("div", { class: "pf-add" }, ask, amount, h("button", { class: "primary-btn", onclick: add }, "Add")), note, importer,
     h("datalist", { id: "pf-cos" }, ...COMPANIES.map((c) => h("option", { value: c.ticker }, c.name))),
     tabs, body);
 }
