@@ -16,12 +16,13 @@ import { h } from "../../ui/dom";
 import { loadJson, saveJson } from "../../util/storage";
 import { flyToPlace, geocode } from "../../ui/search";
 import type { WorkCtx } from "../../work/hub";
+import { openDataImporter } from "../kit/opendata";
 import { teamCard, teamSync } from "../kit/team";
 import { downloadCsv, pickFile, printReport } from "../kit/report";
 import { kpis, list, row, title } from "../kit/ui";
 import { demoCity } from "./demo";
 import {
-  agencyStats, CONDITION_COLOR, CONDITION_LABEL, COVERAGE_KM, coverageGaps, cityKpis, daysBetween, facilitiesFromCsv, facilityFlags, from311, fromFacDb, heatCells, isoDay, money, morningBrief, projectStatus, topTypes,
+  agencyStats, CONDITION_COLOR, CONDITION_LABEL, COVERAGE_KM, coverageGaps, cityKpis, daysBetween, facilitiesFromCsv, facilitiesFromRows, facilityFlags, from311, fromFacDb, heatCells, isoDay, money, morningBrief, projectStatus, topTypes,
   type Agency, type City, type Facility, type FacilityKind, type Incident, type Project,
 } from "./model";
 
@@ -182,7 +183,7 @@ export function openCityOps(ctx: WorkCtx, app: App, view?: string) {
       title("Agencies"),
       h("div", { class: "gov-agencies" }, ...C!.agencies.map((a) => agencyTile(a))),
       title("Show on the map"),
-      h("div", { class: "segmented gov-colour" }, ...(["agency", "condition"] as const).map((v) => h("button", { "aria-selected": String(v === colourBy), onclick: (e: Event) => { colourBy = v; (e.currentTarget as HTMLElement).parentElement!.querySelectorAll("button").forEach((b) => b.setAttribute("aria-selected", String(b === e.currentTarget))); drawFacilities(); } }, v === "agency" ? "Colour by agency" : "Colour by condition"))),
+      h("div", { class: "segmented gov-colour", role: "tablist", "aria-label": "Colour the map by" }, ...(["agency", "condition"] as const).map((v) => h("button", { role: "tab", "aria-selected": String(v === colourBy), onclick: (e: Event) => { colourBy = v; (e.currentTarget as HTMLElement).parentElement!.querySelectorAll("button").forEach((b) => b.setAttribute("aria-selected", String(b === e.currentTarget))); drawFacilities(); } }, v === "agency" ? "Colour by agency" : "Colour by condition"))),
       h("div", { class: "edu-legend" }, ...[1, 2, 3, 4, 5].map((n) => h("span", { style: `--c:${CONDITION_COLOR[n]}` }, h("i", {}), CONDITION_LABEL[n]))),
     ];
   }
@@ -200,7 +201,12 @@ export function openCityOps(ctx: WorkCtx, app: App, view?: string) {
     return [h("p", { class: "ec-note" }, "Pick an agency to see its people, every facility it runs, their condition and repairs, and where its service is thin."), h("div", { class: "gov-agencies" }, ...C!.agencies.map((a) => agencyTile(a))),
       title("Bring in facilities"),
       h("div", { class: "edu-form" }, h("p", { class: "muted small" }, "CSV with name, lat, lon and any of: agency, kind, borough, floors, staff, condition (1–5)."),
-        h("button", { class: "pill-btn", onclick: async () => { const t = await pickFile(".csv,text/csv"); if (!t) return; const fs = facilitiesFromCsv(t, C!.agencies); C!.facilities.push(...fs); persist(); app.toast(`Added ${fs.length} facilities`); home(); } }, "Import a CSV"))];
+        h("button", { class: "pill-btn", onclick: async () => { const t = await pickFile(".csv,text/csv"); if (!t) return; const fs = facilitiesFromCsv(t, C!.agencies); C!.facilities.push(...fs); persist(); app.toast(`Added ${fs.length} facilities`); home(); } }, "Import a CSV")),
+      (() => {
+        const ag = h("select", { class: "pro-url", "aria-label": "Agency for imported facilities" }, ...C!.agencies.map((a) => h("option", { value: a.id }, `${a.emoji} ${a.name}`))) as HTMLSelectElement;
+        return h("div", { class: "od-agency" }, h("label", { class: "od-field" }, h("span", {}, "Import as facilities of"), ag),
+          openDataImporter(app, { roles: ["name", "address", "type", "status"], what: "facilities", onImport: (rows, map) => { C!.facilities.push(...facilitiesFromRows(rows, map, ag.value)); persist(); home(); } }));
+      })()];
   }
 
   function agencyPage(id: string) {

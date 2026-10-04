@@ -6,6 +6,8 @@
 // mason-days a facade takes, which sites to visit today and in what order,
 // what materials the region will need month by month, and the pipeline.
 
+import { isoDate, money, type FieldMap, type Row } from "../../data/opendata";
+
 export const STAGES = ["site prep", "excavation", "foundation", "structure", "envelope", "interiors", "finishes", "closeout"] as const;
 export type Stage = (typeof STAGES)[number];
 /** Share of a typical schedule each stage takes (sums to 1). */
@@ -226,4 +228,34 @@ export function sitesFromCsv(text: string, today: string): Site[] {
       finish: /^\d{4}-\d\d-\d\d/.test(get(c.finish)) ? get(c.finish).slice(0, 10) : addDays(start, 360 + stories * 45),
       union: un.startsWith("union") || un === "yes" ? "union" : un.startsWith("open") || un === "no" ? "open shop" : un.startsWith("mix") ? "mixed" : "unknown", trades: [], visits: [], safety: [], source: "import" }];
   });
+}
+
+/**
+ * Sites from any open-data permit table (pure), with the columns the person confirmed. Permits rarely say
+ * how tall or how long: new buildings are assumed mid-rise over about two years, alterations smaller and
+ * shorter, and the value (when given) scales both. Every assumption can be edited on the site.
+ */
+export function sitesFromRows(rows: Row[], map: FieldMap, day: string, source: Site["source"] = "import", label = "open data"): Site[] {
+  const out: Site[] = [];
+  const seen = new Set<string>();
+  rows.forEach((r, i) => {
+    const p = (k?: string) => (k ? r.props[k] ?? "" : "");
+    const type = p(map.type), nb = /new|nb\b|erect|construct/i.test(type);
+    const value = money(p(map.value)) || (nb ? 25_000_000 : 3_000_000);
+    const stories = Math.max(1, Math.min(60, Number(p(map.stories)) || (nb ? Math.round(Math.min(14, 3 + value / 6_000_000)) : 3)));
+    const start = isoDate(p(map.date)) ?? day;
+    const months = Math.round(Math.min(40, (nb ? 14 : 6) + stories * (nb ? 1.2 : 0.4)));
+    const address = p(map.address);
+    const id = `od-${label.replace(/\W+/g, "")}-${r.lat.toFixed(5)},${r.lon.toFixed(5)}-${address.slice(0, 24)}`;
+    if (seen.has(id)) return;
+    seen.add(id);
+    out.push({
+      id, name: (p(map.name) || address || `Permit ${i + 1}`).slice(0, 80), address: address || label, lon: r.lon, lat: r.lat,
+      kind: /resid|dwell|apartment|single|multi/i.test(`${type} ${p(map.name)}`) ? "residential" : /school|church|hospital|library|public/i.test(`${type} ${p(map.name)}`) ? "institutional" : /indust|warehouse/i.test(type) ? "industrial" : "mixed-use",
+      owner: p(map.owner), gc: p(map.contractor), value, stories,
+      footprint: { w: nb ? 36 : 22, d: nb ? 26 : 16, bearing: 0 }, start, finish: addDays(start, Math.round(months * 30.4)),
+      union: "unknown", trades: [], visits: [], safety: [], source, permit: [type, p(map.status)].filter(Boolean).join(" · ") || undefined,
+    });
+  });
+  return out;
 }

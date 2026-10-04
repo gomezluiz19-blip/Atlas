@@ -1,8 +1,8 @@
 // A satellite picture of a small box of the Earth, stitched from Esri World
 // Imagery tiles into one canvas (for textures). Falls back to shaded relief.
 import { lonLatToPixel } from "../data/mercator";
+import { imageryTile } from "../globe/imagery";
 
-const TILE = "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}";
 
 function loadImage(url: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
@@ -35,7 +35,7 @@ export async function imageryCanvas(bbox: [number, number, number, number], size
   let ok = 0;
   for (let ty = Math.floor(py0 / 256); ty <= Math.floor(py1 / 256); ty++)
     for (let tx = Math.floor(px0 / 256); tx <= Math.floor(px1 / 256); tx++)
-      jobs.push(loadImage(TILE.replace("{z}", String(z)).replace("{x}", String(tx)).replace("{y}", String(ty)))
+      jobs.push(loadImage(imageryTile(z, tx, ty))
         .then((img) => { g.drawImage(img, tx * 256 - px0, ty * 256 - py0); ok++; })
         .catch(() => {}));
   await Promise.all(jobs);

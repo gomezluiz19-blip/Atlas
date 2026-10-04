@@ -1021,7 +1021,8 @@ const aboutPanel = h("div", { class: "popover about", hidden: true },
     h("li", {}, "Place names: OpenStreetMap Nominatim.")),
   h("p", { class: "fineprint" }, "Every dataset is a record of what's been measured or mapped. None of them is complete, so treat gaps as unknowns, not absences."),
   h("h2", { class: "group-title" }, "Your privacy"),
-  h("p", { class: "fineprint" }, "What you make in Atlas (your page, places, lenses, farm records, plans) stays in this browser; there are no ads and no tracking. To answer you, Atlas asks public services about the places you look at (for example OpenStreetMap for names and Open-Meteo for weather), which sends them the coordinates, not who you are. With Atlas AI on, your requests go to Anthropic."),
+  h("p", { class: "fineprint" }, "What you make in Atlas stays in this browser unless you sign in and sync it or share it with your team; there are no ads, no tracking and no selling of data. To answer you, Atlas asks public services about the places you look at (for example OpenStreetMap for names and Open-Meteo for weather), which sends them the coordinates, not who you are. With Atlas AI on, your requests go to Anthropic."),
+  h("p", { class: "fineprint about-legal" }, ...[["terms", "Terms"], ["privacy", "Privacy"], ["acceptable-use", "Acceptable use"], ["security", "Security"], ["accessibility", "Accessibility"], ["subprocessors", "Subprocessors"]].flatMap(([n, t], i) => [i ? " · " : "", h("a", { href: `legal/${n}.html`, target: "_blank", rel: "noopener" }, t)])),
   h("p", { class: "fineprint" }, "Keyboard: 1–9 switch themes · / searches · + and − zoom · Esc cancels a line or closes a chart. Double-click to zoom in on a spot."),
   // Showing Atlas to people one after another on the same computer.
   (() => {

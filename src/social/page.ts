@@ -4,6 +4,7 @@
 // Your own page edits in place: skin, face, words, and places added by
 // search, from what you're looking at, or from what's around it.
 import { Cartesian3, Color, HeightReference, LabelStyle, VerticalOrigin, type Entity } from "cesium";
+import { imageryTile } from "../globe/imagery";
 import type { App } from "../app";
 import { reverseGeocode } from "../data/geocode";
 import { overpass, elementPoint } from "../data/overpass";
@@ -28,7 +29,7 @@ const tileXY = (lon: number, lat: number, z: number) => {
   const n = 2 ** z, r = (lat * Math.PI) / 180;
   return { x: Math.floor(((lon + 180) / 360) * n), y: Math.floor(((1 - Math.log(Math.tan(r) + 1 / Math.cos(r)) / Math.PI) / 2) * n), n };
 };
-const tileUrl = (z: number, x: number, y: number) => `https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${z}/${y}/${x}`;
+const tileUrl = (z: number, x: number, y: number) => imageryTile(z, x, y);
 /** One satellite tile around a point. */
 export const aerial = (lon: number, lat: number, z = 15) => { const t = tileXY(lon, lat, z); return tileUrl(z, t.x, t.y); };
 
