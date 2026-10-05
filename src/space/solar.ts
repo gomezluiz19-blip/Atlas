@@ -147,11 +147,16 @@ export class SolarSystem {
     this.raf = requestAnimationFrame(loop);
   }
 
+  private closing = false;
   close() {
+    // Once only, and quick: a back or an Escape should feel answered at once.
+    if (this.closing) return;
+    this.closing = true;
     this.info.hidden = true;
-    this.animate({ dist: 0.1, target: () => this.bodyPos("earth"), yaw: this.yaw + 0.6, pitch: 0.15 }, 2200, () => {
+    this.animate({ dist: 0.1, target: () => this.bodyPos("earth"), yaw: this.yaw + 0.6, pitch: 0.15 }, 1100, () => {
       this.el.classList.remove("in");
       setTimeout(() => {
+        this.closing = false;
         cancelAnimationFrame(this.raf);
         removeEventListener("resize", this.resize);
         removeEventListener("keydown", this.onKey);
