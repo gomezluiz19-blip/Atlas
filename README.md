@@ -12,7 +12,7 @@ Terreno does four things, switched at the top of the screen:
 
 - **Explore**: the whole Earth and space. Tap anything, flip through the themes, or look at it through a lens.
   **Space** and **Learn** are one tap away on the Earth card.
-- **Create**: **Plan**, **Present**, **Video** and **Teach**: things made from the map to share.
+- **Create**: **Plan**, **Present**, **Video**, **3D Studio** and **Teach**: things made from the map to share.
 - **Work**: tools for the work you do: pick your field, then its Everyday, Pro and Services tools (see below).
 - **My Place**: your home, farm or business, booted up as a hologram, with what's going on there.
 
@@ -490,6 +490,22 @@ Video and Teach under **Create**; Learn under **Explore**. All of them are open 
   narrate with the microphone (with a level meter) and/or a music file. Place names and the map credits are
   drawn into the video. It can record a presentation as a tour, and a stream view hides every control for
   OBS, Zoom or Meet.
+- **3D Studio** puts real 3D on the real Earth. Drop a **Gaussian-splat capture** (.ply from 3DGS training,
+  Postshot or Luma; .splat; Niantic's .spz from Scaniverse) and it is parsed and compressed to SPZ in a worker,
+  wrapped as glTF (`KHR_gaussian_splatting`) inside a one-tile 3D Tiles set, and rendered natively by Cesium,
+  depth-tested against the terrain. Huge captures are trimmed to the device's budget (largest, most opaque splats
+  kept; outlier "floaters" dropped). Stand it on the ground, turn it, raise it, scale it (1:100 to 1000×), or fix
+  which way is up; captures stay on the device (IndexedDB). **3D Tiles** (photogrammetry, LiDAR with eye-dome
+  lighting, BIM; by link or Cesium ion asset) and **glTF/GLB models** come in the same way. A **camera** shot
+  library (orbit, reveal, flyover, dronie, crane up and Hitchcock's dolly zoom) is generated around whatever you
+  picked: centripetal Catmull-Rom splines through keyframes (no overshoot), eased like a camera operator, horizon
+  always level. **Looks** grade the whole GPU frame: Cinematic (ACES tone mapping, bloom, ambient occlusion,
+  sun shadows, vignette and grain), Golden hour (the sun moved to just before this place's real sunset),
+  Night, Blueprint (edges from depth and colour), Thermal and Tilt-shift. Costly passes switch on only where
+  the device has the headroom.
+- **Enterprise buildings** (Build Pro, City Ops, Education) are drawn floor by floor with procedural facades:
+  windows every 3.2 m on every wall, glass that catches the sun by day, and warm lit rooms when the sun is
+  below the local horizon.
 - **Build** schedules can be typed: "start 2 March; site 2 weeks, foundations 6 weeks, frame 3 months, roof 8
   weeks overlapping 4 weeks" previews the new plan before it's applied.
 - **Grow** follows fields drawn on the satellite map (and each field's year: "cabbages after harvest, then
@@ -1023,6 +1039,8 @@ src/
   main.ts              wiring: globe, themes, search, map-style and about popovers, Connected links
   canvas.ts            the shared canvas: what's on the map, across themes and places
   robot/               the task robot: plan.ts turns a request into steps, run.ts carries them out
+  render/              3D Studio: splat/ (formats, worker, globe), import3d (tiles, glTF), cinema (shot splines),
+                       play (camera), grade (post-processing), facade (procedural windows), store (IndexedDB)
   lenses/              lenses on a feature: identify.ts decides what it is, bar.ts offers lenses, one file per family
   myplaces/            My Places: store (saved in the browser), scene (3D buildings, devices), estimates (solar, rain), panel
   pro/                 Terreno Pro: model (bookings → rooms, floors, forecast), sources (demo, CSV, live link), panel,
@@ -1062,6 +1080,10 @@ page at the same view.
 
 ## Honest limits
 
+- 3D Studio: splats are drawn with their base colour only (spherical-harmonic view-dependent shading is
+  dropped to fit SPZ degree 0), and a capture is one tile, so very large scenes are trimmed to the device's
+  budget rather than streamed. A .gltf with separate files needs a link (or a .glb). Grades with shadows and
+  ambient occlusion are GPU-heavy and stay off on low-tier devices.
 - Water routing uses the ground surface only: no infiltration, groundwater, or human structures such as culverts and dams.
   Reaches that cross closed hollows (lakes, closed basins, DEM artefacts) are drawn dashed.
 - Elevation models smooth out narrow features. Slot canyons and cliffs narrower than a few cells look shallower than they are.
