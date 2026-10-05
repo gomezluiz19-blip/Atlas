@@ -224,6 +224,7 @@ const MAKE_TOOLS: WorkTool[] = [
   tool("plan", "Plan", "Trips told step by step, an event's running order, sites, zones and routes", "#0a84ff", icons.route, openPlans),
   tool("present", "Stories", "Tell a story on the globe, publish it, and use or remix others'", "#e0b050", icons.slides, openPresent),
   tool("video", "Video", "A studio: the globe on a monitor, shots, looks, camera moves and narration", "#ff375f", icons.video, openVideo),
+  tool("studio3d", "3D Studio", "Put real 3D on the real Earth: Gaussian-splat captures, scans, 3D tiles and models, filmed with drone and crane moves and graded like a film", "#64d2ff", icons.cube, (ctx) => void import("./render/studio").then((m) => m.openStudio(ctx))),
   tool("teach", "Teach", "Lessons, quizzes, games, a world politics simulation and field trips", "#bf5af2", icons.graduate, openTeach),
   tool("whatif", "What if…", "Model a shock (a blockade, an export ban, a drought, your own) and watch prices, countries, companies and your portfolio react", "#ff453a", icons.activity, (ctx) => void import("./econ/labUi").then((m) => m.openLab(ctx, app))),
 ];

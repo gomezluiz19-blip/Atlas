@@ -14,11 +14,12 @@
 // (pulses, cranes) draws at a calm 20 frames a second, not the full rate.
 import {
   CallbackProperty, Cartesian2, Cartesian3, Cartographic, Color, ColorGeometryInstanceAttribute, ColorMaterialProperty, CustomDataSource, GeometryInstance, LabelStyle,
-  NearFarScalar, PerInstanceColorAppearance, PolygonGeometry, PolygonHierarchy, PolygonOutlineGeometry, Primitive, PrimitiveCollection, sampleTerrain, ShowGeometryInstanceAttribute, VerticalOrigin,
+  NearFarScalar, PerInstanceColorAppearance, PolygonHierarchy, PolygonOutlineGeometry, Primitive, PrimitiveCollection, sampleTerrain, ShowGeometryInstanceAttribute, VerticalOrigin,
 } from "cesium";
 import type { App } from "../app";
 import { ambient, wake } from "../globe/motion";
 import { makeTappable } from "../globe/pickables";
+import { facadeAppearance, floorGeometry } from "../render/facade";
 
 export interface MassBuilding {
   id: string;
@@ -131,7 +132,7 @@ export class Massing {
     this.fillIds.clear();
     for (const b of this.current) {
       const fh = b.floorH ?? 3.6, g = this.ground.get(b.id) ?? 0;
-      const hier = new PolygonHierarchy(Cartesian3.fromDegreesArray(footprint(b).flat()));
+      const corners = footprint(b), hier = new PolygonHierarchy(Cartesian3.fromDegreesArray(corners.flat()));
       for (let i = 0; i < b.floors; i++) {
         const key = `${b.id}#${i}`, fid: unknown = b.onTap ? { building: b.id, floor: i } : key;
         if (b.onTap) makeTappable(fid as object, b.onTap);
@@ -139,13 +140,16 @@ export class Massing {
         const p = floorPaint(b, i), show = !rise;
         // The ground floor reaches a little below the sampled ground, so a coarse terrain tile never shows a gap.
         const bottom = g + i * fh + (i === 0 ? -2 : 0.25), top = g + (i + 1) * fh - 0.25;
-        fills.push(new GeometryInstance({ id: fid, geometry: new PolygonGeometry({ polygonHierarchy: hier, height: bottom, extrudedHeight: top, vertexFormat: PerInstanceColorAppearance.VERTEX_FORMAT }),
+        fills.push(new GeometryInstance({ id: fid, geometry: floorGeometry(corners, bottom, top),
           attributes: { color: new ColorGeometryInstanceAttribute(...p.fill), show: new ShowGeometryInstanceAttribute(show) } }));
         lines.push(new GeometryInstance({ id: key, geometry: new PolygonOutlineGeometry({ polygonHierarchy: hier, height: bottom, extrudedHeight: top }),
           attributes: { color: new ColorGeometryInstanceAttribute(...p.line), show: new ShowGeometryInstanceAttribute(show) } }));
       }
     }
-    this.fill = this.prims.add(new Primitive({ geometryInstances: fills, appearance: new PerInstanceColorAppearance({ translucent: true, closed: true }), asynchronous: true, releaseGeometryInstances: false, show: this.visible }));
+    // Facades: windows at a real bay spacing, catching the sun by day and lit at night (render/facade.ts).
+    // The slabs are already built geometry (not a worker-built type), so this batch compiles synchronously; it is
+    // a few thousand vertices even for a whole city.
+    this.fill = this.prims.add(new Primitive({ geometryInstances: fills, appearance: facadeAppearance(), asynchronous: false, releaseGeometryInstances: false, show: this.visible }));
     this.line = this.prims.add(new Primitive({ geometryInstances: lines, appearance: new PerInstanceColorAppearance({ flat: true, translucent: true }), asynchronous: true, releaseGeometryInstances: false, show: this.visible }));
     this.whenReady(() => (rise ? this.rise() : wake(300)));
   }
