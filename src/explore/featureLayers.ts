@@ -81,7 +81,7 @@ const rivers: Layer = {
 };
 
 const wildPlaces: Layer = {
-  id: "wild", emoji: "🦓", label: "Wildlife wonders", about: "The planet's great places to see animals in the wild", color: "#ff6b3d",
+  id: "wild", emoji: "🦓", label: "Wildlife wonders", about: "The planet's great places to see animals in the wild", color: "#c4513a",
   on(app) {
     const list: MapLabel[] = WILD_PLACES.map((p) => ({ id: `wild:${p.name}`, name: `${p.emoji} ${p.name}`, lon: p.lon, lat: p.lat, kind: "other", rank: 330, data: { source: "feature", notable: { description: p.what } } }));
     app.labels?.set("fl:wild", list);
@@ -156,7 +156,7 @@ export const THEME_LAYERS: Record<string, Layer[]> = {
   animals: [
     wildPlaces,
     migrations,
-    tiles("animalrecords", "🐾", "Animal records", "Where animals have been recorded (GBIF)", "#ff6b3d", gbifTiles(1), 14, "Species records: GBIF.org", 0.85),
+    tiles("animalrecords", "🐾", "Animal records", "Where animals have been recorded (GBIF)", "#c4513a", gbifTiles(1), 14, "Species records: GBIF.org", 0.85),
     { id: "species", emoji: "🔬", label: "All life", about: "Every kind of life recorded (GBIF)", color: "#5b9467", action: "overlay:species" },
   ],
   built: [

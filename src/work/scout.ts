@@ -27,7 +27,7 @@ const saved = (id: string): Saved => readAll().find((s) => s.industry === id) ??
 const keep = (s: Saved) => { try { localStorage.setItem(KEY, JSON.stringify([...readAll().filter((x) => x.industry !== s.industry), s])); } catch { /* private mode */ } };
 
 let map: OpsMap | null = null;
-const mapFor = (app: App) => (map ??= new OpsMap(app, "scout", "#ff6b3d"));
+const mapFor = (app: App) => (map ??= new OpsMap(app, "scout", "#c4513a"));
 
 function centre(app: App): { lon: number; lat: number } | null {
   const c = app.globe.viewer.canvas;

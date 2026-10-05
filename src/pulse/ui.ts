@@ -197,7 +197,7 @@ export function openPulse(app: App) {
 
   // ---- Capture ----
   async function shoot(asFilm: boolean) {
-    const card = { title: "My world", sub: `${fmtDate(t)} · ${world.anchors.length} places, ${world.movers.length} on the move`, accent: "#5ad8ff" };
+    const card = { title: "My world", sub: `${fmtDate(t)} · ${world.anchors.length} places, ${world.movers.length} on the move`, accent: "#8fa8f2" };
     const src = scene.canvas;
     if (!asFilm) { await still(src, (cb) => { const off = scene.postRender.addEventListener(() => { off(); cb(); }); scene.requestRender(); }, card); return; }
     await film(src, (cb) => scene.postRender.addEventListener(cb), card, 8, () => {

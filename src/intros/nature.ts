@@ -110,7 +110,7 @@ export const NATURE_INTROS: IntroPlace[] = [
     [["Area", "about 150,000 km²"]], { fx: [{ fx: "river", pts: [[-50000, 40000], [-10000, 5000], [5000, -20000], [40000, -50000]], color: "#7fb6d8" }] }),
   P("nile", "The Nile at Aswan", "Aswan, Egypt", 32.8778, 24.0889, 15000, ["river"],
     ["The longest river in Africa, about 6,650 km, flowing north through the desert to the Mediterranean.", "At Aswan it runs through granite islands at the First Cataract."],
-    [["Length", "about 6,650 km"]], { also: ["Nile", "River Nile", "Nile River"], fx: [{ fx: "river", pts: [[300, -7500], [-400, -2500], [200, 0], [-300, 3500], [100, 7500]], color: "#5ab0ff" }] }),
+    [["Length", "about 6,650 km"]], { also: ["Nile", "River Nile", "Nile River"], fx: [{ fx: "river", pts: [[300, -7500], [-400, -2500], [200, 0], [-300, 3500], [100, 7500]], color: "#4c9ac9" }] }),
   P("general-sherman", "General Sherman Tree", "Sequoia National Park, California", -118.7514, 36.5819, 120, ["forest", "park"],
     ["The largest tree on Earth by volume, about 1,487 m³, a giant sequoia about 84 m tall.", "It may be about 2,200 years old."],
     [["Height", "about 84 m"], ["Base", "about 11 m across"]], { also: ["General Sherman", "Sequoia National Park", "Giant sequoia"], forms: SEQUOIA }),

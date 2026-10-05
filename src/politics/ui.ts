@@ -102,9 +102,9 @@ async function showMap(app: App, mode: MapMode | null) {
       const e = code ? next[code]?.[0] : undefined;
       if (!e) return "rgba(120,120,130,0.25)";
       const months = (Date.parse(e.date) - now) / (30.4 * 86_400_000);
-      return months < 3 ? "rgba(255,69,58,0.75)" : months < 12 ? "rgba(255,159,10,0.62)" : months < 24 ? "rgba(255,214,10,0.45)" : "rgba(52,199,89,0.35)";
+      return months < 3 ? "rgba(196, 81, 58,0.75)" : months < 12 ? "rgba(209, 154, 46,0.62)" : months < 24 ? "rgba(255,214,10,0.45)" : "rgba(52,199,89,0.35)";
     } });
-    app.looks?.setLegend({ emoji: "🗳️", name: "Next national election", stops: ["rgba(255,69,58,0.9)", "rgba(255,159,10,0.9)", "rgba(255,214,10,0.8)", "rgba(52,199,89,0.7)"], from: "within 3 months", to: "2+ years" });
+    app.looks?.setLegend({ emoji: "🗳️", name: "Next national election", stops: ["rgba(196, 81, 58,0.9)", "rgba(209, 154, 46,0.9)", "rgba(255,214,10,0.8)", "rgba(52,199,89,0.7)"], from: "within 3 months", to: "2+ years" });
   } else {
     const [shapes, govs, members] = await Promise.all([usStates(), mode === "governors" ? governors().catch(() => ({} as Record<string, Person>)) : Promise.resolve({} as Record<string, Person>), mode === "senate" ? congress() : Promise.resolve([] as Member[])]);
     const senate = (code: string) => {

@@ -151,7 +151,7 @@ function openSim(ctx: WorkCtx, id: string, back: () => void) {
       if (a.id === b.id) return h("td", {}, "");
       const v = relation(a.id, b.id), k = pairKey(a.id, b.id);
       const tag = g.alliances.includes(k) ? "🤝" : g.sanctions.includes(`${a.id}>${b.id}`) || g.sanctions.includes(`${b.id}>${a.id}`) ? "⛔" : g.trade.includes(k) ? "⇄" : "";
-      return h("td", { style: `background:${v >= 0 ? `rgba(48,209,88,${Math.min(0.5, v / 150)})` : `rgba(255,59,48,${Math.min(0.5, -v / 150)})`}`, title: `${v}` }, `${v > 0 ? "+" : ""}${v}${tag ? ` ${tag}` : ""}`);
+      return h("td", { style: `background:${v >= 0 ? `rgba(91, 148, 103,${Math.min(0.5, v / 150)})` : `rgba(255,59,48,${Math.min(0.5, -v / 150)})`}`, title: `${v}` }, `${v > 0 ? "+" : ""}${v}${tag ? ` ${tag}` : ""}`);
     }))))));
 
   const recent = g.news.filter((x) => x.turn >= g.turn - 1).slice(-14).reverse();

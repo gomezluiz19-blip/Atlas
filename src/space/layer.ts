@@ -120,7 +120,7 @@ export class SpaceLayer {
       const pos = new CallbackProperty(() => { const st = stateAt(s, Date.now()); return st ? Cartesian3.fromDegrees(st.lon, st.lat, st.alt * 1000) : undefined; }, false);
       const e = this.ds.entities.add({
         position: pos as never,
-        billboard: { image: emojiIcon("🛰️", s === iss ? "rgba(255,214,10,0.9)" : "rgba(255,69,58,0.85)"), width: 34, height: 34, disableDepthTestDistance: 0 },
+        billboard: { image: emojiIcon("🛰️", s === iss ? "rgba(255,214,10,0.9)" : "rgba(196, 81, 58,0.85)"), width: 34, height: 34, disableDepthTestDistance: 0 },
         label: {
           text: s === iss ? "ISS" : "Tiangong", font: "700 14px -apple-system, system-ui, sans-serif", style: LabelStyle.FILL_AND_OUTLINE, fillColor: Color.WHITE,
           outlineColor: Color.fromCssColorString("#0b1320"), outlineWidth: 4, verticalOrigin: VerticalOrigin.BOTTOM, pixelOffset: new Cartesian2(0, -22),

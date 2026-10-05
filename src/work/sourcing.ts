@@ -14,7 +14,7 @@ export interface SourceSet { id: string; label: string; who: string; kinds: Find
 export const SOURCES: Record<string, SourceSet> = {
   food: { id: "food", label: "Foodshed", who: "Chefs and restaurateurs: the farms, orchards, cheese makers and boats within a day's drive, and what's in season", radiusKm: 50, kinds: [
     { id: "farm", label: "Farms and farm shops", emoji: "🚜", color: "#8faa5a", match: [m("shop", "farm"), m("landuse", "farmyard"), m("place", "farm")] },
-    { id: "orchard", label: "Orchards", emoji: "🍎", color: "#ff6b3d", match: [m("landuse", "orchard")] },
+    { id: "orchard", label: "Orchards", emoji: "🍎", color: "#c4513a", match: [m("landuse", "orchard")] },
     { id: "vineyard", label: "Vineyards and wineries", emoji: "🍇", color: "#8b5fa8", match: [m("landuse", "vineyard"), m("craft", "winery")] },
     { id: "dairy", label: "Cheese and dairy", emoji: "🧀", color: "#e1b843", match: [m("craft", "cheese_maker", "dairy"), m("shop", "cheese", "dairy")] },
     { id: "drink", label: "Breweries and distilleries", emoji: "🍺", color: "#c08552", match: [m("craft", "brewery", "distillery", "cider")] },
@@ -34,13 +34,13 @@ export const SOURCES: Record<string, SourceSet> = {
   architecture: { id: "architecture", label: "Local materials", who: "Architects and builders: stone, timber, brick and the trades within reach", radiusKm: 60, kinds: [
     { id: "quarry", label: "Quarries", emoji: "🪨", color: "#a1a1aa", match: [m("landuse", "quarry")] },
     { id: "timber", label: "Sawmills and timber", emoji: "🪵", color: "#c08552", match: [m("craft", "sawmill"), m("industrial", "sawmill"), m("shop", "timber")] },
-    { id: "brick", label: "Brick, tile and concrete", emoji: "🧱", color: "#ff6b3d", match: [m("industrial", "brickworks", "concrete_plant", "cement"), m("product", "bricks", "concrete", "cement", "tiles")] },
+    { id: "brick", label: "Brick, tile and concrete", emoji: "🧱", color: "#c4513a", match: [m("industrial", "brickworks", "concrete_plant", "cement"), m("product", "bricks", "concrete", "cement", "tiles")] },
     { id: "mason", label: "Stonemasons", emoji: "⚒", color: "#e1b843", match: [m("craft", "stonemason")] },
     { id: "joiner", label: "Carpenters and joiners", emoji: "🪚", color: "#5b9467", match: [m("craft", "carpenter", "joiner", "builder")] },
     { id: "merchant", label: "Builders' merchants", emoji: "🏗", color: "#4c9ac9", match: [m("shop", "trade", "doityourself", "hardware")] },
   ] },
   art: { id: "art", label: "Makers and suppliers", who: "Artists and galleries: foundries, studios, framers and suppliers within reach", radiusKm: 40, kinds: [
-    { id: "foundry", label: "Foundries and metalwork", emoji: "🔥", color: "#ff6b3d", match: [m("industrial", "foundry"), m("craft", "blacksmith", "metal_construction", "foundry")] },
+    { id: "foundry", label: "Foundries and metalwork", emoji: "🔥", color: "#c4513a", match: [m("industrial", "foundry"), m("craft", "blacksmith", "metal_construction", "foundry")] },
     { id: "studio", label: "Potters, glass and sculpture", emoji: "🏺", color: "#8b5fa8", match: [m("craft", "potter", "glassblower", "sculptor", "jeweller")] },
     { id: "print", label: "Printmakers and printers", emoji: "🖨", color: "#4c9ac9", match: [m("craft", "printmaker", "printer"), m("shop", "copyshop")] },
     { id: "frame", label: "Framers and art supplies", emoji: "🖼", color: "#e1b843", match: [m("shop", "frame", "craft", "art")] },

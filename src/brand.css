@@ -139,3 +139,75 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 @media (prefers-reduced-motion: no-preference) {
   .sheet, .popover, .work-panel, .lens-panel { transition-timing-function: var(--ease); }
 }
+
+/* ---------- Map labels: tesserae on the land, ink-weight halos ---------- */
+.map-label { font: 550 12.5px/1.2 var(--font); text-shadow: 0 0 2px rgba(10, 12, 9, .75), 0 1px 4px rgba(10, 12, 9, .5); }
+.ml-glyph {
+  width: 18px; height: 18px; border-radius: 5px !important;
+  background: var(--c, #b8496a); color: #f5f2eb;
+  box-shadow: 0 0 0 1px rgba(245, 242, 235, .9), 0 1px 3px rgba(10, 12, 9, .45);
+}
+.ml-glyph svg { width: 11px; height: 11px; stroke-width: 2; }
+.ml-dot { width: 8px; height: 8px; border-radius: 2px; box-shadow: 0 0 0 1px rgba(245, 242, 235, .9), 0 1px 2px rgba(10, 12, 9, .5); }
+.k-water .ml-dot { width: 7px; height: 7px; }
+.map-label.heritage .ml-glyph, .map-label.heritage .ml-dot { box-shadow: 0 0 0 1px rgba(245, 242, 235, .9), 0 0 0 3px #e1b843, 0 1px 3px rgba(10, 12, 9, .45); }
+/* Cities: a square for a capital (a registration mark in ink), a small round for the rest. */
+.k-capital::before { width: 7px; height: 7px; border: 1.5px solid #f5f2eb; border-radius: 1px; background: #1b1d1a; }
+.k-city::before { width: 5px; height: 5px; background: #f5f2eb; box-shadow: 0 0 0 1.5px #1b1d1a; }
+.k-water .ml-text, .k-sea { color: #d3e2f2; }
+.k-sea { font: italic 500 12.5px var(--font); letter-spacing: 0.16em; }
+.k-range, .k-desert, .k-region { font: 500 10.5px var(--font-mono); letter-spacing: 0.2em; color: rgba(245, 236, 216, .95); }
+
+/* ---------------------------------------------------------------------------------------------------------------
+   The deep screens: every Pro, Look and Create surface on the same paper. Data gradients (ramps, dials, daylight
+   bars, photo scrims) stay, because they carry meaning; decorative ones (glossy balls, glowing heroes, candy
+   washes) go flat: a tint of one pigment and a hairline.
+   --------------------------------------------------------------------------------------------------------------- */
+.welcome, .learn-hero, .pol-hero, .gov-hello, .build-pro, .con-time, .pf-empty, .ask-hero, .sky-card, .tr-sweet {
+  background: color-mix(in srgb, var(--accent) 6%, var(--material-strong, var(--paper)));
+  box-shadow: inset 0 0 0 1px var(--hairline); border-radius: 12px; color: var(--label);
+}
+.learn-hero { background: color-mix(in srgb, var(--sage) 10%, var(--material-strong, var(--paper))); }
+.wi { background: color-mix(in srgb, var(--terra) 6%, var(--material-strong, var(--paper))); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--terra) 22%, transparent); border-radius: 12px; }
+.tr-sweet { background: color-mix(in srgb, var(--ochre) 9%, var(--material-strong, var(--paper))); }
+.tr-sweet > span:first-child { color: var(--ochre); animation: none; }
+.look-further .surprise-tile, .look-further .world-tile { background: color-mix(in srgb, var(--ochre) 7%, transparent); }
+.look-further .world-tile { background: color-mix(in srgb, var(--accent) 6%, transparent); }
+.st-kpi.sun { background: color-mix(in srgb, var(--ochre) 10%, var(--fill)); }
+.st-kpi.wind { background: color-mix(in srgb, #4c9ac9 10%, var(--fill)); }
+.po-kpi, .po-kpi.alert, .sc-sig-card { background: var(--material-strong, var(--paper)); box-shadow: inset 0 0 0 1px var(--hairline); border-radius: 12px; }
+.po-kpi.alert { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--terra) 40%, transparent), inset 3px 0 0 var(--terra); }
+.sc-sig-card { box-shadow: inset 0 0 0 1px var(--hairline), inset 3px 0 0 var(--c, var(--accent)); }
+
+/* Badges and tags: set in mono, outlined, never a glossy pill. */
+.pro-badge { font: 600 9.5px/1 var(--font-mono); letter-spacing: .14em; padding: 3px 6px; border-radius: 4px; color: var(--accent); background: transparent; box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 45%, transparent); }
+.ec-tag { font: 600 12px/1 var(--font-mono); color: var(--c); background: color-mix(in srgb, var(--c) 12%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 35%, transparent); border-radius: 8px; }
+.po-initial { font: 600 24px var(--font); color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, var(--paper-2, var(--paper))); }
+.ask-rank { font: 600 12px var(--font-mono); color: var(--ochre); background: color-mix(in srgb, var(--ochre) 14%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ochre) 40%, transparent); border-radius: 7px; }
+.ask-summary strong { background: none; -webkit-background-clip: border-box; background-clip: border-box; color: var(--label); }
+.ask-peek { color: #fff; background: var(--accent); box-shadow: var(--shadow); border-radius: 10px; }
+
+/* Glossy balls become tesserae: the big Work glyph, bubbles, the hologram dock, the studio drop. */
+.wk-glyph.lg { border-radius: 16px !important; }
+.i-aurora { --c: #5b9467; } .i-sun { --c: #d19a2e; } .i-moon { --c: #5160c2; } .i-plates { --c: #c4513a; }
+.i-quake { --c: #c4513a; } .i-heritage { --c: #8b5fa8; } .i-globe { --c: #3563d6; }
+.vs-bub { border-radius: 30%; color: #fff; background: var(--c); box-shadow: 0 0 0 1.5px color-mix(in srgb, var(--paper) 85%, transparent), 0 2px 6px rgba(10, 12, 9, .25); }
+.holo-orb-icon { border-radius: 12px; background: color-mix(in srgb, var(--c) 18%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 55%, transparent); }
+.studio-drop-orb { border-radius: 10px; filter: none; animation: none; background: conic-gradient(from 0deg, #3563d6 0 25%, #d19a2e 0 50%, #5b9467 0 75%, #c4513a 0); }
+.studio-progress i { background: var(--accent); }
+.bpass { background: #1b2a52; box-shadow: 0 1px 0 rgba(255,255,255,.06) inset, var(--shadow); }
+.gov-staffbar i { background: var(--accent); }
+
+/* The hologram: a calm instrument, not a sci-fi screen. No scan line, no glow. */
+.holo { background: radial-gradient(120% 90% at 50% 62%, #18213a 0%, #0e1322 50%, #090b12 100%); color: #ece8de; }
+.holo-scan, .holo-scan::after { display: none; }
+.holo-hud div { border-left-color: var(--holo, #8fa8f2); background: color-mix(in srgb, var(--holo, #8fa8f2) 8%, transparent); }
+.pu-fill { background: #8fa8f2; }
+
+/* TV rooms: basalt tiles with a hairline. */
+.tv-room { background: rgba(236, 232, 222, .05); border-color: rgba(236, 232, 222, .12); }
+.tv-room em { color: #8fa8f2; }
+.tv-room.current { box-shadow: inset 0 0 0 2px #8fa8f2; }
+
+/* Flow lines and lens art keep their meaning, in pigment. */
+.flow-dots { background: repeating-linear-gradient(90deg, #8fb6dc 0 4px, transparent 4px 9px); background-size: 18px 6px; }

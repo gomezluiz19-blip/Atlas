@@ -39,4 +39,4 @@ export const plantsTheme = () =>
   lifeTheme({ id: "plants", label: "Plants", icon: icons.leaf, color: "#5b9467", intro: "Trees, flowers and fungi, and where they grow.", noun: "plants", groups: PLANT_GROUPS, gbifKey: 6 });
 
 export const animalsTheme = () =>
-  lifeTheme({ id: "animals", label: "Animals", icon: icons.paw, color: "#ff6b3d", intro: "Birds, mammals, reptiles and more, and which are at risk.", noun: "animals", groups: ANIMAL_GROUPS, gbifKey: 1 });
+  lifeTheme({ id: "animals", label: "Animals", icon: icons.paw, color: "#c4513a", intro: "Birds, mammals, reptiles and more, and which are at risk.", noun: "animals", groups: ANIMAL_GROUPS, gbifKey: 1 });

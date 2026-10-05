@@ -47,7 +47,7 @@
 .si-head { display: flex; flex-direction: column; gap: 6px; padding-right: 30px; }
 .si-head h2 { margin: 0; font-size: 26px; letter-spacing: -0.02em; line-height: 1.1; }
 .si-head p { margin: 0; color: var(--secondary); font-size: 14.5px; line-height: 1.4; }
-.si-mark { width: 44px; height: 44px; border-radius: 50%; margin-bottom: 6px; background: radial-gradient(circle at 35% 30%, #4c9ac9, #3563d6 60%, #0040a0); box-shadow: inset -6px -6px 12px rgba(0, 0, 0, 0.25), 0 6px 18px rgba(10, 132, 255, 0.35); position: relative; }
+.si-mark { width: 44px; height: 44px; border-radius: 50%; margin-bottom: 6px; background: radial-gradient(circle at 35% 30%, #4c9ac9, #3563d6 60%, #0040a0); box-shadow: inset -6px -6px 12px rgba(0, 0, 0, 0.25), 0 6px 18px rgba(53, 99, 214, 0.35); position: relative; }
 .si-mark::after { content: ""; position: absolute; inset: 11px 8px; border-top: 2.5px solid rgba(255, 255, 255, 0.9); border-radius: 50%; transform: rotate(-12deg); }
 .si-close { position: absolute; top: 14px; right: 14px; }
 .si-block { display: flex; flex-direction: column; gap: 8px; }

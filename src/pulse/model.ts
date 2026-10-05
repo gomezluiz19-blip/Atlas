@@ -11,8 +11,8 @@ import { along, interp, type LonLat } from "../pro/shipping/sea";
 export type Layer = "places" | "plans" | "freight" | "relief" | "sites" | "network";
 export const LAYERS: Record<Layer, { label: string; color: string }> = {
   places: { label: "Places", color: "#ffc46b" },
-  plans: { label: "Plans", color: "#5ab0ff" },
-  freight: { label: "Freight", color: "#5ad8ff" },
+  plans: { label: "Plans", color: "#4c9ac9" },
+  freight: { label: "Freight", color: "#8fa8f2" },
   relief: { label: "Relief", color: "#5dffa8" },
   sites: { label: "Sites", color: "#ffb347" },
   network: { label: "Network", color: "#b59bff" },

@@ -18,7 +18,7 @@ export function drawCard(g: CanvasRenderingContext2D, w: number, h: number, f: F
   g.fillRect(0, h * 0.55, w, h * 0.45);
   g.save();
   g.globalAlpha = Math.min(1, t);
-  const accent = f.accent ?? "#5ad8ff";
+  const accent = f.accent ?? "#8fa8f2";
   g.fillStyle = accent;
   g.fillRect(pad, h - pad - 112 * s, 44 * s, 3 * s);
   g.fillStyle = "#fff";

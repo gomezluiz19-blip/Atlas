@@ -321,7 +321,7 @@ async function mineHologram(app: App, m: Mine) {
   const near = m.sites.filter((s) => kmBetween(s, pit) < 8);
   const lon = near.reduce((a, s) => a + s.lon, 0) / near.length, lat = near.reduce((a, s) => a + s.lat, 0) / near.length;
   const span = Math.max(1.2, ...near.map((s) => kmBetween(s, { lon, lat }))) * 2600;
-  const colors: Record<string, string> = { pit: "#ffb347", underground: "#ffb347", plant: "#5ad8ff", tailings: "#c4513a", waste: "#9a7552", camp: "#5b9467", airstrip: "#8b5fa8" };
+  const colors: Record<string, string> = { pit: "#ffb347", underground: "#ffb347", plant: "#8fa8f2", tailings: "#c4513a", waste: "#9a7552", camp: "#5b9467", airstrip: "#8b5fa8" };
   const e = economics(m.econ), t = today();
   const hl = await openSpace(app, {
     name: m.name, kicker: [commodity(m.commodity)?.name, m.country, "mine"].filter(Boolean).join(" · "), lon, lat, size: Math.min(9000, span), tint: "amber",

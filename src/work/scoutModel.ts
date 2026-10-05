@@ -34,9 +34,9 @@ export const DRAWS: Find[] = [
 ];
 
 export const INDUSTRIES: Industry[] = [
-  { id: "food", label: "Food", color: "#ff6b3d", tags: ["food"], sector: "food",
+  { id: "food", label: "Food", color: "#c4513a", tags: ["food"], sector: "food",
     explore: { label: "Eat & drink", who: "Where to eat round here, and the world's great food markets", finds: [
-      { id: "restaurant", label: "Restaurants", emoji: "🍽", color: "#ff6b3d", match: [m("amenity", "restaurant")] },
+      { id: "restaurant", label: "Restaurants", emoji: "🍽", color: "#c4513a", match: [m("amenity", "restaurant")] },
       { id: "cafe", label: "Cafés", emoji: "☕", color: "#c08552", match: [m("amenity", "cafe")] },
       { id: "quick", label: "Street food and fast", emoji: "🌮", color: "#e1b843", match: [m("amenity", "fast_food", "food_court")] },
       { id: "bar", label: "Bars and pubs", emoji: "🍷", color: "#8b5fa8", match: [m("amenity", "bar", "pub", "biergarten")] },
@@ -70,7 +70,7 @@ export const INDUSTRIES: Industry[] = [
       { id: "museum", label: "Museums", emoji: "🏛", color: "#8b5fa8", match: [m("tourism", "museum")] },
       { id: "gallery", label: "Galleries", emoji: "🖼", color: "#ff2d92", match: [m("tourism", "gallery"), m("shop", "art")] },
       { id: "artwork", label: "Public art", emoji: "🗿", color: "#e1b843", match: [m("tourism", "artwork")] },
-      { id: "stage", label: "Theatres and arts centres", emoji: "🎭", color: "#ff6b3d", match: [m("amenity", "theatre", "arts_centre")] },
+      { id: "stage", label: "Theatres and arts centres", emoji: "🎭", color: "#c4513a", match: [m("amenity", "theatre", "arts_centre")] },
       { id: "studio", label: "Studios and makers", emoji: "🎨", color: "#5b9467", match: [m("craft", "potter", "glassblower", "sculptor", "jeweller", "photographer"), m("amenity", "studio")] },
     ] },
     scout: { label: "Gallery and studio scout", who: "Artists, gallerists and curators: where the scene is", noun: "gallery", cluster: true, weights: { transit: 2, visitors: 3, students: 1, offices: 0.5, museum: 2, gallery: 1.5, stage: 1, artwork: 0.5, studio: 1 } },

@@ -186,7 +186,7 @@ function portsPanel(ctx: WorkCtx, d: Desk) {
         h("div", { class: "row" },
           h("button", { class: "pill-btn holo-go", onclick: () => void openSpace(ctx.app, {
             name: g.port.name, kicker: `Port · ${g.port.country}${g.port.code ? ` · ${g.port.code}` : ""}`, lon: g.port.lon, lat: g.port.lat, size: 2400, tint: "cyan",
-            markers: [{ lon: g.port.lon, lat: g.port.lat, color: w && w.days >= 3 ? "#d19a2e" : "#5ad8ff", label: `${g.items.length} arriving`, pulse: !!w && w.days >= 3, ring: 900, height: 120 }],
+            markers: [{ lon: g.port.lon, lat: g.port.lat, color: w && w.days >= 3 ? "#d19a2e" : "#8fa8f2", label: `${g.items.length} arriving`, pulse: !!w && w.days >= 3, ring: 900, height: 120 }],
           }).then((hl) => hl.setHud([
             { k: "Arriving, 30 d", v: String(g.items.length) }, { k: "Wait to berth", v: w ? `${w.days} days` : "none reported" },
             ...g.items.slice(0, 3).map((it) => ({ k: it.eta, v: it.s.ref })),
