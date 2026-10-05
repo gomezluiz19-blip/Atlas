@@ -1301,8 +1301,9 @@ if (import.meta.env.PROD) seamlessDeploys();
 // What people open next, fetched while the browser is idle.
 warmUp(globe, [() => import("./intros/intro"), () => loadWorldHeritage(), () => import("./answers/ui")]);
 
-// Handy for debugging from the browser console during development.
-if (import.meta.env.DEV) {
+// Handy for debugging from the browser console during development, and for automated test runs against a
+// real build (?qa). Nothing secret is on it: it's the same app the page already runs.
+if (import.meta.env.DEV || new URLSearchParams(location.search).has("qa")) {
   Object.assign(window, { atlas: { app, globe, labels, overlays, feeds, traffic, cityLife, cart: (lon: number, lat: number, h: number) => Cartesian3.fromDegrees(lon, lat, h) } });
   void import("cesium").then((Cesium) => Object.assign(window, { Cesium }));
 }
