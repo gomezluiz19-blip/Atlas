@@ -25,18 +25,18 @@
       "quick.label": "Buscar disponibilidad", "quick.checkin": "Llegada", "quick.checkout": "Salida", "quick.guests": "Huéspedes",
       "quick.pick": "Elegir fecha", "quick.go": "Ver disponibilidad",
       "q.date": "Fecha", "q.time": "Hora", "q.pickTime": "Elegir hora", until: "hasta",
-      "stay.label": "Tipo de estadía", "stay.night": "Por noche", "stay.nightSub": "Pase la noche",
-      "stay.pass": `Pase de ${PH} horas`, "stay.passSub": "Descanso sin pasar la noche",
-      "stay.pickTime": "¿A qué hora llega?", passUnit: "1 pase", perPass: "por pase", noPass: "No disponible por horas",
+      "stay.label": "Tipo de estadía", "stay.night": "Por noche", "stay.nightSub": "Para pasar la noche",
+      "stay.pass": `Paso de ${PH} horas`, "stay.passSub": "Descanso sin pasar la noche",
+      "stay.pickTime": "¿A qué hora llega?", passUnit: "1 paso", perPass: "por paso", noPass: "No disponible por horas",
       pickDay: "Elija el día", pickTime: "Ahora elija la hora",
       "sum.type": "Tipo", "sum.date": "Fecha", "sum.time": "Horario",
       "cash.title": "Sin tarjeta, sin pagos por adelantado.", "cash.text": "Usted reserva aquí y paga en efectivo cuando llega al hotel.",
-      "rooms.kicker": "Habitaciones", "rooms.title": "Elija su habitación", "rooms.sub": `Todas con aire acondicionado, WiFi, TV y baño privado. Por noche o con pase de ${PH} horas.`,
+      "rooms.kicker": "Habitaciones", "rooms.title": "Elija su habitación", "rooms.sub": `Todas con aire acondicionado, WiFi, TV y baño privado. Por noche o con paso de ${PH} horas.`,
       "rooms.upTo": (n) => `Hasta ${n} personas`, "rooms.night": "/ noche", "rooms.book": "Reservar",
       "gallery.label": "Fotos", "gallery.sign": "Letrero iluminado del Hotel Yaluma", "gallery.room": "Habitación con cama, TV y aire acondicionado", "gallery.front": "Entrada y estacionamiento del hotel",
       "amen.kicker": "Servicios", "amen.title": "Todo lo necesario para descansar",
-      "a.ac": "Aire acondicionado", "a.wifi": "WiFi gratis", "a.tv": "TV por cable", "a.parking": "Estacionamiento privado", "a.bath": "Baño privado", "a.security": "Ambiente seguro y tranquilo", "a.sofa": "Sofá",
-      "rooms.count": (n) => `${n} habitaciones`,
+      "a.ac": "Aire acondicionado", "a.wifi": "WiFi gratis", "a.tv": "TV por cable", "a.parking": "Estacionamiento privado", "a.bath": "Baño privado", "a.security": "Ambiente seguro y tranquilo", "a.sofa": "Sofá", "a.crib": "Cunas para bebé",
+      "rooms.count": (n) => `${n} ${n === 1 ? "habitación" : "habitaciones"}`, "rooms.nightOnly": "Solo por noche",
       "how.kicker": "Cómo reservar", "how.title": "Reservar es fácil",
       "how.1t": "Elija fechas y habitación", "how.1p": "Vea el precio total al instante, sin sorpresas.",
       "how.2t": "Envíe su solicitud", "how.2p": "Le llega a nuestro WhatsApp con todos los detalles.",
@@ -93,8 +93,8 @@
       "rooms.upTo": (n) => `Up to ${n} guests`, "rooms.night": "/ night", "rooms.book": "Book",
       "gallery.label": "Photos", "gallery.sign": "Hotel Yaluma illuminated sign", "gallery.room": "Room with bed, TV and air conditioning", "gallery.front": "Hotel entrance and parking",
       "amen.kicker": "Amenities", "amen.title": "Everything you need to rest",
-      "a.ac": "Air conditioning", "a.wifi": "Free WiFi", "a.tv": "Cable TV", "a.parking": "Private parking", "a.bath": "Private bathroom", "a.security": "Safe, quiet setting", "a.sofa": "Sofa",
-      "rooms.count": (n) => `${n} rooms`,
+      "a.ac": "Air conditioning", "a.wifi": "Free WiFi", "a.tv": "Cable TV", "a.parking": "Private parking", "a.bath": "Private bathroom", "a.security": "Safe, quiet setting", "a.sofa": "Sofa", "a.crib": "Baby cribs",
+      "rooms.count": (n) => `${n} ${n === 1 ? "room" : "rooms"}`, "rooms.nightOnly": "Nightly only",
       "how.kicker": "How to book", "how.title": "Booking is easy",
       "how.1t": "Pick dates and a room", "how.1p": "See the full price right away, no surprises.",
       "how.2t": "Send your request", "how.2p": "It reaches our WhatsApp with every detail.",
@@ -170,8 +170,8 @@
     step: "dates",
     checkIn: null,
     checkOut: null,
-    stay: "night", // "night" = por noche, "pass" = pase por horas
-    passTime: null, // hora de entrada del pase (0-23)
+    stay: "night", // "night" = por noche, "pass" = paso por horas
+    passTime: null, // hora de entrada del paso (0-23)
     editing: "in",
     adults: 2,
     kids: 0,
@@ -235,7 +235,7 @@
           <div class="room-foot">
             <div>
               <p class="price">${money(r.price)} <small>${esc(t("rooms.night"))}</small></p>
-              ${r.passPrice != null ? `<p class="price-alt">${esc(t("stay.pass"))}: <strong>${money(r.passPrice)}</strong></p>` : ""}
+              <p class="price-alt">${r.passPrice != null ? `${esc(t("stay.pass"))}: <strong>${money(r.passPrice)}</strong>` : esc(t("rooms.nightOnly"))}</p>
             </div>
             <button class="btn btn-primary btn-sm" type="button" data-book-room="${esc(r.id)}">${esc(t("rooms.book"))}</button>
           </div>
@@ -521,7 +521,7 @@
     const f = $("#details-form");
     ["name", "phone", "email", "notes"].forEach((k) => { f.elements[k].value = state.details[k]; });
     f.elements.arrival.value = state.details.arrival;
-    // En el pase la hora de llegada ya se eligió en el primer paso.
+    // En el paso la hora de llegada ya se eligió en el primer paso.
     $("#arrival-field").hidden = isPass();
   }
 

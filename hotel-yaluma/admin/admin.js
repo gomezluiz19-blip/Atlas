@@ -82,7 +82,7 @@
       else if (pass) when = `Hasta ${fmtTime(end)}`;
       else if (stay.check_out === todayIso()) when = `Sale hoy ${fmtHour(H.checkOutHour || 12)}`;
       else when = `Sale ${parseDay(stay.check_out).toLocaleDateString(LOC, { weekday: "short", day: "numeric" }).replace(",", "")}`;
-      return { cls: pass ? "pass" : "night", label: pass ? "Pase" : "Noche", who: stay.guest_name, when, late, stay };
+      return { cls: pass ? "pass" : "night", label: pass ? "Paso" : "Noche", who: stay.guest_name, when, late, stay };
     }
     if (room.state === "limpieza") return { cls: "clean", label: "Limpieza", when: "" };
     const arriving = arrivingToday().find((r) => r.room_number === room.number);
@@ -104,7 +104,7 @@
   function stayText(r) {
     if (r.stay_type === "pase") {
       const range = r.pass_start ? `${fmtTime(r.pass_start)} – ${fmtTime(r.pass_end)}` : "";
-      return `Pase de ${PH} horas · ${fmtDay(r.check_in)}${range ? ", " + range : ""}`;
+      return `Paso de ${PH} horas · ${fmtDay(r.check_in)}${range ? ", " + range : ""}`;
     }
     const n = nightsBetween(r.check_in, r.check_out);
     return `${fmtDay(r.check_in)} → ${fmtDay(r.check_out)} · ${n} ${n === 1 ? "noche" : "noches"}`;
@@ -120,7 +120,7 @@
     const first = (r.guest_name || "").split(" ")[0];
     const en = r.lang === "en";
     const detail = r.stay_type === "pase"
-      ? (en ? `a ${PH}-hour pass on ${fmtDay(r.check_in)}` : `un pase de ${PH} horas el ${fmtDay(r.check_in)}`)
+      ? (en ? `a ${PH}-hour pass on ${fmtDay(r.check_in)}` : `un paso de ${PH} horas el ${fmtDay(r.check_in)}`)
         + (r.pass_start ? `, ${fmtTime(r.pass_start)} – ${fmtTime(r.pass_end)}` : "")
       : (en ? `from ${fmtDay(r.check_in)} to ${fmtDay(r.check_out)}` : `del ${fmtDay(r.check_in)} al ${fmtDay(r.check_out)}`);
     const room = en ? tier(r.room_tier).name.en : tier(r.room_tier).name.es;
@@ -249,7 +249,7 @@
       <div class="stats">
         ${stat(count("free"), "Libres", "--free")}
         ${stat(count("night"), "Noche", "--night-st")}
-        ${stat(count("pass"), "Pase", "--pass")}
+        ${stat(count("pass"), "Paso", "--pass")}
         ${stat(count("arrive"), "Llegan hoy", "--arrive")}
         ${stat(count("clean"), "Limpieza", "--clean")}
         ${stat(count("out"), "Fuera", "--out")}
@@ -262,7 +262,7 @@
       <div class="legend">
         <span><i style="background:var(--free)"></i>Libre</span>
         <span><i style="background:var(--night-st)"></i>Ocupada (noche)</span>
-        <span><i style="background:var(--pass)"></i>Pase por horas</span>
+        <span><i style="background:var(--pass)"></i>Paso por horas</span>
         <span><i style="background:var(--arrive)"></i>Reservada, llega hoy</span>
         <span><i style="background:var(--clean)"></i>Limpieza</span>
         <span><i style="background:var(--out)"></i>Fuera de servicio</span>
@@ -275,7 +275,7 @@
           <span class="muted small">${tiers.map((t) => esc(tierName(t.id))).join(", ")} · ${list.filter((x) => x.v.cls === "free").length} de ${list.length} libres</span></div>
           <div class="board">${list.map(({ room, v }) => `
             <button type="button" class="room s-${v.cls}${v.late ? " late" : ""}" data-room="${esc(room.number)}" aria-label="Habitación ${esc(room.number)}: ${esc(v.label)}">
-              <span class="tier">${room.tier === "premium" ? "PREM" : "EST"}</span>
+              <span class="tier">${esc(tier(room.tier).short || "")}</span>
               <span class="num">${esc(room.number)}</span>
               <span class="st">${esc(v.label)}</span>
               ${v.who ? `<span class="who">${esc(v.who)}</span>` : ""}
@@ -364,11 +364,11 @@
     const body = openModal(`Entrada · Habitación ${room.number}`, `
       <form id="f">
         <div class="seg" role="group" aria-label="Tipo">
-          <button type="button" data-type="pase" aria-pressed="true">Pase ${PH} h</button>
+          <button type="button" data-type="pase" aria-pressed="true">Paso ${PH} h</button>
           <button type="button" data-type="noche" aria-pressed="false">Por noche</button>
         </div>
         <div class="field-row">
-          <label class="field"><span id="qty-label">Pases</span><input name="qty" type="number" min="1" max="30" value="1" inputmode="numeric" /></label>
+          <label class="field"><span id="qty-label">Pasos</span><input name="qty" type="number" min="1" max="30" value="1" inputmode="numeric" /></label>
           <label class="field"><span>Personas</span><select name="adults">${Array.from({ length: t.maxGuests }, (_, i) => `<option ${i === 1 || t.maxGuests === 1 ? "selected" : ""}>${i + 1}</option>`).join("")}</select></label>
         </div>
         <label class="field"><span>Nombre del huésped <small class="muted">(opcional)</small></span><input name="name" autocomplete="off" /></label>
@@ -383,8 +383,8 @@
       const q = Math.max(1, Number(f.qty.value) || 1);
       const unit = type === "pase" ? t.passPrice : t.price;
       const total = unit * q;
-      $("#qty-label", body).textContent = type === "pase" ? `Pases (${PH} h c/u)` : "Noches";
-      $("#calc", body).textContent = `${money(unit)} × ${q} ${type === "pase" ? (q === 1 ? "pase" : "pases") : (q === 1 ? "noche" : "noches")}`;
+      $("#qty-label", body).textContent = type === "pase" ? `Pasos (${PH} h c/u)` : "Noches";
+      $("#calc", body).textContent = `${money(unit)} × ${q} ${type === "pase" ? (q === 1 ? "paso" : "pasos") : (q === 1 ? "noche" : "noches")}`;
       $("#total", body).textContent = money(total);
       f.paid.value = total;
       return { q, total };
@@ -415,7 +415,7 @@
       act(async () => {
         const r = await db.addReservation(row);
         if (paid > 0) await db.addPayment(r.id, paid);
-        await db.log(`Registró entrada en la ${room.number} (${type === "pase" ? `pase ${q * PH} h` : `${q} ${q === 1 ? "noche" : "noches"}`}${name !== "Cliente" ? `, ${name}` : ""}) · cobró ${money(paid)}`);
+        await db.log(`Registró entrada en la ${room.number} (${type === "pase" ? `paso ${q * PH} h` : `${q} ${q === 1 ? "noche" : "noches"}`}${name !== "Cliente" ? `, ${name}` : ""}) · cobró ${money(paid)}`);
       }, `Entrada registrada en la ${room.number}`).then((ok) => ok && closeModal());
     });
   }
@@ -433,7 +433,7 @@
         ${free.length ? `<label class="field"><span>Habitación</span><select name="room">${free.map((x) => `<option value="${esc(x.number)}" ${x.number === pick ? "selected" : ""}>${esc(x.number)} · ${esc(tierName(x.tier))}${x.tier !== r.room_tier ? " (otro tipo)" : ""}</option>`).join("")}</select></label>`
           : `<p class="warn-text" style="margin-bottom:12px">No hay habitaciones libres. Libere o limpie una primero.</p>`}
         <label class="field"><span>Cobrado ahora (efectivo)</span><input name="paid" type="number" min="0" step="50" value="${due}" inputmode="numeric" /></label>
-        ${r.stay_type === "pase" ? `<p class="muted small" style="margin-bottom:12px">El pase de ${PH} horas empieza a contar desde ahora.</p>` : ""}
+        ${r.stay_type === "pase" ? `<p class="muted small" style="margin-bottom:12px">El paso de ${PH} horas empieza a contar desde ahora.</p>` : ""}
         <button class="btn btn-primary btn-block" type="submit" ${free.length ? "" : "disabled"}>Registrar llegada</button>
       </form>`);
     $("#f", body).addEventListener("submit", (e) => {
@@ -556,7 +556,7 @@
         <div><h3>${esc(r.guest_name)}</h3><p class="meta">${esc(r.code)} · ${esc(sourceLabel[r.source] || r.source)}${r.created_by ? ` · ${esc(personName(r.created_by))}` : ""}</p></div>
         <span class="tag ${r.status}">${statusLabel[r.status]}</span>
       </div>
-      <div class="btn-row"><span class="tag ${r.stay_type}">${r.stay_type === "pase" ? `Pase ${PH} h` : "Noche"}</span><span class="tag">${esc(tierName(r.room_tier))}${r.room_number ? ` · ${esc(r.room_number)}` : ""}</span>${r.source === "web" ? `<span class="tag web">Web</span>` : ""}</div>
+      <div class="btn-row"><span class="tag ${r.stay_type}">${r.stay_type === "pase" ? `Paso ${PH} h` : "Noche"}</span><span class="tag">${esc(tierName(r.room_tier))}${r.room_number ? ` · ${esc(r.room_number)}` : ""}</span>${r.source === "web" ? `<span class="tag web">Web</span>` : ""}</div>
       <dl class="facts">
         <dt>Fechas</dt><dd>${esc(stayText(r))}</dd>
         <dt>Personas</dt><dd>${r.adults} ${r.adults === 1 ? "adulto" : "adultos"}${r.kids ? `, ${r.kids} ${r.kids === 1 ? "niño" : "niños"}` : ""}</dd>
@@ -610,7 +610,7 @@
       <form id="f">
         <div class="seg" role="group" aria-label="Tipo">
           <button type="button" data-type="noche" aria-pressed="true">Por noche</button>
-          <button type="button" data-type="pase" aria-pressed="false">Pase ${PH} h</button>
+          <button type="button" data-type="pase" aria-pressed="false">Paso ${PH} h</button>
         </div>
         <label class="field"><span>Tipo de habitación</span><select name="tier">${H.rooms.map((t) => `<option value="${t.id}">${esc(tierName(t.id))} (${t.numbers.length})</option>`).join("")}</select></label>
         <div class="field-row">
@@ -637,7 +637,7 @@
       const unit = type === "pase" ? t.passPrice : t.price;
       const total = type === "pase" ? unit : unit * n;
       $$("[data-for]", body).forEach((el) => { el.hidden = el.dataset.for !== type; });
-      $("#calc", body).textContent = type === "pase" ? `Pase de ${PH} horas` : `${money(unit)} × ${n} ${n === 1 ? "noche" : "noches"}`;
+      $("#calc", body).textContent = type === "pase" ? `Paso de ${PH} horas` : `${money(unit)} × ${n} ${n === 1 ? "noche" : "noches"}`;
       $("#total", body).textContent = unit == null ? "No disponible" : money(total);
       const el = $("#load", body);
       if (type === "noche" && f.date.value) {
@@ -671,7 +671,7 @@
       };
       act(async () => {
         await db.addReservation(row);
-        await db.log(`Creó la reserva ${row.code} de ${name} (${type === "pase" ? "pase" : `${n} ${n === 1 ? "noche" : "noches"}`})`);
+        await db.log(`Creó la reserva ${row.code} de ${name} (${type === "pase" ? "paso" : `${n} ${n === 1 ? "noche" : "noches"}`})`);
       }, "Reserva guardada").then((ok) => { if (ok) { resFilter = "confirmada"; closeModal(); render(); } });
     });
   }

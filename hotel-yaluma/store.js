@@ -160,7 +160,7 @@ window.YalumaStore = (() => {
         { id: 3, user_id: "u2", started_at: at(-54), ended_at: at(-46) },
       ];
       const activity = [
-        { id: 1, at: at(-1.5), user_id: "u2", text: "Registró entrada en la 205 (pase)" },
+        { id: 1, at: at(-1.5), user_id: "u2", text: "Registró entrada en la 205 (paso)" },
         { id: 2, at: at(-3), user_id: "u2", text: "Registró entrada en la 104 (Ana Peña)" },
         { id: 3, at: at(-5), user_id: "u2", text: "Inició su turno" },
       ];
@@ -173,6 +173,12 @@ window.YalumaStore = (() => {
 
     let db = read();
     if (!db || !db.rooms || db.rooms.length !== allRooms().length) { db = seed(); write(db); }
+    // Si cambian los tipos de habitación en config.js, actualizarlos sin borrar los datos (ni las contraseñas).
+    allRooms().forEach((r) => {
+      const cur = db.rooms.find((x) => x.number === r.number);
+      if (cur && (cur.tier !== r.tier || cur.floor !== r.floor)) { cur.tier = r.tier; cur.floor = r.floor; }
+    });
+    write(db);
     const load = () => (db = read() || db);
     const save = () => write(db);
     const clone = (x) => JSON.parse(JSON.stringify(x));

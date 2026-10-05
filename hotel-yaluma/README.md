@@ -2,10 +2,10 @@
 
 Sitio para Hotel Yaluma (provincia Duarte, República Dominicana), en español primero, con un botón para cambiar a inglés.
 
-- **Dos tipos de reserva:** por noche, o pase de 4 horas (descanso sin pasar la noche) eligiendo el día y la hora de entrada.
+- **Dos tipos de reserva:** por noche, o paso de 4 horas (descanso sin pasar la noche) eligiendo el día y la hora de entrada.
 - **Reservas sin servidor:** el huésped elige fechas, huéspedes y habitación, escribe sus datos y ve el total. Al confirmar, se abre WhatsApp con la solicitud ya escrita (en español) para el número del hotel. El hotel confirma respondiendo por WhatsApp.
 - **Pago en efectivo al llegar:** no se cobra nada en línea.
-- **Panel del personal** en `/admin/`: tablero de las 19 habitaciones por colores, reservas, turnos, efectivo cobrado por turno y cuentas para el personal.
+- **Panel del personal** en `/admin/`: tablero de las 19 habitaciones por colores (12 Estándar, 6 Premium y 1 Deluxe), reservas, turnos, efectivo cobrado por turno y cuentas para el personal.
 - **Sin compilar nada:** HTML, CSS y JavaScript simples.
 
 ## Panel del personal (`/admin/`)
@@ -14,12 +14,12 @@ Sitio para Hotel Yaluma (provincia Duarte, República Dominicana), en español p
 
 | Sección | Para qué sirve |
 | --- | --- |
-| **Habitaciones** | Los 19 cuadros por colores. Toque uno para registrar una entrada (pase o noche), la salida, extender, marcar limpieza o fuera de servicio. Arriba: libres, ocupadas, efectivo cobrado hoy, y alertas de tiempo vencido y solicitudes nuevas. |
+| **Habitaciones** | Los 19 cuadros por colores. Toque uno para registrar una entrada (paso o noche), la salida, extender, marcar limpieza o fuera de servicio. Arriba: libres, ocupadas, efectivo cobrado hoy, y alertas de tiempo vencido y solicitudes nuevas. |
 | **Reservas** | Solicitudes del sitio web (Pendientes), reservas confirmadas (Próximas), En curso e Historial. Confirmar o rechazar abre un mensaje de WhatsApp ya escrito para el huésped. "Nueva reserva" sirve para las que llegan por teléfono. |
 | **Turnos** | Iniciar y terminar turno, quién está trabajando ahora, y horas y efectivo cobrado por turno (7 días). |
 | **Equipo** | Crear cuentas, activar o desactivar, cambiar roles, cambiar la contraseña propia, y el historial de actividad (quién hizo qué y cuándo). |
 
-Colores del tablero: **verde** libre · **naranja** ocupada por noche · **morado** pase por horas · **azul** reservada, llega hoy · **amarillo** limpieza · **gris** fuera de servicio · **borde rojo** tiempo vencido.
+Colores del tablero: **verde** libre · **naranja** ocupada por noche · **morado** paso por horas · **azul** reservada, llega hoy · **amarillo** limpieza · **gris** fuera de servicio · **borde rojo** tiempo vencido.
 
 ### Modo demostración
 
@@ -52,8 +52,8 @@ where email = 'luis@personal.hotelyaluma.com';
 Todo está en **`config.js`**. Las líneas marcadas con `EDITAR` son valores de ejemplo que hay que confirmar:
 
 - precios por noche de cada habitación (`price`)
-- precio del pase de 4 horas de cada habitación (`passPrice`; ponga `null` si esa habitación no se ofrece por horas)
-- horario de los pases (`pass.firstStart` y `pass.lastStart`: primera y última hora de entrada, en formato de 24 horas)
+- precio del paso de 4 horas de cada habitación (`passPrice`; ponga `null` si esa habitación no se ofrece por horas)
+- horario de los pasos (`pass.firstStart` y `pass.lastStart`: primera y última hora de entrada, en formato de 24 horas)
 - tipos de habitación y sus números (`numbers`). Si cambia los números, cámbielos también en `supabase/schema.sql`
 - horario de entrada y salida
 - `acceptsCards`: `true` si también aceptan tarjeta en recepción
@@ -68,7 +68,7 @@ Las fotos de `img/` salieron de capturas de pantalla de Google, así que tienen 
 | `img/fachada.jpg` | portada (computadora), galería |
 | `img/letrero.jpg` | portada (celular), galería |
 | `img/habitacion.jpg` | galería |
-| `img/premium.svg`, `img/estandar.svg` | tarjetas de habitaciones (imágenes provisionales: cambie `image` en `config.js` por la foto real, ej. `img/premium.jpg`) |
+| `img/estandar.svg`, `img/premium.svg`, `img/deluxe.svg` | tarjetas de habitaciones (imágenes provisionales: cambie `image` en `config.js` por la foto real, ej. `img/premium.jpg`) |
 
 
 ## Verlo en la computadora

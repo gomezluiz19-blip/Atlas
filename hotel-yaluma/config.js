@@ -33,16 +33,36 @@ window.HOTEL = {
     lastStart: 22, // EDITAR: última hora de entrada (22 = 10:00 PM)
   },
 
-  // Tipos de habitación. price = precio por noche en pesos dominicanos.
+  // Tipos de habitación, de menor a mayor precio.
+  // price = precio por noche y passPrice = precio del paso de 4 horas, en pesos dominicanos (RD$).
+  // passPrice: null = esa habitación se cobra solo por noche.
   // numbers = números de las habitaciones de ese tipo (se usan en el panel del personal).
   rooms: [
     {
+      id: "estandar",
+      short: "EST",
+      price: 400,
+      passPrice: 200,
+      maxGuests: 2, // EDITAR
+      floor: 2,
+      numbers: ["201", "202", "203", "204", "205", "206", "207", "208", "209", "210", "211", "212"], // EDITAR: números reales
+      image: "img/estandar.svg", // EDITAR: foto real de una habitación estándar
+      name: { es: "Habitación Estándar", en: "Standard Room" },
+      bed: { es: "Segundo nivel", en: "Second floor" },
+      description: {
+        es: "Compacta y acogedora, con todo lo necesario para descansar.",
+        en: "Compact and cozy, with everything you need to rest.",
+      },
+      features: ["ac", "wifi", "tv", "bath"],
+    },
+    {
       id: "premium",
-      price: 2800, // EDITAR: precio por noche
-      passPrice: 1000, // EDITAR: precio del pase de 4 horas (null si no aplica)
+      short: "PREM",
+      price: 600,
+      passPrice: 400,
       maxGuests: 3, // EDITAR
       floor: 1,
-      numbers: ["101", "102", "103", "104", "105", "106", "107"], // EDITAR: números reales
+      numbers: ["101", "102", "103", "104", "105", "106"], // EDITAR: números reales
       image: "img/premium.svg", // EDITAR: foto real de una habitación premium
       name: { es: "Habitación Premium", en: "Premium Room" },
       bed: { es: "Primer nivel", en: "First floor" },
@@ -53,25 +73,26 @@ window.HOTEL = {
       features: ["ac", "wifi", "tv", "bath", "sofa"],
     },
     {
-      id: "estandar",
-      price: 2000, // EDITAR: precio por noche
-      passPrice: 800, // EDITAR: precio del pase de 4 horas (null si no aplica)
-      maxGuests: 2, // EDITAR
-      floor: 2,
-      numbers: ["201", "202", "203", "204", "205", "206", "207", "208", "209", "210", "211", "212"], // EDITAR
-      image: "img/estandar.svg", // EDITAR: foto real de una habitación estándar
-      name: { es: "Habitación Estándar", en: "Standard Room" },
-      bed: { es: "Segundo nivel", en: "Second floor" },
+      id: "deluxe",
+      short: "DLX",
+      price: 750,
+      passPrice: null, // solo por noche
+      maxGuests: 3, // EDITAR
+      floor: 1, // EDITAR: si está en otro nivel
+      numbers: ["107"], // EDITAR: número real
+      image: "img/deluxe.svg", // EDITAR: foto real de la habitación deluxe
+      name: { es: "Habitación Deluxe", en: "Deluxe Room" },
+      bed: { es: "Primer nivel", en: "First floor" },
       description: {
-        es: "Compacta y acogedora, con todo lo necesario para descansar.",
-        en: "Compact and cozy, with everything you need to rest.",
+        es: "Nuestra mejor habitación, la más amplia y cómoda. Solo por noche.",
+        en: "Our best room, the most spacious and comfortable. Nightly stays only.",
       },
-      features: ["ac", "wifi", "tv", "bath"],
+      features: ["ac", "wifi", "tv", "bath", "sofa"],
     },
   ],
 
   // Servicios que se muestran en la sección "Servicios". EDITAR: quitar lo que no aplique.
-  amenities: ["ac", "wifi", "tv", "parking", "bath", "security"],
+  amenities: ["ac", "wifi", "tv", "parking", "bath", "crib", "security"],
 
   // Base de datos para las reservas y el panel del personal (Supabase, gratis).
   // Mientras esté vacío, el panel funciona en MODO DEMOSTRACIÓN: los datos se
