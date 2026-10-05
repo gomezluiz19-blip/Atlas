@@ -11,6 +11,10 @@ export const config = {
   /** The shared story library (a Supabase project; see docs/stories-backend.md). */
   supabaseUrl: (import.meta.env.VITE_SUPABASE_URL as string | undefined) || "",
   supabaseKey: (import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined) || "",
+  /** Sign-in providers switched on in the Supabase project besides email, e.g. "google,apple" (docs/backend.md). */
+  authProviders: ((import.meta.env.VITE_AUTH_PROVIDERS as string | undefined) || "").split(",").map((s) => s.trim().toLowerCase()).filter((s) => s === "google" || s === "apple"),
+  /** A closed beta: SHA-256 hashes of the invite codes that let someone join (scripts/invite-hash.mjs). Empty: open. */
+  inviteHashes: ((import.meta.env.VITE_INVITE_HASHES as string | undefined) || "").split(",").map((s) => s.trim().toLowerCase()).filter((s) => /^[0-9a-f]{64}$/.test(s)),
   /** Event listings (see docs/events.md): any of these switches on "What's on". */
   ticketmasterKey: (import.meta.env.VITE_TICKETMASTER_KEY as string | undefined) || "",
   seatgeekClientId: (import.meta.env.VITE_SEATGEEK_CLIENT_ID as string | undefined) || "",

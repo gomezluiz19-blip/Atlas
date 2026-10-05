@@ -32,6 +32,7 @@ interface Step {
 
 const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
 const run = (app: App, id: string, arg?: string) => app.actions.get(id)?.run(arg);
+const signedIn = () => { try { return !!localStorage.getItem("atlas.account.v1"); } catch { return false; } };
 const fly = (app: App, lon: number, lat: number, height: number, seconds = 2.2) => new Promise<void>((done) =>
   app.globe.viewer.camera.flyTo({ destination: Cartesian3.fromDegrees(lon, lat, height), duration: seconds, complete: done, cancel: done }));
 
@@ -70,7 +71,7 @@ const STEPS: Step[] = [
     before: async (app) => { run(app, "mode:work"); await wait(1200); } },
   { target: ".work-panel:not([hidden])", kicker: "Yours", title: "Your place, every day", text: "Save your home, farm or business for a morning brief (frost, storms, deliveries), your cameras, how long to get anywhere, trips, and a hologram of your lot with its trees and water.",
     before: async (app) => { run(app, "mode:place"); await wait(1200); } },
-  { title: "That's Terreno", text: "Start with your own place, plan somewhere to go, or let Terreno surprise you.", finale: true },
+  { title: "That's Terreno", text: "Make it yours: join to keep a page of the places you love and a daily brief for home. Or plan somewhere to go, or let Terreno surprise you.", finale: true },
 ];
 
 export function startTour(app: App) {
@@ -134,7 +135,10 @@ export function startTour(app: App) {
     back.hidden = i === 0;
     next.textContent = s.finale ? "Explore" : i === 0 ? "Show me" : "Next";
     extra.replaceChildren(...(s.finale ? [
-      h("button", { class: "primary-btn", onclick: () => { finish(); run(app, "mode:place"); } }, "🏠 Save my place"),
+      // Not signed in yet: joining is the way in (it sets home too); signed in, home is the next thing.
+      signedIn()
+        ? h("button", { class: "primary-btn", onclick: () => { finish(); run(app, "mode:place"); } }, "🏠 Save my place")
+        : h("button", { class: "primary-btn", onclick: () => { finish(); run(app, "account:signin"); } }, "Make it yours: join"),
       h("button", { class: "pill-btn", onclick: () => { finish(); run(app, "work:travel"); } }, "✈ Plan a trip"),
       h("button", { class: "pill-btn", onclick: () => { finish(); run(app, "surprise"); } }, "✨ Surprise me"),
     ] : []));

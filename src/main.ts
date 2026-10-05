@@ -47,7 +47,7 @@ import { createSearch, flyToPlace, freeArea, geocode, type Command, type Place a
 import { createRobot } from "./ui/robotCard";
 import { createAiSettings } from "./ui/aiSettings";
 import { aiOn, looksLikeAsk } from "./robot/llm";
-import { PlaceStore, type MyPlace } from "./myplaces/store";
+import { PlaceStore, blankPlace, type MyPlace } from "./myplaces/store";
 import type { DockItem } from "./myplaces/holo";
 import { packageSummary, readPackages } from "./myplaces/packages";
 import { localRecords, type TodayItem } from "./myplaces/today";
@@ -881,6 +881,16 @@ app.connections = (themeId, subtabId) => {
   }).filter((r): r is HTMLButtonElement => r !== null);
   return rows.length ? h("section", { class: "group connected" }, h("h2", { class: "group-title" }, "Connected"), h("div", { class: "list" }, ...rows)) : null;
 };
+
+// From joining: home becomes a My Place, and the Earth flies there.
+document.addEventListener("atlas:home", (e) => {
+  const { name, lon, lat } = (e as CustomEvent<{ name: string; lon: number; lat: number }>).detail;
+  const existing = myStore.all().find((p) => p.kind === "home");
+  myStore.save(existing ? { ...existing, name: existing.name || name, lon, lat } : { ...blankPlace(name, lon, lat, "home"), name: "Home", address: name });
+  void flyToPlace(globe, { name, lon, lat, radius: 1500 });
+});
+// Messages from parts of Terreno that don't hold the app (sign-in, deleting an account).
+document.addEventListener("atlas:toast", (e) => app.toast(String((e as CustomEvent<string>).detail), 5000));
 
 // Zoom buttons, a compass and double-click zoom.
 const mapControls = createMapControls(globe.viewer);

@@ -104,3 +104,10 @@ create policy "read media" on storage.objects for select using (bucket_id = 'med
 create policy "upload to your folder" on storage.objects for insert with check (bucket_id = 'media' and (storage.foldername(name))[1] = auth.uid()::text);
 create policy "replace in your folder" on storage.objects for update using (bucket_id = 'media' and (storage.foldername(name))[1] = auth.uid()::text);
 create policy "delete in your folder" on storage.objects for delete using (bucket_id = 'media' and (storage.foldername(name))[1] = auth.uid()::text);
+
+-- Deleting your own account from the app (Account › Delete my account). Everything above cascades from auth.users.
+create or replace function delete_me() returns void language sql security definer set search_path = public as $$
+  delete from auth.users where id = auth.uid();
+$$;
+revoke all on function delete_me() from public;
+grant execute on function delete_me() to authenticated;
