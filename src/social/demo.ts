@@ -8,7 +8,7 @@ const s = (id: string, name: string, kind: SpotKind, lat: number, lon: number, w
 export const DEMO_PROFILES: Profile[] = [
   {
     handle: "maya", name: "Maya Chen", role: "student", demo: true, skin: "2006",
-    avatar: { emoji: "🦉", color: "#bf5af2" },
+    avatar: { emoji: "🦉", color: "#8b5fa8" },
     now: "Counting shorebirds for my science fair project",
     bio: "Year 11 in Vancouver. I keep a list of every bird I've seen (212 so far). The Fraser River delta is the best place on Earth in October, fight me.\n\nI made the Birdwatching lens: tap any park or wetland and it tells you what's been seen there lately and whether the weather's any good for it.",
     home: { name: "Vancouver, Canada", lon: -123.1207, lat: 49.2827 },
@@ -38,7 +38,7 @@ export const DEMO_PROFILES: Profile[] = [
   },
   {
     handle: "msokafor", name: "Ada Okafor", role: "teacher", demo: true, skin: "paper",
-    avatar: { emoji: "🌋", color: "#ff9f0a" },
+    avatar: { emoji: "🌋", color: "#d19a2e" },
     now: "Planning a field trip to the Seven Sisters chalk cliffs",
     bio: "Geography teacher in south London. I use Terreno to show my students that the ground under their feet has a story: chalk that was sea floor, a river that used to be somewhere else, a barrier that keeps the Thames out of their homes.\n\nMy lessons and quizzes are in Teach. Ask me about rocks. Actually, don't.",
     home: { name: "London, United Kingdom", lon: -0.1276, lat: 51.5072 },
@@ -71,7 +71,7 @@ export const DEMO_PROFILES: Profile[] = [
   },
   {
     handle: "samoutside", name: "Sam Rivera", role: "explorer", demo: true, skin: "desert",
-    avatar: { emoji: "🏔️", color: "#ff375f" },
+    avatar: { emoji: "🏔️", color: "#b8496a" },
     now: "Twenty-nine of Colorado's 58 fourteeners done",
     bio: "Trail runner, map nerd, bad at sleeping in. Most weekends I'm somewhere above the treeline in Colorado. I use A day here to plan for the light: where the sun rises over a ridge, and when a valley goes dark.",
     home: { name: "Denver, Colorado", lon: -104.9903, lat: 39.7392 },
@@ -103,7 +103,7 @@ export const DEMO_PROFILES: Profile[] = [
   },
   {
     handle: "priya.eats", name: "Priya Nair", role: "explorer", demo: true, skin: "dawn",
-    avatar: { emoji: "🌻", color: "#ff9f0a" },
+    avatar: { emoji: "🌻", color: "#d19a2e" },
     now: "Eating my way down the Portuguese coast",
     bio: "Food writer based in Lisbon. I think you understand a place best through what grows there and what people cook with it. My Top 8 are where I take friends on their first day in Lisbon.",
     home: { name: "Lisbon, Portugal", lon: -9.1393, lat: 38.7223 },
@@ -136,7 +136,7 @@ export const DEMO_PROFILES: Profile[] = [
   },
   {
     handle: "kenjiskies", name: "Kenji Watanabe", role: "explorer", demo: true, skin: "night",
-    avatar: { emoji: "🌙", color: "#5e5ce6" },
+    avatar: { emoji: "🌙", color: "#5160c2" },
     now: "Waiting for a clear night. Tokyo, please.",
     bio: "Amateur astronomer from Tokyo. I've travelled to see the darkest skies on Earth, and I made the Stargazing lens so you can check any place for darkness, the moon and cloud before you go.",
     home: { name: "Tokyo, Japan", lon: 139.6917, lat: 35.6895 },
@@ -160,7 +160,7 @@ export const DEMO_PROFILES: Profile[] = [
   },
   {
     handle: "lena.surf", name: "Lena Brandt", role: "owner", demo: true, skin: "ocean",
-    avatar: { emoji: "🌊", color: "#64d2ff" },
+    avatar: { emoji: "🌊", color: "#4c9ac9" },
     now: "Swell's up at Nazaré this week",
     bio: "I run a small surf school in Ericeira. My Places keeps my boards, bookings and the forecast in one place; my Surf check lens tells students whether tomorrow is a lesson day.",
     home: { name: "Ericeira, Portugal", lon: -9.4167, lat: 38.9667 },

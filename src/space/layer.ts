@@ -141,8 +141,8 @@ export class SpaceLayer {
     const toPos = (pts: [number, number, number][]) => pts.map(([lon, lat, alt]) => Cartesian3.fromDegrees(lon, lat, alt * 1000));
     const ahead = groundTrack(this.iss, Date.now(), 0, 92, 1), behind = groundTrack(this.iss, Date.now(), -45, 0, 1);
     this.trackEntities.push(
-      this.ds.entities.add({ polyline: { positions: toPos(ahead), width: 2.5, material: Color.fromCssColorString("#ffd60a").withAlpha(0.85), arcType: ArcType.NONE } }),
-      this.ds.entities.add({ polyline: { positions: toPos(behind), width: 2, material: new PolylineDashMaterialProperty({ color: Color.fromCssColorString("#ffd60a").withAlpha(0.5) }), arcType: ArcType.NONE } }),
+      this.ds.entities.add({ polyline: { positions: toPos(ahead), width: 2.5, material: Color.fromCssColorString("#e1b843").withAlpha(0.85), arcType: ArcType.NONE } }),
+      this.ds.entities.add({ polyline: { positions: toPos(behind), width: 2, material: new PolylineDashMaterialProperty({ color: Color.fromCssColorString("#e1b843").withAlpha(0.5) }), arcType: ArcType.NONE } }),
     );
   }
 
@@ -185,7 +185,7 @@ export class SpaceLayer {
               const t = (Date.now() - l.net) / 1000;
               return Array.from({ length: 40 }, (_, i) => { const a = ascent(l, (t * i) / 39); return Cartesian3.fromDegrees(a.lon, a.lat, a.alt); });
             }, false) as never,
-            width: 4, material: Color.fromCssColorString("#ff9f0a").withAlpha(0.9), arcType: ArcType.NONE,
+            width: 4, material: Color.fromCssColorString("#d19a2e").withAlpha(0.9), arcType: ArcType.NONE,
           },
         });
         (rocket as unknown as { _space: { launch: Launch } })._space = { launch: l };

@@ -5,7 +5,6 @@ import {
   Cartographic,
   Cesium3DTileset,
   CesiumTerrainProvider,
-  Color,
   createGooglePhotorealistic3DTileset,
   ImageryLayer,
   Ion,
@@ -23,6 +22,7 @@ import { initMotion } from "./motion";
 import { currentQuality } from "./quality";
 import { imagery } from "./imagery";
 import { createTerrariumTerrain, terrainOptions } from "./terrain";
+import { finishGlobe, gradeLayer } from "./finish";
 
 export type BaseMap = "satellite" | "plain";
 export type OverlayKind = Exclude<AnalyticKind, "depth"> | "geology" | "species";
@@ -91,7 +91,6 @@ export class Globe {
     const { scene } = this.viewer;
     scene.globe.depthTestAgainstTerrain = true;
     scene.globe.preloadSiblings = false;
-    scene.globe.baseColor = Color.fromCssColorString("#0b1d33");
     scene.globe.showGroundAtmosphere = true;
     scene.screenSpaceCameraController.enableCollisionDetection = true;
     this.keepRendering();
@@ -116,6 +115,10 @@ export class Globe {
     const esri = new UrlTemplateImageryProvider({ url: src.template, maximumLevel: src.maximumLevel, credit: src.credit });
     this.satellite = new ImageryLayer(esri);
     this.viewer.imageryLayers.add(this.satellite);
+    // The house finish (globe/finish.ts): the grade on every base layer, sunlight from orbit, city lights at night.
+    const nightLights = finishGlobe(this.viewer);
+    this.addUnder(nightLights);
+    for (const l of this.baseLayers()) gradeLayer(l);
     this.watchImagery(esri);
     const geology = new ImageryLayer(
       new UrlTemplateImageryProvider({ url: GEOLOGIC_MAP_TILES, maximumLevel: 16, credit: "Geology: Macrostrat (CC-BY 4.0)" }),
@@ -153,7 +156,6 @@ export class Globe {
     if (this.hasIonTerrain) {
       CesiumTerrainProvider.fromIonAssetId(1, { requestVertexNormals: true }).then((t) => {
         this.viewer.terrainProvider = t;
-        scene.globe.enableLighting = false;
       });
     }
     this.apply();

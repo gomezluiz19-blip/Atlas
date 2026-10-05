@@ -81,7 +81,7 @@ export async function cables(): Promise<Cable[]> {
     const p = f.properties;
     const id = String(p.id ?? p.feature_id ?? p.name);
     const lines = (f.geometry.type === "LineString" ? [f.geometry.coordinates] : (f.geometry.coordinates as number[][][])) as number[][][];
-    const cable = byId.get(id) ?? { id, name: String(p.name ?? "Cable"), color: String(p.color ?? "#64d2ff"), lines: [] };
+    const cable = byId.get(id) ?? { id, name: String(p.name ?? "Cable"), color: String(p.color ?? "#4c9ac9"), lines: [] };
     for (const l of lines) {
       const xy = new Float32Array(l.flat());
       let w = 180, s = 90, e = -180, n = -90;
@@ -158,15 +158,15 @@ export function nearestLine(lines: NetLine[], lon: number, lat: number, maxKm: n
 // ---- Power -----------------------------------------------------------------
 
 export const FUELS: { id: string; label: string; color: string; low: boolean }[] = [
-  { id: "Coal", label: "Coal", color: "#8e8e93", low: false },
-  { id: "Gas", label: "Gas", color: "#ff9f0a", low: false },
-  { id: "Oil", label: "Oil", color: "#a2845e", low: false },
-  { id: "Nuclear", label: "Nuclear", color: "#bf5af2", low: true },
-  { id: "Hydro", label: "Hydro", color: "#0a84ff", low: true },
-  { id: "Wind", label: "Wind", color: "#64d2ff", low: true },
-  { id: "Solar", label: "Solar", color: "#ffd60a", low: true },
-  { id: "Geothermal", label: "Geothermal", color: "#ff375f", low: true },
-  { id: "Biomass", label: "Biomass & waste", color: "#30d158", low: true },
+  { id: "Coal", label: "Coal", color: "#8c8f87", low: false },
+  { id: "Gas", label: "Gas", color: "#d19a2e", low: false },
+  { id: "Oil", label: "Oil", color: "#9a7552", low: false },
+  { id: "Nuclear", label: "Nuclear", color: "#8b5fa8", low: true },
+  { id: "Hydro", label: "Hydro", color: "#3563d6", low: true },
+  { id: "Wind", label: "Wind", color: "#4c9ac9", low: true },
+  { id: "Solar", label: "Solar", color: "#e1b843", low: true },
+  { id: "Geothermal", label: "Geothermal", color: "#b8496a", low: true },
+  { id: "Biomass", label: "Biomass & waste", color: "#5b9467", low: true },
   { id: "Other", label: "Other", color: "#d1d1d6", low: false },
 ];
 const FUEL_ALIAS: Record<string, string> = { Waste: "Biomass", Petcoke: "Oil", Cogeneration: "Other", Storage: "Other", "Wave and Tidal": "Other" };

@@ -18,7 +18,7 @@ import { whatIfBar } from "./whatIf";
 let layer: EconLayer | null = null;
 
 export function openLab(ctx: WorkCtx, app: App) {
-  layer ??= new EconLayer(app, "econ:lab", "What if", "#ff453a", "⚡");
+  layer ??= new EconLayer(app, "econ:lab", "What if", "#c4513a", "⚡");
   layer.clear();
   let preset: { shock: Shock | null; names: string[] } = { shock: null, names: [] };
   // Build your own: one price, one country, one lane.
@@ -55,15 +55,15 @@ export function openLab(ctx: WorkCtx, app: App) {
     // On the globe: hit countries pulse, closed lanes flash, and the materials that jump rise where they're mined.
     const cols = moves.filter((x) => x.pct > 0).slice(0, 3).flatMap((x) => x.m!.producers.slice(0, 3).map(([code, s]) => ({ code, value: s * Math.min(1.5, x.pct / 60), color: x.m!.color, label: `${x.m!.tag} ${countryName(code)}` })));
     layer!.draw({
-      halos: hit.map(([code, v]) => ({ code, strength: v / 100, color: "#ff453a", label: `${countryName(code)} −${Math.round(v)}%` })),
-      pins: (sh.lanes ?? []).map((l) => ({ lon: LANES[l][0], lat: LANES[l][1], color: "#ff453a", label: `${l} closed` })),
+      halos: hit.map(([code, v]) => ({ code, strength: v / 100, color: "#c4513a", label: `${countryName(code)} −${Math.round(v)}%` })),
+      pins: (sh.lanes ?? []).map((l) => ({ lon: LANES[l][0], lat: LANES[l][1], color: "#c4513a", label: `${l} closed` })),
       columns: cols,
     }, `What if: ${names.join(" + ")}`);
     const portfolio = (() => { try { return JSON.parse(localStorage.getItem("atlas.econ.portfolio.v1") ?? "[]"); } catch { return []; } })();
     const pf = Array.isArray(portfolio) && portfolio.length ? portfolioImpact(portfolio, sh) : null;
     out.replaceChildren(
       h("h3", { class: "group-title" }, "Prices"),
-      moves.length ? bars(moves.slice(0, 8).map((x) => ({ label: x.m!.name, value: Math.abs(x.pct), note: `${x.pct > 0 ? "+" : "−"}${Math.abs(x.pct)}%`, color: x.pct > 0 ? "#ff453a" : "#30d158" })), "#ff453a") : h("p", { class: "muted small" }, "No big price moves."),
+      moves.length ? bars(moves.slice(0, 8).map((x) => ({ label: x.m!.name, value: Math.abs(x.pct), note: `${x.pct > 0 ? "+" : "−"}${Math.abs(x.pct)}%`, color: x.pct > 0 ? "#c4513a" : "#5b9467" })), "#c4513a") : h("p", { class: "muted small" }, "No big price moves."),
       hit.length || sh.lanes?.length ? h("p", { class: "ec-note" }, [...hit.map(([c, v]) => `${countryName(c)} loses ${Math.round(v)}% of output`), ...(sh.lanes ?? []).map((l) => `${l} closed`)].join(" · "), ".") : "",
       pf ? h("div", { class: `pf-hit ${pf.pct < 0 ? "down" : "up"}` }, h("small", {}, "Your portfolio"), h("strong", {}, pctTag(pf.pct, 1)),
         h("button", { class: "link-btn", onclick: () => void import("./portfolioUi").then((x) => x.openPortfolio(ctx, app)) }, "Open it ›")) : "",

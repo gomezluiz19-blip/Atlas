@@ -163,7 +163,7 @@ export function climateTheme(overlays: Overlays): Theme {
     id: "climate",
     label: "Climate",
     icon: icons.cloudSun,
-    color: "#ff9f0a",
+    color: "#d19a2e",
     intro: "Today's weather, the long-term climate, and how it's changing.",
     subtabs: [now, climate, change],
     enter() {

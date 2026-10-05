@@ -153,7 +153,7 @@ export class Recording {
       if (chip) {
         g.font = font(700, 26);
         const cw = g.measureText(chip).width + 28 * u;
-        g.fillStyle = "#e0b050";
+        g.fillStyle = "#c9a256";
         g.beginPath();
         g.roundRect(x + ip, cy, cw, 38 * u, 19 * u);
         g.fill();

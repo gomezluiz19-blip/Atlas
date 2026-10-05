@@ -25,10 +25,10 @@ export type Way = "fly" | "train" | "drive" | "bus";
 
 export const WAYS: Record<Way, { label: string; emoji: string; color: string; kmh: number; detour: number; overheadH: number; co2PerKm: number }> = {
   // Typical door-to-door: check-in and security, getting to and from the station, and the route against the straight line.
-  fly: { label: "Fly", emoji: "✈️", color: "#0a84ff", kmh: 800, detour: 1.06, overheadH: 3, co2PerKm: 0.15 },
-  train: { label: "Train", emoji: "🚆", color: "#bf5af2", kmh: 110, detour: 1.25, overheadH: 0.8, co2PerKm: 0.035 },
-  drive: { label: "Drive", emoji: "🚗", color: "#30d158", kmh: 80, detour: 1.3, overheadH: 0, co2PerKm: 0.17 },
-  bus: { label: "Bus", emoji: "🚌", color: "#ff9f0a", kmh: 65, detour: 1.3, overheadH: 0.5, co2PerKm: 0.03 },
+  fly: { label: "Fly", emoji: "✈️", color: "#3563d6", kmh: 800, detour: 1.06, overheadH: 3, co2PerKm: 0.15 },
+  train: { label: "Train", emoji: "🚆", color: "#8b5fa8", kmh: 110, detour: 1.25, overheadH: 0.8, co2PerKm: 0.035 },
+  drive: { label: "Drive", emoji: "🚗", color: "#5b9467", kmh: 80, detour: 1.3, overheadH: 0, co2PerKm: 0.17 },
+  bus: { label: "Bus", emoji: "🚌", color: "#d19a2e", kmh: 65, detour: 1.3, overheadH: 0.5, co2PerKm: 0.03 },
 };
 
 export interface WayEstimate { way: Way; hours: number; km: number; co2Kg: number; note?: string }

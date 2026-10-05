@@ -8,13 +8,13 @@ import { canvasLayer, drawDots, drawLines, type TileView } from "./networkLayer"
 export type NetworkId = "rail" | "roads" | "shipping" | "ports" | "airports" | "power" | "cables";
 
 export const NETWORKS: { id: NetworkId; label: string; about: string; color: string; source: string }[] = [
-  { id: "rail", label: "Railways", about: "Main lines worldwide; every track and station when zoomed in", color: "#ff6961", source: "Natural Earth; OpenRailwayMap (detail)" },
-  { id: "roads", label: "Highways", about: "Major and secondary highways, and ferry routes", color: "#ffd60a", source: "Natural Earth" },
-  { id: "shipping", label: "Shipping lanes", about: "The world's main sea routes, by importance", color: "#5ac8fa", source: "Benden (2022), after the CIA Map of the World's Oceans" },
-  { id: "ports", label: "Ports", about: "Over a thousand seaports, bigger dots for bigger ports", color: "#0a84ff", source: "Natural Earth" },
-  { id: "airports", label: "Airports", about: "Major and mid-size airports", color: "#5e5ce6", source: "Natural Earth" },
-  { id: "power", label: "Power plants", about: "35,000 plants coloured by fuel, sized by capacity", color: "#ff9f0a", source: "WRI Global Power Plant Database" },
-  { id: "cables", label: "Undersea cables", about: "The fibre-optic cables that carry the internet between continents", color: "#64d2ff", source: "TeleGeography Submarine Cable Map" },
+  { id: "rail", label: "Railways", about: "Main lines worldwide; every track and station when zoomed in", color: "#d4705a", source: "Natural Earth; OpenRailwayMap (detail)" },
+  { id: "roads", label: "Highways", about: "Major and secondary highways, and ferry routes", color: "#e1b843", source: "Natural Earth" },
+  { id: "shipping", label: "Shipping lanes", about: "The world's main sea routes, by importance", color: "#4c9ac9", source: "Benden (2022), after the CIA Map of the World's Oceans" },
+  { id: "ports", label: "Ports", about: "Over a thousand seaports, bigger dots for bigger ports", color: "#3563d6", source: "Natural Earth" },
+  { id: "airports", label: "Airports", about: "Major and mid-size airports", color: "#5160c2", source: "Natural Earth" },
+  { id: "power", label: "Power plants", about: "35,000 plants coloured by fuel, sized by capacity", color: "#d19a2e", source: "WRI Global Power Plant Database" },
+  { id: "cables", label: "Undersea cables", about: "The fibre-optic cables that carry the internet between continents", color: "#4c9ac9", source: "TeleGeography Submarine Cable Map" },
 ];
 
 const railMaxRank = (l: number) => (l <= 1 ? 5 : l === 2 ? 6 : l === 3 ? 8 : 10);
@@ -29,7 +29,7 @@ async function build(id: NetworkId): Promise<ImageryLayer[]> {
       const base = canvasLayer((ctx, t) =>
         drawLines(ctx, t, lines, (l, lv) => {
           if ((l.attrs[0] as number) > railMaxRank(lv)) return null;
-          return { color: "#ff6961", width: lv < 3 ? 0.9 : lv < 5 ? 1.3 : 1.8, casing: lv >= 4 ? "rgba(0,0,0,0.35)" : undefined };
+          return { color: "#d4705a", width: lv < 3 ? 0.9 : lv < 5 ? 1.3 : 1.8, casing: lv >= 4 ? "rgba(0,0,0,0.35)" : undefined };
         }), { maximumLevel: 10, credit: "Railways: Natural Earth" });
       // Every track, station and yard from OpenStreetMap once you're zoomed in.
       const detail = new ImageryLayer(
@@ -51,9 +51,9 @@ async function build(id: NetworkId): Promise<ImageryLayer[]> {
           const [kind, rank] = l.attrs as [string, number];
           if (rank > roadMaxRank(lv)) return null;
           const g = grow(lv);
-          if (kind === "M") return { color: "#ffd60a", width: 1.3 * g, casing: lv >= 5 ? "rgba(0,0,0,0.3)" : undefined };
+          if (kind === "M") return { color: "#e1b843", width: 1.3 * g, casing: lv >= 5 ? "rgba(0,0,0,0.3)" : undefined };
           if (kind === "S") return { color: "rgba(255,255,255,0.85)", width: 0.9 * g };
-          if (kind === "F") return { color: "#64d2ff", width: 0.9 * g, dash: [4, 3] };
+          if (kind === "F") return { color: "#4c9ac9", width: 0.9 * g, dash: [4, 3] };
           return { color: "rgba(255,255,255,0.6)", width: 0.7 * g };
         }), { maximumLevel: 10, credit: "Roads: Natural Earth" })];
     }
@@ -72,7 +72,7 @@ async function build(id: NetworkId): Promise<ImageryLayer[]> {
     case "ports": {
       const list = await ports();
       return [canvasLayer((ctx, t) =>
-        drawDots(ctx, t, list, (p, lv) => (p.rank > lv + 4 ? null : { color: "#0a84ff", radius: (3 + Math.max(0, 8 - p.rank) * 0.35) * grow(lv), glyph: "anchor" })),
+        drawDots(ctx, t, list, (p, lv) => (p.rank > lv + 4 ? null : { color: "#3563d6", radius: (3 + Math.max(0, 8 - p.rank) * 0.35) * grow(lv), glyph: "anchor" })),
         { maximumLevel: 12, credit: "Ports: Natural Earth" })];
     }
     case "airports": {
@@ -82,7 +82,7 @@ async function build(id: NetworkId): Promise<ImageryLayer[]> {
         drawDots(ctx, t, list, (a, lv) => {
           const tr = tier(a.type);
           if ((tr === 1 && lv < 3) || (tr === 2 && lv < 5)) return null;
-          return { color: "#5e5ce6", radius: (tr === 0 ? 5 : tr === 1 ? 3.8 : 3) * grow(lv), glyph: "plane" };
+          return { color: "#5160c2", radius: (tr === 0 ? 5 : tr === 1 ? 3.8 : 3) * grow(lv), glyph: "plane" };
         }), { maximumLevel: 12, credit: "Airports: Natural Earth" })];
     }
     case "power": {

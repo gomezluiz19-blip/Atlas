@@ -34,7 +34,7 @@ let view: View = "pipeline";
 const today = () => isoDay(Date.now());
 const month = () => new Date().getUTCMonth();
 const hubOf = (n: Network, id: string) => n.hubs.find((x) => x.id === id);
-const LEVEL = { 3: "#ff453a", 2: "#ff9f0a", 1: "#30d158" } as const;
+const LEVEL = { 3: "#c4513a", 2: "#d19a2e", 1: "#5b9467" } as const;
 const qty = (item: Item, q: number) => `${fmt(q, q < 10 ? 1 : 0)} ${item.unit === "t" ? "t" : `${item.unit}s`}`;
 const daysText = (d: number) => (Number.isFinite(d) ? `${fmt(d, d < 10 ? 1 : 0)} days` : "no way through");
 
@@ -42,14 +42,14 @@ const daysText = (d: number) => (Number.isFinite(d) ? `${fmt(d, d < 10 ? 1 : 0)}
 
 function legColor(n: Network, l: Leg): { color: string; dashed: boolean } {
   const days = legDays(n, l, month());
-  if (!Number.isFinite(days)) return { color: "#ff453a", dashed: true };
-  if (l.mode === "air") return { color: "#64d2ff", dashed: true };
-  if (l.status === "slow" || legIncidents(n, l, today()).length || (l.mode === "road" && legWet(n, l, month()))) return { color: "#ff9f0a", dashed: false };
-  return { color: l.mode === "river" ? "#0a84ff" : "#30d158", dashed: false };
+  if (!Number.isFinite(days)) return { color: "#c4513a", dashed: true };
+  if (l.mode === "air") return { color: "#4c9ac9", dashed: true };
+  if (l.status === "slow" || legIncidents(n, l, today()).length || (l.mode === "road" && legWet(n, l, month()))) return { color: "#d19a2e", dashed: false };
+  return { color: l.mode === "river" ? "#3563d6" : "#5b9467", dashed: false };
 }
 
 function draw(app: App, n: Network, focus?: { path?: string[] }) {
-  map ??= new OpsMap(app, "pro:relief", "#30d158");
+  map ??= new OpsMap(app, "pro:relief", "#5b9467");
   const fs: WorkFeature[] = [], t = today();
   const worst = new Map<string, number>();
   for (const b of breaks(n, t)) worst.set(b.hub.id, Math.max(worst.get(b.hub.id) ?? 0, b.level));
@@ -58,13 +58,13 @@ function draw(app: App, n: Network, focus?: { path?: string[] }) {
     if (!a || !b) continue;
     const c = legColor(n, l);
     const on = focus?.path && focus.path.some((id, i) => i > 0 && ((focus.path![i - 1] === l.from && id === l.to) || (focus.path![i - 1] === l.to && id === l.from)));
-    fs.push({ id: l.id, kind: "line", pts: [[a.lon, a.lat], [b.lon, b.lat]], color: focus?.path ? (on ? "#ff9f0a" : "#8e8e93") : c.color, dashed: c.dashed, solid: true });
+    fs.push({ id: l.id, kind: "line", pts: [[a.lon, a.lat], [b.lon, b.lat]], color: focus?.path ? (on ? "#d19a2e" : "#8c8f87") : c.color, dashed: c.dashed, solid: true });
   }
   if (view === "moves" && !focus) for (const m of n.moves.filter((x) => x.status !== "delivered")) {
     const a = hubOf(n, m.from), b = hubOf(n, m.to);
-    if (a && b) fs.push({ id: `m${m.id}`, kind: "line", pts: [[a.lon, a.lat], [b.lon, b.lat]], color: m.status === "delayed" || m.arrives < t ? "#ff453a" : "#bf5af2", solid: true });
+    if (a && b) fs.push({ id: `m${m.id}`, kind: "line", pts: [[a.lon, a.lat], [b.lon, b.lat]], color: m.status === "delayed" || m.arrives < t ? "#c4513a" : "#8b5fa8", solid: true });
   }
-  for (const i of n.incidents.filter((x) => daysBetween(x.date, t) <= 14)) fs.push({ id: `i${i.id}`, kind: "point", pts: [[i.lon, i.lat]], color: "#ff453a", label: view === "access" ? `⚠️ ${i.text.slice(0, 40)}` : undefined });
+  for (const i of n.incidents.filter((x) => daysBetween(x.date, t) <= 14)) fs.push({ id: `i${i.id}`, kind: "point", pts: [[i.lon, i.lat]], color: "#c4513a", label: view === "access" ? `⚠️ ${i.text.slice(0, 40)}` : undefined });
   for (const hb of n.hubs) {
     const k = HUB_KINDS[hb.kind], w = worst.get(hb.id);
     const f = fill(hb);
@@ -218,7 +218,7 @@ function accessPanel(ctx: WorkCtx, n: Network) {
   const inc = [...n.incidents].sort((a, b) => b.date.localeCompare(a.date));
   return h("div", {},
     h("p", { class: "muted small" }, `Which routes are open this month (${MONTHS[m]}), slow or cut: by you, by the rains on dry-season roads, or near a recent incident. Tap a route to change it; everything downstream follows.`),
-    cut.length ? h("div", {}, title(`Cut off by ground · ${cut.length}`), list(...cut.map(({ h: x, any }) => row({ color: any ? "#64d2ff" : "#ff453a" }, x.name, any ? "Air only this month" : "No way in at all this month", () => hubScreen(ctx, n, x))))) : lines("✓ Every place can be reached by road or river."),
+    cut.length ? h("div", {}, title(`Cut off by ground · ${cut.length}`), list(...cut.map(({ h: x, any }) => row({ color: any ? "#4c9ac9" : "#c4513a" }, x.name, any ? "Air only this month" : "No way in at all this month", () => hubScreen(ctx, n, x))))) : lines("✓ Every place can be reached by road or river."),
     title("Routes"),
     list(...[...n.legs].sort((a, b) => rank(a) - rank(b)).map((l) => {
       const d = legDays(n, l, m), c = legColor(n, l), i = legIncidents(n, l, t);
@@ -227,7 +227,7 @@ function accessPanel(ctx: WorkCtx, n: Network) {
     })),
     title("Incidents"),
     h("button", { class: "pill-btn", onclick: () => void addIncident(ctx, n) }, "+ Report an incident"),
-    inc.length ? list(...inc.map((i) => row({ color: i.severity === 3 ? "#ff453a" : "#ff9f0a" }, i.text, `${i.date} · ${daysBetween(i.date, t)} days ago`, () => void flyToPlace(ctx.app.globe, { name: i.text, lon: i.lon, lat: i.lat, radius: 20_000 })))) : empty("None reported."),
+    inc.length ? list(...inc.map((i) => row({ color: i.severity === 3 ? "#c4513a" : "#d19a2e" }, i.text, `${i.date} · ${daysBetween(i.date, t)} days ago`, () => void flyToPlace(ctx.app.globe, { name: i.text, lon: i.lon, lat: i.lat, radius: 20_000 })))) : empty("None reported."),
     h("button", { class: "link-btn", onclick: () => void fillWet(ctx, n, n.hubs).then(() => openRelief(ctx)) }, "Fill in every place's rainy season from ten years of rainfall"));
 }
 
@@ -253,7 +253,7 @@ function movesPanel(ctx: WorkCtx, n: Network) {
     title(`On the way · ${open.length}`),
     open.length ? list(...open.map((m) => {
       const i = itemOf(m.item)!, late = m.arrives < t;
-      return row({ color: late || m.status === "delayed" ? "#ff453a" : "#bf5af2" }, `${qty(i, m.qty)} ${i.name.toLowerCase()} → ${hubOf(n, m.to)?.name}`,
+      return row({ color: late || m.status === "delayed" ? "#c4513a" : "#8b5fa8" }, `${qty(i, m.qty)} ${i.name.toLowerCase()} → ${hubOf(n, m.to)?.name}`,
         `from ${hubOf(n, m.from)?.name} · left ${m.left} · ${late ? `due ${m.arrives}, ${daysBetween(m.arrives, t)} days overdue` : `due ${m.arrives}`}${m.status === "delayed" ? " · delayed" : ""}`, undefined,
         h("button", { class: "pill-btn", onclick: (e: Event) => { e.stopPropagation(); m.status = "delivered"; const to = hubOf(n, m.to); if (to) to.stock[m.item] = (to.stock[m.item] ?? 0) + m.qty; save(n); openRelief(ctx); } }, "Arrived"));
     })) : empty("Nothing on the way."),
@@ -332,8 +332,8 @@ async function hubHologram(app: App, n: Network, x: Hub) {
   const inc = n.incidents.filter((i) => kmBetween(i, x) < 2);
   const hl = await openSpace(app, {
     name: x.name, kicker: `${HUB_KINDS[x.kind].label}${x.people ? ` · serves ${x.people.toLocaleString()} people` : ""}`, lon: x.lon, lat: x.lat, size: 1400, tint: "green",
-    markers: [{ lon: x.lon, lat: x.lat, color: bs.some((b) => b.level === 3) ? "#ff453a" : bs.some((b) => b.level === 2) ? "#ff9f0a" : "#30d158", label: `${fmt(f.tonnes)} t in stock`, pulse: bs.some((b) => b.level === 3), height: 60 },
-      ...inc.map((i) => ({ lon: i.lon, lat: i.lat, color: "#ff453a", label: i.text.slice(0, 32), pulse: true }))],
+    markers: [{ lon: x.lon, lat: x.lat, color: bs.some((b) => b.level === 3) ? "#c4513a" : bs.some((b) => b.level === 2) ? "#d19a2e" : "#5b9467", label: `${fmt(f.tonnes)} t in stock`, pulse: bs.some((b) => b.level === 3), height: 60 },
+      ...inc.map((i) => ({ lon: i.lon, lat: i.lat, color: "#c4513a", label: i.text.slice(0, 32), pulse: true }))],
   });
   hl.setHud([
     ...bs.slice(0, 4).map((b) => ({ k: b.item.name, v: b.cover < 1 ? "Out" : `${Math.floor(b.cover)} days left` })),

@@ -67,7 +67,10 @@ export function createLenses(app: App, lenses: Lens[]) {
   const suited = () => {
     if (!subject) return { main: [] as Lens[], rest: [] as Lens[] };
     const scored = lenses.map((l) => ({ l, s: l.score(subject!) })).filter((x) => x.s > 0);
-    const main = scored.filter((x) => x.s >= 0.55 || x.l === active).map((x) => x.l).sort(lensOrder);
+    // At most four views up front (the best fits, plus the open one): a strip to choose from, not a toolbox.
+    const best = scored.filter((x) => x.s >= 0.55).sort((a, b) => b.s - a.s).slice(0, 4).map((x) => x.l);
+    if (active && !best.includes(active)) best.push(active);
+    const main = best.sort(lensOrder);
     const rest = scored.filter((x) => !main.includes(x.l)).map((x) => x.l).sort(lensOrder);
     return { main, rest };
   };
@@ -96,7 +99,7 @@ export function createLenses(app: App, lenses: Lens[]) {
       // The feature's facts, unless the card is already this feature's own page.
       fact && fact.name !== app.place?.name?.title ? factLine(fact) : "",
       h("div", { class: "lens-row" }, ...tiles,
-        rest.length && !showAll ? h("button", { class: "lens-tile make gap", style: `--c:#8e8e93`, title: "Views that suit it less", onmouseenter: say(`${rest.length} more views: ${rest.map((l) => lookOf(l).name).join(", ")}`), onmouseleave: reset, onclick: () => { showAll = true; render(); } },
+        rest.length && !showAll ? h("button", { class: "lens-tile make gap", style: `--c:#8c8f87`, title: "Views that suit it less", onmouseenter: say(`${rest.length} more views: ${rest.map((l) => lookOf(l).name).join(", ")}`), onmouseleave: reset, onclick: () => { showAll = true; render(); } },
           h("span", { class: "lens-glyph" }, `+${rest.length}`), h("span", { class: "lens-name" }, "More")) : "",
         h("button", { class: "lens-tile make gap", style: `--c:${FAMILY.yours.color}`, title: "Describe a view and Terreno builds it", onmouseenter: say("Make your own: describe a view and Terreno builds it"), onmouseleave: reset, onclick: () => app.actions.get("lens:studio")?.run() },
           h("span", { class: "lens-glyph", html: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>' }), h("span", { class: "lens-name" }, "Make one"))),

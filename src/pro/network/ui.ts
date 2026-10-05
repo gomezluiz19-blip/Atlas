@@ -28,10 +28,10 @@ const kmText = (km: number) => (km >= 100 ? `${fmt(km)} km` : `${fmt(km, 1)} km`
 
 /** The network on the globe: nodes, the routes between them, and the moving streams along them. */
 function draw(app: App, n: Network) {
-  layer ??= new WorkLayer(app, "pro:network", n.name, "#ff9f0a");
+  layer ??= new WorkLayer(app, "pro:network", n.name, "#d19a2e");
   streams ??= new FlowOverlay(app.globe.viewer, { maxHeight: Number.POSITIVE_INFINITY, maxDrops: 2600 });
   const byId = new Map(n.nodes.map((x) => [x.id, x]));
-  const fs: WorkFeature[] = n.nodes.map((x) => ({ id: x.id, kind: "point", pts: [[x.lon, x.lat]], color: NODE_KINDS[x.kind].ours ? "#ff9f0a" : "#8e8e93", label: `${NODE_KINDS[x.kind].emoji} ${x.name}` }));
+  const fs: WorkFeature[] = n.nodes.map((x) => ({ id: x.id, kind: "point", pts: [[x.lon, x.lat]], color: NODE_KINDS[x.kind].ours ? "#d19a2e" : "#8c8f87", label: `${NODE_KINDS[x.kind].emoji} ${x.name}` }));
   const lines = [];
   const biggest = Math.max(1, ...n.flows.map((f) => f.amount));
   for (const f of n.flows) {

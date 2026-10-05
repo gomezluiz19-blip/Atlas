@@ -125,7 +125,7 @@ async function deepTime(host: LensHost, box: HTMLElement, s: Subject) {
       viewer.imageryLayers.add(layer);
       ds.entities.removeAll();
       if (pt) {
-        ds.entities.add({ position: Cartesian3.fromDegrees(pt[0], pt[1]), point: { pixelSize: 14, color: Color.fromCssColorString("#ffd60a"), outlineColor: Color.BLACK, outlineWidth: 3, disableDepthTestDistance: Number.POSITIVE_INFINITY },
+        ds.entities.add({ position: Cartesian3.fromDegrees(pt[0], pt[1]), point: { pixelSize: 14, color: Color.fromCssColorString("#e1b843"), outlineColor: Color.BLACK, outlineWidth: 3, disableDepthTestDistance: Number.POSITIVE_INFINITY },
           label: { text: `${s.name}, ${ma ? `${ma} Ma` : "today"}`, font: "700 14px -apple-system, system-ui, sans-serif", style: LabelStyle.FILL_AND_OUTLINE, fillColor: Color.WHITE, outlineColor: Color.BLACK, outlineWidth: 4, verticalOrigin: VerticalOrigin.BOTTOM, pixelOffset: new Cartesian2(0, -12), disableDepthTestDistance: Number.POSITIVE_INFINITY } });
         viewer.camera.flyTo({ destination: Cartesian3.fromDegrees(pt[0], pt[1], 16_000_000), duration: 1.5 });
         const moved = Math.round(Math.hypot(pt[0] - s.lon, pt[1] - s.lat));

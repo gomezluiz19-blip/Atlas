@@ -56,7 +56,7 @@ export function openDesk(ctx: WorkCtx, app: App, id?: string) {
 function drawOverview(app: App) {
   const by = new Map<string, number>();
   for (const m of MARKETS.filter((x) => SHELVES[0].test(x))) for (const [c, s] of m.producers) by.set(c, (by.get(c) ?? 0) + s / 6);
-  layer!.draw({ columns: [...by].map(([code, v]) => ({ code, value: v, color: "#30d158", label: v > 6 ? countryName(code) : undefined })) }, "Battery metals: who mines them");
+  layer!.draw({ columns: [...by].map(([code, v]) => ({ code, value: v, color: "#5b9467", label: v > 6 ? countryName(code) : undefined })) }, "Battery metals: who mines them");
   flyTilted(app, 60, 5, 20_000_000, -62);
 }
 
@@ -70,8 +70,8 @@ function detail(ctx: WorkCtx, app: App, m: Market) {
       ...(m.stage?.where ?? []).map(([c, s]) => ({ code: c, value: s, color: "#f2f2f7", label: `${m.stage!.verb.replace(/ in$| by$/, "")} · ${countryName(c)} ${s}%`, offsetKm: m.producers.some(([p]) => p === c) ? 170 : 0 })),
     ],
     flows: flows(m).map((f) => ({ ...f, color: m.color })),
-    halos: hit ? [...hit].map((c) => ({ code: c, strength: 0.8, color: "#ff453a" })) : [],
-    pins: hit ? (m.lanes ?? []).filter((l) => hit.has(l)).map((l) => ({ lon: LANES[l][0], lat: LANES[l][1], color: "#ff453a", label: l })) : [],
+    halos: hit ? [...hit].map((c) => ({ code: c, strength: 0.8, color: "#c4513a" })) : [],
+    pins: hit ? (m.lanes ?? []).filter((l) => hit.has(l)).map((l) => ({ lon: LANES[l][0], lat: LANES[l][1], color: "#c4513a", label: l })) : [],
   }, `${m.name}: mined and processed`);
   draw();
   const c0 = COUNTRIES[top[0]];
@@ -108,7 +108,7 @@ function detail(ctx: WorkCtx, app: App, m: Market) {
     h("div", { class: "ec-kpis" },
       st ? h("div", { class: "ec-kpi" }, h("small", {}, "Price, 2024 average"), h("strong", {}, priceLabel(st.last, m.unit)), h("span", {}, "10 yrs ", pctTag(st.change, 0, true))) : "",
       st ? h("div", { class: "ec-kpi" }, h("small", {}, "Typical year's swing"), h("strong", {}, `±${st.swing}%`), h("span", {}, `peak ${st.peak.year}`)) : "",
-      gauge(risk.score, `Supply risk: ${risk.label.toLowerCase()}`, risk.label === "High" ? "#ff453a" : risk.label === "Elevated" ? "#ff9f0a" : "#30d158")),
+      gauge(risk.score, `Supply risk: ${risk.label.toLowerCase()}`, risk.label === "High" ? "#c4513a" : risk.label === "Elevated" ? "#d19a2e" : "#5b9467")),
     chartBox,
     h("h3", { class: "group-title" }, "Where it's mined"),
     h("p", { class: "ec-note" }, `${countryName(top[0])} mines ${top[1]}% of it; the market is ${concentration(hhi(m.producers))} (HHI ${hhi(m.producers).toLocaleString()}).`),
@@ -116,7 +116,7 @@ function detail(ctx: WorkCtx, app: App, m: Market) {
     m.stage && topStage ? h("div", {},
       h("h3", { class: "group-title" }, m.stage.verb),
       h("p", { class: "ec-note" }, topStage[0] === top[0] ? `${countryName(topStage[0])} does both.` : `Mined in ${countryName(top[0])}, but ${topStage[1]}% is ${m.stage.verb.toLowerCase().replace(/ in$| by$/, "")} in ${countryName(topStage[0])}: ${topStage[1] >= 60 ? "that's the real choke point." : "a second dependence."}`),
-      bars(m.stage.where.map(([c, s]) => ({ label: countryName(c), value: s })), "#8e8e93", 100)) : "",
+      bars(m.stage.where.map(([c, s]) => ({ label: countryName(c), value: s })), "#8c8f87", 100)) : "",
     m.lanes?.length ? h("p", { class: "ec-note" }, "Sails through: ", m.lanes.join(", "), ".") : "",
     wi, impacts,
     policies.length ? h("div", {}, h("h3", { class: "group-title" }, "Policies moving it"),

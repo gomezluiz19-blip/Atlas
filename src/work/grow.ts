@@ -66,7 +66,7 @@ function yearStrip(f: Field, onChange: () => void): HTMLElement {
       h("div", { class: "year-months" }, ...months),
       ...items.map((x, i) => {
         const c = cropById(x.crop), start = Date.parse(x.planted), end = start + c.days * 86_400_000;
-        return h("div", { class: `year-bar${x.now ? " now" : ""}`, style: `left:${pct(start)};width:calc(${pct(end)} - ${pct(start)});--c:${CROP_COLOR[c.id] ?? "#30d158"}`, title: `${c.label}: ${fmtDate(x.planted)} to about ${fmtDate(new Date(end).toISOString().slice(0, 10))}` },
+        return h("div", { class: `year-bar${x.now ? " now" : ""}`, style: `left:${pct(start)};width:calc(${pct(end)} - ${pct(start)});--c:${CROP_COLOR[c.id] ?? "#5b9467"}`, title: `${c.label}: ${fmtDate(x.planted)} to about ${fmtDate(new Date(end).toISOString().slice(0, 10))}` },
           h("span", {}, c.label.replace(/\s*\(.*\)/, "")),
           i ? h("button", { class: "year-x", "aria-label": `Remove ${c.label}`, onclick: () => { f.next!.splice(i - 1, 1); onChange(); } }, "✕") : "");
       }),
@@ -77,7 +77,7 @@ function yearStrip(f: Field, onChange: () => void): HTMLElement {
 
 const store = new ListStore<Field>("atlas.work.fields.v1");
 let layer: WorkLayer | null = null;
-const CROP_COLOR: Record<string, string> = { maize: "#ffd60a", rice: "#64d2ff", wheat: "#e0b050", beans: "#ff9f0a", soybean: "#a8e05f", tomato: "#ff453a", potato: "#bf8a5a", coffee: "#b0703c", cacao: "#8e5a3c", banana: "#30d158", ...Object.fromEntries(CROPS.filter((c) => c.color).map((c) => [c.id, c.color!])) };
+const CROP_COLOR: Record<string, string> = { maize: "#e1b843", rice: "#4c9ac9", wheat: "#c9a256", beans: "#d19a2e", soybean: "#a8e05f", tomato: "#c4513a", potato: "#bf8a5a", coffee: "#b0703c", cacao: "#8e5a3c", banana: "#5b9467", ...Object.fromEntries(CROPS.filter((c) => c.color).map((c) => [c.id, c.color!])) };
 const today = () => {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
@@ -86,8 +86,8 @@ const fmtDate = (iso: string) => new Date(iso + "T12:00:00").toLocaleDateString(
 const n0 = (v: number) => Math.round(v).toLocaleString();
 
 function drawFields(app: App, stages: Map<string, string> = new Map()) {
-  layer ??= new WorkLayer(app, "work:grow", "Fields", "#30d158");
-  layer.set(store.all().map((f) => ({ id: f.id, kind: "area" as const, pts: f.pts, color: CROP_COLOR[f.crop] ?? "#30d158", fill: 0.18, label: stages.get(f.id) ? `${f.name} · ${stages.get(f.id)}` : f.name })), "Fields");
+  layer ??= new WorkLayer(app, "work:grow", "Fields", "#5b9467");
+  layer.set(store.all().map((f) => ({ id: f.id, kind: "area" as const, pts: f.pts, color: CROP_COLOR[f.crop] ?? "#5b9467", fill: 0.18, label: stages.get(f.id) ? `${f.name} · ${stages.get(f.id)}` : f.name })), "Fields");
 }
 
 // ---- Plant health from space ---------------------------------------------------------
@@ -102,7 +102,7 @@ function setNdvi(app: App, on: boolean) {
       credit: "Vegetation (NDVI): NASA EOSDIS GIBS, MODIS Terra 8-day",
     }), { alpha: 0.7 });
     viewer.imageryLayers.add(ndvi);
-    app.canvas.put({ id: "work:ndvi", label: "Plant health (NDVI)", color: "#30d158", scope: "world", pinned: true, show: (v) => { if (ndvi) ndvi.show = v; }, remove: () => setNdvi(app, false) }, true);
+    app.canvas.put({ id: "work:ndvi", label: "Plant health (NDVI)", color: "#5b9467", scope: "world", pinned: true, show: (v) => { if (ndvi) ndvi.show = v; }, remove: () => setNdvi(app, false) }, true);
   } else if (!on && ndvi) {
     viewer.imageryLayers.remove(ndvi, true);
     ndvi = null;
@@ -133,7 +133,7 @@ export function openGrow(ctx: WorkCtx) {
   drawFields(app);
   const addField = async () => {
     ctx.hide();
-    const pts = await drawOnMap(app, "area", "#30d158", "Zoom in on the satellite view and tap around the edge of the field");
+    const pts = await drawOnMap(app, "area", "#5b9467", "Zoom in on the satellite view and tap around the edge of the field");
     ctx.unhide();
     if (!pts) return openGrow(ctx);
     const f: Field = { id: newId(), name: `Field ${store.all().length + 1}`, crop: "maize", planted: today(), pts, diary: [] };
@@ -151,7 +151,7 @@ export function openGrow(ctx: WorkCtx) {
     store.all().length ? h("section", { class: "group" }, h("h2", { class: "group-title" }, `Your fields · ${fmtArea(total)}`),
       h("div", { class: "list" }, ...store.all().map((f) =>
         h("button", { class: "list-row", onclick: () => openField(ctx, f.id) },
-          h("span", { class: "dot big", style: `background:${CROP_COLOR[f.crop] ?? "#30d158"}` }),
+          h("span", { class: "dot big", style: `background:${CROP_COLOR[f.crop] ?? "#5b9467"}` }),
           h("span", { class: "list-text" }, h("span", { class: "list-title" }, f.name), h("span", { class: "list-sub" }, `${cropById(f.crop).label} · ${fmtArea(areaM2(f.pts))} · since ${fmtDate(f.planted)}`)),
           h("span", { class: "chev", html: "&rsaquo;" }))))) : h("p", { class: "muted small" }, "No fields yet."),
   );
@@ -173,7 +173,7 @@ function seasonView(f: Field, s: Season, m2: number): (Node | string)[] {
   const pct = Math.min(100, Math.round(s.f * 100));
   const ha = m2 / 1e4;
   return [
-    h("div", { class: "grow-stages", style: `--c:${CROP_COLOR[f.crop] ?? "#30d158"}` },
+    h("div", { class: "grow-stages", style: `--c:${CROP_COLOR[f.crop] ?? "#5b9467"}` },
       h("div", { class: "grow-bar" }, h("span", { style: `width:${pct}%` })),
       h("ol", {}, ...crop.stages.map((name, i) => h("li", { class: i < s.stage.index ? "past" : i === s.stage.index ? "now" : "" }, name)))),
     stats(

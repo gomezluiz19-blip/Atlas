@@ -8,10 +8,10 @@ import { kmBetween, type Dated, type Issue, type Move, type Party, type Site } f
 
 export type Service = "water" | "health" | "school" | "food";
 export const SERVICES: Record<Service, { label: string; site: string; emoji: string; color: string; km: number }> = {
-  water: { label: "Water", site: "water", emoji: "💧", color: "#0a84ff", km: 5 },
-  health: { label: "Health", site: "clinic", emoji: "🏥", color: "#ff375f", km: 15 },
-  school: { label: "School", site: "school", emoji: "🏫", color: "#ff9f0a", km: 10 },
-  food: { label: "Food", site: "distribution", emoji: "🌾", color: "#30d158", km: 25 },
+  water: { label: "Water", site: "water", emoji: "💧", color: "#3563d6", km: 5 },
+  health: { label: "Health", site: "clinic", emoji: "🏥", color: "#b8496a", km: 15 },
+  school: { label: "School", site: "school", emoji: "🏫", color: "#d19a2e", km: 10 },
+  food: { label: "Food", site: "distribution", emoji: "🌾", color: "#5b9467", km: 25 },
 };
 export const SITE_KINDS = {
   warehouse: { label: "Warehouse", emoji: "📦" }, office: { label: "Field office", emoji: "🏢" }, clinic: { label: "Clinic", emoji: "🏥" },

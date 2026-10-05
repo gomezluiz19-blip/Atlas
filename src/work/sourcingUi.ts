@@ -72,7 +72,7 @@ export function openSourcing(ctx: WorkCtx, setId: string) {
   const set = sourceSet(setId);
   if (!set) return;
   const { app } = ctx;
-  map ??= new OpsMap(app, "sourcing", "#8bd346");
+  map ??= new OpsMap(app, "sourcing", "#8faa5a");
   const status = h("p", { class: "muted small" });
   const body = h("div", {});
   const run = (site: { lon: number; lat: number; name: string }) => {

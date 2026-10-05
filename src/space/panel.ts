@@ -31,7 +31,7 @@ export function createSpace(app: App) {
     layer = new SpaceLayer(viewer);
     layer.onPick = (s) => { if (!panel.hidden) showSat(s); };
     layer.onLaunchPick = (l) => { open(); showLaunch(l); };
-    app.canvas.put({ id: "space:sats", label: "Satellites", color: "#ffd60a", scope: "world", pinned: true, show: (v) => layer?.setVisible(v), remove: () => { for (const g of [...on]) toggle(g, false); layer?.setVisible(false); } }, true);
+    app.canvas.put({ id: "space:sats", label: "Satellites", color: "#e1b843", scope: "world", pinned: true, show: (v) => layer?.setVisible(v), remove: () => { for (const g of [...on]) toggle(g, false); layer?.setVisible(false); } }, true);
     return layer;
   };
 

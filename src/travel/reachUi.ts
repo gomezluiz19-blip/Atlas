@@ -78,7 +78,7 @@ function raceRow(name: string, t: Partial<Record<ReachMode, number | null>>, sca
 }
 
 export function openReach(ctx: WorkCtx, app: App, start?: Spot) {
-  layer ??= new WorkLayer(app, "reach", "Getting around", "#30d158");
+  layer ??= new WorkLayer(app, "reach", "Getting around", "#5b9467");
   let origin: Spot | null = start ?? (app.place ? { name: app.place.name?.title ?? "this spot", lon: app.place.lon, lat: app.place.lat } : null);
   let choice: Choice = "all", minutes = 15, run = 0;
   const extra: Spot[] = [];

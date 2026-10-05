@@ -69,7 +69,7 @@ export const SKINS: { id: Skin; label: string }[] = [
   { id: "dawn", label: "Ember" }, { id: "desert", label: "Sand" }, { id: "paper", label: "Paper" },
 ];
 export const AVATAR_EMOJI = ["🦉", "🦊", "🐢", "🐋", "🦅", "🌵", "🌋", "🏔️", "🌊", "🌙", "⭐", "🌻", "🍄", "🐝", "🦋", "🚲", "🛶", "🎒", "📷", "🎸"];
-export const AVATAR_COLORS = ["#0a84ff", "#30d158", "#ff9f0a", "#ff375f", "#bf5af2", "#64d2ff", "#a2845e", "#5e5ce6"];
+export const AVATAR_COLORS = ["#3563d6", "#5b9467", "#d19a2e", "#b8496a", "#8b5fa8", "#4c9ac9", "#9a7552", "#5160c2"];
 
 export interface Profile {
   handle: string;
@@ -140,7 +140,7 @@ export function profileFromJson(v: unknown): Profile | null {
   const home = o.home as Record<string, unknown> | undefined, banner = o.banner as Record<string, unknown> | undefined;
   return {
     handle, name: str(o.name, 60), role, skin,
-    avatar: { emoji: str(av.emoji, 8) || "🧭", color: /^#[0-9a-f]{6}$/i.test(str(av.color)) ? str(av.color) : "#0a84ff" },
+    avatar: { emoji: str(av.emoji, 8) || "🧭", color: /^#[0-9a-f]{6}$/i.test(str(av.color)) ? str(av.color) : "#3563d6" },
     bio: str(o.bio, 1200), now: str(o.now, 140) || undefined,
     home: home && Number.isFinite(num(home.lon)) ? { name: str(home.name, 120), lon: num(home.lon), lat: num(home.lat) } : undefined,
     banner: banner && Number.isFinite(num(banner.lon)) ? { lon: num(banner.lon), lat: num(banner.lat) } : undefined,

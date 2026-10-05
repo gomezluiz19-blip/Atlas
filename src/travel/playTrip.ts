@@ -30,7 +30,7 @@ export function stepCaption(j: Journey, i: number): { title: string; sub: string
 /** Draws the trip and flies it, captioning each step. */
 export async function playTrip(app: App, j: Journey) {
   stopPlaying();
-  layer ??= new WorkLayer(app, "trip-play", "Trip", "#0a84ff");
+  layer ??= new WorkLayer(app, "trip-play", "Trip", "#3563d6");
   layer.set(journeyFeatures(j), j.name);
   await playJourney(app, j, (i) => { const c = stepCaption(j, i); caption(app, c.title, c.sub); });
 }

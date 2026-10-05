@@ -25,7 +25,7 @@ export interface Issue { id: string; title: string; party?: string; site?: strin
 /** Something with a date: a permit's expiry, a delivery, an inspection. */
 export interface Dated { id: string; title: string; date: string; kind: string; site?: string; notes?: string }
 
-export const FLOW_COLORS = { goods: "#ff9f0a", people: "#0a84ff", money: "#30d158", data: "#bf5af2" } as const;
+export const FLOW_COLORS = { goods: "#d19a2e", people: "#3563d6", money: "#5b9467", data: "#8b5fa8" } as const;
 const PER_YEAR: Record<Per, number> = { day: 365, week: 52, month: 12, year: 1 };
 
 export const today = () => new Date().toISOString().slice(0, 10);

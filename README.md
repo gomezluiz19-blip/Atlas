@@ -1043,6 +1043,14 @@ These keys end up in the public page, so restrict them to your site's domain in 
 - **Search and place names:** [Photon](https://photon.komoot.io) (by komoot) and OpenStreetMap Nominatim
   (light, interactive use only, per its usage policy).
 
+## Design
+
+Terreno's look is a system, written down in [docs/design.md](docs/design.md): quiet paper and basalt surfaces
+around the globe, one action colour (cobalt), four mineral pigments that carry meaning (cobalt, ochre, sage,
+terracotta), Geist and Geist Mono, tiles rather than bubbles, and registration marks framing what's chosen. The
+mark is a dome of tesserae, generated in code (`src/ui/brand.ts`). No emoji: every one that reaches the page
+becomes Terreno's own icon (`src/ui/noEmoji.ts`). The globe has a house finish (`src/globe/finish.ts`).
+
 ## How it works
 
 ```

@@ -32,10 +32,10 @@ const save = (r: Region) => saveJson(KEY, r);
 
 const ROLES: [Role, string, string][] = [["contractor", "Contractor", "🦺"], ["union", "Union", "✊"], ["supplier", "Supplier", "🚚"], ["planner", "Planner", "📐"]];
 const CRAFTS = ["Bricklayers", "Ironworkers", "Carpenters", "Concrete / cement masons", "Electricians", "Plumbers & pipefitters", "Sheet metal workers", "Glaziers", "Roofers", "Operating engineers", "Laborers", "Painters", "Elevator constructors"];
-const UNION_COLOR: Record<UnionStatus, string> = { union: "#30d158", mixed: "#ff9f0a", "open shop": "#ff453a", unknown: "#8e8e93" };
+const UNION_COLOR: Record<UnionStatus, string> = { union: "#5b9467", mixed: "#d19a2e", "open shop": "#c4513a", unknown: "#8c8f87" };
 const UNION_LABEL: Record<UnionStatus, string> = { union: "Union", mixed: "Mixed", "open shop": "Open shop", unknown: "Unknown" };
 const FACADE: Record<NonNullable<Site["masonry"]>, string> = { brick: "#b4533a", block: "#a8a39a", stone: "#d6c7a4", none: "#7fb4d6" };
-const FRAME = "#c7c7cc", FITTED = "#64d2ff";
+const FRAME = "#c7c7cc", FITTED = "#4c9ac9";
 const usd = (n: number) => n >= 1e9 ? `$${(n / 1e9).toFixed(1)}B` : n >= 1e8 ? `$${Math.round(n / 1e6)}M` : n >= 1e6 ? `$${(n / 1e6).toFixed(1)}M` : `$${Math.round(n / 1000)}K`;
 const cap = (s: string) => s[0].toUpperCase() + s.slice(1);
 const DOB = "https://data.cityofnewyork.us/resource/ipu4-2q9a.json";
@@ -43,8 +43,8 @@ const DOB = "https://data.cityofnewyork.us/resource/ipu4-2q9a.json";
 let mass: Massing | null = null, route: WorkLayer | null = null;
 
 export function openConstruction(ctx: WorkCtx, app: App, role?: string) {
-  mass ??= new Massing(app, "con:sites", "Construction sites", "#ff9f0a", "🏗️");
-  route ??= new WorkLayer(app, "con:route", "Site visits", "#0a84ff");
+  mass ??= new Massing(app, "con:sites", "Construction sites", "#d19a2e", "🏗️");
+  route ??= new WorkLayer(app, "con:route", "Site visits", "#3563d6");
   const today = isoDay();
   let R = load();
   if (R && ROLES.some(([id]) => id === role)) R.role = role as Role;
@@ -61,17 +61,17 @@ export function openConstruction(ctx: WorkCtx, app: App, role?: string) {
   /** What a role cares about on a site, for the pulse on the globe. */
   function alertOf(s: Site): string | undefined {
     if (!R) return;
-    if (R.role === "union") return unionFlags(s, day, R.craft).some((f) => f.level === "now") ? "#ff453a" : undefined;
-    if (R.role === "contractor") return s.mine && (variance(s, day) <= -2 || s.safety.some((x) => daysBetween(x.date, day) <= 30)) ? "#ff453a" : undefined;
-    if (R.role === "supplier") { const st = stageAt(s, day); return st.status === "under way" && ["foundation", "structure", "envelope"].includes(st.stage) ? "#ffcc00" : undefined; }
-    return s.start > day && daysBetween(day, s.start) <= 120 ? "#bf5af2" : undefined;
+    if (R.role === "union") return unionFlags(s, day, R.craft).some((f) => f.level === "now") ? "#c4513a" : undefined;
+    if (R.role === "contractor") return s.mine && (variance(s, day) <= -2 || s.safety.some((x) => daysBetween(x.date, day) <= 30)) ? "#c4513a" : undefined;
+    if (R.role === "supplier") { const st = stageAt(s, day); return st.status === "under way" && ["foundation", "structure", "envelope"].includes(st.stage) ? "#e1b843" : undefined; }
+    return s.start > day && daysBetween(day, s.start) <= 120 ? "#8b5fa8" : undefined;
   }
 
   /** Each site's dot from far out: union status for the union, the stage for everyone else. */
   function dotOf(s: Site): string {
     if (R!.role === "union") return UNION_COLOR[s.union];
     const st = stageAt(s, day);
-    return st.status === "not started" ? "#bf5af2" : st.status === "done" ? "#5e5ce6" : STAGE_COLOR[st.stage];
+    return st.status === "not started" ? "#8b5fa8" : st.status === "done" ? "#5160c2" : STAGE_COLOR[st.stage];
   }
 
   /** The region on the globe as it stands on `day`. */
@@ -182,8 +182,8 @@ export function openConstruction(ctx: WorkCtx, app: App, role?: string) {
     const plan = (sites: Site[]) => {
       if (!sites.length) { out.replaceChildren(h("p", { class: "muted small" }, "No sites to visit.")); return; }
       const p = routePlan(sites.slice(0, 9), R!.base);
-      const feats: WorkFeature[] = [{ id: "route", kind: "line", pts: [[R!.base.lon, R!.base.lat], ...p.order.map((s) => [s.lon, s.lat] as [number, number])], color: "#0a84ff", solid: true },
-        { id: "base", kind: "point", pts: [[R!.base.lon, R!.base.lat]], color: "#0a84ff", label: "Start" }];
+      const feats: WorkFeature[] = [{ id: "route", kind: "line", pts: [[R!.base.lon, R!.base.lat], ...p.order.map((s) => [s.lon, s.lat] as [number, number])], color: "#3563d6", solid: true },
+        { id: "base", kind: "point", pts: [[R!.base.lon, R!.base.lat]], color: "#3563d6", label: "Start" }];
       route!.set(feats, "Today's site visits");
       out.replaceChildren(
         h("p", { class: "ec-note" }, `${p.order.length} sites · about ${p.km} km · ${Math.floor(p.minutes / 60)} h ${p.minutes % 60} min with 25 minutes at each gate.`),
@@ -229,7 +229,7 @@ export function openConstruction(ctx: WorkCtx, app: App, role?: string) {
           h("div", { class: "con-job-head" }, h("strong", {}, s.name), h("span", { class: `con-var ${v <= -2 ? "bad" : v >= 1 ? "good" : ""}` }, v === 0 ? "On plan" : v > 0 ? `${v} wk ahead` : `${-v} wk behind`)),
           stageStrip(s), h("small", {}, `${cap(st.stage)} · ${Math.round(st.overall * 100)}% · ${up.built}/${s.stories} floors up · ${peakWorkers(s)} workers · finish ${s.finish}`));
       }),
-      safety.length ? h("div", {}, title("Safety"), list(...safety.map(({ s, x }) => row({ color: x.kind === "stop-work order" || x.kind === "incident" ? "#ff453a" : "#ff9f0a" }, `${cap(x.kind)} · ${s.name}`, `${x.date} · ${x.text}`, () => sitePage(s))))) : "",
+      safety.length ? h("div", {}, title("Safety"), list(...safety.map(({ s, x }) => row({ color: x.kind === "stop-work order" || x.kind === "incident" ? "#c4513a" : "#d19a2e" }, `${cap(x.kind)} · ${s.name}`, `${x.date} · ${x.text}`, () => sitePage(s))))) : "",
       h("div", { class: "edu-actions" }, h("button", { class: "pill-btn", onclick: () => app.actions.get("work:buildpro")?.run() }, "Daily logs, RFIs and punch lists in Build Pro"),
         h("button", { class: "pill-btn", onclick: () => printReport("Our jobs", `${R!.name} · ${day}`, [
           { heading: "Portfolio", kpis: [[String(active.length), "under way"], [usd(mine.reduce((a, s) => a + s.value, 0)), "value"], [String(crews), "workers at peak"], [String(behind.length), "behind"]] },
@@ -280,9 +280,9 @@ export function openConstruction(ctx: WorkCtx, app: App, role?: string) {
     return [
       kpis([String(R!.sites.length), "sites"], [usd(p.value), "pipeline value"], [String(p.startingSoon.length), "start in 120 days"], [String(R!.sites.filter((s) => stageAt(s, day).status === "under way").length), "under way"]),
       title("The pipeline by stage"),
-      h("div", { class: "con-pipe" }, ...keys.filter((k) => p.by.get(k)).map((k) => { const e = p.by.get(k)!; return h("div", { class: "con-pipe-row" }, h("span", {}, cap(k)), h("span", { class: "con-pipe-bar" }, h("i", { style: `width:${(e.value / maxV) * 100}%;background:${k in STAGE_COLOR ? STAGE_COLOR[k as Stage] : k === "done" ? "#5e5ce6" : "#bf5af2"}` })), h("small", {}, `${e.n} · ${usd(e.value)}`)); })),
+      h("div", { class: "con-pipe" }, ...keys.filter((k) => p.by.get(k)).map((k) => { const e = p.by.get(k)!; return h("div", { class: "con-pipe-row" }, h("span", {}, cap(k)), h("span", { class: "con-pipe-bar" }, h("i", { style: `width:${(e.value / maxV) * 100}%;background:${k in STAGE_COLOR ? STAGE_COLOR[k as Stage] : k === "done" ? "#5160c2" : "#8b5fa8"}` })), h("small", {}, `${e.n} · ${usd(e.value)}`)); })),
       title("Starting soon"),
-      p.startingSoon.length ? list(...p.startingSoon.map((s) => row({ color: "#bf5af2" }, s.name, `Starts ${s.start} · ${s.stories} stories · ${usd(s.value)} · ${s.gc}`, () => sitePage(s)))) : h("p", { class: "muted small" }, "Nothing starts in the next 120 days."),
+      p.startingSoon.length ? list(...p.startingSoon.map((s) => row({ color: "#8b5fa8" }, s.name, `Starts ${s.start} · ${s.stories} stories · ${usd(s.value)} · ${s.gc}`, () => sitePage(s)))) : h("p", { class: "muted small" }, "Nothing starts in the next 120 days."),
       title("Bring in sites"),
       h("div", { class: "edu-form" },
         h("strong", {}, "New York City: DOB permits, live"),
@@ -367,7 +367,7 @@ export function openConstruction(ctx: WorkCtx, app: App, role?: string) {
       s.visits.length ? list(...s.visits.slice().reverse().map((v) => h("div", { class: "edu-person" }, h("div", {}, h("strong", {}, `${v.date} · ${v.by}`), h("small", {}, `${v.notes}${v.workers ? ` · ${v.workers} on site` : ""}${v.members !== undefined ? `, ${v.members} members` : ""}`))))) : h("p", { class: "muted small" }, "No visits logged."),
       h("div", { class: "edu-form" }, vNote, h("div", { class: "md-two" }, vWorkers, vMembers), h("button", { class: "pill-btn", onclick: () => { s.visits.push({ date: today, by: "Me", notes: vNote.value.trim() || "Visited", workers: Number(vWorkers.value) || undefined, members: vMembers.value ? Number(vMembers.value) : undefined }); change(); } }, "Log today's visit")),
       title("Safety"),
-      s.safety.length ? list(...s.safety.map((x: SafetyNote) => row({ color: x.kind === "stop-work order" || x.kind === "incident" ? "#ff453a" : "#ff9f0a" }, cap(x.kind), `${x.date} · ${x.text}`))) : h("p", { class: "muted small" }, "Nothing recorded."),
+      s.safety.length ? list(...s.safety.map((x: SafetyNote) => row({ color: x.kind === "stop-work order" || x.kind === "incident" ? "#c4513a" : "#d19a2e" }, cap(x.kind), `${x.date} · ${x.text}`))) : h("p", { class: "muted small" }, "Nothing recorded."),
       h("div", { class: "edu-form" }, h("div", { class: "md-two" }, sKind, sText), h("button", { class: "pill-btn", onclick: () => { if (!sText.value.trim()) return; s.safety.unshift({ date: today, kind: sKind.value as SafetyNote["kind"], text: sText.value.trim() }); change(); } }, "Add a safety note"),
         h("a", { class: "link-btn", href: "https://www.osha.gov/workers/file-complaint", target: "_blank", rel: "noopener" }, "File a complaint with OSHA")),
       title("Update"),

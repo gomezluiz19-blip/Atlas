@@ -132,7 +132,7 @@ export function yearBreathes(app: App) {
     open = null;
   };
   open = { close };
-  app.canvas.put({ id: "year", label: "The year breathes", color: "#30d158", scope: "world", pinned: true, show: (v) => { if (green) green.show = v; }, remove: close }, true);
+  app.canvas.put({ id: "year", label: "The year breathes", color: "#5b9467", scope: "world", pinned: true, show: (v) => { if (green) green.show = v; }, remove: close }, true);
   // Seen from far enough out to watch whole continents change.
   const c = viewer.camera.positionCartographic;
   if (c.height < 9_000_000) viewer.camera.flyTo({ destination: Cartesian3.fromRadians(c.longitude, c.latitude, 16_000_000), duration: 2 });

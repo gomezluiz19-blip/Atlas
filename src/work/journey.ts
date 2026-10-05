@@ -80,11 +80,11 @@ export function journeyFeatures(j: Journey, originLabel = "Home"): WorkFeature[]
     const lines = r.step.mode === "fly" || r.km > 300 ? arc(pt(r.from), pt(r.step.to)) : [[pt(r.from), pt(r.step.to)]];
     lines.forEach((pts, i) => out.push({ id: `${r.step.id}-${i}`, kind: "line", pts, color: m.color, dashed: r.step.mode === "fly" || r.step.mode === "ferry" }));
   }
-  if (j.origin) out.push({ id: "origin", kind: "point", pts: [pt(j.origin)], color: "#8e8e93", label: `${originEmoji(originLabel)} ${j.origin.name}` });
+  if (j.origin) out.push({ id: "origin", kind: "point", pts: [pt(j.origin)], color: "#8c8f87", label: `${originEmoji(originLabel)} ${j.origin.name}` });
   for (const s of j.steps) {
     if (s.kind === "stay") {
-      out.push({ id: s.id, kind: "point", pts: [pt(s.place)], color: "#ff375f", label: `${s.nights ? "🛏️" : "📍"} ${s.place.name}` });
-      for (const v of s.visits) if (v.spot) out.push({ id: v.id, kind: "point", pts: [pt(v.spot)], color: "#ff9f0a", label: v.name });
+      out.push({ id: s.id, kind: "point", pts: [pt(s.place)], color: "#b8496a", label: `${s.nights ? "🛏️" : "📍"} ${s.place.name}` });
+      for (const v of s.visits) if (v.spot) out.push({ id: v.id, kind: "point", pts: [pt(v.spot)], color: "#d19a2e", label: v.name });
     } else if (!j.steps.some((x) => x.kind === "stay" && Math.abs(x.place.lon - s.to.lon) < 1e-4 && Math.abs(x.place.lat - s.to.lat) < 1e-4)) {
       out.push({ id: s.id, kind: "point", pts: [pt(s.to)], color: MODES[s.mode].color, label: s.to.name });
     }
@@ -259,8 +259,8 @@ export function journeyEditor(host: JourneyHost): HTMLElement {
   };
   startInput.addEventListener("keydown", (e) => { if (e.key === "Enter") void findStart(); });
   startInput.addEventListener("change", () => { if (startInput.value.trim() !== (j.origin?.name ?? "")) void findStart(); });
-  const start = h("div", { class: "jr-step jr-start", style: "--c:#8e8e93" },
-    h("span", { class: "jr-icon", style: "--c:#8e8e93" }, iconFor(originEmoji(host.originLabel))),
+  const start = h("div", { class: "jr-step jr-start", style: "--c:#8c8f87" },
+    h("span", { class: "jr-icon", style: "--c:#8c8f87" }, iconFor(originEmoji(host.originLabel))),
     h("div", { class: "jr-body" },
       h("div", { class: "jr-title" }, host.originLabel === "Venue" ? "Start at " : host.short ? "Leave from " : "Start from ", startInput),
       h("div", { class: "jr-when" },
@@ -329,7 +329,7 @@ export function journeyEditor(host: JourneyHost): HTMLElement {
         ...r.days.map((_d, k) => h("option", { value: k, selected: v.day === k }, `Day ${k + 1}`))) : "",
       h("button", { class: "icon-btn", "aria-label": `Remove ${v.name}`, onclick: () => { s.visits = s.visits.filter((x) => x !== v); change(); } }, "✕"));
     const byDay = long ? r.days.map((d, k) => ({ d, k, vs: s.visits.filter((v) => v.day === k) })).filter((x) => x.vs.length) : [];
-    return h("div", { class: `jr-step jr-stay${open ? " open" : ""}`, style: "--c:#ff375f", "data-i": i },
+    return h("div", { class: `jr-step jr-stay${open ? " open" : ""}`, style: "--c:#b8496a", "data-i": i },
       h("span", { class: "jr-icon" }, iconFor(long ? "🛏️" : "📍")),
       h("div", { class: "jr-body" },
         !long && s.label

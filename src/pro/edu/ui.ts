@@ -32,8 +32,8 @@ const ROLE_ORDER: Role[] = ["principal", "assistant principal", "teacher", "aide
 let mass: Massing | null = null, lines: WorkLayer | null = null, flow: FlowOverlay | null = null;
 
 export function openEducation(ctx: WorkCtx, app: App) {
-  mass ??= new Massing(app, "edu:campus", "Schools", "#5e5ce6", "🏫");
-  lines ??= new WorkLayer(app, "edu:routes", "School buses and students", "#ffcc00");
+  mass ??= new Massing(app, "edu:campus", "Schools", "#5160c2", "🏫");
+  lines ??= new WorkLayer(app, "edu:routes", "School buses and students", "#e1b843");
   flow ??= new FlowOverlay(app.globe.viewer, { maxHeight: 80_000, maxDrops: 3000, fade: 0.1 });
   const today = isoDay();
   let d = load();
@@ -52,7 +52,7 @@ export function openEducation(ctx: WorkCtx, app: App) {
       const states = roomStates(d, s, today), flags = schoolFlags(d, s, today);
       s.buildings.forEach((b, i) => bs.push({ id: b.id, lon: s.lon, lat: s.lat, w: b.w, d: b.d, dx: b.dx, dy: b.dy, bearing: b.bearing, floors: b.floors, floorH: 4,
         floorColor: (f) => ROOM_COLOR[floorState(s, states, b.id, f)], label: i === 0 ? s.name : undefined,
-        pulse: i === 0 && flags.some((x) => x.level === "now") ? "#ff453a" : undefined, onTap: () => schoolPage(s) }));
+        pulse: i === 0 && flags.some((x) => x.level === "now") ? "#c4513a" : undefined, onTap: () => schoolPage(s) }));
     }
     mass!.draw(bs, d.name);
     // Bus routes and where students live, faintly.
@@ -67,8 +67,8 @@ export function openEducation(ctx: WorkCtx, app: App) {
   function arrival(schools: School[]) {
     const fl: FlowLine[] = [];
     for (const s of schools) {
-      for (const b of s.buses) fl.push({ pts: b.stops, color: "#ffcc00", speed: 220, density: 0.6, size: 3.2 });
-      for (const c of s.catchment.filter((c) => Math.hypot(c[0] - s.lon, c[1] - s.lat) < 0.02)) fl.push({ pts: [[c[0], c[1]], [s.lon, s.lat]], color: "#64d2ff", speed: 40, density: 0.6 + c[2] / 20, size: 1.6 });
+      for (const b of s.buses) fl.push({ pts: b.stops, color: "#e1b843", speed: 220, density: 0.6, size: 3.2 });
+      for (const c of s.catchment.filter((c) => Math.hypot(c[0] - s.lon, c[1] - s.lat) < 0.02)) fl.push({ pts: [[c[0], c[1]], [s.lon, s.lat]], color: "#4c9ac9", speed: 40, density: 0.6 + c[2] / 20, size: 1.6 });
     }
     flow!.set(fl); flow!.show(true);
     setTimeout(() => flow?.set([]), 20_000);
@@ -116,7 +116,7 @@ export function openEducation(ctx: WorkCtx, app: App) {
       h("div", { class: "edu-legend" }, ...(["cover", "repair", "covered", "ok"] as const).map((s) => h("span", { style: `--c:${ROOM_COLOR[s]}` }, h("i", {}), ROOM_LABEL[s]))),
       h("button", { class: "pill-btn", onclick: () => arrival(d!.schools) }, "▶ Morning arrival"),
       title("Schools"),
-      list(...d.schools.map((s) => { const f = schoolFlags(d!, s, today); return row({ color: f.some((x) => x.level === "now") ? "#ff453a" : f.length ? "#ff9f0a" : "#30d158" }, s.name, `${LEVEL[s.level]} · ${s.enrollment.toLocaleString()} students · ${f.length ? `${f.length} to look at` : "all clear"}`, () => schoolPage(s)); })),
+      list(...d.schools.map((s) => { const f = schoolFlags(d!, s, today); return row({ color: f.some((x) => x.level === "now") ? "#c4513a" : f.length ? "#d19a2e" : "#5b9467" }, s.name, `${LEVEL[s.level]} · ${s.enrollment.toLocaleString()} students · ${f.length ? `${f.length} to look at` : "all clear"}`, () => schoolPage(s)); })),
       addSchool,
       h("div", { class: "edu-actions" },
         h("button", { class: "pill-btn", onclick: () => districtReport() }, "District report"),
@@ -238,7 +238,7 @@ export function openEducation(ctx: WorkCtx, app: App) {
         title("Where students live"),
         h("p", { class: "ec-note" }, cs.within.map(([km, pct]) => `${pct}% within ${km} km`).join(" · "), ". The morning arrival shows them streaming in."),
         title("Buses"),
-        list(...s.buses.map((b) => row({ color: b.onTime < 0.85 ? "#ff9f0a" : "#30d158" }, b.name, `${b.students} students · ${Math.round(b.onTime * 100)}% on time · ${b.stops.length - 1} stops`))),
+        list(...s.buses.map((b) => row({ color: b.onTime < 0.85 ? "#d19a2e" : "#5b9467" }, b.name, `${b.students} students · ${Math.round(b.onTime * 100)}% on time · ${b.stops.length - 1} stops`))),
         h("button", { class: "pill-btn", onclick: () => arrival([s]) }, "▶ Watch the morning arrival"),
       ];
     }
@@ -255,12 +255,12 @@ export function openEducation(ctx: WorkCtx, app: App) {
           const km = Math.round(Math.hypot((t.place.lon - s.lon) * 86, (t.place.lat - s.lat) * 111));
           return h("div", { class: `edu-trip ${t.status}` }, h("div", {}, h("strong", {}, t.title), h("small", {}, `${t.place.name} · ${t.date} · ${t.students} students · ${name(t.teacher)} · ~${km} km, ${Math.round(km / 0.45)} min by bus`)),
             t.status === "requested" ? h("div", { class: "edu-cover-pick" }, h("button", { class: "pill-btn", onclick: () => { t.status = "approved"; change(); } }, "Approve"), h("button", { class: "link-btn danger", onclick: () => { t.status = "declined"; change(); } }, "Decline"))
-              : h("span", { class: `edu-tag ${t.status === "approved" ? "" : "out"}` }, t.status), h("button", { class: "link-btn", onclick: () => { lines!.set([{ id: t.id, kind: "line", pts: [[s.lon, s.lat], [t.place.lon, t.place.lat]], color: "#bf5af2", solid: true }, { id: `${t.id}-p`, kind: "point", pts: [[t.place.lon, t.place.lat]], color: "#bf5af2", label: t.place.name }], t.title); void flyToPlace(app.globe, { name: t.place.name, lon: (s.lon + t.place.lon) / 2, lat: (s.lat + t.place.lat) / 2, radius: km * 700 + 2000 }); } }, "Show the route"));
+              : h("span", { class: `edu-tag ${t.status === "approved" ? "" : "out"}` }, t.status), h("button", { class: "link-btn", onclick: () => { lines!.set([{ id: t.id, kind: "line", pts: [[s.lon, s.lat], [t.place.lon, t.place.lat]], color: "#8b5fa8", solid: true }, { id: `${t.id}-p`, kind: "point", pts: [[t.place.lon, t.place.lat]], color: "#8b5fa8", label: t.place.name }], t.title); void flyToPlace(app.globe, { name: t.place.name, lon: (s.lon + t.place.lon) / 2, lat: (s.lat + t.place.lat) / 2, radius: km * 700 + 2000 }); } }, "Show the route"));
         })) : h("p", { class: "muted small" }, "No trips planned."),
         title("Classes and what they're working on"),
         ...l.groups.map((g) => h("div", { class: "edu-group" }, h("div", { class: "edu-group-head" }, h("strong", {}, g.group), h("span", {}, `${g.done}% done`)),
           ...g.list.map((a) => h("div", { class: "edu-asg" }, h("span", {}, `${a.kind === "quiz" ? "📝" : a.kind === "trip" ? "🚌" : a.kind === "game" ? "🎲" : "🌍"} ${a.title}`), h("small", {}, `due ${a.due}`), h("span", { class: "edu-bar" }, h("i", { style: `width:${a.done * 100}%` })))))),
-        l.quizzes.length ? h("div", {}, title("Quiz results from Teach"), list(...l.quizzes.map((q) => row({ color: q.pct >= 70 ? "#30d158" : q.pct >= 50 ? "#ff9f0a" : "#ff453a" }, q.title, `${q.n} result${q.n === 1 ? "" : "s"} · average ${q.pct}%`)))) : "",
+        l.quizzes.length ? h("div", {}, title("Quiz results from Teach"), list(...l.quizzes.map((q) => row({ color: q.pct >= 70 ? "#5b9467" : q.pct >= 50 ? "#d19a2e" : "#c4513a" }, q.title, `${q.n} result${q.n === 1 ? "" : "s"} · average ${q.pct}%`)))) : "",
         title("Assign a lesson"),
         h("div", { class: "edu-form" }, grp, h("div", { class: "md-two" }, what, due), h("button", { class: "pill-btn", onclick: () => { const t = d!.staff.find((x) => x.id === grp.value); if (!t) return; s.assignments.push({ id: `a${Date.now()}`, teacher: t.id, group: t.subject ?? t.name, title: what.value, kind: "lesson", due: due.value, done: 0 }); change(); } }, "Assign")),
         h("div", { class: "edu-actions" }, h("button", { class: "pill-btn", onclick: () => app.actions.get("work:teach")?.run() }, "Open Teach: lessons, quizzes, games"), h("button", { class: "pill-btn", onclick: () => app.actions.get("work:learn")?.run() }, "Learn: museums and places to visit")),

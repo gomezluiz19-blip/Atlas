@@ -117,7 +117,7 @@ export function cityWaterSubtab(): Subtab {
     const where = app.place?.name?.title;
     // On the shared canvas: stays on while you look at this place through other themes.
     app.canvas.put({
-      id: "water:city", label: `Water › City water${where ? ` · ${where}` : ""}`, color: "#0a84ff", theme: "water", scope: "place", pinned: false,
+      id: "water:city", label: `Water › City water${where ? ` · ${where}` : ""}`, color: "#3563d6", theme: "water", scope: "place", pinned: false,
       show: (v) => { l.show = v; fl.show(v); },
       remove: () => {
         app.globe.viewer.imageryLayers.remove(l, true);

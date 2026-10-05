@@ -70,22 +70,22 @@ async function loadNeighbours(p: Project) {
 // ---- The map ---------------------------------------------------------------------------------------
 
 function worst(p: Project) { return projectFlags(p, today(), fc(p))[0]?.level ?? 0; }
-const statusColor = (lvl: number) => (lvl >= 3 ? "#ff453a" : lvl === 2 ? "#ff9f0a" : "#30d158");
+const statusColor = (lvl: number) => (lvl >= 3 ? "#c4513a" : lvl === 2 ? "#d19a2e" : "#5b9467");
 
 function draw(app: App, f: Firm, focus?: Project) {
-  map ??= new OpsMap(app, "pro:build", "#ff9f0a");
+  map ??= new OpsMap(app, "pro:build", "#d19a2e");
   const fs: WorkFeature[] = [], flows = [];
   const t = today();
   for (const p of focus ? [focus] : f.projects) {
     fs.push({ id: p.id, kind: "point", pts: [[p.lon, p.lat]], color: statusColor(worst(p)), label: `🏗 ${p.name}` });
     for (const d of p.deliveries.filter((x) => x.status !== "delivered" && x.lon !== undefined && daysBetween(t, x.date) <= 7 && daysBetween(t, x.date) >= 0)) {
-      const a = arcFlow(d.id, { lon: d.lon!, lat: d.lat! }, p, "#ff9f0a", Math.min(1, d.trucks / 10));
+      const a = arcFlow(d.id, { lon: d.lon!, lat: d.lat! }, p, "#d19a2e", Math.min(1, d.trucks / 10));
       fs.push(a.line); flows.push(a.flow);
-      if (focus) fs.push({ id: `s${d.id}`, kind: "point", pts: [[d.lon!, d.lat!]], color: "#bf5af2", label: `🚚 ${d.supplier}` });
+      if (focus) fs.push({ id: `s${d.id}`, kind: "point", pts: [[d.lon!, d.lat!]], color: "#8b5fa8", label: `🚚 ${d.supplier}` });
     }
     if (focus && tab === "site") {
-      fs.push({ id: `r${p.id}`, kind: "area", pts: ring(p.lon, p.lat, 0.3), color: "#ff9f0a", fill: 0.06 });
-      for (const r of (receptors.get(p.id) ?? []).filter((x) => x.kind !== "homes")) fs.push({ id: `n${r.name}${r.lon}`, kind: "point", pts: [[r.lon, r.lat]], color: "#ff375f", label: `${r.kind === "school" ? "🏫" : r.kind === "hospital" ? "🏥" : r.kind === "care" ? "🧓" : "⛪"} ${r.name} · ${noiseAt(r.m)} dB` });
+      fs.push({ id: `r${p.id}`, kind: "area", pts: ring(p.lon, p.lat, 0.3), color: "#d19a2e", fill: 0.06 });
+      for (const r of (receptors.get(p.id) ?? []).filter((x) => x.kind !== "homes")) fs.push({ id: `n${r.name}${r.lon}`, kind: "point", pts: [[r.lon, r.lat]], color: "#b8496a", label: `${r.kind === "school" ? "🏫" : r.kind === "hospital" ? "🏥" : r.kind === "care" ? "🧓" : "⛪"} ${r.name} · ${noiseAt(r.m)} dB` });
     }
   }
   map.draw(focus ? focus.name : f.name, fs, flows);
@@ -230,12 +230,12 @@ function weatherPanel(p: Project) {
     h("div", { class: "bp-wx", style: `grid-template-columns:minmax(0,1.6fr) repeat(${days.length},minmax(0,1fr))` },
       h("span", {}), ...days.map((d) => h("span", { class: "bp-wx-day" }, new Date(d.date + "T12:00:00Z").toLocaleDateString(undefined, { weekday: "narrow", day: "numeric" }))),
       ...kinds.flatMap((k) => [h("span", { class: "bp-wx-kind" }, `${WEATHER[k].emoji} ${WEATHER[k].label}`), ...w[k].map((c) => h("span", { class: "bp-wx-cell " + (c.ok ? "ok" : "no"), title: c.why ?? "Good" }, c.ok ? "●" : "×"))])),
-    clashes.length ? h("div", {}, title("Planned work the weather rules out"), list(...clashes.map((c) => row({ color: c.slot.critical ? "#ff453a" : "#ff9f0a" }, `${c.slot.task.name} · ${c.date}`, `${c.why}${c.next ? ` · next good day ${c.next}` : " · no good day in the forecast"}${c.slot.critical ? " · on the critical path" : ` · ${c.slot.float} days float`}`)))) : lines("✓ Nothing planned in the next ten days that the weather rules out."),
+    clashes.length ? h("div", {}, title("Planned work the weather rules out"), list(...clashes.map((c) => row({ color: c.slot.critical ? "#c4513a" : "#d19a2e" }, `${c.slot.task.name} · ${c.date}`, `${c.why}${c.next ? ` · next good day ${c.next}` : " · no good day in the forecast"}${c.slot.critical ? " · on the critical path" : ` · ${c.slot.float} days float`}`)))) : lines("✓ Nothing planned in the next ten days that the weather rules out."),
     title("What past years say"),
     hist.length ? h("div", {}, ...(["pour", "earth", "paint"] as const).map((k) => {
       const lost = lostDaysByMonth(k, hist), max = Math.max(1, ...lost);
       return h("div", {}, h("p", { class: "small" }, `${WEATHER[k].emoji} ${WEATHER[k].label}: working days lost a month`),
-        h("div", { class: "fn-climate" }, ...lost.map((v, i) => h("span", { title: `${MONTHS[i]}: ${v} days` }, h("i", { style: `height:${(v / max) * 100}%;background:#ff9f0a` }), h("small", {}, MONTHS[i][0])))));
+        h("div", { class: "fn-climate" }, ...lost.map((v, i) => h("span", { title: `${MONTHS[i]}: ${v} days` }, h("i", { style: `height:${(v / max) * 100}%;background:#d19a2e` }), h("small", {}, MONTHS[i][0])))));
     }), h("p", { class: "muted small" }, "From ten years of daily ERA5 weather here: build these into the programme as weather days.")) : empty("Loading ten years of weather…"));
 }
 
@@ -243,7 +243,7 @@ function moneyPanel(ctx: WorkCtx, f: Firm, p: Project) {
   const ev = earnedValue(p, today()), max = Math.max(ev.bac, ev.eac, 1);
   const bar = (label: string, v: number, color: string) => h("div", { class: "bp-money" }, h("span", {}, label), h("span", { class: "bp-money-bar" }, h("i", { style: `width:${(v / max) * 100}%;background:${color}` })), h("strong", {}, usdShort(v)));
   return h("div", {},
-    bar("Budget at completion", ev.bac, "#8e8e93"), bar("Planned value (should be done)", ev.pv, "#0a84ff"), bar("Earned value (done)", ev.ev, "#30d158"), bar("Actual cost", ev.ac, ev.ac > ev.ev ? "#ff453a" : "#30d158"), bar("Forecast at completion", ev.eac, ev.eac > ev.bac ? "#ff453a" : "#30d158"),
+    bar("Budget at completion", ev.bac, "#8c8f87"), bar("Planned value (should be done)", ev.pv, "#3563d6"), bar("Earned value (done)", ev.ev, "#5b9467"), bar("Actual cost", ev.ac, ev.ac > ev.ev ? "#c4513a" : "#5b9467"), bar("Forecast at completion", ev.eac, ev.eac > ev.bac ? "#c4513a" : "#5b9467"),
     lines(`Cost performance ${ev.cpi.toFixed(2)}: every dollar spent has earned ${ev.cpi.toFixed(2)} of work.`, `Schedule performance ${ev.spi.toFixed(2)}: ${Math.round(ev.spi * 100)}% of the work planned by now is done.`,
       ev.overrun > 0 ? `At this rate the job costs ${usd(ev.eac)}, ${usd(ev.overrun)} over budget.` : `At this rate the job comes in ${usd(-ev.overrun)} under budget.`,
       p.rfis.some((r) => r.cost) ? `Open questions with a price: ${usd(p.rfis.filter((r) => r.status === "open").reduce((s, r) => s + (r.cost ?? 0), 0))} of possible variations.` : null),
@@ -258,10 +258,10 @@ function sitePanel(ctx: WorkCtx, f: Firm, p: Project) {
   const dc = deliveryClashes(p, fc(p));
   return h("div", {},
     title(`People on site · peak ${peak}`),
-    h("div", { class: "fn-climate" }, ...hc.map((x) => h("span", { title: `${x.date}: ${x.people} (${x.trades.join(", ")})` }, h("i", { style: `height:${(x.people / peak) * 100}%;background:#0a84ff` }), h("small", {}, x.date.slice(8))))),
+    h("div", { class: "fn-climate" }, ...hc.map((x) => h("span", { title: `${x.date}: ${x.people} (${x.trades.join(", ")})` }, h("i", { style: `height:${(x.people / peak) * 100}%;background:#3563d6` }), h("small", {}, x.date.slice(8))))),
     title("Deliveries"),
     dc.length ? lines(...dc.map((c) => `⚠️ ${c.a.what}${c.b ? ` and ${c.b.what}` : ""}: ${c.why}`)) : "",
-    dels.length ? list(...dels.map((d) => row({ color: d.crane ? "#ff9f0a" : "#bf5af2" }, `${d.date}${d.window ? ` ${d.window}` : ""} · ${d.what}`, `${d.supplier}${d.lon !== undefined ? ` · about ${fmt(haulHours(p, { lon: d.lon, lat: d.lat! }), 1)} h by road` : ""} · ${d.trucks} truck${d.trucks === 1 ? "" : "s"}${d.crane ? " · needs the crane" : ""}`, undefined,
+    dels.length ? list(...dels.map((d) => row({ color: d.crane ? "#d19a2e" : "#8b5fa8" }, `${d.date}${d.window ? ` ${d.window}` : ""} · ${d.what}`, `${d.supplier}${d.lon !== undefined ? ` · about ${fmt(haulHours(p, { lon: d.lon, lat: d.lat! }), 1)} h by road` : ""} · ${d.trucks} truck${d.trucks === 1 ? "" : "s"}${d.crane ? " · needs the crane" : ""}`, undefined,
       h("button", { class: "pill-btn", onclick: (e: Event) => { e.stopPropagation(); d.status = "delivered"; p.log.push({ at: t, text: `Delivered: ${d.what}` }); save(f); projectScreen(ctx, f, p, false); } }, "Arrived")))) : empty("No deliveries booked."),
     h("button", { class: "pill-btn", onclick: () => void addDelivery(ctx, f, p) }, "+ Delivery"),
     title("Neighbours within 300 m"),
@@ -270,10 +270,10 @@ function sitePanel(ctx: WorkCtx, f: Firm, p: Project) {
       ...sensitive.slice(0, 6).map((r) => `${r.name}: ${r.m} m, about ${noiseAt(r.m)} dB from heavy plant`),
       `Working hours: ${p.hours ?? "not set"}. Tell the neighbours before noisy or out-of-hours work.`),
     title("Permits and inspections"),
-    p.permits.length ? list(...[...p.permits].sort((a, b) => a.date.localeCompare(b.date)).map((x) => row({ color: x.status === "pending" ? (x.date < t ? "#ff453a" : daysBetween(t, x.date) <= 14 ? "#ff9f0a" : "#8e8e93") : "#30d158" }, x.title, `${x.date} · ${x.status}`, undefined,
+    p.permits.length ? list(...[...p.permits].sort((a, b) => a.date.localeCompare(b.date)).map((x) => row({ color: x.status === "pending" ? (x.date < t ? "#c4513a" : daysBetween(t, x.date) <= 14 ? "#d19a2e" : "#8c8f87") : "#5b9467" }, x.title, `${x.date} · ${x.status}`, undefined,
       x.status === "pending" ? h("button", { class: "pill-btn", onclick: (e: Event) => { e.stopPropagation(); x.status = x.kind === "permit" ? "issued" : "passed"; save(f); projectScreen(ctx, f, p, false); } }, x.kind === "permit" ? "Issued" : "Passed") : undefined))) : empty("None recorded."),
     title("Questions to the designer"),
-    p.rfis.length ? list(...p.rfis.map((r) => row({ color: r.status === "open" ? (daysBetween(r.opened, t) > 7 ? "#ff9f0a" : "#0a84ff") : "#30d158" }, r.title, `opened ${r.opened} (${daysBetween(r.opened, t)} days)${r.cost ? ` · could cost ${usd(r.cost)}` : ""}${r.days ? `, ${r.days} days` : ""} · ${r.status}`, undefined,
+    p.rfis.length ? list(...p.rfis.map((r) => row({ color: r.status === "open" ? (daysBetween(r.opened, t) > 7 ? "#d19a2e" : "#3563d6") : "#5b9467" }, r.title, `opened ${r.opened} (${daysBetween(r.opened, t)} days)${r.cost ? ` · could cost ${usd(r.cost)}` : ""}${r.days ? `, ${r.days} days` : ""} · ${r.status}`, undefined,
       r.status === "open" ? h("button", { class: "pill-btn", onclick: (e: Event) => { e.stopPropagation(); r.status = "answered"; save(f); projectScreen(ctx, f, p, false); } }, "Answered") : undefined))) : empty("None open."),
     h("button", { class: "pill-btn", onclick: () => { const q = prompt("The question"); if (q) { p.rfis.push({ id: newId(), title: q, opened: t, status: "open" }); save(f); projectScreen(ctx, f, p, false); } } }, "+ Question"));
 }
@@ -313,7 +313,7 @@ async function siteHologram(app: App, p: Project) {
   void loadNeighbours(p);
   const markers = () => [
     { lon: p.lon, lat: p.lat, color: statusColor(lvl), label: `${Math.round(ev.done * 100)}% built`, pulse: lvl >= 3, ring: 300, height: 60 },
-    ...(receptors.get(p.id) ?? []).filter((r) => r.kind !== "homes").slice(0, 8).map((r) => ({ lon: r.lon, lat: r.lat, color: "#ff375f", label: `${r.name} · ${noiseAt(r.m)} dB`, height: 25 })),
+    ...(receptors.get(p.id) ?? []).filter((r) => r.kind !== "homes").slice(0, 8).map((r) => ({ lon: r.lon, lat: r.lat, color: "#b8496a", label: `${r.name} · ${noiseAt(r.m)} dB`, height: 25 })),
   ];
   const hl = await openSpace(app, { name: p.name, kicker: `Building site · ${p.client || p.kind}`, lon: p.lon, lat: p.lat, size: 760, tint: "amber", markers: markers() });
   const ok = (k: Weather) => (d0 ? (workable(k, d0).ok ? "Go" : `Stop: ${workable(k, d0).why}`) : "…");

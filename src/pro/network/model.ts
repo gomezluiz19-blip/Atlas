@@ -19,7 +19,7 @@ export const NODE_KINDS: Record<NodeKind, { label: string; emoji: string; ours: 
   port: { label: "Port", emoji: "⚓", ours: false },
 };
 export const FLOW_KINDS: Record<FlowKind, { label: string; color: string }> = {
-  goods: { label: "Goods", color: "#ff9f0a" }, people: { label: "People", color: "#0a84ff" }, money: { label: "Money", color: "#30d158" }, data: { label: "Data", color: "#bf5af2" },
+  goods: { label: "Goods", color: "#d19a2e" }, people: { label: "People", color: "#3563d6" }, money: { label: "Money", color: "#5b9467" }, data: { label: "Data", color: "#8b5fa8" },
 };
 /** How each way of moving goes: road-distance factor, speed (km/h), hours of handling, and carbon (kg CO2 per tonne-km for goods, per passenger-km for people). */
 export const MODES: Record<Mode, { label: string; detour: number; kmh: number; handling: number; goodsCO2: number; peopleCO2: number }> = {

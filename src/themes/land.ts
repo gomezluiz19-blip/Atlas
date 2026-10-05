@@ -115,7 +115,7 @@ export function landTheme(app: App): Theme {
     id: "land",
     label: "Land",
     icon: icons.mountain,
-    color: "#a2845e",
+    color: "#9a7552",
     intro: "Mountains, canyons and the rock beneath them.",
     subtabs: [
       overview,

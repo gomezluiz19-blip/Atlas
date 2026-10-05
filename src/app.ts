@@ -434,7 +434,7 @@ export class App {
       position: Cartesian3.fromDegrees(p.lon, p.lat),
       point: {
         pixelSize: 16,
-        color: Color.fromCssColorString("#ff3b30"),
+        color: Color.fromCssColorString("#c4513a"),
         outlineColor: Color.WHITE,
         outlineWidth: 3,
         heightReference: HeightReference.CLAMP_TO_GROUND,

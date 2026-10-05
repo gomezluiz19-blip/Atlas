@@ -56,7 +56,7 @@ export const sliceLens: Lens = {
   label: "Slice",
   icon: "🔪",
   blurb: "Cut it open and see the rock layers inside",
-  score: (s) => ({ peak: 1, volcano: 1, range: 1, crater: 0.95, canyon: 1, river: 0.7, glacier: 0.7, island: 0.7, sea: 0.6, lake: 0.5, coast: 0.6, desert: 0.7, forest: 0.4, land: 0.7, city: 0.3 })[s.kind],
+  score: (s) => ({ peak: 1, volcano: 1, range: 1, crater: 0.95, canyon: 1, river: 0.4, glacier: 0.7, island: 0.5, sea: 0.4, lake: 0.3, coast: 0.3, desert: 0.5, forest: 0.2, land: s.relief > 300 ? 0.6 : 0.3, city: 0.1 })[s.kind],
   async open(host, s) {
     const { app } = host;
     const viewer = app.globe.viewer;
@@ -84,7 +84,7 @@ export const sliceLens: Lens = {
     };
     const drawLine = (pts: [number, number][]) => {
       ds.entities.removeAll();
-      ds.entities.add({ polyline: { positions: Cartesian3.fromDegreesArray(pts.filter((_, i) => i % 6 === 0).flat()), width: 7, clampToGround: true, material: new PolylineGlowMaterialProperty({ glowPower: 0.25, color: Color.fromCssColorString("#ffd60a") }) } });
+      ds.entities.add({ polyline: { positions: Cartesian3.fromDegreesArray(pts.filter((_, i) => i % 6 === 0).flat()), width: 7, clampToGround: true, material: new PolylineGlowMaterialProperty({ glowPower: 0.25, color: Color.fromCssColorString("#e1b843") }) } });
     };
     const drawFigure = () => {
       if (!section) return;

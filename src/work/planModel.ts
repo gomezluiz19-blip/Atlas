@@ -31,11 +31,11 @@ export interface Plan {
 }
 
 export const PLAN_TYPES: Record<PlanType, { label: string; color: string; about: string; add: { kind: PlanItem["kind"]; label: string; name: string }[] }> = {
-  trip: { label: "Trip", color: "#0a84ff", about: "Fly, drive, stay: step by step, each leg its own way, with times and stops", add: [{ kind: "point", label: "Add a stop", name: "Stop" }] },
-  event: { label: "Event", color: "#ff375f", about: "A venue, meeting points and parking, and how far people can reach it", add: [{ kind: "point", label: "Place the venue", name: "Venue" }, { kind: "point", label: "Add a meeting point or parking", name: "Meeting point" }] },
-  business: { label: "Business", color: "#30d158", about: "Candidate sites compared side by side: transport, power and markets", add: [{ kind: "point", label: "Add a candidate site", name: "Site" }] },
-  policy: { label: "Policy", color: "#bf5af2", about: "Zones drawn on the map, and what's inside each one", add: [{ kind: "area", label: "Draw a zone", name: "Zone" }] },
-  infrastructure: { label: "Infrastructure", color: "#ff9f0a", about: "Proposed lines (roads, pipes, rail, power) and sites: length, terrain and what they cross", add: [{ kind: "line", label: "Draw a proposed route", name: "Route" }, { kind: "point", label: "Place a facility", name: "Facility" }] },
+  trip: { label: "Trip", color: "#3563d6", about: "Fly, drive, stay: step by step, each leg its own way, with times and stops", add: [{ kind: "point", label: "Add a stop", name: "Stop" }] },
+  event: { label: "Event", color: "#b8496a", about: "A venue, meeting points and parking, and how far people can reach it", add: [{ kind: "point", label: "Place the venue", name: "Venue" }, { kind: "point", label: "Add a meeting point or parking", name: "Meeting point" }] },
+  business: { label: "Business", color: "#5b9467", about: "Candidate sites compared side by side: transport, power and markets", add: [{ kind: "point", label: "Add a candidate site", name: "Site" }] },
+  policy: { label: "Policy", color: "#8b5fa8", about: "Zones drawn on the map, and what's inside each one", add: [{ kind: "area", label: "Draw a zone", name: "Zone" }] },
+  infrastructure: { label: "Infrastructure", color: "#d19a2e", about: "Proposed lines (roads, pipes, rail, power) and sites: length, terrain and what they cross", add: [{ kind: "line", label: "Draw a proposed route", name: "Route" }, { kind: "point", label: "Place a facility", name: "Facility" }] },
 };
 
 /** Typical door-to-door speeds (km/h) and how much longer real routes are than a straight line. */

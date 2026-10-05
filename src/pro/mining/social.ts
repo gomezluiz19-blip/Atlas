@@ -150,10 +150,10 @@ export function toPath(p: { lon: number; lat: number }, path: [number, number][]
  * infrastructure) can raise it; this reads population only (pure).
  */
 export function gistmClass(par: number): { label: "Low" | "Significant" | "High" | "Very high" | "Extreme"; color: string } {
-  if (par <= 0) return { label: "Low", color: "#30d158" };
-  if (par <= 10) return { label: "Significant", color: "#ffd60a" };
-  if (par <= 100) return { label: "High", color: "#ff9f0a" };
-  if (par <= 1000) return { label: "Very high", color: "#ff453a" };
+  if (par <= 0) return { label: "Low", color: "#5b9467" };
+  if (par <= 10) return { label: "Significant", color: "#e1b843" };
+  if (par <= 100) return { label: "High", color: "#d19a2e" };
+  if (par <= 1000) return { label: "Very high", color: "#c4513a" };
   return { label: "Extreme", color: "#bf1f2f" };
 }
 

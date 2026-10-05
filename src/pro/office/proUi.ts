@@ -37,7 +37,7 @@ export function mailScreen(ctx: WorkCtx, o: Office, save: () => void, back: () =
   const most = Math.max(1, ...s.byWeek);
   ctx.show("Mailbag", back,
     kpis([String(s.byWeek[s.byWeek.length - 1]), "this week"], [String(s.queue.length), "waiting for a reply", s.overdue > 0], [s.medianReply ? `${Math.round(s.medianReply)} d` : "—", "median to reply"], [pct(s.onTime), `replied in ${REPLY_DAYS} days`]),
-    h("div", { class: "gm-months", title: "Messages each week, last 8 weeks" }, ...s.byWeek.map((n, i) => h("span", { style: `--h:${(n / most) * 100}%`, title: `${n}` }, h("i", { style: "background:#5e5ce6" }), h("small", {}, i === s.byWeek.length - 1 ? "now" : `−${s.byWeek.length - 1 - i}w`)))),
+    h("div", { class: "gm-months", title: "Messages each week, last 8 weeks" }, ...s.byWeek.map((n, i) => h("span", { style: `--h:${(n / most) * 100}%`, title: `${n}` }, h("i", { style: "background:#5160c2" }), h("small", {}, i === s.byWeek.length - 1 ? "now" : `−${s.byWeek.length - 1 - i}w`)))),
     title("By topic"),
     s.topics.length ? list(...s.topics.map((tp) => h("div", { class: "list-row po-topic" },
       h("span", { class: "list-text" }, h("span", { class: "list-title" }, `${tp.topic}${tp.rising ? " 📈" : ""}`),
@@ -138,7 +138,7 @@ export function inviteScreen(ctx: WorkCtx, o: Office, e: OfficeEvent, back: () =
     const inv = inviteList(o.contacts, e.place, km, topic || undefined);
     out.replaceChildren(
       lines(`${inv.length} ${inv.length === 1 ? "person" : "people"} within ${km} km${topic ? ` who care about ${topic}` : ""}.`),
-      list(...inv.map((x) => row({ color: "#5e5ce6" }, x.c.name, [x.c.topics.join(", "), kmText(x.km), x.c.email ?? x.c.phone ?? ""].filter(Boolean).join(" · ")))),
+      list(...inv.map((x) => row({ color: "#5160c2" }, x.c.name, [x.c.topics.join(", "), kmText(x.km), x.c.email ?? x.c.phone ?? ""].filter(Boolean).join(" · ")))),
       h("button", { class: "pill-btn", onclick: () => downloadCsv(`Invites ${e.title} ${e.date}`, ["name", "email", "phone", "address", "distance km", "topics"], inv.map((x) => [x.c.name, x.c.email, x.c.phone, x.c.address, x.km.toFixed(1), x.c.topics.join("; ")])) }, "Export the invite list"));
   };
   const topics = topTopics(o.contacts, 20);

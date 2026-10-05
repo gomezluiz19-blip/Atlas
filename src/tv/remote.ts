@@ -15,6 +15,7 @@ import { validQuiz } from "../work/quizModel";
 import { cleanCode, joinTv, type Cmd, type State, type ToolItem } from "./link";
 import { edgeDir, IDENTITY, sphereLines, turn, type M3 } from "./orbGrid";
 import { allSites, clockText } from "./rooms";
+import { installEmojiGuard } from "../ui/noEmoji";
 
 const $ = <K extends keyof HTMLElementTagNameMap>(tag: K, attrs: Record<string, string> = {}, ...kids: (Node | string)[]) => {
   const e = document.createElement(tag);
@@ -74,7 +75,7 @@ function start(code: string) {
   const hint = $("p", { class: "r-hint" }, "Drag to spin · pinch to zoom · tap to pick");
   const readout = $("p", { class: "r-readout", "aria-hidden": "true" });
 
-  // The orb's grid: near side bright, far side a ghost; the equator and prime meridian in the accent colour.
+  // The orb's grid: near side bright, far side a ghost; the equator and prime meridian picked out.
   let ball: M3 = turn(turn(IDENTITY, 0.08, 0), 0, -0.12);
   const draw = () => {
     const w = orb.clientWidth || 200, k = devicePixelRatio || 1;
@@ -90,7 +91,9 @@ function start(code: string) {
       for (let i = 1; i < line.pts.length; i++) {
         const a = line.pts[i - 1], b = line.pts[i], z = (a.z + b.z) / 2;
         const near = z > 0;
-        g.strokeStyle = hot ? (near ? `rgba(255,43,214,${0.55 + z * 0.4})` : "rgba(255,43,214,.10)") : near ? `rgba(0,240,255,${0.25 + z * 0.55})` : "rgba(0,240,255,.07)";
+        // The pigments: cobalt grid, the equator in ochre, the prime meridian in terracotta.
+        const rgb = line.kind === "equator" ? "220,174,76" : line.kind === "meridian" ? "217,128,93" : "143,168,242";
+        g.strokeStyle = near ? `rgba(${rgb},${(hot ? 0.6 : 0.22) + z * (hot ? 0.35 : 0.5)})` : `rgba(${rgb},.07)`;
         g.lineWidth = near ? (hot ? 1.6 : 1.1) : 0.8;
         g.beginPath(); g.moveTo(c + a.x * r, c + a.y * r); g.lineTo(c + b.x * r, c + b.y * r); g.stroke();
       }
@@ -483,5 +486,6 @@ function start(code: string) {
   setTimeout(() => { if (!root.classList.contains("live")) { titleEl.textContent = "Waiting for the TV…"; subEl.textContent = `Is the TV showing code ${code}?`; cmd({ t: "hello" }); } }, 4000);
 }
 
+installEmojiGuard();
 const initial = cleanCode(location.hash.slice(1));
 if (initial.length === 6) start(initial); else pairScreen();

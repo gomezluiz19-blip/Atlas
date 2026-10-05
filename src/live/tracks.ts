@@ -32,10 +32,10 @@ export function altitudeColor(m: number): string {
   return `rgb(${ALT_STOPS[ALT_STOPS.length - 1][1].join(",")})`;
 }
 export const SHIP_COLORS: Record<string, string> = {
-  Cargo: "#30d158", Tanker: "#ff453a", Passenger: "#0a84ff", Fishing: "#ff9f0a", Tug: "#bf5af2", Service: "#bf5af2",
-  "Sailing and pleasure": "#64d2ff", Military: "#8e8e93", "High-speed craft": "#ffd60a", Vessel: "#d1d1d6",
+  Cargo: "#5b9467", Tanker: "#c4513a", Passenger: "#3563d6", Fishing: "#d19a2e", Tug: "#8b5fa8", Service: "#8b5fa8",
+  "Sailing and pleasure": "#4c9ac9", Military: "#8c8f87", "High-speed craft": "#e1b843", Vessel: "#d1d1d6",
 };
-const colorOf = (t: Track) => (t.kind === "ship" ? SHIP_COLORS[t.group] ?? "#d1d1d6" : t.ground ? "#8e8e93" : altitudeColor(t.alt));
+const colorOf = (t: Track) => (t.kind === "ship" ? SHIP_COLORS[t.group] ?? "#d1d1d6" : t.ground ? "#8c8f87" : altitudeColor(t.alt));
 
 interface Entry { track: Track; bb: Billboard; key: object; trail: { lon: number; lat: number; alt: number }[]; nudge: { lon: number; lat: number; alt: number; t0: number } | null; missed: number; source: string }
 
@@ -167,7 +167,7 @@ export function createTraffic(app: App) {
     const trail = [...e.trail, here].map((p) => toCart(p, ship));
     const ahead = pathAhead({ ...e.track, ...here }, now, ship ? 1200 : 240, ship ? 60 : 10).map((p) => toCart(p, ship));
     if (!trailLine) trailLine = lines.add({ width: 3, material: Material.fromType("Color", { color: Color.WHITE.withAlpha(0.85) }) });
-    if (!aheadLine) aheadLine = lines.add({ width: 2.5, material: Material.fromType(Material.PolylineDashType, { color: Color.fromCssColorString("#5ac8fa"), dashLength: 14 }) });
+    if (!aheadLine) aheadLine = lines.add({ width: 2.5, material: Material.fromType(Material.PolylineDashType, { color: Color.fromCssColorString("#4c9ac9"), dashLength: 14 }) });
     if (trail.length > 1) { trailLine.positions = trail; trailLine.show = true; } else trailLine.show = false;
     aheadLine.positions = ahead;
     aheadLine.show = !e.track.ground && e.track.speed > 0.5;
@@ -239,7 +239,7 @@ export function createTraffic(app: App) {
     const n = count(kind);
     app.canvas.put({
       id: `live:${kind}`, label: `${kind === "plane" ? "Planes" : "Ships"} · ${n ? `${n.toLocaleString()} live` : note[kind] ? "none here" : "finding…"}`,
-      color: kind === "plane" ? "#5ac8fa" : "#30d158", scope: "world", pinned: true,
+      color: kind === "plane" ? "#4c9ac9" : "#5b9467", scope: "world", pinned: true,
       show: (v) => { for (const e of entries.values()) if (e.track.kind === kind) e.bb.show = v; },
       remove: () => set(kind, false),
     }, true);

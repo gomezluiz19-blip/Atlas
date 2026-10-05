@@ -11,7 +11,7 @@ function canvas(w: number, hgt: number) {
 }
 
 /** A compass rose: the share of slopes facing each of 8 directions. */
-export function rose(shares: number[], color = "#0a84ff", size = 150): HTMLCanvasElement {
+export function rose(shares: number[], color = "#3563d6", size = 150): HTMLCanvasElement {
   const { c, g } = canvas(size, size);
   const cx = size / 2, cy = size / 2, R = size / 2 - 16, max = Math.max(...shares, 0.01);
   g.strokeStyle = css("--fill-strong");

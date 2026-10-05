@@ -126,7 +126,7 @@ async function rainPaths(host: LensHost, s: Subject, ds: CustomDataSource) {
   const list = h("div", { class: "lens-legend" });
   host.body.replaceChildren(h("p", {}, "Rain falling on each side of the high ground, followed downhill."), status, list,
     h("p", { class: "muted small" }, "Surface runoff only, from elevation data (it ignores soil and groundwater). Where paths split to different seas you're on a drainage divide."));
-  const sides: [string, number, string][] = [["North", 0, "#64d2ff"], ["East", 90, "#30d158"], ["South", 180, "#ff9f0a"], ["West", 270, "#bf5af2"]];
+  const sides: [string, number, string][] = [["North", 0, "#4c9ac9"], ["East", 90, "#5b9467"], ["South", 180, "#d19a2e"], ["West", 270, "#8b5fa8"]];
   const d = Math.max(500, Math.min(3000, s.radius * 0.15));
   const results = await Promise.all(sides.map(async ([name, b, color]) => {
     const [lon, lat] = offset(c[0], c[1], b, d);

@@ -38,7 +38,7 @@ function drawModel(app: App, p: BuildProject, date: string | null) {
   if (!scene) {
     scene = new CustomDataSource("work-build");
     void app.globe.viewer.dataSources.add(scene);
-    app.canvas.put({ id: "work:build3d", label: "Construction model", color: "#ff9f0a", scope: "world", pinned: true, show: (v) => { if (scene) scene.show = v; }, remove: () => scene?.entities.removeAll() }, true);
+    app.canvas.put({ id: "work:build3d", label: "Construction model", color: "#d19a2e", scope: "world", pinned: true, show: (v) => { if (scene) scene.show = v; }, remove: () => scene?.entities.removeAll() }, true);
   }
   const ents = scene.entities;
   ents.removeAll();
@@ -51,7 +51,7 @@ function drawModel(app: App, p: BuildProject, date: string | null) {
   const hier = new PolygonHierarchy(p.ring.map(([x, y]) => Cartesian3.fromDegrees(x, y)));
   const box = (bottom: number, top: number, color: string, alpha: number) =>
     ents.add({ polygon: { hierarchy: hier, height: bottom, extrudedHeight: top, material: Color.fromCssColorString(color).withAlpha(alpha), outline: false } });
-  if (m.siteWorks) ents.add({ polygon: { hierarchy: new PolygonHierarchy(grow(p.ring, 1.25).map(([x, y]) => Cartesian3.fromDegrees(x, y))), material: Color.fromCssColorString("#a2845e").withAlpha(0.45) } });
+  if (m.siteWorks) ents.add({ polygon: { hierarchy: new PolygonHierarchy(grow(p.ring, 1.25).map(([x, y]) => Cartesian3.fromDegrees(x, y))), material: Color.fromCssColorString("#9a7552").withAlpha(0.45) } });
   if (m.slab > 0) box(g - 1.5, g + 0.4 * m.slab, "#9a9a92", 0.95);
   const useColor = USES[p.use].color;
   for (let i = 0; i < p.floors; i++) {
@@ -59,7 +59,7 @@ function drawModel(app: App, p: BuildProject, date: string | null) {
     if (m.complete) box(bottom, top - 0.15, useColor, 0.97);
     else if (i < m.closed) box(bottom, top - 0.15, "#7fb2d9", 0.92);
     else if (i + 1 <= m.framed) box(bottom, top - 0.15, "#c9c7bf", 0.9);
-    else if (i < m.framed) box(bottom, bottom + (m.framed - i) * p.storey, "#ff9f0a", 0.95);
+    else if (i < m.framed) box(bottom, bottom + (m.framed - i) * p.storey, "#d19a2e", 0.95);
     else box(bottom, top - 0.15, "#ffffff", 0.12);
   }
   const height = p.floors * p.storey;
@@ -67,7 +67,7 @@ function drawModel(app: App, p: BuildProject, date: string | null) {
     // A tower crane by the first corner, its jib swinging over the building.
     const [mx, my] = p.ring[0], [cx, cy] = centroid(p.ring);
     const top = g + height + 14;
-    const yellow = Color.fromCssColorString("#ffcc00");
+    const yellow = Color.fromCssColorString("#e1b843");
     const along = (k: number): LonLat => [mx + (cx - mx) * k, my + (cy - my) * k];
     ents.add({ polyline: { positions: [Cartesian3.fromDegrees(mx, my, g), Cartesian3.fromDegrees(mx, my, top + 4)], width: 6, material: yellow, arcType: ArcType.NONE } });
     const [jx, jy] = along(2.1), [bx, by] = along(-0.6);
@@ -94,10 +94,10 @@ function grow(ring: LonLat[], k: number): LonLat[] {
 }
 
 function drawMarks(app: App, p: BuildProject) {
-  marks ??= new WorkLayer(app, "work:build", "Worksite", "#ff9f0a");
+  marks ??= new WorkLayer(app, "work:build", "Worksite", "#d19a2e");
   marks.set([
-    { id: "site", kind: "area", pts: grow(p.ring, 1.25), color: "#ff9f0a", dashed: true, fill: 0 },
-    ...p.issues.map((i) => ({ id: i.id, kind: "point" as const, pts: [i.pt], color: i.open ? "#ff3b30" : "#30d158", label: i.open ? i.text.slice(0, 28) : undefined })),
+    { id: "site", kind: "area", pts: grow(p.ring, 1.25), color: "#d19a2e", dashed: true, fill: 0 },
+    ...p.issues.map((i) => ({ id: i.id, kind: "point" as const, pts: [i.pt], color: i.open ? "#c4513a" : "#5b9467", label: i.open ? i.text.slice(0, 28) : undefined })),
   ], `Worksite · ${p.name}`);
 }
 
@@ -139,7 +139,7 @@ export function openBuild(ctx: WorkCtx) {
   const { app } = ctx;
   const add = async () => {
     ctx.hide();
-    const ring = await drawOnMap(app, "area", "#ff9f0a", "Zoom in and tap the corners of the building's footprint");
+    const ring = await drawOnMap(app, "area", "#d19a2e", "Zoom in and tap the corners of the building's footprint");
     ctx.unhide();
     if (!ring) return openBuild(ctx);
     let ground = 0;
@@ -308,7 +308,7 @@ function worksite(ctx: WorkCtx, p: BuildProject, again: () => void): HTMLElement
   };
   const addIssue = async () => {
     ctx.hide();
-    const pts = await drawOnMap(app, "point", "#ff3b30", "Tap where the issue is");
+    const pts = await drawOnMap(app, "point", "#c4513a", "Tap where the issue is");
     ctx.unhide();
     if (!pts) return again();
     const what = prompt("Describe the issue", "") ?? "";

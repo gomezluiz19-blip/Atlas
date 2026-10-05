@@ -24,7 +24,7 @@ export const OVERLAYS: { id: OverlayId; label: string; about: string }[] = [
 ];
 
 const OVERLAY_COLOR: Record<OverlayId, string> = {
-  labels: "#ffffff", aurora: "#30d158", quakes: "#ff9500", plates: "#ff6347", lights: "#ffcc66", radar: "#0a84ff", species: "#34c759",
+  labels: "#ffffff", aurora: "#5b9467", quakes: "#d19a2e", plates: "#ff6347", lights: "#ffcc66", radar: "#3563d6", species: "#5b9467",
 };
 
 const NIGHT_LIGHTS = "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/VIIRS_Black_Marble/default/2016-01-01/GoogleMapsCompatible_Level8/{z}/{y}/{x}.png";
@@ -146,7 +146,7 @@ export class Overlays {
       const now = Date.now();
       for (const q of await recentQuakes()) {
         const days = (now - q.time) / 86_400_000;
-        const color = days < 1 ? "#ff3b30" : days < 3 ? "#ff9500" : "#ffcc00";
+        const color = days < 1 ? "#c4513a" : days < 3 ? "#d19a2e" : "#e1b843";
         const e = ds.entities.add({
           position: Cartesian3.fromDegrees(q.lon, q.lat),
           point: {

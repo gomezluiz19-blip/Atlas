@@ -15,7 +15,7 @@ export const DEMO_LENSES: LensDef[] = [
       { type: "sun" },
       { type: "tip", text: "Go early and go quiet. Birds are busiest in the first two hours after sunrise, and a still morning carries every call." },
     ] },
-  { id: "stargazing", name: "Stargazing", icon: "🔭", color: "#5e5ce6", author: "kenjiskies", radiusKm: 15,
+  { id: "stargazing", name: "Stargazing", icon: "🔭", color: "#5160c2", author: "kenjiskies", radiusKm: 15,
     blurb: "How dark tonight gets, the moon, the cloud, and somewhere with a view",
     home: { name: "Mauna Kea", lon: -155.4681, lat: 19.8207 },
     blocks: [
@@ -25,7 +25,7 @@ export const DEMO_LENSES: LensDef[] = [
       { type: "ground" },
       { type: "tip", text: "Give your eyes twenty minutes in the dark and use a red torch. Look slightly to the side of faint things: the edge of your eye sees more." },
     ] },
-  { id: "aurora-watch", name: "Aurora watch", icon: "🌌", color: "#30d158", author: "kenjiskies", radiusKm: 15,
+  { id: "aurora-watch", name: "Aurora watch", icon: "🌌", color: "#5b9467", author: "kenjiskies", radiusKm: 15,
     blurb: "Is the aurora strong enough to reach here, is it dark, and is it clear?",
     home: { name: "Tromsø", lon: 18.9553, lat: 69.6492 },
     blocks: [
@@ -35,7 +35,7 @@ export const DEMO_LENSES: LensDef[] = [
       { type: "places", title: "Viewpoints", emoji: "🌄", tags: ["tourism=viewpoint"] },
       { type: "tip", text: "Get away from street lights and look north. Give it an hour: displays come in waves, and your phone's night mode sees colour your eyes can't." },
     ] },
-  { id: "surf-check", name: "Surf check", icon: "🏄", color: "#0a84ff", author: "lena.surf", radiusKm: 8, for: ["coast", "sea", "island"],
+  { id: "surf-check", name: "Surf check", icon: "🏄", color: "#3563d6", author: "lena.surf", radiusKm: 8, for: ["coast", "sea", "island"],
     blurb: "The swell, the wind and the breaks nearby: is it a lesson day?",
     home: { name: "Ribeira d'Ilhas, Ericeira", lon: -9.4196, lat: 38.9876 },
     blocks: [
@@ -44,7 +44,7 @@ export const DEMO_LENSES: LensDef[] = [
       { type: "places", title: "Beaches and breaks", emoji: "🏖️", tags: ["natural=beach", "sport=surfing"] },
       { type: "tip", text: "For lessons, under 1.5 m with light offshore wind is perfect. Period is the secret: 12 seconds or more means clean, organised waves." },
     ] },
-  { id: "coffee-crawl", name: "Coffee crawl", icon: "☕", color: "#a2845e", author: "priya.eats", radiusKm: 1.2, for: ["city"],
+  { id: "coffee-crawl", name: "Coffee crawl", icon: "☕", color: "#9a7552", author: "priya.eats", radiusKm: 1.2, for: ["city"],
     blurb: "Cafés and bakeries within a walk, and whether it's a day to sit outside",
     home: { name: "Chiado, Lisbon", lon: -9.1421, lat: 38.7107 },
     blocks: [
@@ -53,7 +53,7 @@ export const DEMO_LENSES: LensDef[] = [
       { type: "weather", title: "Sitting outside", good: { rainMax: 0, tempMin: 15 }, when: "day" },
       { type: "tip", text: "Order at the counter and stand, like the locals: it's cheaper than sitting down, and faster." },
     ] },
-  { id: "golden-hour", name: "Golden hour", icon: "📷", color: "#ff9f0a", author: "samoutside", radiusKm: 8,
+  { id: "golden-hour", name: "Golden hour", icon: "📷", color: "#d19a2e", author: "samoutside", radiusKm: 8,
     blurb: "When the light is best, whether the sky will play along, and where to stand",
     home: { name: "Maroon Bells", lon: -106.989, lat: 39.0708 },
     blocks: [
@@ -63,7 +63,7 @@ export const DEMO_LENSES: LensDef[] = [
       { type: "ground" },
       { type: "tip", text: "Broken cloud is your friend: it catches the colour after the sun has set. Stay twenty minutes after sunset; the best light often comes last." },
     ] },
-  { id: "rock-detective", name: "Rock detective", icon: "🪨", color: "#a2845e", author: "msokafor", radiusKm: 10,
+  { id: "rock-detective", name: "Rock detective", icon: "🪨", color: "#9a7552", author: "msokafor", radiusKm: 10,
     blurb: "The ground under your feet, rock you can actually see, and old quarries",
     home: { name: "Seven Sisters cliffs", lon: 0.148, lat: 50.77 },
     blocks: [

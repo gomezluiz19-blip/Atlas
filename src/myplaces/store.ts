@@ -47,14 +47,14 @@ export interface MyPlace {
 export const KIND_LABEL: Record<PlaceKind, string> = { home: "Home", hotel: "Hotel", business: "Business", farm: "Farm", school: "School", other: "Place" };
 
 export const DEVICES: Record<DeviceType, { label: string; color: string; group: "energy" | "water" | "security" }> = {
-  solar: { label: "Solar panels", color: "#ffd60a", group: "energy" },
-  battery: { label: "Battery", color: "#30d158", group: "energy" },
-  generator: { label: "Generator", color: "#ff9f0a", group: "energy" },
-  tank: { label: "Water tank", color: "#0a84ff", group: "water" },
-  well: { label: "Well", color: "#64d2ff", group: "water" },
-  camera: { label: "Camera", color: "#ff375f", group: "security" },
-  gate: { label: "Gate", color: "#bf5af2", group: "security" },
-  alarm: { label: "Alarm", color: "#ff453a", group: "security" },
+  solar: { label: "Solar panels", color: "#e1b843", group: "energy" },
+  battery: { label: "Battery", color: "#5b9467", group: "energy" },
+  generator: { label: "Generator", color: "#d19a2e", group: "energy" },
+  tank: { label: "Water tank", color: "#3563d6", group: "water" },
+  well: { label: "Well", color: "#4c9ac9", group: "water" },
+  camera: { label: "Camera", color: "#b8496a", group: "security" },
+  gate: { label: "Gate", color: "#8b5fa8", group: "security" },
+  alarm: { label: "Alarm", color: "#c4513a", group: "security" },
   light: { label: "Security light", color: "#ffcc66", group: "security" },
   sensor: { label: "Sensor", color: "#98989d", group: "security" },
 };

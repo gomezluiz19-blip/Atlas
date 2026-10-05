@@ -32,7 +32,7 @@ export async function showYear(app: App, year: number | null): Promise<Polity[]>
   }
   const list = await layer.show(year);
   app.canvas.put({
-    id: "work:borders", label: `Borders in ${yearLabel(year)}`, color: "#e0b050", scope: "world", pinned: true,
+    id: "work:borders", label: `Borders in ${yearLabel(year)}`, color: "#c9a256", scope: "world", pinned: true,
     show: (on) => layer.setVisible(on),
     remove: () => void showYear(app, null),
   }, true);
@@ -128,7 +128,7 @@ export interface PlayOptions {
 function penLayer() {
   const c = h("canvas", { class: "pen-layer" }) as HTMLCanvasElement;
   const g = c.getContext("2d")!;
-  let on = false, down = false, color = "#ff3b30";
+  let on = false, down = false, color = "#c4513a";
   const size = () => { c.width = innerWidth * devicePixelRatio; c.height = innerHeight * devicePixelRatio; g.scale(devicePixelRatio, devicePixelRatio); };
   size();
   addEventListener("resize", size);
@@ -163,7 +163,7 @@ export function play(app: App, deck: Deck, opts: PlayOptions = {}): { done: Prom
   const t0 = performance.now();
   const clockTimer = opts.teach ? window.setInterval(() => { const s = Math.floor((performance.now() - t0) / 1000); clock.textContent = `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`; }, 1000) : 0;
   const penBtn = h("button", { class: "present-btn", "aria-label": "Draw on the screen", title: "Draw (D)", onclick: () => penBtn.classList.toggle("on", pen!.toggle()) }, "✎");
-  const colours = h("span", { class: "present-colours" }, ...["#ff3b30", "#ffd60a", "#30d158", "#ffffff"].map((c) =>
+  const colours = h("span", { class: "present-colours" }, ...["#c4513a", "#e1b843", "#5b9467", "#ffffff"].map((c) =>
     h("button", { class: "present-swatch", style: `background:${c}`, "aria-label": "Pen colour", onclick: () => { pen!.color(c); if (!penBtn.classList.contains("on")) penBtn.click(); } })));
   const notesBtn = h("button", { class: "present-btn", "aria-label": "Show my notes", title: "Notes (N)", onclick: () => { notes.hidden = !notes.hidden; notesBtn.classList.toggle("on", !notes.hidden); } }, "🗒");
   const root = h("div", { class: "present" + (opts.teach ? " teach" : ""), role: "dialog", "aria-label": deck.name },

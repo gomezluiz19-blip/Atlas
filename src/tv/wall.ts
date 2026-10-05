@@ -19,7 +19,7 @@ export interface WallCtx { app: App; say(t: string, s?: string): void; board: HT
 
 const ICON: Record<string, string> = { sun: "☀️", partly: "⛅", cloud: "☁️", fog: "🌫", rain: "🌧", snow: "❄️", storm: "⛈" };
 let layer: WorkLayer | null = null;
-const pins = (app: App) => (layer ??= new WorkLayer(app, "tv-wall", "On the wall", "#64d2ff", false));
+const pins = (app: App) => (layer ??= new WorkLayer(app, "tv-wall", "On the wall", "#4c9ac9", false));
 
 /** Weather and time zone for a site, once per visit. */
 const weather = new Map<string, Promise<Forecast | null>>();
@@ -42,7 +42,7 @@ export function sitesScene(ctx: WallCtx): () => void {
     ctx.say("No sites on this screen yet", "On your phone, open the remote and press 📍 Our sites: it sends the sites from your Terreno");
     return () => {};
   }
-  pins(app).set(sites.map((s, i) => ({ id: `s${i}`, kind: "point", pts: [[s.lon, s.lat]], color: "#64d2ff", label: s.name })));
+  pins(app).set(sites.map((s, i) => ({ id: `s${i}`, kind: "point", pts: [[s.lon, s.lat]], color: "#4c9ac9", label: s.name })));
   const rows = sites.slice(0, 14).map((s) => {
     const time = h("span", { class: "tv-row-time" }), temp = h("span", { class: "tv-row-wx" });
     void weatherAt(s).then((f) => { if (f) { const t = localTime(f.timezone); time.textContent = t.time; temp.textContent = wx(f); } });
@@ -81,7 +81,7 @@ export function hazardsScene(ctx: WallCtx): () => void {
     if (stopped || !ctx.alive()) return;
     const near = sites.length ? quakesNear(qs, sites) : [];
     const shown = sites.length ? near.map((n) => n.quake) : [...qs].sort((a, b) => b.mag - a.mag).slice(0, 12);
-    pins(app).set(shown.slice(0, 40).map((q, i) => ({ id: `q${i}`, kind: "point", pts: [[q.lon, q.lat]], color: q.mag >= 6 ? "#ff453a" : q.mag >= 5 ? "#ff9f0a" : "#ffd60a", label: `M${q.mag.toFixed(1)}` })));
+    pins(app).set(shown.slice(0, 40).map((q, i) => ({ id: `q${i}`, kind: "point", pts: [[q.lon, q.lat]], color: q.mag >= 6 ? "#c4513a" : q.mag >= 5 ? "#d19a2e" : "#e1b843", label: `M${q.mag.toFixed(1)}` })));
     const ago = (t: number) => { const hrs = Math.round((Date.now() - t) / 3_600_000); return hrs < 24 ? `${hrs} h ago` : `${Math.round(hrs / 24)} d ago`; };
     if (sites.length) {
       ctx.say(near.length ? `${near.length} earthquake${near.length === 1 ? "" : "s"} near your sites` : "No earthquakes near your sites this week",

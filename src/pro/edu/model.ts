@@ -62,7 +62,7 @@ export function coverPlan(d: District, s: School, day: string): Cover[] {
 }
 
 export type RoomState = "ok" | "covered" | "cover" | "repair" | "empty";
-export const ROOM_COLOR: Record<RoomState, string> = { ok: "#30d158", covered: "#64d2ff", cover: "#ff453a", repair: "#ff9f0a", empty: "#8e8e93" };
+export const ROOM_COLOR: Record<RoomState, string> = { ok: "#5b9467", covered: "#4c9ac9", cover: "#c4513a", repair: "#d19a2e", empty: "#8c8f87" };
 export const ROOM_LABEL: Record<RoomState, string> = { ok: "Teaching", covered: "Covered by a sub", cover: "Needs cover", repair: "Needs repair", empty: "Not timetabled" };
 
 /** Every room's state today (pure): a class whose teacher is out and uncovered beats a repair, which beats a covered class. */

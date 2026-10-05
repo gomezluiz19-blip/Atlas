@@ -7,10 +7,10 @@
 
 export type HubKind = "port" | "hub" | "field" | "point";
 export const HUB_KINDS: Record<HubKind, { label: string; emoji: string; color: string }> = {
-  port: { label: "Port of entry", emoji: "⚓", color: "#5e5ce6" },
-  hub: { label: "Main hub", emoji: "🏭", color: "#0a84ff" },
+  port: { label: "Port of entry", emoji: "⚓", color: "#5160c2" },
+  hub: { label: "Main hub", emoji: "🏭", color: "#3563d6" },
   field: { label: "Field warehouse", emoji: "📦", color: "#30b0c7" },
-  point: { label: "Distribution point", emoji: "🌾", color: "#30d158" },
+  point: { label: "Distribution point", emoji: "🌾", color: "#5b9467" },
 };
 
 export type Mode = "road" | "river" | "air";

@@ -20,7 +20,7 @@ const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&l
 const fmtDay = (iso: string) => new Date(iso + "T12:00:00Z").toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "long" });
 
 function draw(app: App, t: FieldTrip) {
-  layer ??= new WorkLayer(app, "work:trip", "Field trip", "#ff9f0a");
+  layer ??= new WorkLayer(app, "work:trip", "Field trip", "#d19a2e");
   layer.set(journeyFeatures(tripJourney(t), "School"), `Field trip · ${t.title}`);
 }
 
@@ -42,7 +42,7 @@ export function openTrips(ctx: WorkCtx, back: () => void) {
     } }, "+ New field trip")),
     store.all().length ? h("div", { class: "list" }, ...store.all().map((t) =>
       h("button", { class: "list-row", onclick: () => openTrip(ctx, t.id, back) },
-        h("span", { class: "work-badge", style: "background:#ff9f0a" }, "🎒"),
+        h("span", { class: "work-badge", style: "background:#d19a2e" }, "🎒"),
         h("span", { class: "list-text" }, h("span", { class: "list-title" }, t.title), h("span", { class: "list-sub" }, `${mainStop(t)?.name ?? "No destination yet"} · ${fmtDay(t.date)}`)),
         h("span", { class: "chev", html: "&rsaquo;" })))) : "",
   );

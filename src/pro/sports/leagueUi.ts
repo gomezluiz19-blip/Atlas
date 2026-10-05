@@ -104,8 +104,8 @@ export function leagueMap(c: Club, redraw: () => void): { features: WorkFeature[
   if (got === "loading" || got === "failed") return { features: [], flows: [] };
   const teams = got as LeagueTeam[];
   const me = teams.find((t) => (c.mlbId ? t.mlbId === c.mlbId : kmBetween(t, c.ground) < 1));
-  const features: WorkFeature[] = teams.map((t) => ({ id: `lt${t.id}`, kind: "point", pts: [[t.lon, t.lat]], color: t === me ? "#ff375f" : "#0a84ff", label: t.name.replace(/ \(demo\)/, "") }));
-  const flows = me ? teams.filter((t) => t !== me).map((t) => arcFlow(`lf${t.id}`, me, t, "#64d2ff", 0.15).flow) : [];
+  const features: WorkFeature[] = teams.map((t) => ({ id: `lt${t.id}`, kind: "point", pts: [[t.lon, t.lat]], color: t === me ? "#b8496a" : "#3563d6", label: t.name.replace(/ \(demo\)/, "") }));
+  const flows = me ? teams.filter((t) => t !== me).map((t) => arcFlow(`lf${t.id}`, me, t, "#4c9ac9", 0.15).flow) : [];
   return { features, flows };
 }
 
@@ -124,7 +124,7 @@ export function leaguePanel(c: Club, redraw: () => void, choose: () => void) {
       me ? `${c.name}: ${fmt(me.km)} km, ${mine + 1}${ordinal(mine + 1)} most of ${lt.rows.length} (${me.km > lt.mean ? "+" : ""}${Math.round(((me.km - lt.mean) / lt.mean) * 100)}% on the average). Nearest rival: ${me.nearest?.name}, ${kmText(me.nearestKm)}.` : "",
       lt.rows.length > 1 ? `Most travelled: ${lt.rows[0].t.name} (${fmt(lt.rows[0].km)} km); least: ${lt.rows[lt.rows.length - 1].t.name} (${fmt(lt.rows[lt.rows.length - 1].km)} km), ${lt.spread.toFixed(1)}× apart.` : ""),
     title("Travel across the league"),
-    list(...lt.rows.map((r, i) => row({ color: i === mine ? "#ff375f" : "#0a84ff" }, `${i + 1}. ${r.t.name}`, `${fmt(r.km)} km · ${r.t.venue}`))),
+    list(...lt.rows.map((r, i) => row({ color: i === mine ? "#b8496a" : "#3563d6" }, `${i + 1}. ${r.t.name}`, `${fmt(r.km)} km · ${r.t.venue}`))),
     h("p", { class: "muted small" }, c.mlbId ? "Clubs, levels and ballparks live from MLB's Stats API." : "Clubs and grounds from Wikidata; a club missing its ground there won't show."));
 }
 
@@ -137,14 +137,14 @@ const MOVE_DAYS = 60;
 export function orgMap(c: Club, redraw: () => void): { features: WorkFeature[]; flows: FlowLine[] } {
   const got = once(`org:${c.id}:${c.mlbId ?? ""}:${(c.affiliates ?? []).length}`, () => organisation(c), redraw) as { parent: LeagueTeam; teams: LeagueTeam[] } | "loading" | "failed";
   if (got === "loading" || got === "failed") return { features: [], flows: [] };
-  const features: WorkFeature[] = got.teams.map((t) => ({ id: `ot${t.id}`, kind: "point", pts: [[t.lon, t.lat]], color: t.id === got.parent.id ? "#ff375f" : "#ff9f0a", label: `${t.level ? `${t.level} · ` : ""}${t.name}` }));
+  const features: WorkFeature[] = got.teams.map((t) => ({ id: `ot${t.id}`, kind: "point", pts: [[t.lon, t.lat]], color: t.id === got.parent.id ? "#b8496a" : "#d19a2e", label: `${t.level ? `${t.level} · ` : ""}${t.name}` }));
   const flows: FlowLine[] = [];
-  for (const t of got.teams.slice(1)) features.push(arcFlow(`ol${t.id}`, got.parent, t, "#ff9f0a", 0.2, true).line);
+  for (const t of got.teams.slice(1)) features.push(arcFlow(`ol${t.id}`, got.parent, t, "#d19a2e", 0.2, true).line);
   const mv = c.mlbId ? ready.get(`moves:${got.parent.id}`) : undefined;
   if (Array.isArray(mv)) {
     const byId = new Map(got.teams.map((t) => [t.id, t]));
     const routes = moveRoutes(mv as Move[], byId), most = Math.max(1, ...routes.map((r) => r.n));
-    for (const r of routes) { const a = arcFlow(`mv${r.from}${r.to}`, r.a, r.b, "#0a84ff", r.n / most); flows.push(a.flow); }
+    for (const r of routes) { const a = arcFlow(`mv${r.from}${r.to}`, r.a, r.b, "#3563d6", r.n / most); flows.push(a.flow); }
   }
   return { features, flows };
 }
@@ -168,7 +168,7 @@ export function orgPanel(ctx: WorkCtx, c: Club, redraw: () => void, save: () => 
       movesBlock = h("div", {},
         title(`Players moving, last ${MOVE_DAYS} days`),
         lines(`${(mv as Move[]).length} moves inside the organisation, ${fmt(km)} km between clubs.`, routes[0] ? `Busiest route: ${routes[0].a.name} → ${routes[0].b.name}, ${routes[0].n} ${routes[0].n === 1 ? "player" : "players"} (${kmText(routes[0].km)}).` : "No moves between organisation clubs in that time."),
-        (mv as Move[]).length ? list(...(mv as Move[]).slice(0, 12).map((m) => row({ color: "#0a84ff" }, m.player, `${m.date} · ${m.kind} · ${byId.get(m.from)?.name ?? "?"} → ${byId.get(m.to)?.name ?? "?"}`))) : "");
+        (mv as Move[]).length ? list(...(mv as Move[]).slice(0, 12).map((m) => row({ color: "#3563d6" }, m.player, `${m.date} · ${m.kind} · ${byId.get(m.from)?.name ?? "?"} → ${byId.get(m.to)?.name ?? "?"}`))) : "");
     }
   }
   const box = h("input", { class: "pro-url", placeholder: "Add an affiliate or partner club (any sport, any country)" }) as HTMLInputElement;
@@ -185,8 +185,8 @@ export function orgPanel(ctx: WorkCtx, c: Club, redraw: () => void, save: () => 
     lines(
       kids.length ? `${parent.name} and ${kids.length} ${kids.length === 1 ? "affiliate" : "affiliates"}; on average ${kmText(kids.reduce((s, k) => s + k.km, 0) / kids.length)} from the parent club.` : "No affiliates or partner clubs yet.",
       kids.length ? `Furthest: ${[...kids].sort((a, b) => b.km - a.km)[0].t.name}, ${kmText([...kids].sort((a, b) => b.km - a.km)[0].km)}. A player called up from there crosses that in a day.` : ""),
-    list(row({ color: "#ff375f" }, parent.name, [parent.level, parent.venue].filter(Boolean).join(" · ")),
-      ...kids.map((k) => row({ color: "#ff9f0a" }, k.t.name, [k.t.level, k.t.venue, kmText(k.km)].filter(Boolean).join(" · ")))),
+    list(row({ color: "#b8496a" }, parent.name, [parent.level, parent.venue].filter(Boolean).join(" · ")),
+      ...kids.map((k) => row({ color: "#d19a2e" }, k.t.name, [k.t.level, k.t.venue, kmText(k.km)].filter(Boolean).join(" · ")))),
     movesBlock,
     !c.mlbId ? h("div", { class: "po-add" }, box, h("button", { class: "pill-btn", onclick: () => void add() }, "Add")) : "");
 }

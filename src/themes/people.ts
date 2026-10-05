@@ -221,7 +221,7 @@ export function peopleTheme(app: App): Theme {
     id: "people",
     label: "People",
     icon: icons.people,
-    color: "#ff9f0a",
+    color: "#d19a2e",
     intro: "Where people live, and how: homes, health, phones and more.",
     subtabs: [here, profilesSubtab(), homes, health, connected, events],
     enter() { if (current !== "pop") void showView(current); },

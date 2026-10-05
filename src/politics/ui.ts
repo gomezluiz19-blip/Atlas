@@ -121,13 +121,13 @@ async function showMap(app: App, mode: MapMode | null) {
   if (mapMode !== mode) return;
   mapLayer = layer;
   app.globe.viewer.imageryLayers.add(layer);
-  app.canvas.put({ id: "politics:map", label: mode === "governors" ? "Governors" : mode === "senate" ? "Senate delegations" : "Next elections", color: "#bf5af2", scope: "world", pinned: true,
+  app.canvas.put({ id: "politics:map", label: mode === "governors" ? "Governors" : mode === "senate" ? "Senate delegations" : "Next elections", color: "#8b5fa8", scope: "world", pinned: true,
     show: (on) => { if (mapLayer) mapLayer.show = on; }, remove: () => void showMap(app, null) }, true);
 }
 
 function mapChips(app: App, us: boolean): HTMLElement {
   const box = h("div", { class: "fl-chips" });
-  const chip = (mode: MapMode, label: string) => h("button", { class: `fl-chip${mapMode === mode ? " on" : ""}`, style: "--c:#bf5af2", "aria-pressed": String(mapMode === mode), onclick: async () => { await showMap(app, mapMode === mode ? null : mode).catch(() => app.toast("Couldn't load that map just now.", 4000)); render(); } }, label);
+  const chip = (mode: MapMode, label: string) => h("button", { class: `fl-chip${mapMode === mode ? " on" : ""}`, style: "--c:#8b5fa8", "aria-pressed": String(mapMode === mode), onclick: async () => { await showMap(app, mapMode === mode ? null : mode).catch(() => app.toast("Couldn't load that map just now.", 4000)); render(); } }, label);
   const render = () => box.replaceChildren(...(us ? [chip("governors", "States by governor"), chip("senate", "Senate by state")] : []), chip("elections", "World: next elections"));
   render();
   return h("section", { class: "group fl-group" }, h("h2", { class: "group-title" }, "On the map"), box);
@@ -149,7 +149,7 @@ function outline(app: App, rings: [number, number][][] | null) {
     ctx.fillStyle = "rgba(191, 90, 242, 0.14)";
     ctx.fill("evenodd");
     ctx.lineWidth = 3;
-    ctx.strokeStyle = "#bf5af2";
+    ctx.strokeStyle = "#8b5fa8";
     ctx.stroke();
   }, { maximumLevel: 14, credit: "Congressional districts: U.S. Census Bureau TIGERweb" });
   app.globe.viewer.imageryLayers.add(districtLayer);

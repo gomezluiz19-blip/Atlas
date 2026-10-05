@@ -70,11 +70,11 @@ export function worldAt(t: number, closed?: string[]): World {
     const e = eta(d, s, t, closed ?? d.closed);
     if (!e.route) continue;
     const total = e.doneKm + e.leftKm;
-    lanes.push({ id: `fl${s.id}`, layer: "freight", pts: e.route.pts, color: e.late >= 3 ? "#ff9f0a" : LAYERS.freight.color, done: total ? e.doneKm / total : 0 });
+    lanes.push({ id: `fl${s.id}`, layer: "freight", pts: e.route.pts, color: e.late >= 3 ? "#d19a2e" : LAYERS.freight.color, done: total ? e.doneKm / total : 0 });
     if ((e.basis === "live" || e.basis === "estimated") && e.leftKm > 1) {
       const ahead = along(e.route.pts, e.doneKm + 300).p;
       const v = d.vessels?.find((x) => x.id === s.vessel);
-      movers.push({ id: `sh${s.id}`, layer: "freight", lon: e.at[0], lat: e.at[1], color: e.late >= 3 ? "#ff9f0a" : "#ffffff", label: `${VESSEL_TYPES[v?.type ?? "container"].emoji} ${s.ref}`, heading: bearing(e.at, ahead) });
+      movers.push({ id: `sh${s.id}`, layer: "freight", lon: e.at[0], lat: e.at[1], color: e.late >= 3 ? "#d19a2e" : "#ffffff", label: `${VESSEL_TYPES[v?.type ?? "container"].emoji} ${s.ref}`, heading: bearing(e.at, ahead) });
     }
     anchors.push({ id: `fo${s.id}`, layer: "freight", lon: s.dest.lon, lat: s.dest.lat, color: LAYERS.freight.color, label: s.dest.name, size: 0.7 });
   }
@@ -87,7 +87,7 @@ export function worldAt(t: number, closed?: string[]): World {
       const a = hub(m.from), b = hub(m.to);
       if (!a || !b) continue;
       const leave = Date.parse(m.left + "T06:00:00Z"), arrive = Date.parse(m.arrives + "T18:00:00Z");
-      lanes.push({ id: `rl${m.id}`, layer: "relief", pts: arcPts([a.lon, a.lat], [b.lon, b.lat], 24), color: m.status === "delayed" ? "#ff9f0a" : LAYERS.relief.color, dashed: true });
+      lanes.push({ id: `rl${m.id}`, layer: "relief", pts: arcPts([a.lon, a.lat], [b.lon, b.lat], 24), color: m.status === "delayed" ? "#d19a2e" : LAYERS.relief.color, dashed: true });
       const at = between([a.lon, a.lat], [b.lon, b.lat], leave, arrive, t);
       if (at) movers.push({ id: `rm${m.id}`, layer: "relief", lon: at.p[0], lat: at.p[1], color: "#ffffff", label: `${m.qty} ${m.item}`, heading: bearing([a.lon, a.lat], [b.lon, b.lat]) });
     }

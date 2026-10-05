@@ -7,7 +7,7 @@ import { h } from "../ui/dom";
 
 const plus = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>';
 const minus = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 12h14"/></svg>';
-const needle = '<svg viewBox="0 0 24 24" width="22" height="22"><path d="M12 2.5 15.5 12h-7z" fill="#ff453a"/><path d="M12 21.5 8.5 12h7z" fill="currentColor" opacity=".55"/></svg>';
+const needle = '<svg viewBox="0 0 24 24" width="22" height="22"><path d="M12 2.5 15.5 12h-7z" fill="#c4513a"/><path d="M12 21.5 8.5 12h7z" fill="currentColor" opacity=".55"/></svg>';
 
 /** The point on the ground at a screen position (or the screen centre). */
 export function groundAt(viewer: Viewer, at?: Cartesian2): Cartesian3 | undefined {

@@ -14,7 +14,7 @@ import { groundPoint, type Kind } from "./analytics";
 import { BRANDS, brand, go2rtcConfig, go2rtcLinks, linkKind, linkProblem, WAYS, type Way } from "./connect";
 import { CameraMonitor, type FeedKind, type MonitorState } from "./monitor";
 
-const COLORS: Record<Kind, string> = { person: "#ff375f", vehicle: "#0a84ff", bike: "#ffd60a" };
+const COLORS: Record<Kind, string> = { person: "#b8496a", vehicle: "#3563d6", bike: "#e1b843" };
 const WORD: Record<Kind, [string, string]> = { person: ["person", "people"], vehicle: ["vehicle", "vehicles"], bike: ["bike", "bikes"] };
 const n = (k: Kind, v: number) => `${v} ${WORD[k][v === 1 ? 0 : 1]}`;
 const clock = (s: number) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
@@ -115,7 +115,7 @@ function build(app: App, scene: PlaceScene, store?: PlaceStore) {
         ctx.fillStyle = "#fff"; ctx.fillText(z.name, x * r.width + 5, y * r.height + 12);
       }
       if (tool?.kind === "zone" && tool.start && tool.now) {
-        ctx.strokeStyle = "#ffd60a"; ctx.lineWidth = 2;
+        ctx.strokeStyle = "#e1b843"; ctx.lineWidth = 2;
         ctx.strokeRect(tool.start[0] * r.width, tool.start[1] * r.height, (tool.now[0] - tool.start[0]) * r.width, (tool.now[1] - tool.start[1]) * r.height);
       }
       ctx.lineWidth = 2;
@@ -127,12 +127,12 @@ function build(app: App, scene: PlaceScene, store?: PlaceStore) {
       }
       const l = mon.analyzer.line;
       if (l) {
-        ctx.strokeStyle = "#30d158"; ctx.lineWidth = 3; ctx.setLineDash([7, 5]);
+        ctx.strokeStyle = "#5b9467"; ctx.lineWidth = 3; ctx.setLineDash([7, 5]);
         ctx.beginPath(); ctx.moveTo(l.a[0] * r.width, l.a[1] * r.height); ctx.lineTo(l.b[0] * r.width, l.b[1] * r.height); ctx.stroke();
         ctx.setLineDash([]);
-        ctx.fillStyle = "#30d158"; ctx.fillText("IN →", ((l.a[0] + l.b[0]) / 2) * r.width + 6, ((l.a[1] + l.b[1]) / 2) * r.height - 6);
+        ctx.fillStyle = "#5b9467"; ctx.fillText("IN →", ((l.a[0] + l.b[0]) / 2) * r.width + 6, ((l.a[1] + l.b[1]) / 2) * r.height - 6);
       }
-      if (tool?.kind === "line") for (const p of tool.pts) { ctx.fillStyle = "#30d158"; ctx.beginPath(); ctx.arc(p[0] * r.width, p[1] * r.height, 5, 0, Math.PI * 2); ctx.fill(); }
+      if (tool?.kind === "line") for (const p of tool.pts) { ctx.fillStyle = "#5b9467"; ctx.beginPath(); ctx.arc(p[0] * r.width, p[1] * r.height, 5, 0, Math.PI * 2); ctx.fill(); }
     };
 
     addEventListener("keydown", (e: KeyboardEvent) => { if (e.key === "Escape" && tool) { tool = null; hint.hidden = true; draw(); } });

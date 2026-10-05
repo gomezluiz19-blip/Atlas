@@ -142,7 +142,7 @@ export class PlaceScene {
 
   draw(p: MyPlace) {
     this.ds.entities.removeAll();
-    const accent = Color.fromCssColorString("#ff9f0a");
+    const accent = Color.fromCssColorString("#d19a2e");
     for (const b of this.buildings) {
       const mine = b === this.own;
       const e = this.ds.entities.add({
@@ -216,7 +216,7 @@ export class PlaceScene {
           hierarchy,
           height: i === 1 ? base - 1 : bottom + 0.25,
           extrudedHeight: bottom + storey - 0.25,
-          material: Color.fromCssColorString(f?.color ?? "#8e8e93").withAlpha(f ? 0.95 : 0.5),
+          material: Color.fromCssColorString(f?.color ?? "#8c8f87").withAlpha(f ? 0.95 : 0.5),
         },
       });
       if (f)

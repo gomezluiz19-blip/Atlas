@@ -87,7 +87,7 @@ function dayStrip(land: string, rise: string, set: string): HTMLElement {
 export interface TravelPrefill { from?: Pt; depart?: string; back?: string; people?: number }
 
 export function openTravel(ctx: WorkCtx, app: App, dest?: Pt, pre: TravelPrefill = {}) {
-  map ??= new OpsMap(app, "travel", "#0a84ff");
+  map ??= new OpsMap(app, "travel", "#3563d6");
   const today = new Date().toISOString().slice(0, 10);
   const home = (() => { try { const all = JSON.parse(localStorage.getItem("atlas.myplaces.v1") ?? "[]") as (Pt & { kind?: string })[]; return all.find((p) => p.kind === "home") ?? all[0] ?? null; } catch { return null; } })();
   let from: Pt | null = home ? { name: home.name, lon: home.lon, lat: home.lat } : null;
@@ -142,7 +142,7 @@ export function openTravel(ctx: WorkCtx, app: App, dest?: Pt, pre: TravelPrefill
     // The globe: the way there, with drops flowing to the destination.
     const ends = best.way === "fly" ? [apA[0], apB[0]] : [a, b];
     const f = arcFlow("way", ends[0], ends[1], WAYS[best.way].color, 0.8, best.way !== "fly");
-    const pts: WorkFeature[] = [{ id: "a", kind: "point", pts: [[a.lon, a.lat]], color: "#ffffff", label: a.name }, { id: "b", kind: "point", pts: [[b.lon, b.lat]], color: "#ffd60a", label: b.name }];
+    const pts: WorkFeature[] = [{ id: "a", kind: "point", pts: [[a.lon, a.lat]], color: "#ffffff", label: a.name }, { id: "b", kind: "point", pts: [[b.lon, b.lat]], color: "#e1b843", label: b.name }];
     map!.draw(`Trip to ${b.name}`, [f.line, ...pts], [f.flow]);
     frame(app, b.name, [a, b], 20_000);
 
@@ -195,8 +195,8 @@ export function openTravel(ctx: WorkCtx, app: App, dest?: Pt, pre: TravelPrefill
       const ranked = rankStays(stays, sights).slice(0, 12), spot = sweetSpot(sights);
       if (!stays.length) { box.replaceChildren(title(`Where to stay in ${b.name}`), h("p", { class: "muted small" }, "No stays mapped here on OpenStreetMap; the booking sites below will know more.")); return; }
       map!.draw(`Trip to ${b.name}`, [...base,
-        ...sights.slice(0, 120).map((s, i): WorkFeature => ({ id: `s${i}`, kind: "point", pts: [[s.lon, s.lat]], color: "#ffd60a" })),
-        ...ranked.slice(0, 8).map((s, i): WorkFeature => ({ id: `h${i}`, kind: "point", pts: [[s.lon, s.lat]], color: "#0a84ff", label: i < 3 ? s.name : undefined })),
+        ...sights.slice(0, 120).map((s, i): WorkFeature => ({ id: `s${i}`, kind: "point", pts: [[s.lon, s.lat]], color: "#e1b843" })),
+        ...ranked.slice(0, 8).map((s, i): WorkFeature => ({ id: `h${i}`, kind: "point", pts: [[s.lon, s.lat]], color: "#3563d6", label: i < 3 ? s.name : undefined })),
       ], flows);
       const row = (s: Stay) => h("div", { class: "tr-stay" },
         h("button", { class: "tr-stay-main", onclick: () => void flyToPlace(app.globe, { name: s.name, lon: s.lon, lat: s.lat, radius: 900 }) },

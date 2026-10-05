@@ -169,7 +169,7 @@ export function builtTheme(app: App, overlays: Overlays, openSite: (s: Site) => 
       ];
     });
     body.append(
-      siteBrowser(SITES.built, openSite, { color: "#5e5ce6" }),
+      siteBrowser(SITES.built, openSite, { color: "#5160c2" }),
       note("Railways, highways, ports and airports: Natural Earth. Shipping lanes: Benden (2022). Power plants: WRI Global Power Plant Database (2021). Undersea cables: TeleGeography. Detail near you: OpenStreetMap."),
     );
   };
@@ -242,7 +242,7 @@ export function builtTheme(app: App, overlays: Overlays, openSite: (s: Site) => 
     id: "built",
     label: "Built",
     icon: icons.building,
-    color: "#5e5ce6",
+    color: "#5160c2",
     intro: "Rail, roads, shipping, power and the internet.",
     subtabs: [overview, transport, energy, internet, toolSubtab("water", "Water", new InfrastructureTool(["water"], "infra-water"), "point")],
     enter: () => networks.suggest(SUGGESTED, "built"),

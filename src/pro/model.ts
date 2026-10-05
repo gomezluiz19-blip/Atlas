@@ -33,13 +33,13 @@ export interface Snapshot {
 }
 
 export const STATE_INFO: Record<RoomState, { label: string; color: string; counts: boolean }> = {
-  occupied: { label: "Occupied", color: "#ff453a", counts: true },
-  arriving: { label: "Arriving today", color: "#ff9f0a", counts: true },
-  departing: { label: "Leaving today", color: "#ffd60a", counts: true },
-  reserved: { label: "Booked later", color: "#5e5ce6", counts: false },
-  vacant: { label: "Free", color: "#30d158", counts: false },
-  cleaning: { label: "Being cleaned", color: "#64d2ff", counts: false },
-  out_of_order: { label: "Out of order", color: "#8e8e93", counts: false },
+  occupied: { label: "Occupied", color: "#c4513a", counts: true },
+  arriving: { label: "Arriving today", color: "#d19a2e", counts: true },
+  departing: { label: "Leaving today", color: "#e1b843", counts: true },
+  reserved: { label: "Booked later", color: "#5160c2", counts: false },
+  vacant: { label: "Free", color: "#5b9467", counts: false },
+  cleaning: { label: "Being cleaned", color: "#4c9ac9", counts: false },
+  out_of_order: { label: "Out of order", color: "#8c8f87", counts: false },
 };
 
 // ---- Reading exports -------------------------------------------------------

@@ -78,7 +78,7 @@ export function openMatchday(ctx: WorkCtx, app: App) {
     const outer = rect(lon, lat, bowl.length + 2 * bowl.setback + 70, bowl.width + 2 * bowl.setback + 70, bowl.bearing);
     ds!.entities.add({ polygon: { hierarchy: new PolygonHierarchy(outer, [new PolygonHierarchy(inner)]), height: 0, extrudedHeight: bowl.rimHeight, heightReference: HeightReference.RELATIVE_TO_GROUND, extrudedHeightReference: HeightReference.RELATIVE_TO_GROUND,
       material: Color.fromCssColorString("#d9dde3"), outline: false, shadows: ShadowMode.ENABLED } });
-    app.canvas.put({ id: "view:matchday", label: `🏟️ Matchday · ${venue.name}`, color: "#bf5af2", scope: "world", pinned: true, show: (v) => { ds!.show = v; }, remove: () => { restore?.(); } }, true);
+    app.canvas.put({ id: "view:matchday", label: `🏟️ Matchday · ${venue.name}`, color: "#8b5fa8", scope: "world", pinned: true, show: (v) => { ds!.show = v; }, remove: () => { restore?.(); } }, true);
     viewer.shadows = true;
   }
 

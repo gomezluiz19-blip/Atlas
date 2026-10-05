@@ -15,12 +15,12 @@ import {
   type Activity, type Sector,
 } from "./mne";
 
-const bar = (share: number, color = "#30d158") => h("span", { class: "fo-bar" }, h("i", { style: `width:${Math.min(100, share * 100)}%;background:${color}` }));
+const bar = (share: number, color = "#5b9467") => h("span", { class: "fo-bar" }, h("i", { style: `width:${Math.min(100, share * 100)}%;background:${color}` }));
 
 /** Women, men, girls and boys as one stacked bar with its numbers. */
 function sexAge(r: { women: number; men: number; girls: number; boys: number }) {
   const t = Math.max(1, total(r));
-  const parts: [string, number, string][] = [["Women", r.women, "#ff375f"], ["Men", r.men, "#0a84ff"], ["Girls", r.girls, "#ff9fb8"], ["Boys", r.boys, "#7cc4ff"]];
+  const parts: [string, number, string][] = [["Women", r.women, "#b8496a"], ["Men", r.men, "#3563d6"], ["Girls", r.girls, "#ff9fb8"], ["Boys", r.boys, "#7cc4ff"]];
   return h("div", {},
     h("div", { class: "po-whip-bar" }, ...parts.filter((p) => p[1]).map(([l, n, c]) => h("i", { style: `flex:${n};background:${c}`, title: `${l}: ${fmt(n)}` }))),
     h("div", { class: "pol-legend" }, ...parts.map(([l, n, c]) => h("span", {}, h("i", { style: `background:${c}` }), `${l} ${fmt(n)} (${Math.round((n / t) * 100)}%)`))));
@@ -37,7 +37,7 @@ export function responsePanel(ctx: WorkCtx, p: Programme, save: () => void, reop
     sexAge(r),
     title("Indicators"),
     inds.length ? h("div", { class: "fo-inds" }, ...inds.map((x) => h("div", { class: "fo-ind" },
-      h("span", {}, x.i.name), bar(x.share, x.share >= 1 ? "#30d158" : x.share >= 0.6 ? "#ffd60a" : "#ff9f0a"),
+      h("span", {}, x.i.name), bar(x.share, x.share >= 1 ? "#5b9467" : x.share >= 0.6 ? "#e1b843" : "#d19a2e"),
       h("small", {}, `${fmt(x.value)} of ${fmt(x.i.target)} ${x.i.unit} · ${Math.round(x.share * 100)}%${x.i.manual !== undefined ? " (entered)" : ""}`)))) : empty("No indicators yet."),
     indicatorAdder(p, save, reopen),
     title("Gap matrix"),
@@ -47,9 +47,9 @@ export function responsePanel(ctx: WorkCtx, p: Programme, save: () => void, reop
         class: x.gap ? "gap" : x.orgs.length ? (x.overlap ? "overlap" : "on") : x.need ? "gap" : "",
         title: `${rw.c.name} · ${x.sector}: ${x.orgs.length ? x.orgs.join(", ") : x.need ? "needed, no one working" : "—"}`,
       }, x.orgs.length ? String(x.orgs.length) : x.gap ? "!" : ""))])),
-    h("div", { class: "pol-legend" }, h("span", {}, h("i", { style: "background:#30d158" }), "Someone working"), h("span", {}, h("i", { style: "background:#ffd60a" }), "More than one"), h("span", {}, h("i", { style: "background:#ff453a" }), "Needed, no one")),
+    h("div", { class: "pol-legend" }, h("span", {}, h("i", { style: "background:#5b9467" }), "Someone working"), h("span", {}, h("i", { style: "background:#e1b843" }), "More than one"), h("span", {}, h("i", { style: "background:#c4513a" }), "Needed, no one")),
     title("Activities (4W)"),
-    acts.length ? list(...[...acts].sort((a, b) => b.start.localeCompare(a.start)).map((a) => row({ color: a.status === "planned" ? "#8e8e93" : a.status === "done" ? "#30d158" : "#0a84ff" }, `${a.activity} · ${name(a.community)}`,
+    acts.length ? list(...[...acts].sort((a, b) => b.start.localeCompare(a.start)).map((a) => row({ color: a.status === "planned" ? "#8c8f87" : a.status === "done" ? "#5b9467" : "#3563d6" }, `${a.activity} · ${name(a.community)}`,
       `${a.org} · ${a.sector} · ${a.status}${total(a.reached) ? ` · ${fmt(total(a.reached))} reached` : ""}`, () => activityScreen(ctx, p, a, save, reopen)))) : empty("No activities yet."),
     h("div", { class: "row" },
       h("button", { class: "primary-btn", onclick: () => activityScreen(ctx, p, null, save, reopen) }, "+ An activity"),
@@ -98,7 +98,7 @@ export function suppliesPanel(p: Programme, save: () => void, reopen: () => void
     lines(
       cover.length ? `${cover.filter((c) => c.weeks < 4).length} ${cover.filter((c) => c.weeks < 4).length === 1 ? "item runs" : "items run"} out within four weeks at the current rate.` : "No supplies tracked yet.",
       cover[0] && cover[0].weeks < 4 ? `⚠️ ${cover[0].s.item} at ${site(cover[0].s.site)}: ${cover[0].weeks < 1 ? `${Math.round(cover[0].weeks * 7)} days` : `${cover[0].weeks.toFixed(1)} weeks`} left. Order now: most lines take weeks from port to site.` : ""),
-    cover.length ? list(...cover.map(({ s, weeks }) => row({ color: weeks < 2 ? "#ff453a" : weeks < 4 ? "#ff9f0a" : "#30d158" }, `${s.item} · ${site(s.site)}`,
+    cover.length ? list(...cover.map(({ s, weeks }) => row({ color: weeks < 2 ? "#c4513a" : weeks < 4 ? "#d19a2e" : "#5b9467" }, `${s.item} · ${site(s.site)}`,
       `${fmt(s.qty)} ${s.unit} · ${fmt(s.perWeek)} a week · ${Number.isFinite(weeks) ? `${weeks.toFixed(1)} weeks of cover` : "not being used"}`,
       () => { const v = prompt(`How many ${s.unit} of ${s.item} are in stock now?`, String(s.qty)); if (v !== null && Number.isFinite(Number(v))) { s.qty = Math.max(0, Number(v)); save(); reopen(); } }))) : "",
     h("div", { class: "po-add" }, item, where, qty, per, h("button", { class: "pill-btn", onclick: () => {

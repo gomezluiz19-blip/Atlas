@@ -239,7 +239,7 @@ export function createMyPlaces(app: App, store: PlaceStore, scene: PlaceScene, o
         pv
           ? h("div", {},
               h("div", { class: "mp-stat" }, h("strong", {}, fmt(year, "kWh")), h("span", {}, `a year from ${kw} kW of panels (≈ ${fmt(year / 365, "kWh")} a day)`)),
-              monthBars(pv, "#ffd60a", (v) => fmt(v, "kWh")),
+              monthBars(pv, "#e1b843", (v) => fmt(v, "kWh")),
               use ? h("div", { class: "mp-stat" }, h("strong", {}, `${Math.min(999, Math.round((year / 365 / use) * 100))}%`), h("span", {}, `of your ${use} kWh a day, on average`)) : "")
           : h("p", { class: "muted small" }, "Add the size of your solar panels (in kW) to estimate what they make here, month by month."),
         batt && use ? h("div", { class: "mp-stat" }, h("strong", {}, `${((batt / use) * 24).toFixed(1)} h`), h("span", {}, `of backup from ${batt} kWh of battery at your average use`)) : "",
@@ -250,7 +250,7 @@ export function createMyPlaces(app: App, store: PlaceStore, scene: PlaceScene, o
       const wUse = p.water.dailyUseLitres, tank = p.water.tankLitres;
       waterOut.replaceChildren(
         h("div", { class: "mp-stat" }, h("strong", {}, `${Math.round(annualRain).toLocaleString()} mm`), h("span", {}, `of rain in an average year (${s.years})`)),
-        monthBars(s.rainMm, "#0a84ff", (v) => `${Math.round(v)} mm`),
+        monthBars(s.rainMm, "#3563d6", (v) => `${Math.round(v)} mm`),
         roof ? h("div", { class: "mp-stat" }, h("strong", {}, fmt(harvest / 1000, "m³")), h("span", {}, `could be collected from ${roof} m² of roof a year (${Math.round(harvest).toLocaleString()} litres)`)) : "",
         roof && wUse ? h("div", { class: "mp-stat" }, h("strong", {}, `${Math.min(999, Math.round((harvest / 365 / wUse) * 100))}%`), h("span", {}, `of your ${wUse.toLocaleString()} litres a day could come from the roof`)) : "",
         tank && wUse ? h("div", { class: "mp-stat" }, h("strong", {}, `${(tank / wUse).toFixed(1)} days`), h("span", {}, `of water in a full ${tank.toLocaleString()} litre tank`)) : "",
@@ -351,7 +351,7 @@ export function createMyPlaces(app: App, store: PlaceStore, scene: PlaceScene, o
             .catch(() => { if (loadedFor === id) { buildingsFailed = id; if (current === id && !panel.hidden) render(); } });
           scene.frame(p);
           app.canvas.put({
-            id: "myplace", label: `My Places · ${p.name}`, color: "#ff9f0a", scope: "world", pinned: true,
+            id: "myplace", label: `My Places · ${p.name}`, color: "#d19a2e", scope: "world", pinned: true,
             show: (v) => { scene.ds.show = v; scene.floorDs.show = v; },
             remove: () => { scene.clear(); loadedFor = ""; },
           });

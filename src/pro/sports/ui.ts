@@ -29,19 +29,19 @@ let view: View = "travel";
 const fmtDate = (iso: string) => new Date(iso + "T12:00:00").toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short" });
 /** "Maracanã, Rio de Janeiro" → "Rio de Janeiro"; a name without a town stays whole. */
 const short = (name: string) => name.split(",")[1]?.trim() || name;
-const COLORS = { travel: "#0a84ff", league: "#5e5ce6", org: "#ff9f0a", fans: "#bf5af2", matchday: "#ff375f", scouting: "#ff9f0a" };
+const COLORS = { travel: "#3563d6", league: "#5160c2", org: "#d19a2e", fans: "#8b5fa8", matchday: "#b8496a", scouting: "#d19a2e" };
 
 function draw(app: App, c: Club) {
-  map ??= new OpsMap(app, "pro:sports", "#ff375f");
-  const fs: WorkFeature[] = [{ id: "ground", kind: "point", pts: [[c.ground.lon, c.ground.lat]], color: "#ff375f", label: `🏟 ${c.ground.name.split(",")[0]}` }];
+  map ??= new OpsMap(app, "pro:sports", "#b8496a");
+  const fs: WorkFeature[] = [{ id: "ground", kind: "point", pts: [[c.ground.lon, c.ground.lat]], color: "#b8496a", label: `🏟 ${c.ground.name.split(",")[0]}` }];
   const flows = [];
   if (view === "travel") {
     const s = seasonTravel(c);
     const seen = new Set<string>();
     s.legs.forEach((l, i) => {
-      const a = arcFlow(`leg${i}`, l.from, l.to, l.mode === "air" ? "#0a84ff" : "#64d2ff", 0.5);
+      const a = arcFlow(`leg${i}`, l.from, l.to, l.mode === "air" ? "#3563d6" : "#4c9ac9", 0.5);
       fs.push(a.line); flows.push(a.flow);
-      if (l.fixture && !seen.has(l.to.name)) { seen.add(l.to.name); fs.push({ id: `v${i}`, kind: "point", pts: [[l.to.lon, l.to.lat]], color: "#0a84ff", label: `${fmtDate(l.fixture.date)} · ${short(l.to.name)}` }); }
+      if (l.fixture && !seen.has(l.to.name)) { seen.add(l.to.name); fs.push({ id: `v${i}`, kind: "point", pts: [[l.to.lon, l.to.lat]], color: "#3563d6", label: `${fmtDate(l.fixture.date)} · ${short(l.to.name)}` }); }
     });
   } else if (view === "league" || view === "org") {
     const redraw = () => { if (current()?.id === c.id) { draw(app, c); if (ctxRef) home(ctxRef, c); } };
@@ -49,18 +49,18 @@ function draw(app: App, c: Club) {
     fs.push(...got.features); flows.push(...got.flows);
     if (needFrame && got.features.length) { needFrame = false; frame(app, c.name, got.features.filter((f) => f.kind === "point").map((f) => ({ lon: f.pts[0][0], lat: f.pts[0][1] })), 20_000); }
   } else if (view === "fans") {
-    for (const km of [25, 100, 250]) fs.push({ id: `r${km}`, kind: "line", pts: [...ring(c.ground.lon, c.ground.lat, km), ring(c.ground.lon, c.ground.lat, km)[0]], color: "#bf5af2", dashed: true });
-    for (const f of c.fans) fs.push({ id: f.id, kind: "point", pts: [[f.lon, f.lat]], color: "#bf5af2", label: `${f.name} · ${fmt(f.members)}` });
+    for (const km of [25, 100, 250]) fs.push({ id: `r${km}`, kind: "line", pts: [...ring(c.ground.lon, c.ground.lat, km), ring(c.ground.lon, c.ground.lat, km)[0]], color: "#8b5fa8", dashed: true });
+    for (const f of c.fans) fs.push({ id: f.id, kind: "point", pts: [[f.lon, f.lat]], color: "#8b5fa8", label: `${f.name} · ${fmt(f.members)}` });
   } else if (view === "matchday") {
     const m = matchDay(c), biggest = Math.max(1, ...m.flows.map((x) => x.fans));
-    for (const x of m.flows) { const a = arcFlow(x.f.id, x.f, c.ground, "#ff375f", x.fans / biggest); fs.push({ id: `p${x.f.id}`, kind: "point", pts: [[x.f.lon, x.f.lat]], color: "#ff375f", label: `${x.f.name} · ${fmt(x.fans)}` }); flows.push(a.flow); }
+    for (const x of m.flows) { const a = arcFlow(x.f.id, x.f, c.ground, "#b8496a", x.fans / biggest); fs.push({ id: `p${x.f.id}`, kind: "point", pts: [[x.f.lon, x.f.lat]], color: "#b8496a", label: `${x.f.name} · ${fmt(x.fans)}` }); flows.push(a.flow); }
   } else {
     for (const t of c.targets) {
       fs.push({ id: t.id, kind: "point", pts: [[t.lon, t.lat]], color: TARGET_STATUS[t.status].color, label: `${t.name.replace(/ \(demo\)/, "")} · ${t.position}` });
       if (t.status !== "passed") fs.push(arcFlow(`l${t.id}`, t, c.ground, TARGET_STATUS[t.status].color, 0.2, true).line);
     }
   }
-  if (view !== "scouting") for (const s of c.sites) fs.push({ id: s.id, kind: "point", pts: [[s.lon, s.lat]], color: "#ff9f0a", label: view === "fans" ? undefined : `${SITE_KINDS[s.kind as keyof typeof SITE_KINDS]?.emoji ?? "•"} ${s.name}` });
+  if (view !== "scouting") for (const s of c.sites) fs.push({ id: s.id, kind: "point", pts: [[s.lon, s.lat]], color: "#d19a2e", label: view === "fans" ? undefined : `${SITE_KINDS[s.kind as keyof typeof SITE_KINDS]?.emoji ?? "•"} ${s.name}` });
   map.draw(`Club · ${c.name}`, fs, flows);
 }
 
@@ -130,13 +130,13 @@ function home(ctx: WorkCtx, c: Club) {
         fr.furthest ? `Furthest group: ${fr.furthest.f.name}, ${kmText(fr.furthest.km)} away.` : ""),
       around,
       title("Fan groups"),
-      c.fans.length ? list(...[...c.fans].sort((a, b) => b.members - a.members).map((f) => row({ color: "#bf5af2" }, f.name, `${fmt(f.members)} members · ${kmText(kmBetween(c.ground, f))} from the ground`, () => void flyToPlace(app.globe, { name: f.name, lon: f.lon, lat: f.lat, radius: 8000 })))) : empty("Add where your members, season-ticket holders or supporters' clubs are."),
+      c.fans.length ? list(...[...c.fans].sort((a, b) => b.members - a.members).map((f) => row({ color: "#8b5fa8" }, f.name, `${fmt(f.members)} members · ${kmText(kmBetween(c.ground, f))} from the ground`, () => void flyToPlace(app.globe, { name: f.name, lon: f.lon, lat: f.lat, radius: 8000 })))) : empty("Add where your members, season-ticket holders or supporters' clubs are."),
       fanAdder(ctx, c)) : view === "matchday" ? h("div", {},
       lines(
         `Expected at a home game: about ${fmt(md.expected)}, ${Math.round(md.fill * 100)}% of ${fmt(md.capacity)} seats.`,
         md.fill > 0.95 ? "Close to full: plan for turn-aways and queues at the turnstiles." : md.fill < 0.5 ? "Under half full: the far-away groups are where the gap is; a coach scheme could help." : "",
         md.flows.length ? `Biggest single inflow: ${[...md.flows].sort((a, b) => b.fans - a.fans)[0].f.name}, about ${fmt([...md.flows].sort((a, b) => b.fans - a.fans)[0].fans)}.` : ""),
-      list(...[...md.flows].sort((a, b) => b.fans - a.fans).slice(0, 8).map((x) => row({ color: "#ff375f" }, x.f.name, `about ${fmt(x.fans)} coming · ${kmText(x.km)}`)))) : scoutPanel(ctx, c, pl),
+      list(...[...md.flows].sort((a, b) => b.fans - a.fans).slice(0, 8).map((x) => row({ color: "#b8496a" }, x.f.name, `about ${fmt(x.fans)} coming · ${kmText(x.km)}`)))) : scoutPanel(ctx, c, pl),
     title("People you deal with"),
     c.parties.length ? list(...c.parties.map((p) => row({ color: moodOf(p.mood).color }, p.name, `${PARTY_KINDS[p.kind as keyof typeof PARTY_KINDS]?.label ?? p.kind} · ${moodOf(p.mood).label}${p.log[0] ? ` · ${p.log[0].text}` : ""}`, () => partyEdit(ctx, c, p)))) : empty("Sponsors, supporters' groups, the council and police, the league."),
     partyAdder(ctx, c),

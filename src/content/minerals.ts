@@ -11,12 +11,12 @@
 export type CommodityGroup = "battery" | "base" | "precious" | "energy" | "industrial" | "gems";
 
 export const GROUP_INFO: Record<CommodityGroup, { label: string; color: string }> = {
-  battery: { label: "Battery & tech metals", color: "#30d158" },
-  base: { label: "Base & bulk metals", color: "#ff9f0a" },
-  precious: { label: "Precious metals", color: "#ffd60a" },
-  energy: { label: "Energy", color: "#8e8e93" },
-  industrial: { label: "Fertiliser & industrial", color: "#64d2ff" },
-  gems: { label: "Gems", color: "#bf5af2" },
+  battery: { label: "Battery & tech metals", color: "#5b9467" },
+  base: { label: "Base & bulk metals", color: "#d19a2e" },
+  precious: { label: "Precious metals", color: "#e1b843" },
+  energy: { label: "Energy", color: "#8c8f87" },
+  industrial: { label: "Fertiliser & industrial", color: "#4c9ac9" },
+  gems: { label: "Gems", color: "#8b5fa8" },
 };
 
 export interface Commodity {
@@ -47,7 +47,7 @@ export const COMMODITIES: Commodity[] = [
     producers: [["Chile", 23], ["Peru", 12], ["DR Congo", 11], ["China", 8], ["United States", 5]],
   },
   {
-    id: "lithium", name: "Lithium", group: "battery", color: "#30d158", tag: "Li",
+    id: "lithium", name: "Lithium", group: "battery", color: "#5b9467", tag: "Li",
     what: "The lightest metal, and the heart of rechargeable batteries.",
     uses: "Batteries for phones, cars and the grid take most of it; also glass, ceramics and grease.",
     ores: "Spodumene in pegmatite (hard rock); lithium-rich brine under salt flats",
@@ -55,7 +55,7 @@ export const COMMODITIES: Commodity[] = [
     producers: [["Australia", 48], ["Chile", 24], ["China", 18], ["Argentina", 5], ["Brazil", 3]],
   },
   {
-    id: "cobalt", name: "Cobalt", group: "battery", color: "#0a84ff", tag: "Co",
+    id: "cobalt", name: "Cobalt", group: "battery", color: "#3563d6", tag: "Co",
     what: "A tough, heat-resistant metal mined mostly alongside copper and nickel.",
     uses: "Battery cathodes, superalloys for jet engines, magnets and cutting tools.",
     ores: "Mostly a by-product of copper (Central African Copperbelt) and nickel",
@@ -71,7 +71,7 @@ export const COMMODITIES: Commodity[] = [
     producers: [["Indonesia", 50], ["Philippines", 11], ["New Caledonia", 6], ["Russia", 6], ["Canada", 5]],
   },
   {
-    id: "rare-earths", name: "Rare earths", group: "battery", color: "#ff375f", tag: "REE",
+    id: "rare-earths", name: "Rare earths", group: "battery", color: "#b8496a", tag: "REE",
     what: "Seventeen elements, not actually rare, but rarely concentrated enough to mine.",
     uses: "Neodymium magnets for electric motors and wind turbines, phosphors, catalysts and lasers.",
     ores: "Bastnäsite, monazite; ionic clays in southern China",
@@ -103,7 +103,7 @@ export const COMMODITIES: Commodity[] = [
     producers: [["Australia", 25], ["Guinea", 24], ["China", 23], ["Brazil", 8], ["India", 6]],
   },
   {
-    id: "gold", name: "Gold", group: "precious", color: "#ffd60a", tag: "Au",
+    id: "gold", name: "Gold", group: "precious", color: "#e1b843", tag: "Au",
     what: "Dense, unreactive and beautiful: it never tarnishes.",
     uses: "Jewellery takes about half; investment, central banks and electronics most of the rest.",
     ores: "Native gold, in quartz veins or river gravels",
@@ -128,7 +128,7 @@ export const COMMODITIES: Commodity[] = [
     source: "Platinum only. For palladium, Russia produces about 40% and South Africa about 35%.",
   },
   {
-    id: "uranium", name: "Uranium", group: "energy", color: "#bf5af2", tag: "U",
+    id: "uranium", name: "Uranium", group: "energy", color: "#8b5fa8", tag: "U",
     what: "A heavy, slightly radioactive metal whose atoms can be split for energy.",
     uses: "Fuel for nuclear power stations.",
     ores: "Uraninite (pitchblende)",
@@ -146,7 +146,7 @@ export const COMMODITIES: Commodity[] = [
     source: "Energy Institute Statistical Review (2023).",
   },
   {
-    id: "diamonds", name: "Diamonds", group: "gems", color: "#5ac8fa", tag: "◆",
+    id: "diamonds", name: "Diamonds", group: "gems", color: "#4c9ac9", tag: "◆",
     what: "Carbon squeezed into the hardest natural material, 150+ km down.",
     uses: "Gems; industrial cutting and drilling (now mostly synthetic diamond).",
     ores: "Kimberlite pipes; river and beach gravels",
@@ -171,7 +171,7 @@ export const COMMODITIES: Commodity[] = [
     producers: [["China", 33], ["Peru", 12], ["Australia", 9], ["India", 7], ["United States", 6]],
   },
   {
-    id: "manganese", name: "Manganese", group: "base", color: "#a2845e", tag: "Mn",
+    id: "manganese", name: "Manganese", group: "base", color: "#9a7552", tag: "Mn",
     what: "A hard, brittle metal essential to steel.",
     uses: "Steelmaking takes almost all of it; also battery cathodes.",
     ores: "Pyrolusite and other oxides",

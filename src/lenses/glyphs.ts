@@ -16,7 +16,7 @@ export const FAMILY: Record<LensFamily, { label: string; color: string }> = {
   inside: { label: "Look inside", color: "#b86b3a" },
   time: { label: "Watch time", color: "#e0a526" },
   follow: { label: "Follow", color: "#2f8fdd" },
-  yours: { label: "Yours", color: "#bf5af2" },
+  yours: { label: "Yours", color: "#8b5fa8" },
 };
 
 /** Built-in lenses, in the order they're shown. */

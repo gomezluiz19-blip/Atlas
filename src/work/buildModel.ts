@@ -21,13 +21,13 @@ export const USES: Record<Use, { label: string; storey: number; cost: number; co
 export type PhaseId = "site" | "foundations" | "structure" | "envelope" | "services" | "interiors" | "handover";
 
 export const PHASES: { id: PhaseId; label: string; color: string; about: string }[] = [
-  { id: "site", label: "Site preparation", color: "#a2845e", about: "Clearing, fencing, levelling, temporary services" },
-  { id: "foundations", label: "Foundations", color: "#8e8e93", about: "Excavation, piles or footings, ground slab" },
-  { id: "structure", label: "Structure", color: "#ff9f0a", about: "Frame and floors, storey by storey" },
-  { id: "envelope", label: "Envelope", color: "#64d2ff", about: "Walls, windows and roof: weathertight" },
-  { id: "services", label: "Services (MEP)", color: "#bf5af2", about: "Electrical, plumbing, heating and ventilation" },
-  { id: "interiors", label: "Interiors", color: "#ff375f", about: "Partitions, finishes, fittings" },
-  { id: "handover", label: "Handover", color: "#30d158", about: "Testing, snagging, inspections, keys" },
+  { id: "site", label: "Site preparation", color: "#9a7552", about: "Clearing, fencing, levelling, temporary services" },
+  { id: "foundations", label: "Foundations", color: "#8c8f87", about: "Excavation, piles or footings, ground slab" },
+  { id: "structure", label: "Structure", color: "#d19a2e", about: "Frame and floors, storey by storey" },
+  { id: "envelope", label: "Envelope", color: "#4c9ac9", about: "Walls, windows and roof: weathertight" },
+  { id: "services", label: "Services (MEP)", color: "#8b5fa8", about: "Electrical, plumbing, heating and ventilation" },
+  { id: "interiors", label: "Interiors", color: "#b8496a", about: "Partitions, finishes, fittings" },
+  { id: "handover", label: "Handover", color: "#5b9467", about: "Testing, snagging, inspections, keys" },
 ];
 
 export interface Phase { id: PhaseId; start: string; end: string; /** Actual % complete, 0–100. */ done: number }

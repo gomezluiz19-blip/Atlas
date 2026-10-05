@@ -22,17 +22,17 @@ const HOODS: [string, string, number, number][] = [
 ];
 
 const AGENCIES: Omit<Agency, "head">[] = [
-  { id: "fdny", name: "Fire Department", short: "FDNY", color: "#ff453a", emoji: "🚒", budget: 2_600_000_000, headcount: 17_000, vacancies: 700, overtime: 0.16 },
-  { id: "nypd", name: "Police Department", short: "NYPD", color: "#0a84ff", emoji: "🚓", budget: 6_000_000_000, headcount: 49_000, vacancies: 3_400, overtime: 0.18 },
-  { id: "doe", name: "Department of Education", short: "DOE", color: "#5e5ce6", emoji: "🏫", budget: 33_000_000_000, headcount: 140_000, vacancies: 7_000, overtime: 0.02 },
-  { id: "hh", name: "Health + Hospitals", short: "H+H", color: "#30d158", emoji: "🏥", budget: 2_500_000_000, headcount: 43_000, vacancies: 3_900, overtime: 0.09 },
-  { id: "lib", name: "Public Libraries", short: "Libraries", color: "#ff9f0a", emoji: "📚", budget: 450_000_000, headcount: 4_500, vacancies: 270, overtime: 0.01 },
-  { id: "dsny", name: "Sanitation", short: "DSNY", color: "#a2845e", emoji: "🗑️", budget: 2_000_000_000, headcount: 10_000, vacancies: 400, overtime: 0.12 },
+  { id: "fdny", name: "Fire Department", short: "FDNY", color: "#c4513a", emoji: "🚒", budget: 2_600_000_000, headcount: 17_000, vacancies: 700, overtime: 0.16 },
+  { id: "nypd", name: "Police Department", short: "NYPD", color: "#3563d6", emoji: "🚓", budget: 6_000_000_000, headcount: 49_000, vacancies: 3_400, overtime: 0.18 },
+  { id: "doe", name: "Department of Education", short: "DOE", color: "#5160c2", emoji: "🏫", budget: 33_000_000_000, headcount: 140_000, vacancies: 7_000, overtime: 0.02 },
+  { id: "hh", name: "Health + Hospitals", short: "H+H", color: "#5b9467", emoji: "🏥", budget: 2_500_000_000, headcount: 43_000, vacancies: 3_900, overtime: 0.09 },
+  { id: "lib", name: "Public Libraries", short: "Libraries", color: "#d19a2e", emoji: "📚", budget: 450_000_000, headcount: 4_500, vacancies: 270, overtime: 0.01 },
+  { id: "dsny", name: "Sanitation", short: "DSNY", color: "#9a7552", emoji: "🗑️", budget: 2_000_000_000, headcount: 10_000, vacancies: 400, overtime: 0.12 },
   { id: "parks", name: "Parks & Recreation", short: "Parks", color: "#66d17a", emoji: "🌳", budget: 650_000_000, headcount: 7_500, vacancies: 750, overtime: 0.04 },
-  { id: "dhs", name: "Homeless Services", short: "DHS", color: "#bf5af2", emoji: "🏠", budget: 3_900_000_000, headcount: 2_000, vacancies: 240, overtime: 0.07 },
-  { id: "dep", name: "Environmental Protection", short: "DEP", color: "#64d2ff", emoji: "💧", budget: 1_600_000_000, headcount: 6_000, vacancies: 540, overtime: 0.08 },
-  { id: "dot", name: "Transportation", short: "DOT", color: "#ffcc00", emoji: "🚦", budget: 1_400_000_000, headcount: 5_700, vacancies: 630, overtime: 0.1 },
-  { id: "dcas", name: "Citywide Administrative Services", short: "DCAS", color: "#8e8e93", emoji: "🏛️", budget: 600_000_000, headcount: 2_300, vacancies: 300, overtime: 0.03 },
+  { id: "dhs", name: "Homeless Services", short: "DHS", color: "#8b5fa8", emoji: "🏠", budget: 3_900_000_000, headcount: 2_000, vacancies: 240, overtime: 0.07 },
+  { id: "dep", name: "Environmental Protection", short: "DEP", color: "#4c9ac9", emoji: "💧", budget: 1_600_000_000, headcount: 6_000, vacancies: 540, overtime: 0.08 },
+  { id: "dot", name: "Transportation", short: "DOT", color: "#e1b843", emoji: "🚦", budget: 1_400_000_000, headcount: 5_700, vacancies: 630, overtime: 0.1 },
+  { id: "dcas", name: "Citywide Administrative Services", short: "DCAS", color: "#8c8f87", emoji: "🏛️", budget: 600_000_000, headcount: 2_300, vacancies: 300, overtime: 0.03 },
 ];
 
 /** Per kind: agency, [floors, w, d], staff range. */

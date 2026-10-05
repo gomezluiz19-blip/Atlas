@@ -219,10 +219,10 @@ export const sizeLens: Lens = {
     const info = h("div", {});
     const drawAt = (to: [number, number] | null) => {
       ds.entities.removeAll();
-      for (const r of rings) poly(ds, r, "#ffd60a", 0.25, "#ffd60a", 3);
+      for (const r of rings) poly(ds, r, "#e1b843", 0.25, "#e1b843", 3);
       if (!to) return;
       const moved = moveRings(rings, to);
-      for (const r of moved) poly(ds, r, "#ff375f", 0.3, "#ff375f", 3);
+      for (const r of moved) poly(ds, r, "#b8496a", 0.3, "#b8496a", 3);
       const all = moved.flat();
       const lons = all.map((p) => p[0]), lats = all.map((p) => p[1]);
       const span = Math.max(haversine(Math.min(...lons), to[1], Math.max(...lons), to[1]), haversine(to[0], Math.min(...lats), to[0], Math.max(...lats)));

@@ -32,25 +32,25 @@ type Hazard = { x: { lon: number; lat: number; title: string; kind: string }; km
 let hazards: { for: string; list: Hazard[] } | null = null;
 
 function draw(app: App, p: Programme) {
-  map ??= new OpsMap(app, "pro:field", "#30d158");
+  map ??= new OpsMap(app, "pro:field", "#5b9467");
   const fs: WorkFeature[] = [], flows = [];
   if (view === "coverage") {
     const sv = SERVICES[service], g = gaps(p, service), best = bestNextSite(p, service);
     for (const s of p.sites.filter((x) => x.kind === sv.site)) fs.push({ id: `r${s.id}`, kind: "area", pts: ring(s.lon, s.lat, p.reach[service]), color: sv.color, fill: 0.12 }, { id: s.id, kind: "point", pts: [[s.lon, s.lat]], color: sv.color, label: `${sv.emoji} ${s.name}` });
-    for (const r of g.rows) fs.push({ id: r.c.id, kind: "point", pts: [[r.c.lon, r.c.lat]], color: r.covered ? "#30d158" : "#ff453a", label: `${r.c.name} · ${fmt(r.c.people)}${r.covered ? "" : ` · ${Number.isFinite(r.km) ? kmText(r.km) : "none"}`}` });
-    if (best) fs.push({ id: "best", kind: "line", pts: [...ring(best.at.lon, best.at.lat, p.reach[service]), ring(best.at.lon, best.at.lat, p.reach[service])[0]], color: "#ffd60a", dashed: true });
+    for (const r of g.rows) fs.push({ id: r.c.id, kind: "point", pts: [[r.c.lon, r.c.lat]], color: r.covered ? "#5b9467" : "#c4513a", label: `${r.c.name} · ${fmt(r.c.people)}${r.covered ? "" : ` · ${Number.isFinite(r.km) ? kmText(r.km) : "none"}`}` });
+    if (best) fs.push({ id: "best", kind: "line", pts: [...ring(best.at.lon, best.at.lat, p.reach[service]), ring(best.at.lon, best.at.lat, p.reach[service])[0]], color: "#e1b843", dashed: true });
   } else if (view === "supply") {
     const byId = new Map(p.sites.map((s) => [s.id, s]));
     const biggest = Math.max(1, ...p.moves.filter((m) => m.kind === "goods").map((m) => m.amount));
     for (const m of p.moves) { const a = byId.get(m.from), b = byId.get(m.to); if (!a || !b) continue; const s = stream(a, b, m, m.kind === "goods" ? biggest : m.amount); fs.push(s.line); flows.push(s.flow); }
-    for (const s of p.sites) fs.push({ id: s.id, kind: "point", pts: [[s.lon, s.lat]], color: "#30d158", label: `${K(s.kind)?.emoji ?? "•"} ${s.name}` });
+    for (const s of p.sites) fs.push({ id: s.id, kind: "point", pts: [[s.lon, s.lat]], color: "#5b9467", label: `${K(s.kind)?.emoji ?? "•"} ${s.name}` });
   } else if (view === "response" || view === "supplies") {
     const gm = gapMatrix(p, p.activities ?? []);
-    for (const r of gm.rows) { const missing = r.cells.filter((x) => x.gap).map((x) => x.sector); fs.push({ id: r.c.id, kind: "point", pts: [[r.c.lon, r.c.lat]], color: missing.length ? "#ff453a" : "#30d158", label: `${r.c.name}${missing.length ? ` · no ${missing.join(", ").toLowerCase()}` : ""}` }); }
-    if (view === "supplies") for (const { s, weeks } of stockCover(p.stock ?? [])) { const site = p.sites.find((x) => x.id === s.site); if (site) fs.push({ id: `st${s.id}`, kind: "point", pts: [[site.lon + 0.01, site.lat + 0.01]], color: weeks < 2 ? "#ff453a" : weeks < 4 ? "#ff9f0a" : "#30d158", label: `${s.item} · ${Number.isFinite(weeks) ? `${weeks.toFixed(1)} wk` : "—"}` }); }
+    for (const r of gm.rows) { const missing = r.cells.filter((x) => x.gap).map((x) => x.sector); fs.push({ id: r.c.id, kind: "point", pts: [[r.c.lon, r.c.lat]], color: missing.length ? "#c4513a" : "#5b9467", label: `${r.c.name}${missing.length ? ` · no ${missing.join(", ").toLowerCase()}` : ""}` }); }
+    if (view === "supplies") for (const { s, weeks } of stockCover(p.stock ?? [])) { const site = p.sites.find((x) => x.id === s.site); if (site) fs.push({ id: `st${s.id}`, kind: "point", pts: [[site.lon + 0.01, site.lat + 0.01]], color: weeks < 2 ? "#c4513a" : weeks < 4 ? "#d19a2e" : "#5b9467", label: `${s.item} · ${Number.isFinite(weeks) ? `${weeks.toFixed(1)} wk` : "—"}` }); }
   } else {
-    for (const c of p.communities) fs.push({ id: c.id, kind: "point", pts: [[c.lon, c.lat]], color: "#8e8e93", label: c.name });
-    for (const [i, r] of (hazards?.list ?? []).entries()) fs.push({ id: `h${i}`, kind: "point", pts: [[r.x.lon, r.x.lat]], color: "#ff9f0a", label: `${r.x.title} · ${kmText(r.km)}` });
+    for (const c of p.communities) fs.push({ id: c.id, kind: "point", pts: [[c.lon, c.lat]], color: "#8c8f87", label: c.name });
+    for (const [i, r] of (hazards?.list ?? []).entries()) fs.push({ id: `h${i}`, kind: "point", pts: [[r.x.lon, r.x.lat]], color: "#d19a2e", label: `${r.x.title} · ${kmText(r.km)}` });
   }
   map.draw(`Programme · ${p.name}`, fs, flows);
 }
@@ -105,9 +105,9 @@ function home(ctx: WorkCtx, p: Programme) {
     view === "response" ? responsePanel(ctx, p, () => save(p), () => openField(ctx)) :
     view === "supplies" ? suppliesPanel(p, () => save(p), () => openField(ctx)) :
       hazards?.for === p.id ? h("div", {}, lines(hazards.list.length ? `${hazards.list.length} natural events and earthquakes within 400 km of the people you serve.` : "No open natural events or recent earthquakes within 400 km."),
-        list(...hazards.list.slice(0, 8).map((r) => row({ color: "#ff9f0a" }, r.x.title, `${r.x.kind.replace(/([A-Z])/g, " $1").toLowerCase()} · ${kmText(r.km)} from the nearest community or site`, () => void flyToPlace(app.globe, { name: r.x.title, lon: r.x.lon, lat: r.x.lat, radius: 60_000 }))))) : h("p", { class: "muted small" }, "Checking NASA's natural events and this week's earthquakes…"),
+        list(...hazards.list.slice(0, 8).map((r) => row({ color: "#d19a2e" }, r.x.title, `${r.x.kind.replace(/([A-Z])/g, " $1").toLowerCase()} · ${kmText(r.km)} from the nearest community or site`, () => void flyToPlace(app.globe, { name: r.x.title, lon: r.x.lon, lat: r.x.lat, radius: 60_000 }))))) : h("p", { class: "muted small" }, "Checking NASA's natural events and this week's earthquakes…"),
     title("Incidents"),
-    q.length ? list(...q.map((i) => row({ color: i.severity === 3 ? "#ff453a" : i.severity === 2 ? "#ff9f0a" : "#8e8e93" }, i.title, [i.status === "waiting" ? "waiting on someone" : "", i.stale ? "no update in 2 weeks" : ""].filter(Boolean).join(" · ") || (i.site ? p.sites.find((s) => s.id === i.site)?.name ?? "" : ""),
+    q.length ? list(...q.map((i) => row({ color: i.severity === 3 ? "#c4513a" : i.severity === 2 ? "#d19a2e" : "#8c8f87" }, i.title, [i.status === "waiting" ? "waiting on someone" : "", i.stale ? "no update in 2 weeks" : ""].filter(Boolean).join(" · ") || (i.site ? p.sites.find((s) => s.id === i.site)?.name ?? "" : ""),
       () => issueScreen(ctx, i, p.parties, p.sites, (x) => { Object.assign(p.incidents.find((y) => y.id === x.id)!, x); save(p); openField(ctx); }, () => openField(ctx), "incident"), ageBadge(i.age, "days", i.stale)))) : empty("No open incidents."),
     h("button", { class: "link-btn", onclick: () => issueScreen(ctx, null, p.parties, p.sites, (x) => { p.incidents.push(x); save(p); openField(ctx); }, () => openField(ctx), "incident") }, "+ An incident"),
     title("Deliveries and deadlines"),
@@ -134,7 +134,7 @@ function coveragePanel(ctx: WorkCtx, p: Programme) {
       best ? `💡 A new ${K(sv.site)?.label.toLowerCase() ?? "site"} at ${best.at.name} would bring ${fmt(best.people)} more people within ${p.reach[service]} km${best.reaches.length > 1 ? ` (${best.reaches.map((c) => c.name).join(", ")})` : ""}.` : g.missed ? "" : "Everyone is within reach."),
     field("Too far is", input(p.reach[service], (v) => { p.reach[service] = Math.max(0.5, Number(v) || p.reach[service]); save(p); draw(ctx.app, p); openField(ctx); }, { type: "number", min: 0.5, step: 0.5, title: "kilometres" })),
     title("Beyond reach"),
-    g.out.length ? list(...g.out.map((r) => row({ color: "#ff453a" }, r.c.name, `${fmt(r.c.people)} people · ${Number.isFinite(r.km) ? `${kmText(r.km)} (${walkText(r.km)}) to ${r.site?.name}` : "no site yet"}`, () => communityScreen(ctx, p, r.c)))) : empty("No one."),
+    g.out.length ? list(...g.out.map((r) => row({ color: "#c4513a" }, r.c.name, `${fmt(r.c.people)} people · ${Number.isFinite(r.km) ? `${kmText(r.km)} (${walkText(r.km)}) to ${r.site?.name}` : "no site yet"}`, () => communityScreen(ctx, p, r.c)))) : empty("No one."),
     best ? h("button", { class: "pill-btn", onclick: () => { p.sites.push({ id: newId(), name: `${K(sv.site)?.label ?? "Site"}, ${best.at.name} (planned)`, kind: sv.site, lon: best.at.lon, lat: best.at.lat }); save(p); draw(ctx.app, p); openField(ctx); } }, `Plan the ${K(sv.site)?.label.toLowerCase() ?? "site"} at ${best.at.name}`) : "",
     best ? planBlock(p, service, (ats) => { for (const at of ats) p.sites.push({ id: newId(), name: `${K(sv.site)?.label ?? "Site"}, ${at.name} (planned)`, kind: sv.site, lon: at.lon, lat: at.lat }); save(p); draw(ctx.app, p); openField(ctx); }) : "",
     title("Communities"),
@@ -154,7 +154,7 @@ function supplyPanel(ctx: WorkCtx, p: Programme) {
     lines(
       longest ? `Longest leg: ${longest.m.what} from ${longest.a.name} to ${longest.b.name}, ${kmText(longest.f.km)}, about ${hoursText(longest.f.hours)}.` : "",
       `${fmt(rows.reduce((s, r) => s + (r.f.tonnes ?? 0), 0))} t of goods a year moved; ${fmt(rows.reduce((s, r) => s + r.f.co2t, 0), 1)} t CO₂.`),
-    rows.length ? list(...rows.map((r) => row({ color: r.m.kind === "goods" ? "#ff9f0a" : r.m.kind === "people" ? "#0a84ff" : "#bf5af2" }, `${r.m.what}: ${r.a.name.split(",")[0]} → ${r.b.name.split(",")[0]}`,
+    rows.length ? list(...rows.map((r) => row({ color: r.m.kind === "goods" ? "#d19a2e" : r.m.kind === "people" ? "#3563d6" : "#8b5fa8" }, `${r.m.what}: ${r.a.name.split(",")[0]} → ${r.b.name.split(",")[0]}`,
       [`${fmt(r.m.amount)} ${r.m.unit} a ${r.m.per}`, r.m.mode !== "digital" ? `${kmText(r.f.km)} · ${hoursText(r.f.hours)}` : ""].filter(Boolean).join(" · "),
       () => moveScreen(ctx, p.sites, SITE_KINDS, r.m, () => { save(p); openField(ctx); }, (x) => { p.moves = p.moves.filter((y) => y !== x); save(p); openField(ctx); }, () => openField(ctx), "Medicines, rations, staff…")))) : empty("Add a warehouse and where supplies go."),
     p.sites.length >= 2 ? h("button", { class: "link-btn", onclick: () => moveScreen(ctx, p.sites, SITE_KINDS, null, (x) => { p.moves.push(x); save(p); openField(ctx); }, () => {}, () => openField(ctx), "Medicines, rations, staff…") }, "+ A supply line") : "");

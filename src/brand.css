@@ -1,0 +1,141 @@
+/* ======================================================================================
+   Terreno brand layer. Loaded after styles.css; it expresses the system in docs/design.md
+   through the shared components rather than one screen at a time:
+     - Quiet material: paper by day, basalt by night, hairline edges, little blur, no candy.
+     - One action colour (cobalt). The pigments mean things; they never decorate.
+     - Tiles, not bubbles: icons sit on a tinted tessera, drawn as lines in the pigment.
+     - Registration marks: what's chosen is framed by four corner ticks, as on a printer's plate.
+     - Geist for words, Geist Mono for small capitals, figures and readouts.
+   ====================================================================================== */
+
+/* ---------- The registration mark: corner ticks that frame what's chosen ---------- */
+.reg, .mode-btn[aria-pressed="true"], .tab[aria-selected="true"], .lens-tile.on .lens-glyph, .wk-tile:focus-visible, .seg-on {
+  --rc: var(--accent);
+  background-image:
+    linear-gradient(var(--rc), var(--rc)), linear-gradient(var(--rc), var(--rc)),
+    linear-gradient(var(--rc), var(--rc)), linear-gradient(var(--rc), var(--rc)),
+    linear-gradient(var(--rc), var(--rc)), linear-gradient(var(--rc), var(--rc)),
+    linear-gradient(var(--rc), var(--rc)), linear-gradient(var(--rc), var(--rc));
+  background-size:
+    var(--tick) var(--tick-w), var(--tick-w) var(--tick), var(--tick) var(--tick-w), var(--tick-w) var(--tick),
+    var(--tick) var(--tick-w), var(--tick-w) var(--tick), var(--tick) var(--tick-w), var(--tick-w) var(--tick);
+  background-position: 0 0, 0 0, 100% 0, 100% 0, 0 100%, 0 100%, 100% 100%, 100% 100%;
+  background-repeat: no-repeat;
+}
+
+/* ---------- Type ---------- */
+html, body { font-family: var(--font); }
+.sheet-title, .work-title, .mp-head h2, .story-title, .tv-title, h1, h2, h3 { font-family: var(--font-display); }
+.sheet-title { font-weight: 600; letter-spacing: -0.028em; }
+.group-title, .lens-sub, .jr-day-label, .pp-group-label, .studio-root h3, .wk-group-title, .search-heading, .studio-h, .vs-shelf h4,
+.section-label, .eyebrow, .po-group, .hp-section, .stories-head {
+  font: 500 10.5px/1.3 var(--font-mono) !important; letter-spacing: 0.12em !important; text-transform: uppercase; color: var(--secondary);
+}
+.hero-value, .stat-value, .glance-value, .callout-value, .po-kpi strong, .pp-value { font-variant-numeric: tabular-nums; }
+.fineprint, .muted.small { letter-spacing: 0; }
+
+/* ---------- Surfaces ---------- */
+.sheet, .popover, .lens-panel, .work-panel, .search-results, .vs-sheet, .tabbar, .mode-bar, .round-btn, .search input, .toast, .map-ctl, .map-zoom, .look-legend {
+  background: var(--material);
+  -webkit-backdrop-filter: blur(20px) saturate(115%); backdrop-filter: blur(20px) saturate(115%);
+  box-shadow: var(--shadow);
+}
+.sheet, .popover, .lens-panel, .work-panel { border-radius: 14px; }
+.search-results { background: var(--material-strong); border-radius: 12px; }
+
+/* ---------- Top bar: the mark, search, modes, actions ---------- */
+.brand { display: flex; align-items: center; gap: 9px; height: 40px; padding: 0 12px 0 8px; border: 0; border-radius: 10px; cursor: pointer; color: var(--label);
+  background: var(--material); -webkit-backdrop-filter: blur(20px) saturate(115%); backdrop-filter: blur(20px) saturate(115%); box-shadow: var(--shadow); }
+.brand-mark { display: grid; place-items: center; }
+.brand-mark svg { width: 30px; height: 30px; }
+.brand-mark svg path[fill] { stroke: var(--material-strong); }
+.brand-mark svg path:not([fill]) { stroke: var(--label); }
+.brand-word { font: 600 12px/1 var(--font-display); letter-spacing: 0.34em; margin-right: -0.34em; }
+@media (max-width: 1180px) { .brand-word { display: none; } .brand { padding: 0 7px; } }
+.round-btn { width: 40px; height: 40px; border-radius: 10px; color: var(--secondary); transition: color .15s var(--ease), background .15s var(--ease); }
+.round-btn:hover { color: var(--label); background: var(--material-strong); }
+.round-btn[aria-expanded="true"] { color: var(--accent); }
+.search input { border-radius: 10px; font: 400 14px var(--font); letter-spacing: -0.005em; }
+.search input::placeholder { color: var(--tertiary); }
+.mode-bar { border-radius: 10px; padding: 3px; gap: 2px; }
+.mode-btn { border-radius: 7px; font: 500 13px var(--font); letter-spacing: -0.005em; color: var(--secondary); }
+.mode-btn[aria-pressed="true"] { background-color: var(--material-strong); color: var(--label); box-shadow: 0 0 0 1px var(--hairline); --tick: 6px; --tick-w: 1.5px; }
+.mode-btn[aria-pressed="true"] .mode-icon { color: var(--accent); }
+
+/* ---------- The theme dock ---------- */
+.tabbar { border-radius: 14px; padding: 4px; }
+.tab { border-radius: 9px; color: var(--secondary); }
+.tab-label { font: 500 10.5px/1 var(--font); letter-spacing: 0.01em; }
+.tab[aria-selected="true"] { background-color: var(--material-strong); color: var(--label); box-shadow: 0 0 0 1px var(--hairline); --tick: 7px; }
+.tab[aria-selected="true"] .tab-icon { color: var(--accent); }
+
+/* ---------- Icon tiles: a tinted tessera, the icon drawn in its pigment ---------- */
+.work-tool-icon, .look-tile-icon, .wk-glyph, .insight-icon, .empty-icon, .vs-row-glyph, .lens-title-glyph, .wn-icon, .hp-icon {
+  color: color-mix(in srgb, var(--c, var(--accent)) 82%, var(--label)) !important;
+  background: color-mix(in srgb, var(--c, var(--accent)) 12%, var(--material-strong)) !important;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c, var(--accent)) 22%, transparent) !important;
+  border-radius: 9px !important;
+}
+.insight-icon { --c: var(--sage); }
+.empty-icon { width: 38px; height: 38px; place-items: center; border-radius: 10px; }
+.empty-icon svg { width: 22px; height: 22px; }
+.look-tile, .work-tool, .wk-tile, .empty-hint, .insight, .story-card, .vs-row {
+  border-radius: 12px; box-shadow: 0 0 0 1px var(--hairline); background: var(--material-strong);
+  transition: background .15s var(--ease), box-shadow .15s var(--ease), transform .15s var(--ease);
+}
+.look-tile:hover, .work-tool:hover, .wk-tile:hover, .story-card:hover { background: color-mix(in srgb, var(--accent) 4%, var(--material-strong)); box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 30%, var(--hairline)); }
+.work-tool-text strong, .look-tile strong, .wk-tile-name { font-weight: 600; letter-spacing: -0.01em; }
+
+/* ---------- Lenses: square tiles in a quiet row, the chosen one framed ---------- */
+.lens-glyph {
+  border-radius: 11px; width: 44px; height: 44px; background-image: none;
+  color: color-mix(in srgb, var(--c) 85%, var(--label));
+  background-color: color-mix(in srgb, var(--c) 11%, var(--material-strong));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 25%, transparent);
+}
+.lens-glyph svg { width: 22px; height: 22px; stroke-width: 1.6; }
+.lens-tile:hover .lens-glyph, .lens-tile:focus-visible .lens-glyph { transform: translateY(-1px); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 45%, transparent); }
+.lens-tile.on .lens-glyph { --rc: var(--c); --tick: 8px; box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 55%, transparent); }
+.lens-tile.make .lens-glyph { background-color: transparent; }
+.lens-name { font: 500 11px/1.15 var(--font); letter-spacing: 0; }
+.lens-title-glyph { border-radius: 8px !important; }
+
+/* ---------- Controls: rectangles with hairlines ---------- */
+.primary-btn { background: var(--accent); color: #fff; border-radius: 8px; font-weight: 550; letter-spacing: -0.005em; box-shadow: 0 1px 0 rgba(255, 255, 255, .15) inset, 0 1px 2px rgba(20, 24, 40, .25); }
+@media (prefers-color-scheme: dark) { .primary-btn, .holo-go { color: #0f1320 !important; } }
+.primary-btn:hover { filter: brightness(1.06); }
+.pill-btn { border-radius: 8px; background: transparent; box-shadow: inset 0 0 0 1px var(--hairline); font-weight: 500; }
+.pill-btn:hover { background: var(--fill); }
+.chip { border-radius: 7px; font: 500 12.5px var(--font); box-shadow: inset 0 0 0 1px var(--hairline); background: transparent; }
+.chip:hover { background: var(--fill); }
+.chip.on, .chip[aria-checked="true"], .chip[aria-pressed="true"] { background: color-mix(in srgb, var(--accent) 12%, transparent); color: var(--accent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 40%, transparent); }
+.link-btn { color: var(--accent); font-weight: 550; }
+.icon-btn, .close-btn { border-radius: 8px; }
+.segmented { border-radius: 9px; background: var(--fill); }
+.segmented button { border-radius: 7px; font-weight: 500; }
+input[type="range"] { accent-color: var(--accent); }
+::selection { background: color-mix(in srgb, var(--accent) 22%, transparent); }
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* The place card's actions: one row of quiet buttons, the icon in cobalt. */
+.card-actions .pill-btn, .pg-btn { border-radius: 8px; padding: 6px 11px; font: 500 12.5px var(--font); background: transparent; box-shadow: inset 0 0 0 1px var(--hairline); }
+.card-actions .pill-btn .g, .pg-btn .g, .card-actions .pill-btn .gx, .pg-btn .gx { color: var(--accent); }
+
+/* Icons standing in for emoji (src/ui/noEmoji.ts) sit on the text's baseline at its size. */
+.gx { display: inline-grid; place-items: center; vertical-align: -0.16em; margin: 0 0.12em; }
+.gx svg { width: 1.08em; height: 1.08em; }
+.gx:first-child { margin-left: 0; margin-right: 0.38em; }
+.flag-code { display: inline-block; padding: 0 0.32em; border-radius: 3px; font: 600 0.72em/1.5 var(--font-mono); letter-spacing: 0.04em; color: var(--secondary); box-shadow: inset 0 0 0 1px var(--hairline); vertical-align: 0.1em; }
+
+/* ---------- Map labels: quieter halos, the brand's type ---------- */
+.map-label { font-family: var(--font); letter-spacing: 0.005em; }
+.ml-text { text-shadow: 0 0 2px rgba(10, 12, 9, .55), 0 1px 3px rgba(10, 12, 9, .45) !important; }
+.ml-glyph { border-radius: 6px !important; }
+
+/* ---------- Toasts and popovers ---------- */
+.toast { border-radius: 10px; font: 500 13px var(--font); }
+
+/* ---------- Motion: one curve, nothing bouncy ---------- */
+@media (prefers-reduced-motion: no-preference) {
+  .sheet, .popover, .work-panel, .lens-panel { transition-timing-function: var(--ease); }
+}

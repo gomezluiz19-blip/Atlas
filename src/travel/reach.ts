@@ -9,9 +9,9 @@ import { areaM2, metres, type LonLat } from "../work/geo";
 export type ReachMode = "walk" | "bike" | "drive";
 
 export const REACH_MODES: Record<ReachMode, { label: string; emoji: string; color: string; costing: string; kmh: number; detour: number }> = {
-  walk: { label: "Walk", emoji: "🚶", color: "#30d158", costing: "pedestrian", kmh: 4.8, detour: 1.25 },
-  bike: { label: "Bike", emoji: "🚲", color: "#ffd60a", costing: "bicycle", kmh: 16, detour: 1.3 },
-  drive: { label: "Drive", emoji: "🚗", color: "#0a84ff", costing: "auto", kmh: 38, detour: 1.35 },
+  walk: { label: "Walk", emoji: "🚶", color: "#5b9467", costing: "pedestrian", kmh: 4.8, detour: 1.25 },
+  bike: { label: "Bike", emoji: "🚲", color: "#e1b843", costing: "bicycle", kmh: 16, detour: 1.3 },
+  drive: { label: "Drive", emoji: "🚗", color: "#3563d6", costing: "auto", kmh: 38, detour: 1.35 },
 };
 export const REACH_IDS = Object.keys(REACH_MODES) as ReachMode[];
 

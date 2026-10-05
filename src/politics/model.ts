@@ -48,7 +48,7 @@ export interface Leadership {
 
 const KNOWN: [RegExp, string][] = [
   [/^republican/i, "#e5484d"], [/^democrat/i, "#3b82f6"], [/independent/i, "#a78bfa"], [/libertarian/i, "#eab308"], [/green/i, "#22c55e"],
-  [/labour|labor\b|social democrat|socialist/i, "#e11d48"], [/conservative|christian democrat/i, "#2563eb"], [/liberal democrat/i, "#f59e0b"],
+  [/labour|labor\b|social democrat|socialist/i, "#e11d48"], [/conservative|christian democrat/i, "#2f58c8"], [/liberal democrat/i, "#f59e0b"],
   [/communist/i, "#b91c1c"], [/nonpartisan|non-partisan|no party/i, "#94a3b8"],
 ];
 const PALETTE = ["#f97316", "#14b8a6", "#8b5cf6", "#ec4899", "#84cc16", "#06b6d4", "#f43f5e", "#a855f7", "#0ea5e9", "#d946ef"];

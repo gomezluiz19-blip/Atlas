@@ -39,9 +39,9 @@ const fmtDate = (iso: string) => new Date(iso + "T12:00:00").toLocaleDateString(
 // ---- The map ---------------------------------------------------------------------------------------
 
 function draw(app: App, o: Office, members: Member[] = []) {
-  layer ??= new WorkLayer(app, "pro:office", o.name, "#5e5ce6");
+  layer ??= new WorkLayer(app, "pro:office", o.name, "#5160c2");
   const fs: WorkFeature[] = [];
-  for (const [i, r] of (o.district?.rings ?? []).entries()) fs.push({ id: `d${i}`, kind: "area", pts: r, color: "#5e5ce6", fill: 0.08 });
+  for (const [i, r] of (o.district?.rings ?? []).entries()) fs.push({ id: `d${i}`, kind: "area", pts: r, color: "#5160c2", fill: 0.08 });
   const bill = o.bills.find((b) => b.id === mapMode);
   if (bill) {
     // The whip count across the country: each member a dot in their state, coloured by stance.
@@ -54,12 +54,12 @@ function draw(app: App, o: Office, members: Member[] = []) {
     }
     for (const p of o.contacts.filter((x) => x.lon !== undefined && x.stance[bill.id])) fs.push({ id: p.id, kind: "point", pts: [[p.lon!, p.lat!]], color: stanceOf(p.stance[bill.id]).color, label: p.name });
   } else {
-    for (const s of o.sites) fs.push({ id: s.id, kind: "point", pts: [[s.lon, s.lat]], color: "#5e5ce6", label: `🏛 ${s.name}` });
+    for (const s of o.sites) fs.push({ id: s.id, kind: "point", pts: [[s.lon, s.lat]], color: "#5160c2", label: `🏛 ${s.name}` });
     for (const p of o.contacts.filter((x) => x.lon !== undefined)) fs.push({ id: p.id, kind: "point", pts: [[p.lon!, p.lat!]], color: CONTACT_KINDS[p.kind].color });
     const soon = o.events.filter((e) => e.place && e.date >= today()).sort((a, b) => a.date.localeCompare(b.date));
-    for (const e of soon) fs.push({ id: e.id, kind: "point", pts: [[e.place!.lon, e.place!.lat]], color: "#ff9f0a", label: `📅 ${fmtDate(e.date)}` });
+    for (const e of soon) fs.push({ id: e.id, kind: "point", pts: [[e.place!.lon, e.place!.lat]], color: "#d19a2e", label: `📅 ${fmtDate(e.date)}` });
     for (const msg of (o.messages ?? []).filter((x) => x.lon !== undefined && !x.replied)) fs.push({ id: `mg${msg.id}`, kind: "point", pts: [[msg.lon! - 0.002, msg.lat! - 0.0015]], color: POSITIONS.find((p) => p.id === msg.position)!.color });
-    for (const k of caseQueue(o.cases, today())) { const p = o.contacts.find((x) => x.id === k.contact); if (p?.lon !== undefined) fs.push({ id: `c${k.id}`, kind: "point", pts: [[p.lon + 0.002, p.lat! + 0.0015]], color: "#ff3b30" }); }
+    for (const k of caseQueue(o.cases, today())) { const p = o.contacts.find((x) => x.id === k.contact); if (p?.lon !== undefined) fs.push({ id: `c${k.id}`, kind: "point", pts: [[p.lon + 0.002, p.lat! + 0.0015]], color: "#c4513a" }); }
   }
   layer.set(fs, `Politics Pro · ${o.name}`);
 }
@@ -331,7 +331,7 @@ function casesScreen(ctx: WorkCtx, o: Office) {
       return h("div", { class: "po-case" + (c.status === "closed" ? " closed" : "") },
         h("div", {}, h("strong", {}, c.subject), h("span", { class: "muted small" }, [c.agency, who?.name, `opened ${fmtDate(c.opened)}`, `updated ${fmtDate(c.updated)}`].filter(Boolean).join(" · "))),
         h("div", { class: "row" }, ...(["open", "waiting", "closed"] as const).map((s) => h("button", { class: "chip" + (c.status === s ? " on" : ""), onclick: () => set(c, s) }, s === "waiting" ? "Waiting on agency" : s[0].toUpperCase() + s.slice(1))),
-          h("button", { class: "chip" + (c.release ? " on" : ""), style: c.release ? "--c:#30d158" : "", onclick: () => { c.release = !c.release; save(o); again(); } }, c.release ? "✓ Privacy release" : "No privacy release")));
+          h("button", { class: "chip" + (c.release ? " on" : ""), style: c.release ? "--c:#5b9467" : "", onclick: () => { c.release = !c.release; save(o); again(); } }, c.release ? "✓ Privacy release" : "No privacy release")));
     }),
     h("button", { class: "pill-btn", onclick: () => addCase(ctx, o) }, "+ A case"));
 }

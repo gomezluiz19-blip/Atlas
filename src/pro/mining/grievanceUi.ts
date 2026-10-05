@@ -17,7 +17,7 @@ import {
 } from "./social";
 
 const pct = (v: number | null) => (v === null ? "—" : `${Math.round(v * 100)}%`);
-const STAGE_COLOR: Record<Stage, string> = { received: "#ff9f0a", acknowledged: "#ffd60a", investigating: "#0a84ff", responded: "#5e5ce6", closed: "#30d158", appealed: "#ff453a" };
+const STAGE_COLOR: Record<Stage, string> = { received: "#d19a2e", acknowledged: "#e1b843", investigating: "#3563d6", responded: "#5160c2", closed: "#5b9467", appealed: "#c4513a" };
 
 export function grievancePanel(ctx: WorkCtx, m: Mine, save: () => void, reopen: () => void) {
   const t = today(), k = grievanceKpis(m.issues, t);

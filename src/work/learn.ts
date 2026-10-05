@@ -48,14 +48,14 @@ export function openLearn(ctx: WorkCtx) {
       playedToday ? "" : h("button", { class: "primary-btn", onclick: () => { ctx.close(); daily(app, ctx); } }, "Play")),
     h("h2", { class: "group-title" }, "Games"),
     h("div", { class: "work-tools" },
-      tile("Flight School", "Fly a plane to countries and learn the map on the way", "#0a84ff", "✈️", () => { ctx.close(); void flightSchool(app); }),
-      tile("Flag Match", "Whose flag is it? Then see where it flies", "#ff375f", "🚩", () => { ctx.close(); flagMatch(app); }),
-      tile("Where in the world?", "Capitals and wonders: tap where they are", "#30d158", "🎯", () => { ctx.close(); where(app, Math.random() < 0.5 ? CAPITALS : LANDMARKS, "where-learn", "mixed"); }),
-      tile("Time traveller", "Guess the year from the world's borders", "#e0b050", "⏳", () => { ctx.close(); timeTraveller(app); })),
+      tile("Flight School", "Fly a plane to countries and learn the map on the way", "#3563d6", "✈️", () => { ctx.close(); void flightSchool(app); }),
+      tile("Flag Match", "Whose flag is it? Then see where it flies", "#b8496a", "🚩", () => { ctx.close(); flagMatch(app); }),
+      tile("Where in the world?", "Capitals and wonders: tap where they are", "#5b9467", "🎯", () => { ctx.close(); where(app, Math.random() < 0.5 ? CAPITALS : LANDMARKS, "where-learn", "mixed"); }),
+      tile("Time traveller", "Guess the year from the world's borders", "#c9a256", "⏳", () => { ctx.close(); timeTraveller(app); })),
     h("h2", { class: "group-title" }, "For school"),
     h("div", { class: "work-tools" },
-      tile("Places to learn", "Museums, libraries, science centres and zoos near you, free ones marked", "#bf5af2", "🏛️", () => openPlaces(ctx, back)),
-      tile("My passport", `${Object.keys(p.stamps).length} stamps · ${Object.keys(p.badges).length} badges`, "#ff9f0a", "🛂", () => openPassport(ctx, back))),
+      tile("Places to learn", "Museums, libraries, science centres and zoos near you, free ones marked", "#8b5fa8", "🏛️", () => openPlaces(ctx, back)),
+      tile("My passport", `${Object.keys(p.stamps).length} stamps · ${Object.keys(p.badges).length} badges`, "#d19a2e", "🛂", () => openPassport(ctx, back))),
     h("div", { class: "pro-url-row" }, quizIn, h("button", { class: "primary-btn", onclick: () => {
       const m = /quiz=([\w-]+)/.exec(quizIn.value);
       if (!m) { app.toast("That doesn't look like a quiz link.", 4000); return; }
@@ -78,7 +78,7 @@ function daily(app: App, ctx: WorkCtx) {
   void flyToView(app, overhead(0, 20, 22_000_000), 1.2);
   app.pickOnce(null, (g) => {
     const km = distanceKm([g.lon, g.lat], [site.lon, site.lat]), pts = guessPoints(km);
-    revealMap(app, { id: "", kind: "map", prompt: "", place: site.name, lon: site.lon, lat: site.lat, tolerance: 0 }, [{ pt: [g.lon, g.lat], color: "#0a84ff", label: "You" }]);
+    revealMap(app, { id: "", kind: "map", prompt: "", place: site.name, lon: site.lon, lat: site.lat, tolerance: 0 }, [{ pt: [g.lon, g.lat], color: "#3563d6", label: "You" }]);
     const p = loadPassport();
     const earned = dailyPlayed(p);
     savePassport(p);
@@ -101,7 +101,7 @@ export function flagMatch(app: App) {
     const c = rounds[r];
     const options = shuffle([c, ...shuffle(FLAG_COUNTRIES.filter((x) => x !== c)).slice(0, 3)]);
     s.card.replaceChildren(h("span", { class: "stage-num" }, `Flag ${r + 1} of ${ROUNDS} · ${score} right`), h("div", { class: "flag-big" }, flag(c.iso)), h("h2", {}, "Whose flag is this?"));
-    s.answers.replaceChildren(...options.map((o, j) => h("button", { class: "stage-tile", style: `--c:${["#ff375f", "#0a84ff", "#ffd60a", "#bf5af2"][j]}`, onclick: () => {
+    s.answers.replaceChildren(...options.map((o, j) => h("button", { class: "stage-tile", style: `--c:${["#b8496a", "#3563d6", "#e1b843", "#8b5fa8"][j]}`, onclick: () => {
       const ok = o === c;
       if (ok) score++;
       [...s.answers.children].forEach((el, k) => { (el as HTMLButtonElement).disabled = true; el.classList.add(options[k] === c ? "right" : options[k] === o ? "wrong" : "dim"); });
@@ -132,7 +132,7 @@ function openPassport(ctx: WorkCtx, back: () => void) {
   ctx.show("My passport", back,
     h("p", { class: "mp-intro" }, "You get a stamp for every country you explore on the globe (tap a place in it), and badges for games and streaks."),
     h("div", { class: "passport-stamps" }, ...(stamps.length ? stamps.map(([name, date], i) =>
-      h("span", { class: "passport-stamp", style: `--r:${((i * 37) % 13) - 6}deg;--c:${["#ff375f", "#0a84ff", "#30d158", "#bf5af2", "#ff9f0a"][i % 5]}`, title: `First explored ${date}` }, name)) : [h("p", { class: "muted small" }, "No stamps yet: tap anywhere on the globe to explore a country.")])),
+      h("span", { class: "passport-stamp", style: `--r:${((i * 37) % 13) - 6}deg;--c:${["#b8496a", "#3563d6", "#5b9467", "#8b5fa8", "#d19a2e"][i % 5]}`, title: `First explored ${date}` }, name)) : [h("p", { class: "muted small" }, "No stamps yet: tap anywhere on the globe to explore a country.")])),
     h("h2", { class: "group-title" }, `Badges · ${Object.keys(p.badges).length} of ${BADGES.length}`),
     h("div", { class: "passport-badges" }, ...BADGES.map((b) => h("div", { class: "passport-badge" + (p.badges[b.id] ? " got" : ""), title: b.about },
       h("span", {}, b.emoji), h("strong", {}, b.label), h("small", {}, p.badges[b.id] ? `Earned ${p.badges[b.id]}` : b.about)))),
@@ -153,7 +153,7 @@ function openPlaces(ctx: WorkCtx, back: () => void) {
   let list: LearnPlace[] = [];
   let only: LearnKind | null = null, freeOnly = false;
   const body = h("div", { class: "work-analysis" }, h("p", { class: "muted small" }, "Looking for places to learn nearby…"));
-  places ??= new WorkLayer(app, "work:learnplaces", "Places to learn", "#bf5af2");
+  places ??= new WorkLayer(app, "work:learnplaces", "Places to learn", "#8b5fa8");
   const filters = h("div", { class: "chips wrap" });
   const draw = () => {
     const shown = list.filter((p) => (!only || p.kind === only) && (!freeOnly || p.price === "free"));
@@ -178,7 +178,7 @@ function openPlaces(ctx: WorkCtx, back: () => void) {
     h("p", { class: "muted small" }, "“Free” is what OpenStreetMap records; many places also have student, child or family prices. Check before you go."),
     h("section", { class: "group" }, h("h2", { class: "group-title" }, "Famous museums, free or cheaper for students"),
       h("div", { class: "list" }, ...nearFamous.map((m) => h("button", { class: "list-row", onclick: () => void flyToPlace(app.globe, { name: m.name, lon: m.lon, lat: m.lat, radius: 600 }) },
-        h("span", { class: "learn-kind", style: "--c:#bf5af2" }, "🏛️"),
+        h("span", { class: "learn-kind", style: "--c:#8b5fa8" }, "🏛️"),
         h("span", { class: "list-text" }, h("span", { class: "list-title" }, m.name, h("span", { class: "muted small" }, ` · ${m.city}`)), h("span", { class: "list-sub" }, m.deal)),
         m.km < 60 ? h("span", { class: "learn-free" }, "Near you") : "")))),
   );

@@ -387,7 +387,7 @@ export function createProfiles(app: App, deps: {
       ...p.guestbook.map((g) => {
         const from = findProfile(g.from);
         return h("div", { class: "pf-sig" },
-          from ? h("button", { class: "pf-sig-av", onclick: () => show(from), "aria-label": `${g.name}'s page` }, avatarEl(from, 34)) : h("span", { class: "pf-sig-av" }, avatarEl({ name: g.name, avatar: { emoji: g.name.slice(0, 1), color: "#8e8e93" } }, 34)),
+          from ? h("button", { class: "pf-sig-av", onclick: () => show(from), "aria-label": `${g.name}'s page` }, avatarEl(from, 34)) : h("span", { class: "pf-sig-av" }, avatarEl({ name: g.name, avatar: { emoji: g.name.slice(0, 1), color: "#8c8f87" } }, 34)),
           h("div", {}, h("div", { class: "pf-sig-head" }, from ? h("button", { class: "link-btn", onclick: () => show(from) }, g.name) : h("strong", {}, g.name), h("time", {}, dayText(g.at))), h("p", {}, g.text)));
       }),
       !p.guestbook.length ? h("p", { class: "pf-empty" }, own ? "When people sign your guestbook, it shows here." : "Be the first to sign.") : "");

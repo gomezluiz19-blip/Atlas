@@ -226,7 +226,7 @@ function moneyTheme(): Theme {
 // ---- Sports ----------------------------------------------------------------
 
 function sportsTheme(): Theme {
-  const color = "#ff9f0a";
+  const color = "#d19a2e";
   const here: Subtab = {
     id: "here", label: "Here",
     render({ app, place, body }) {
@@ -381,7 +381,7 @@ function artsTheme(): Theme {
 // ---- Tourism ---------------------------------------------------------------
 
 function tourismTheme(): Theme {
-  const color = "#00c7be";
+  const color = "#3e9a92";
   const here = streetTab("here", "Here", "tourism", color, (app, place, mine, street) => {
     const stays = mine.filter((s) => !/^(attraction|viewpoint|theme_park|zoo|aquarium)$/.test(s.tags.tourism ?? ""));
     const sights = [...mine.filter((s) => !stays.includes(s)), ...street.spots.filter((s) => s.tags.tourism === "museum" || s.tags.tourism === "gallery")];
@@ -413,7 +413,7 @@ function tourismTheme(): Theme {
 // ---- Education -------------------------------------------------------------
 
 function educationTheme(): Theme {
-  const color = "#0a84ff";
+  const color = "#3563d6";
   const here = streetTab("here", "Here", "education", color, (app, place, mine, street) => {
     const n = (...k: string[]) => mine.filter((s) => k.includes(s.tags.amenity ?? "")).length;
     const higher = mine.filter((s) => /^(university|college)$/.test(s.tags.amenity ?? ""));
@@ -447,7 +447,7 @@ function educationTheme(): Theme {
 // ---- Health ----------------------------------------------------------------
 
 function healthTheme(): Theme {
-  const color = "#ff453a";
+  const color = "#c4513a";
   const here = streetTab("here", "Here", "health", color, (app, place, mine, street) => {
     const n = (k: string) => mine.filter((s) => s.tags.amenity === k).length;
     const nearest = h("div", {}, h("p", { class: "muted small" }, "Finding the nearest hospital…"));

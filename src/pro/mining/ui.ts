@@ -36,34 +36,34 @@ type Flow = { path: [number, number][]; down: { name: string; people?: number; a
 const found: { flow?: Flow | null; towns?: ReturnType<typeof townsNear>; below?: ReturnType<typeof downhill<{ lon: number; lat: number; people: number; km: number; name?: string }>>; quakes?: ReturnType<typeof quakesNear<{ lon: number; lat: number; mag: number; place: string; time: number }>>; for?: string } = {};
 
 function draw(app: App, m: Mine) {
-  map ??= new OpsMap(app, "pro:mining", "#ac8e68");
+  map ??= new OpsMap(app, "pro:mining", "#9a7552");
   const at = mainSite(m);
   const fs: WorkFeature[] = [], flows = [];
   const byId = new Map(m.sites.map((s) => [s.id, s]));
   if (view === "chain") {
     const biggest = Math.max(1, ...m.moves.filter((x) => x.kind === "goods").map((x) => x.amount));
     for (const mv of m.moves) { const a = byId.get(mv.from), b = byId.get(mv.to); if (!a || !b) continue; const s = stream(a, b, mv, mv.kind === "goods" ? biggest : mv.amount); fs.push(s.line); flows.push(s.flow); }
-    for (const s of m.sites) fs.push({ id: s.id, kind: "point", pts: [[s.lon, s.lat]], color: s.kind === "community" ? "#bf5af2" : "#ac8e68", label: `${K(s.kind)?.emoji ?? "•"} ${s.name}` });
+    for (const s of m.sites) fs.push({ id: s.id, kind: "point", pts: [[s.lon, s.lat]], color: s.kind === "community" ? "#8b5fa8" : "#9a7552", label: `${K(s.kind)?.emoji ?? "•"} ${s.name}` });
   } else if (at) {
-    for (const s of m.sites.filter((x) => ["pit", "underground", "plant", "tailings", "waste", "camp"].includes(x.kind))) fs.push({ id: s.id, kind: "point", pts: [[s.lon, s.lat]], color: "#ac8e68", label: `${K(s.kind)?.emoji ?? "•"} ${s.name}` });
+    for (const s of m.sites.filter((x) => ["pit", "underground", "plant", "tailings", "waste", "camp"].includes(x.kind))) fs.push({ id: s.id, kind: "point", pts: [[s.lon, s.lat]], color: "#9a7552", label: `${K(s.kind)?.emoji ?? "•"} ${s.name}` });
     if (view === "community") {
-      for (const km of [10, 25, 50]) fs.push({ id: `r${km}`, kind: "line", pts: [...ring(at.lon, at.lat, km), ring(at.lon, at.lat, km)[0]], color: "#bf5af2", dashed: true });
-      for (const t of found.towns ?? []) fs.push({ id: `t${t.lon},${t.lat}`, kind: "point", pts: [[t.lon, t.lat]], color: "#8e8e93", label: `${fmt(t.people)} people` });
+      for (const km of [10, 25, 50]) fs.push({ id: `r${km}`, kind: "line", pts: [...ring(at.lon, at.lat, km), ring(at.lon, at.lat, km)[0]], color: "#8b5fa8", dashed: true });
+      for (const t of found.towns ?? []) fs.push({ id: `t${t.lon},${t.lat}`, kind: "point", pts: [[t.lon, t.lat]], color: "#8c8f87", label: `${fmt(t.people)} people` });
       for (const p of m.parties.filter((x) => x.lon !== undefined)) fs.push({ id: p.id, kind: "point", pts: [[p.lon!, p.lat!]], color: moodOf(p.mood).color, label: p.name.replace(/ \(demo\)/, "") });
-      for (const i of issueQueue(m.issues, today())) { const s = i.site ? byId.get(i.site) : undefined, p = m.parties.find((x) => x.id === i.party); const pt = p?.lon !== undefined ? [p.lon, p.lat!] : s ? [s.lon, s.lat] : null; if (pt) fs.push({ id: `i${i.id}`, kind: "point", pts: [[pt[0] + 0.004, pt[1] + 0.003]], color: "#ff3b30" }); }
+      for (const i of issueQueue(m.issues, today())) { const s = i.site ? byId.get(i.site) : undefined, p = m.parties.find((x) => x.id === i.party); const pt = p?.lon !== undefined ? [p.lon, p.lat!] : s ? [s.lon, s.lat] : null; if (pt) fs.push({ id: `i${i.id}`, kind: "point", pts: [[pt[0] + 0.004, pt[1] + 0.003]], color: "#c4513a" }); }
     } else if (view === "tailings") {
       const dam = m.sites.find((s) => s.kind === "tailings");
       if (dam && found.flow) {
         const f = found.flow;
-        fs.push({ id: "path", kind: "line", pts: f.path, color: "#ff453a" });
+        fs.push({ id: "path", kind: "line", pts: f.path, color: "#c4513a" });
         const byName = new Map(f.down.map((d) => [d.name, d]));
-        for (const p of flowPlaces(m)) { const d = byName.get(p.name); if (d) fs.push({ id: `dn${p.name}`, kind: "point", pts: [[p.lon, p.lat]], color: "#ff453a", label: `${p.name.replace(/ \(demo\)/, "")} · ${kmText(d.along)} down` }); }
+        for (const p of flowPlaces(m)) { const d = byName.get(p.name); if (d) fs.push({ id: `dn${p.name}`, kind: "point", pts: [[p.lon, p.lat]], color: "#c4513a", label: `${p.name.replace(/ \(demo\)/, "")} · ${kmText(d.along)} down` }); }
       } else if (dam && found.below) {
-        for (const t of found.below.places) fs.push({ id: `b${t.lon},${t.lat}`, kind: "point", pts: [[t.lon, t.lat]], color: "#ff453a", label: `${t.name ? t.name.replace(/ \(demo\)/, "") : `${fmt(t.people)} people`} · ${Math.round(t.drop)} m below` });
+        for (const t of found.below.places) fs.push({ id: `b${t.lon},${t.lat}`, kind: "point", pts: [[t.lon, t.lat]], color: "#c4513a", label: `${t.name ? t.name.replace(/ \(demo\)/, "") : `${fmt(t.people)} people`} · ${Math.round(t.drop)} m below` });
       }
     } else {
-      fs.push({ id: "q300", kind: "line", pts: [...ring(at.lon, at.lat, 300), ring(at.lon, at.lat, 300)[0]], color: "#ff9f0a", dashed: true });
-      for (const q of found.quakes ?? []) fs.push({ id: `q${q.lon},${q.lat}`, kind: "point", pts: [[q.lon, q.lat]], color: q.mag >= 5 ? "#ff453a" : "#ff9f0a", label: `M${q.mag.toFixed(1)} · ${kmText(q.km)}` });
+      fs.push({ id: "q300", kind: "line", pts: [...ring(at.lon, at.lat, 300), ring(at.lon, at.lat, 300)[0]], color: "#d19a2e", dashed: true });
+      for (const q of found.quakes ?? []) fs.push({ id: `q${q.lon},${q.lat}`, kind: "point", pts: [[q.lon, q.lat]], color: q.mag >= 5 ? "#c4513a" : "#d19a2e", label: `M${q.mag.toFixed(1)} · ${kmText(q.km)}` });
     }
   }
   map.draw(`Mine · ${m.name}`, fs, flows);
@@ -154,7 +154,7 @@ function home(ctx: WorkCtx, m: Mine) {
       lines(...chainLines(m)),
       title("What moves"),
       m.moves.length ? list(...m.moves.map((mv) => { const a = byId.get(mv.from), b = byId.get(mv.to); if (!a || !b) return h("span", {}); const f = moveFacts(mv, a, b);
-        return row({ color: mv.kind === "goods" ? "#ff9f0a" : mv.kind === "people" ? "#0a84ff" : mv.kind === "money" ? "#30d158" : "#bf5af2" }, `${mv.what}: ${a.name.split(",")[0]} → ${b.name.split(",")[0]}`,
+        return row({ color: mv.kind === "goods" ? "#d19a2e" : mv.kind === "people" ? "#3563d6" : mv.kind === "money" ? "#5b9467" : "#8b5fa8" }, `${mv.what}: ${a.name.split(",")[0]} → ${b.name.split(",")[0]}`,
           [`${fmt(mv.amount)} ${mv.unit} a ${mv.per}`, mv.mode !== "digital" ? `${kmText(f.km)} · ${hoursText(f.hours)}` : "", f.co2t ? `${fmt(f.co2t)} t CO₂/yr` : ""].filter(Boolean).join(" · "),
           () => moveScreen(ctx, m.sites, SITE_KINDS, mv, () => { save(m); openMining(ctx); }, (x) => { m.moves = m.moves.filter((y) => y !== x); save(m); openMining(ctx); }, () => openMining(ctx))); })) : empty("Add the pit, the plant, a port and a buyer, then what moves between them."),
       m.sites.length >= 2 ? h("button", { class: "link-btn", onclick: () => moveScreen(ctx, m.sites, SITE_KINDS, null, (x) => { m.moves.push(x); save(m); openMining(ctx); }, () => {}, () => openMining(ctx)) }, "+ Something that moves") : "") :
@@ -237,7 +237,7 @@ function econPanel(ctx: WorkCtx, m: Mine) {
 
 function issueRow(ctx: WorkCtx, m: Mine, i: ReturnType<typeof issueQueue>[number]) {
   const p = m.parties.find((x) => x.id === i.party);
-  return row({ color: i.severity === 3 ? "#ff453a" : i.severity === 2 ? "#ff9f0a" : "#8e8e93" }, i.title, [p?.name, i.status === "waiting" ? "waiting on someone" : "", i.stale ? "no update in 2 weeks" : ""].filter(Boolean).join(" · "),
+  return row({ color: i.severity === 3 ? "#c4513a" : i.severity === 2 ? "#d19a2e" : "#8c8f87" }, i.title, [p?.name, i.status === "waiting" ? "waiting on someone" : "", i.stale ? "no update in 2 weeks" : ""].filter(Boolean).join(" · "),
     () => grievanceScreen(ctx, m, m.issues.find((y) => y.id === i.id) ?? null, () => save(m), () => openMining(ctx)), ageBadge(i.age, "days", i.stale));
 }
 
@@ -321,7 +321,7 @@ async function mineHologram(app: App, m: Mine) {
   const near = m.sites.filter((s) => kmBetween(s, pit) < 8);
   const lon = near.reduce((a, s) => a + s.lon, 0) / near.length, lat = near.reduce((a, s) => a + s.lat, 0) / near.length;
   const span = Math.max(1.2, ...near.map((s) => kmBetween(s, { lon, lat }))) * 2600;
-  const colors: Record<string, string> = { pit: "#ffb347", underground: "#ffb347", plant: "#5ad8ff", tailings: "#ff453a", waste: "#a2845e", camp: "#30d158", airstrip: "#bf5af2" };
+  const colors: Record<string, string> = { pit: "#ffb347", underground: "#ffb347", plant: "#5ad8ff", tailings: "#c4513a", waste: "#9a7552", camp: "#5b9467", airstrip: "#8b5fa8" };
   const e = economics(m.econ), t = today();
   const hl = await openSpace(app, {
     name: m.name, kicker: [commodity(m.commodity)?.name, m.country, "mine"].filter(Boolean).join(" · "), lon, lat, size: Math.min(9000, span), tint: "amber",

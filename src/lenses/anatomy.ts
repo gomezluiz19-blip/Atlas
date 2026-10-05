@@ -63,7 +63,7 @@ export const anatomyLens: Lens = {
       h("h3", { class: "lens-sub" }, "Which way it faces"),
       h("div", { class: "lens-row" }, rose(st.aspects), h("p", {}, `Most slopes face ${dirs[most]}. `, c[1] >= 0 ? "In the northern hemisphere south-facing slopes get the most sun: warmer, drier, with snow melting first." : "In the southern hemisphere north-facing slopes get the most sun: warmer, drier, with snow melting first.")),
       h("h3", { class: "lens-sub" }, "How the height is spread"),
-      lines([{ values: st.hypsometry.map((v) => v * 100), color: "#bf5af2" }], { yLabel: (v) => `${Math.round(v)}%`, xLabels: ["low", "summit"], fill: true }),
+      lines([{ values: st.hypsometry.map((v) => v * 100), color: "#8b5fa8" }], { yLabel: (v) => `${Math.round(v)}%`, xLabels: ["low", "summit"], fill: true }),
       h("p", { class: "muted small" }, `Share of the ground above each height. ${st.integral > 0.55 ? "A high, broad shape: a young mountain or a plateau, not yet worn down." : st.integral < 0.35 ? "Mostly low ground with a narrow top: an old, well-worn landscape or a lone peak." : "A balanced shape, partly worn by rivers and ice."}`),
     ];
 
@@ -80,7 +80,7 @@ export const anatomyLens: Lens = {
       // Trace the rim on the globe.
       if (cr.diameter > 4 * step && cr.depth > 25) {
       const rimPts = ray.map((p, k) => { let i = 0; for (let q = 1; q < p.length; q++) if (p[q] > p[i]) i = q; return offset(c[0], c[1], k * 45, i * step); });
-      ds.entities.add({ polyline: { positions: Cartesian3.fromDegreesArray([...rimPts, rimPts[0]].flat()), width: 3, clampToGround: true, material: Color.fromCssColorString("#ffd60a") } });
+      ds.entities.add({ polyline: { positions: Cartesian3.fromDegreesArray([...rimPts, rimPts[0]].flat()), width: 3, clampToGround: true, material: Color.fromCssColorString("#e1b843") } });
       }
     }
     host.title("Anatomy", s.name);
