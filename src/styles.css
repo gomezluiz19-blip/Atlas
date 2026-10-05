@@ -3996,3 +3996,6 @@ body.tv-mode.presenting .tv-caption, body.tv-mode.presenting .tv-dots { opacity:
 .tv:has(.tv-timer.on) :is(.tv-board, .tv-clocks) { top: calc(13vh + clamp(110px, 10vw, 200px) + 1vh); }
 .tv-menu-row { padding: 1.6vw .8vw 1.2vw; margin: -1vw 0; }
 .tv-quiz { inset: 12vh 7vw 6vh; }
+
+/* The tour speaks alone: an arrival's caption and its intro chip wait until it's over. */
+body:has(> .tour:not(.out)) .arrival, body:has(> .tour:not(.out)) .lmi-replay { opacity: 0 !important; pointer-events: none; }

@@ -108,7 +108,9 @@ export function startTour(app: App) {
       const bw = Math.min(340, W - 32), bh = bubble.offsetHeight || 180;
       // Beside it if there's room, else below, else above.
       let left: number, top: number;
-      if (r.right + 16 + bw < W) { left = r.right + 16; top = Math.min(Math.max(16, r.top), H - bh - 16); }
+      // On a phone, a target taller than half the screen keeps its own heading in view: the card docks at the bottom.
+      if (W < 560 && r.height > H * 0.5) { left = (W - bw) / 2; top = H - bh - 16; }
+      else if (r.right + 16 + bw < W) { left = r.right + 16; top = Math.min(Math.max(16, r.top), H - bh - 16); }
       else if (r.left - 16 - bw > 0) { left = r.left - 16 - bw; top = Math.min(Math.max(16, r.top), H - bh - 16); }
       else if (r.bottom + 16 + bh < H) { left = Math.min(Math.max(16, r.left + r.width / 2 - bw / 2), W - bw - 16); top = r.bottom + 16; }
       else { left = Math.min(Math.max(16, r.left + r.width / 2 - bw / 2), W - bw - 16); top = Math.max(16, r.top - 16 - bh); }
