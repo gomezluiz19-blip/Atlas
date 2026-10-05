@@ -218,3 +218,18 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   box-shadow: 0 0 0 1px var(--hairline), 0 30px 80px -20px rgba(5, 8, 14, .55); }
 .tour-hole { box-shadow: 0 0 0 9999px rgba(5, 8, 14, 0.55), 0 0 0 1.5px var(--accent); border-radius: 12px; }
 .tour-bubble { border-radius: 12px; box-shadow: 0 0 0 1px var(--hairline), 0 24px 60px -16px rgba(5, 8, 14, .5); }
+
+/* ---- TV quiz: a panel at the side, so the room keeps the globe the question is about ---- */
+.tv-quiz { inset: 12vh 3.5vw auto auto; max-height: 80vh; overflow: auto; width: min(40vw, 820px); gap: 1.4vw; padding: 2vw 2.2vw 1.8vw; border-radius: 1.2vw;
+  background: rgba(14, 16, 13, .86); border-color: rgba(236, 232, 222, .12); box-shadow: 0 30px 90px rgba(0, 0, 0, .45); }
+.tv-quiz-q { font-size: clamp(24px, 2.4vw, 52px); }
+.tv-quiz-options, .tv-quiz-options.two { grid-template-columns: 1fr; gap: .8vw; }
+.tv-quiz-opt { padding: 1vw 1.2vw; border-radius: .8vw; font-size: clamp(18px, 1.55vw, 34px); background: rgba(236, 232, 222, .06); }
+.tv-quiz-opt b { width: 2.6vw; height: 2.6vw; border-radius: .5vw; font-size: clamp(16px, 1.4vw, 30px); }
+.tv-quiz-opt.right { background: rgba(91, 148, 103, .22); box-shadow: inset .3vw 0 0 #5b9467; transform: none; }
+.tv-quiz-find { font-size: clamp(20px, 2vw, 44px); }
+.tv-quiz-bar i { background: #8fa8f2; }
+.tv-quiz.hurry .tv-quiz-bar i { background: #dcae4c; }
+.tv-quiz-end span { display: none; }
+/* The question's place, if any, sits in the open globe to the left. */
+body.tv-mode:has(.tv-quiz) .tv-caption { opacity: 0; }
