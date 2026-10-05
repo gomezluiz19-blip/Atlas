@@ -8,6 +8,7 @@ import { Cartesian3, EasingFunction } from "cesium";
 import type { App } from "../app";
 import { h } from "../ui/dom";
 import { chime } from "./sound";
+import { subsolar } from "../globe/finish";
 import { earthNow, type PulseLine } from "./pulse";
 
 const WORDS = ["Ground", "Weather", "People", "Time"];
@@ -49,7 +50,10 @@ export async function playIntro(app: App, opts: IntroOptions) {
   if (opts.home) {
     app.looks?.preview("space");
     Object.assign(g, { lightingFadeOutDistance: 1e6, lightingFadeInDistance: 3e6, nightFadeOutDistance: 1e6, nightFadeInDistance: 3e6 });
-    cam.setView({ destination: Cartesian3.fromDegrees(opts.home.lon - 40, opts.home.lat * 0.5, 30_000_000) });
+    // The first frame is composed on the real sun: the camera sits past the evening terminator, so the Earth
+    // opens as a lit crescent over the night side's cities, then turns into the day over your part of the world.
+    const sun = subsolar(new Date());
+    cam.setView({ destination: Cartesian3.fromDegrees(sun.lon + 112, sun.lat * 0.4, 46_000_000) });
   }
   const pulse = earthNow();
 
@@ -61,7 +65,7 @@ export async function playIntro(app: App, opts: IntroOptions) {
   // Fade up on the Earth as the camera settles in.
   veil.classList.add("on", "out");
   chime("open");
-  if (opts.home) cam.flyTo({ destination: Cartesian3.fromDegrees(opts.home.lon, opts.home.lat * 0.8, 14_000_000), duration: reduced ? 0 : 4.2, easingFunction: EasingFunction.QUARTIC_IN_OUT });
+  if (opts.home) cam.flyTo({ destination: Cartesian3.fromDegrees(opts.home.lon, opts.home.lat * 0.8, 14_000_000), duration: reduced ? 0 : 5.6, easingFunction: EasingFunction.QUINTIC_IN_OUT });
   opts.onReveal?.();
   setTimeout(() => veil.remove(), 1500);
   removeEventListener("keydown", doSkip);

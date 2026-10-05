@@ -145,7 +145,7 @@ export function openReach(ctx: WorkCtx, app: App, start?: Spot) {
       box.replaceWith(raceBlock(o));
     }
     add.addEventListener("keydown", (e) => { if ((e as KeyboardEvent).key === "Enter") void addPlace(); });
-    if (!targets.length) { box.append(title("The race"), h("p", { class: "muted small" }, "Add the places you go (or save them in My Places) to see walking, biking and driving race there."), addRow); return box; }
+    if (!targets.length) { box.append(title("The race"), h("p", { class: "muted small" }, "Add the places you go (or save them in My Place) to see walking, biking and driving race there."), addRow); return box; }
     const list = h("div", { class: "race-list" }, h("p", { class: "muted small" }, "Timing the routes…"));
     box.append(title("The race to your places"), list, addRow);
     void Promise.all(REACH_IDS.map((m) => getJson<MatrixResponse>("Valhalla", matrixUrl(o, targets, m), undefined, 20_000).then((r) => parseMatrix(r, targets.length)).catch(() => null)))

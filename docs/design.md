@@ -45,8 +45,10 @@ tiles, and what you choose is framed like a plate on press.
 | `--terra` | #a9502f | #d9805d | Warnings, the built world |
 
 Data colours (map layers, charts) use the full pigment range, mid-toned to read on satellite imagery and on paper:
-cobalt #3563d6, cerulean #4c9ac9, sage #5b9467, sap #8faa5a, ochre #d19a2e, Naples #e1b843, terracotta #c4513a,
-madder #b8496a, violet #8b5fa8, ultramarine #5160c2, umber #9a7552, stone #8c8f87.
+cobalt #3563d6, cerulean #4c9ac9, ice #a3bfd4, sage #5b9467, sap #8faa5a, ochre #d19a2e, Naples #e1b843, terracotta #c4513a,
+madder #b8496a, violet #8b5fa8, ultramarine #5160c2, umber #9a7552, stone #8c8f87. Each kind of feature
+has one pigment wherever it's drawn (`src/content/kindColor.ts`): umber for peaks and ranges, terracotta for
+volcanoes and the plates, ice for glaciers, madder for reefs, sap for wetlands and islands, violet for caves.
 
 ## Type
 
@@ -76,11 +78,15 @@ dome, no arc or marks) is for 32 px and below. `scripts/brand-icons.mjs` writes 
 
 ## The globe
 
-`src/globe/finish.ts` sets the house look. The satellite imagery gets a grade (a little more contrast and colour,
-slightly lower gamma). Sunlight from orbit shows the real day and night, with NASA's city lights on the night side;
-it fades out as you come down to a city, where an evenly lit map matters more. Night is dusk, not black. The
-haze is thin and rich so land and sea read deep, the sun is a sun rather than a lens flare, and the stars are
-dimmed so the Earth is the brightest thing on screen.
+`src/globe/finish.ts` sets the house look. From orbit the planet is NASA's Blue Marble with shaded relief and
+the sea floor: one cloud-free, colour-true mosaic in which the ocean ridges and trenches show through the blue. It
+hands over to the graded satellite imagery as you come down (gone by about 1,800 km up), so the Earth is crisp at
+every height. The real sun lights it: the terminator lies where dusk really is right now, the haze follows the sun,
+and the night side is night, carried by NASA's city lights; both the shading and the lights fade away below a
+few thousand kilometres, where an evenly lit map matters more. The first frame is composed on the sun: the
+Earth opens as a crescent over the night side's cities and turns into the day over your part of the world.
+Strong devices render with 4× multisampling and finer terrain; the stars are dimmed so the Earth is the
+brightest thing on screen.
 
 ## A medium, not a map app
 

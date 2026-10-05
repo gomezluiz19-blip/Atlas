@@ -88,7 +88,7 @@ function openTrip(ctx: WorkCtx, id: string, back: () => void) {
   }
 
   const slip = () => download(`${t.title} permission slip.html`, `<!doctype html><meta charset="utf-8"><title>Permission slip</title>
-<style>body{font:16px/1.6 Georgia,serif;max-width:700px;margin:40px auto;padding:0 20px;color:#111}h1{font:700 26px -apple-system,system-ui,sans-serif}.box{border:1px solid #999;border-radius:8px;padding:12px 16px}.line{border-bottom:1px solid #333;height:28px;margin:6px 0 14px}.cut{border-top:2px dashed #999;margin:28px 0;text-align:center;color:#999;font-size:12px}@media print{button{display:none}}</style>
+<style>body{font:16px/1.6 Georgia,serif;max-width:700px;margin:40px auto;padding:0 20px;color:#111}h1{font:700 26px 'Terreno Sans','Plus Jakarta Sans',system-ui,sans-serif}.box{border:1px solid #999;border-radius:8px;padding:12px 16px}.line{border-bottom:1px solid #333;height:28px;margin:6px 0 14px}.cut{border-top:2px dashed #999;margin:28px 0;text-align:center;color:#999;font-size:12px}@media print{button{display:none}}</style>
 <button onclick="print()">Print</button>
 <h1>${esc(t.title)}</h1>
 <div class="box"><p><b>Where:</b> ${esc(t.dest?.name ?? "")}<br><b>When:</b> ${fmtDay(t.date)}, leaving school at ${n.leave} and back by about ${n.back}<br><b>Travel:</b> ${n.busKm ? `by coach, about ${Math.round(n.busKm)} km in all` : "on foot and by public transport"}<br><b>Cost:</b> ${n.perStudent > 0 ? `$${n.perStudent.toFixed(2)} per student` : "free"}</p>

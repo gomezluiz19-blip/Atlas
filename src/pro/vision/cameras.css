@@ -51,7 +51,7 @@
 .cam-way summary::-webkit-details-marker { display: none; }
 .cam-way-label { flex: 1; }
 .cam-ready { font-size: 10.5px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; padding: 3px 7px; border-radius: 999px; }
-.cam-ready.now { background: color-mix(in srgb, #5b9467 18%, transparent); color: #1f9d55; }
+.cam-ready.now { background: color-mix(in srgb, #5b9467 18%, transparent); color: #5b9467; }
 .cam-ready.setup { background: color-mix(in srgb, #d19a2e 18%, transparent); color: #c27400; }
 .cam-ready.soon { background: var(--fill); color: var(--secondary); }
 .cam-way > p, .cam-way > ol, .cam-way > .primary-btn, .cam-way > div, .cam-way > input, .cam-way > pre { margin-top: 8px; }

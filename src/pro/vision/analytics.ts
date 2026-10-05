@@ -116,7 +116,7 @@ export class Analyzer {
 
 /**
  * Roughly where a point on the picture is on the ground, from the camera's
- * position, direction, field of view and range (as placed in My Places).
+ * position, direction, field of view and range (as placed in My Place).
  * Assumes a level camera looking along the ground: the bottom of the picture is
  * about 2 m away and the upper third is the far edge of its range.
  */

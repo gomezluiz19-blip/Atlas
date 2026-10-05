@@ -47,7 +47,7 @@ export const seafloorLens: Lens = {
     for (let k = 0; k < v.length; k++) { if (v[k] < v[deep]) deep = k; const z = seaZone(v[k]); if (z) { share[z]++; sea++; } }
     for (const z of Object.keys(share) as SeaZone[]) share[z] /= sea || 1;
     ds.entities.add({ position: Cartesian3.fromDegrees(pts[deep][0], pts[deep][1]), point: { pixelSize: 10, color: Color.fromCssColorString("#b8496a"), outlineColor: Color.WHITE, outlineWidth: 2, disableDepthTestDistance: Number.POSITIVE_INFINITY },
-      label: { text: `Deepest nearby: ${Math.round(-v[deep]).toLocaleString()} m`, font: "700 13px -apple-system, system-ui, sans-serif", style: LabelStyle.FILL_AND_OUTLINE, fillColor: Color.WHITE, outlineColor: Color.BLACK, outlineWidth: 4, verticalOrigin: VerticalOrigin.BOTTOM, pixelOffset: new Cartesian2(0, -10), disableDepthTestDistance: Number.POSITIVE_INFINITY } });
+      label: { text: `Deepest nearby: ${Math.round(-v[deep]).toLocaleString()} m`, font: "700 13px 'Terreno Sans', 'Plus Jakarta Sans', system-ui, sans-serif", style: LabelStyle.FILL_AND_OUTLINE, fillColor: Color.WHITE, outlineColor: Color.BLACK, outlineWidth: 4, verticalOrigin: VerticalOrigin.BOTTOM, pixelOffset: new Cartesian2(0, -10), disableDepthTestDistance: Number.POSITIVE_INFINITY } });
     // A profile across, east to west through the point.
     const a = offset(s.lon, s.lat, 270, R), b = offset(s.lon, s.lat, 90, R);
     const line = greatCirclePoints(a[0], a[1], b[0], b[1], 200);

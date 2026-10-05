@@ -32,6 +32,8 @@ export interface Quality {
   sse: number;
   tileCache: number;
   fxaa: boolean;
+  /** Multisample anti-aliasing (WebGL 2): crisp coastlines, limbs and lines without FXAA's softness. */
+  msaa: number;
   /** Extra coarseness while the camera is moving. */
   movingSse: number;
   /** Resolution while moving on a slow frame run, as a share of the settled one. */
@@ -62,9 +64,10 @@ export function qualityFor(tier: Tier, s: Pick<Signals, "dpr" | "saveData" | "ne
   return {
     tier,
     pixelRatio: Math.min(s.dpr || 1, cap),
-    sse: tier === "high" ? 2 : tier === "mid" ? 2.5 : 4,
+    sse: tier === "high" ? 1.5 : tier === "mid" ? 2.25 : 4,
     tileCache: tier === "high" ? 600 : tier === "mid" ? 350 : 150,
-    fxaa: tier !== "low",
+    fxaa: tier === "mid",
+    msaa: tier === "high" ? 4 : 1,
     movingSse: tier === "low" ? 2 : 1.5,
     movingScale: tier === "low" ? 0.6 : 0.75,
     heartbeat: tier === "low" ? 600 : 300,

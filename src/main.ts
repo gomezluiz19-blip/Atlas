@@ -203,8 +203,8 @@ const siteMatches = (q: string): SearchResult[] => {
     .map((s) => ({ name: s.name, detail: `${s.where} · ${s.why}`, lon: s.lon, lat: s.lat, radius: s.radius, source: "local" as const, icon: "target" as const }));
 };
 
-// ---- The three modes: My Places, Explore, Create -------------------------------------------------
-// My Places: saved places (home, a farm, a hotel…) with today's brief, 3D, energy, water and
+// ---- The three modes: My Place, Explore, Create -------------------------------------------------
+// My Place: saved places (home, a farm, a hotel…) with today's brief, 3D, energy, water and
 // security, and the tools to run them (Grow, Flock, Build, live occupancy).
 // Look: the Earth through themes and lenses (the place card), plus Space and Learn.
 // Make: Plan, Present, Video and Teach.
@@ -318,7 +318,7 @@ const placeHub = createWork(app, PLACE_TOOLS, {
         h("p", { class: "small" }, "Save your home, farm, site or business and Terreno gives you a daily brief there: frost, heat, storms, and what's due for your animals, fields and projects."),
         addressBox(),
         ...list,
-        h("button", { class: "pill-btn", onclick: () => { loadDemo(myStore); openMode("place"); app.toast("Hillside Farm is a demo: sheep, cattle, hens and three fields. Remove it any time from the bottom of My Places.", 7000); } }, "Or try a demo farm")),
+        h("button", { class: "pill-btn", onclick: () => { loadDemo(myStore); openMode("place"); app.toast("Hillside Farm is a demo: sheep, cattle, hens and three fields. Remove it any time from the bottom of My Place.", 7000); } }, "Or try a demo farm")),
       h("h2", { class: "group-title" }, "Run your place"),
     ];
     return [
@@ -588,7 +588,7 @@ function openMode(m: Mode) {
   // Tapping the current mode again goes back to its home screen.
   hub.ctx.open();
   hub.ctx.home();
-  // My Places takes you to your place when you're looking at somewhere far away.
+  // My Place takes you to your place when you're looking at somewhere far away.
   const main = m === "place" ? savedPlaceHere() : undefined;
   if (main) {
     const cam = globe.viewer.camera.positionCartographic;
@@ -597,7 +597,7 @@ function openMode(m: Mode) {
   }
 }
 const modes = createModeBar(openMode);
-app.actions.set("mode:place", { label: "My Places", run: () => openMode("place") });
+app.actions.set("mode:place", { label: "My Place", run: () => openMode("place") });
 app.actions.set("mode:make", { label: "Create", run: () => openMode("make") });
 app.actions.set("mode:work", { label: "Work", run: () => openMode("work") });
 app.actions.set("myplace:report", {
@@ -622,7 +622,7 @@ const syncMode = () => {
   modes.set([placeHub.panel, myPlaces.panel].some(shown) ? "place" : [workHub.panel, pro.panel].some(shown) ? "work" : shown(makeHub.panel) ? "make" : "look");
   // Phones have room for one panel: the place card steps aside while a mode panel is open.
   document.body.dataset.panel = [placeHub.panel, myPlaces.panel, pro.panel, makeHub.panel, workHub.panel, lookHub.panel, space.panel].some(shown) ? "open" : "";
-  // Working in My Places or Make: the empty Explore card steps aside so the mode has the screen.
+  // Working in My Place or Make: the empty Explore card steps aside so the mode has the screen.
   document.body.dataset.work = [placeHub.panel, myPlaces.panel, pro.panel, makeHub.panel, workHub.panel].some(shown) ? "1" : "";
 };
 const watcher = new MutationObserver(syncMode);
@@ -686,7 +686,7 @@ app.actions.set("pro:occupancy", {
   run: () => {
     const p = savedPlaceHere();
     if (p) pro.open(p.id);
-    else { app.toast("Save the building in My Places first, then connect its bookings.", 6000); openMode("place"); }
+    else { app.toast("Save the building in My Place first, then connect its bookings.", 6000); openMode("place"); }
   },
 });
 
@@ -1045,7 +1045,7 @@ const soundBtn = h("button", { class: "pill-btn sound-toggle", "aria-pressed": S
 soundBtn.addEventListener("click", () => { const on = !soundOn(); setSound(on); soundBtn.textContent = on ? "Sounds on" : "Sounds off"; soundBtn.setAttribute("aria-pressed", String(on)); });
 const aboutPanel = h("div", { class: "popover about", hidden: true },
   h("div", { class: "about-head" }, h("h2", { class: "group-title" }, "About Terreno"), h("button", { class: "icon-btn", "aria-label": "Close", html: icons.close, onclick: () => (aboutPanel.hidden = true) })),
-  h("p", {}, "Terreno does three things, switched at the top. Explore: the whole Earth and space; tap anything, then flip through the themes or look at it through a lens. Create: trips, stories, videos and lessons made from the map. My Places: your home, farm, site or business, with a daily brief and the tools to run it."),
+  h("p", {}, "Terreno does three things, switched at the top. Explore: the whole Earth and space; tap anything, then flip through the themes or look at it through a lens. Create: trips, stories, videos and lessons made from the map. My Place: your home, farm, site or business, with a daily brief and the tools to run it."),
   h("p", {}, "You can also type a request into the search box, like \u201cstorm drains and railways in Chicago\u201d, and Terreno will plan the steps and do them."),
   h("p", {}, "People have pages here too: the places they love, a journal, and lenses they've made. Make your own from the account button, and a lens of your own in Lens Studio."),
   h("button", { class: "pill-btn about-ai", onclick: () => { aboutPanel.hidden = true; aiSettings.open(); } }, aiOn() ? "Terreno AI: connected · settings" : "Connect Terreno AI (Claude)…"),
@@ -1181,7 +1181,7 @@ app.onPlace = (p) => {
   void lenses.update(p);
   // Its page address, for the link in the URL.
   if (p && !p.slug) void slugOfPlace(p).then((s) => { if (app.place === p) { p.slug = s; syncHash(); } }).catch(() => {});
-  // My Places's home lists "Save this spot": keep it in step with the selection.
+  // My Place's home lists "Save this spot": keep it in step with the selection.
   if (!placeHub.panel.hidden && placeHub.panel.querySelector(".today-card")) placeHub.ctx.home();
   syncHash();
   myPlaces.refresh();
@@ -1281,7 +1281,7 @@ else if (!shared.camera && !pageLinked && myStore.all().length) {
   setTimeout(() => {
     void flyToPlace(globe, { name: home.name, lon: home.lon, lat: home.lat, radius: 400 });
     app.select({ lon: home.lon, lat: home.lat, height: 0 }, { title: home.name, context: home.address ?? "My place" });
-    app.toast(`Welcome back to ${home.name}. My Places (top right) has today's brief and its dashboard.`, 6000);
+    app.toast(`Welcome back to ${home.name}. My Place has today's brief and its dashboard.`, 6000);
   }, 1200);
 }
 

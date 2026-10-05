@@ -48,11 +48,11 @@ function printReport(p: MyPlace, el: HTMLElement) {
   const w = window.open("", "_blank");
   if (!w) { alert("Allow pop-ups for Terreno to print the report."); return; }
   w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${esc(p.name)} · About this place</title><style>
-body{font:14px/1.45 -apple-system,system-ui,sans-serif;color:#1d1d1f;max-width:720px;margin:32px auto;padding:0 20px}
-h1{font-size:26px;margin:0}p.sub{color:#6e6e73;margin:4px 0 20px}table{width:100%;border-collapse:collapse}
-th{text-align:left;color:#6e6e73;font-weight:500;width:150px;vertical-align:top;padding:9px 0;border-bottom:1px solid #e5e5ea}
-td{padding:9px 0;border-bottom:1px solid #e5e5ea}td span{color:#6e6e73;font-size:13px}h2{font-size:17px;margin:24px 0 6px}
-ul{padding-left:18px}li{margin:3px 0}footer{margin-top:28px;color:#6e6e73;font-size:12px}a{color:#2f58c8}
+body{font:14px/1.45 'Terreno Sans','Plus Jakarta Sans',system-ui,sans-serif;color:#1b1d1a;max-width:720px;margin:32px auto;padding:0 20px}
+h1{font-size:26px;margin:0}p.sub{color:#5e625a;margin:4px 0 20px}table{width:100%;border-collapse:collapse}
+th{text-align:left;color:#5e625a;font-weight:500;width:150px;vertical-align:top;padding:9px 0;border-bottom:1px solid #ebe6db}
+td{padding:9px 0;border-bottom:1px solid #ebe6db}td span{color:#5e625a;font-size:13px}h2{font-size:17px;margin:24px 0 6px}
+ul{padding-left:18px}li{margin:3px 0}footer{margin-top:28px;color:#5e625a;font-size:12px}a{color:#2f58c8}
 @media print{body{margin:0}a{color:inherit}}</style></head><body>
 <h1>${esc(p.name)}</h1><p class="sub">${esc([p.address, `${p.lat.toFixed(4)}, ${p.lon.toFixed(4)}`, new Date().toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" })].filter(Boolean).join(" · "))}</p>
 <table>${rows}</table>${sow ? `<h2>Sowing and planting in the next six weeks</h2><ul>${sow}</ul>` : ""}

@@ -45,7 +45,7 @@ export const anatomyLens: Lens = {
     for (let k = 0; k < N * N; k++) if (g[k] > g[sk]) sk = k;
     const top = pts[sk];
     ds.entities.add({ position: Cartesian3.fromDegrees(top[0], top[1], st.summit * app.globe.state.exaggeration), point: { pixelSize: 10, color: Color.WHITE, outlineColor: Color.BLACK, outlineWidth: 2, disableDepthTestDistance: Number.POSITIVE_INFINITY },
-      label: { text: `${s.kind === "crater" ? "Highest point on the rim" : "Summit"} ${m(st.summit)}`, font: "700 13px -apple-system, system-ui, sans-serif", style: LabelStyle.FILL_AND_OUTLINE, fillColor: Color.WHITE, outlineColor: Color.BLACK, outlineWidth: 4, verticalOrigin: VerticalOrigin.BOTTOM, pixelOffset: new Cartesian2(0, -10), disableDepthTestDistance: Number.POSITIVE_INFINITY } });
+      label: { text: `${s.kind === "crater" ? "Highest point on the rim" : "Summit"} ${m(st.summit)}`, font: "700 13px 'Terreno Sans', 'Plus Jakarta Sans', system-ui, sans-serif", style: LabelStyle.FILL_AND_OUTLINE, fillColor: Color.WHITE, outlineColor: Color.BLACK, outlineWidth: 4, verticalOrigin: VerticalOrigin.BOTTOM, pixelOffset: new Cartesian2(0, -10), disableDepthTestDistance: Number.POSITIVE_INFINITY } });
     host.onClose(() => { viewer.imageryLayers.remove(layer, true); viewer.dataSources.remove(ds, true); });
 
     const t = treeline(c[1]), sn = snowline(c[1]);

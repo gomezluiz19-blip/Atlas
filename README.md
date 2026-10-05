@@ -290,7 +290,7 @@ ground, and offers the lenses that suit it, best first. Each lens is designed on
 The task robot opens lenses too: "slice open Mount Rainier", "drain the ocean around Britain", "true size
 of Greenland", "subway map of Tokyo", "ocean currents in the Atlantic", "where was London during Pangaea".
 
-**Today at your place.** My Places opens on a daily brief for your main place, most urgent first: frost,
+**Today at your place.** My Place opens on a daily brief for your main place, most urgent first: frost,
 heat, heavy rain or gales in the next four days (with what to do about them for crops, animals or a
 building site), animals due to give birth or due a vaccination (overdue first), fields ready to harvest or
 within two weeks of it, how much to irrigate this week (mm and litres for the field), projects running
@@ -313,11 +313,11 @@ wheat"* (Grow's field diary, which also sets the crop and planting date), *"Oak 
 slab, 14 crew, structure 60%"* or *"Oak Street delivery of steel on Friday"* (Build's site log, progress and
 deliveries). It shows what it will save first, and the search box accepts the same lines.
 
-**Try a demo farm.** With nothing saved yet, My Places offers Hillside Farm, a demo smallholding with sheep
+**Try a demo farm.** With nothing saved yet, My Place offers Hillside Farm, a demo smallholding with sheep
 (six about to lamb), cattle, hens, paddocks and three fields, all dated from today, so the brief and the tools
 are alive at once. One tap removes it.
 
-**My Places.** The My Places mode (top right) keeps the places you care about: home, a family hotel, a farm.
+**My Place.** The My Place mode (top right) keeps the places you care about: home, a family hotel, a farm.
 Save a spot you tapped or searched for, or start from where you are. Each place gets a dashboard:
 a **3D view** of the buildings around it (OpenStreetMap footprints extruded to their mapped height or
 number of floors, yours in orange, with an orbit), **energy** (solar panels, battery, generator: expected
@@ -335,7 +335,7 @@ shows how full the place is: the building in 3D split into floors coloured by oc
 taken and guests in the building, today's arrivals, departures and rooms being cleaned, every room by floor,
 and the next 14 nights, with a slider to watch the building fill up. Spanish column names work. Guest
 names are never read, and the data stays in the browser. Ask the robot *"how full is my hotel"*.
-**Camera analytics:** connect the cameras placed in My Places (a snapshot or video link, this device's
+**Camera analytics:** connect the cameras placed in My Place (a snapshot or video link, this device's
 camera, or a recorded video file) and Terreno counts people, vehicles and bikes on the device with a small
 TensorFlow.js model, draws what it sees on the picture and as dots on the map inside that camera's view,
 counts entries and exits across a line you draw, and keeps an hour of history. Video never leaves the
@@ -419,7 +419,7 @@ Video and Teach under **Create**; Learn under **Explore**. All of them are open 
   planet change: the sun where it is on that day, with polar night and the midnight sun, and NASA's satellite
   greenness week by week, with a line on what the planet is doing that month. Play loops it.
 - **The tour.** A step-by-step introduction shown once, after the first opening: one box for everything, a
-  place's page, lenses, themes, time, and Explore, Create and My Places, ending with "Finished". Replay it from
+  place's page, lenses, themes, time, and Explore, Create and My Place, ending with "Finished". Replay it from
   About or by typing "tour".
 - **Delight.** Terreno opens like a film: from black, a few words faded in and out ("Every place on Earth has a
   story."), the name, then the Earth fades up in real sunlight with its night side dark, and a live line on
@@ -557,7 +557,7 @@ The task robot opens these too: "Europe in 1914", "the Roman Empire in 100 AD", 
 
 **Works offline, installs as an app.** Add Terreno to a phone's home screen. The app, its bundled data and
 the terrain you've looked at stay cached, so Terreno opens in a field with no signal, with your records on the
-device (satellite imagery follows the browser's own cache until an imagery licence allows storing it). **Back up everything** (in My Places) saves all your places, animals, fields,
+device (satellite imagery follows the browser's own cache until an imagery licence allows storing it). **Back up everything** (in My Place) saves all your places, animals, fields,
 projects, plans, decks and quizzes to one file to keep or to restore on another device.
 
 **Fast on any device, seamless across deploys.** The globe draws on demand: full rate while anything moves
@@ -1039,7 +1039,7 @@ These keys end up in the public page, so restrict them to your site's domain in 
   plate reconstructions from the [GPlates Web Service](https://gws.gplates.org) (Merdith et al. 2021 model);
   forests, park and lake outlines and metro lines from OpenStreetMap; ocean currents are a hand-drawn schematic
   of the major surface currents. The 3D block uses [three.js](https://threejs.org), loaded only when opened.
-- **My Places:** building footprints and heights from OpenStreetMap; sunshine and rainfall from ERA5 via Open-Meteo.
+- **My Place:** building footprints and heights from OpenStreetMap; sunshine and rainfall from ERA5 via Open-Meteo.
 - **Search and place names:** [Photon](https://photon.komoot.io) (by komoot) and OpenStreetMap Nominatim
   (light, interactive use only, per its usage policy).
 
@@ -1067,7 +1067,7 @@ src/
   render/              3D Studio: splat/ (formats, worker, globe), import3d (tiles, glTF), cinema (shot splines),
                        play (camera), grade (post-processing), facade (procedural windows), store (IndexedDB)
   lenses/              lenses on a feature: identify.ts decides what it is, bar.ts offers lenses, one file per family
-  myplaces/            My Places: store (saved in the browser), scene (3D buildings, devices), estimates (solar, rain), panel
+  myplaces/            My Place: store (saved in the browser), scene (3D buildings, devices), estimates (solar, rain), panel
   pro/                 Terreno Pro: model (bookings → rooms, floors, forecast), sources (demo, CSV, live link), panel,
                        vision/ (on-device camera analytics: detection, tracking, line counts, map positions)
   app.ts               place selection, place card, theme tab bar and subtabs, hosting tools inside subtabs
@@ -1145,7 +1145,7 @@ page at the same view.
 4. **Time:** Landsat/Sentinel-2 time series beyond Wayback's years, for change before 2014.
 5. **More lenses:** glaciers then and now, a volcano's lava and ash reach, a city's growth, flood reach
    along a river, and more feature templates (reefs, deltas, dunes).
-6. **Campuses and standard places:** map a whole campus into My Places (e.g. a university), and with a
+6. **Campuses and standard places:** map a whole campus into My Place (e.g. a university), and with a
    connected CRM or student system reserve rooms, book appointments and office hours, request services and see
    how busy each area is; then templates for schools, hospitals and similar places.
 7. **Projects:** save and share views, annotations and results; templates such as "Field site report".

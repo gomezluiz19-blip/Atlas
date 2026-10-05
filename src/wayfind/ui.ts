@@ -16,6 +16,7 @@ import type { App } from "../app";
 import { groundAt } from "../globe/controls";
 import { summaryByName } from "../data/wikipedia";
 import { h } from "../ui/dom";
+import { FEATURE_COLOR, PIGMENT } from "../content/kindColor";
 import { myCandidates } from "./candidates";
 import { aheadOf, bearing, compassPoint, distanceText, etaText, guessDestination, km, motionOf, offset, paceOf, passingNow, ribbonX, scaleFor, sideText, turnFrom, type Candidate, type Fix, type Guess, type LL, type Pace, type Poi, type Sighting } from "./model";
 import { allPois, basePois, nearbyWiki } from "./pois";
@@ -25,8 +26,7 @@ const FOUND = "atlas.wayfind.found";
 const FOV = 160;
 /** The pigment a kind of place is drawn in on the ribbon and its card. */
 export const KIND_COLOR: Record<string, string> = {
-  peak: "#d19a2e", volcano: "#c4513a", crater: "#c4513a", canyon: "#d19a2e", desert: "#d19a2e", river: "#4c9ac9", lake: "#4c9ac9", waterfall: "#4c9ac9", deep: "#5160c2",
-  forest: "#5b9467", metro: "#5160c2", heritage: "#e1b843", architecture: "#b8496a", art: "#8b5fa8", sport: "#5b9467", food: "#d19a2e", wiki: "#8c8f87",
+  ...FEATURE_COLOR, heritage: PIGMENT.naples, architecture: PIGMENT.madder, art: PIGMENT.violet, sport: PIGMENT.sage, food: PIGMENT.ochre, wiki: PIGMENT.stone,
 };
 const colorOf = (p: Poi) => KIND_COLOR[p.kind] ?? "#b8496a";
 const PACE_WORD: Record<Pace, string> = { still: "Standing", walk: "Walking", run: "Running", cycle: "Cycling", drive: "Driving", rail: "By train", fly: "Flying" };

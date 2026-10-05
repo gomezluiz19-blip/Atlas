@@ -13,7 +13,7 @@ import { existsSync } from "node:fs";
 const BUDGET = { app: 700 * 1024, cesium: 1250 * 1024 };
 
 /** Startup data (intros, sites, features, minerals) changes less often than the code: its own file. */
-const DATA = /src\/(intros\/(heritage|more|footholds|nature)|content\/(features|links|minerals|sites|wildlife)|ui\/taxonIcons)\.ts$/;
+const DATA = /src\/(intros\/(heritage|more|footholds|nature)|content\/(features|landforms|links|minerals|sites|wildlife)|ui\/taxonIcons)\.ts$/;
 const VENDOR = /node_modules\/(satellite\.js|lucide|topojson-client)\//;
 
 /**

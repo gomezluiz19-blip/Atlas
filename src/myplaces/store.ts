@@ -1,4 +1,4 @@
-// "My Places": places people care about (home, a family hotel, a farm), with
+// "My Place": places people care about (home, a family hotel, a farm), with
 // what's installed there (solar, batteries, tanks, cameras…). Kept in this
 // browser only, with export and import for backup.
 

@@ -1,4 +1,4 @@
-// A place's cameras, live. Connect each camera placed in My Places to its
+// A place's cameras, live. Connect each camera placed in My Place to its
 // feed (a stream link, this device's camera, or a recorded clip) and it
 // watches for you: who's in view now, who came in and went out across a
 // line you draw over the doorway, where people spend their time (a heatmap,
@@ -57,7 +57,7 @@ function build(app: App, scene: PlaceScene, store?: PlaceStore) {
     h("p", { class: "fineprint" }, "Everything runs on this device: video never leaves the browser. Terreno sees kinds of things (people, vehicles, bikes) and movement, never who someone is. Map positions are approximate."));
   let place: MyPlace | null = null;
 
-  /** Saves a change to a camera (its line or zones) back to My Places. */
+  /** Saves a change to a camera (its line or zones) back to My Place. */
   const saveCam = (cam: Device) => {
     if (!store || !place) return;
     const p = store.get(place.id);
@@ -103,7 +103,7 @@ function build(app: App, scene: PlaceScene, store?: PlaceStore) {
       const ctx = overlay.getContext("2d")!;
       ctx.scale(devicePixelRatio, devicePixelRatio);
       if (heatOn) mon.motion.paintHeat(ctx, r.width, r.height);
-      ctx.font = "600 11px -apple-system, system-ui, sans-serif";
+      ctx.font = "600 11px 'Terreno Sans', 'Plus Jakarta Sans', system-ui, sans-serif";
       for (const z of cam.zones ?? []) {
         const [x, y, w, hh] = z.box;
         ctx.strokeStyle = "rgba(255,255,255,.9)"; ctx.lineWidth = 1.5; ctx.setLineDash([5, 4]);

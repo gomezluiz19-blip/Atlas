@@ -23,7 +23,7 @@ const numberPin = (n: number, color: string) => canvasUrl(`gd|${n}|${color}`, ()
   g.beginPath(); g.arc(26, 26, 20, 0, Math.PI * 2); g.fillStyle = color; g.fill();
   g.shadowColor = "transparent";
   g.lineWidth = 3.5; g.strokeStyle = "#fff"; g.stroke();
-  g.fillStyle = "#fff"; g.font = "700 20px Inter, system-ui, sans-serif"; g.textAlign = "center"; g.textBaseline = "middle";
+  g.fillStyle = "#fff"; g.font = "700 20px 'Terreno Sans', 'Plus Jakarta Sans', system-ui, sans-serif"; g.textAlign = "center"; g.textBaseline = "middle";
   g.fillText(String(n), 26, 27);
   return c;
 });

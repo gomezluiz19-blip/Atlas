@@ -81,7 +81,7 @@ function drawModel(app: App, p: BuildProject, date: string | null) {
     position: Cartesian3.fromDegrees(lx, ly, g + height + 6),
     label: {
       text: `${p.name}\n${m.complete ? "Complete" : `${phase?.label ?? ""} · ${Math.round(overall(p.phases, (ph) => (date ? plannedPct(ph, date) : ph.done)))}%`}${date ? ` (plan, ${fmtDate(date)})` : ""}`,
-      font: "700 13px -apple-system, system-ui, sans-serif", style: LabelStyle.FILL_AND_OUTLINE, fillColor: Color.WHITE, outlineColor: Color.fromCssColorString("#0b1320"), outlineWidth: 4,
+      font: "700 13px 'Terreno Sans', 'Plus Jakarta Sans', system-ui, sans-serif", style: LabelStyle.FILL_AND_OUTLINE, fillColor: Color.WHITE, outlineColor: Color.fromCssColorString("#0b1320"), outlineWidth: 4,
       verticalOrigin: VerticalOrigin.BOTTOM, pixelOffset: new Cartesian2(0, -6), disableDepthTestDistance: Number.POSITIVE_INFINITY,
     },
   });
@@ -322,7 +322,7 @@ function worksite(ctx: WorkCtx, p: BuildProject, again: () => void): HTMLElement
     const s = status(p.phases, today());
     const todayLog = p.log.filter((l) => l.date === today());
     download(`${p.name} daily report ${today()}.html`, `<!doctype html><meta charset="utf-8"><title>${esc(p.name)} – ${today()}</title>
-<style>body{font:15px/1.5 -apple-system,system-ui,sans-serif;max-width:760px;margin:32px auto;padding:0 16px;color:#1d1d1f}h1{margin-bottom:0}.m{color:#6e6e73}img{max-width:100%;border-radius:10px}li{margin:4px 0}.open{color:#c9302c}</style>
+<style>body{font:15px/1.5 'Terreno Sans','Plus Jakarta Sans',system-ui,sans-serif;max-width:760px;margin:32px auto;padding:0 16px;color:#1d1d1f}h1{margin-bottom:0}.m{color:#6e6e73}img{max-width:100%;border-radius:10px}li{margin:4px 0}.open{color:#c9302c}</style>
 <h1>${esc(p.name)}</h1><p class="m">Daily report · ${fmtDate(today())} · ${USES[p.use].label}, ${p.floors} floors</p>
 <p><b>${Math.round(s.actual)}%</b> complete (plan ${Math.round(s.planned)}%). Current phase: ${esc(PHASES.find((x) => x.id === s.current)?.label ?? "complete")}. Forecast finish ${fmtDate(s.finish)}${s.behindDays > 0 ? `, ${s.behindDays} days behind` : ""}.</p>
 <h2>Today</h2>${todayLog.length ? todayLog.map((l) => `<p>${l.crew !== undefined ? `<b>Crew ${l.crew}.</b> ` : ""}${esc(l.text)}</p>${l.photo ? `<img src="${l.photo}">` : ""}`).join("") : "<p class=m>No log entries.</p>"}

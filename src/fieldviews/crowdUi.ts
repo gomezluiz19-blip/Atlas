@@ -67,7 +67,7 @@ export function openCrowd(ctx: WorkCtx, app: App) {
     const splits = disperse(crowd, share, stations, boost), { minutes, worst } = clearance(splits);
     ds!.entities.removeAll();
     ds!.entities.add({ position: Cartesian3.fromDegrees(venue.lon, venue.lat, 40), point: { pixelSize: 18, color: Color.fromCssColorString("#b8496a"), outlineColor: Color.WHITE, outlineWidth: 3, disableDepthTestDistance: Number.POSITIVE_INFINITY },
-      label: { text: venue.name, font: "800 14px -apple-system, system-ui, sans-serif", style: LabelStyle.FILL_AND_OUTLINE, fillColor: Color.WHITE, outlineColor: Color.BLACK, outlineWidth: 4, verticalOrigin: VerticalOrigin.BOTTOM, pixelOffset: new Cartesian2(0, -14), disableDepthTestDistance: Number.POSITIVE_INFINITY } });
+      label: { text: venue.name, font: "800 14px 'Terreno Sans', 'Plus Jakarta Sans', system-ui, sans-serif", style: LabelStyle.FILL_AND_OUTLINE, fillColor: Color.WHITE, outlineColor: Color.BLACK, outlineWidth: 4, verticalOrigin: VerticalOrigin.BOTTOM, pixelOffset: new Cartesian2(0, -14), disableDepthTestDistance: Number.POSITIVE_INFINITY } });
     const maxQ = Math.max(1, ...splits.map((s) => s.people));
     for (const sp of splits) {
       const col = Color.fromCssColorString(KIND_COLOR[sp.s.kind]);
@@ -76,7 +76,7 @@ export function openCrowd(ctx: WorkCtx, app: App) {
         position: new CallbackProperty(() => Cartesian3.fromDegrees(sp.s.lon, sp.s.lat, height() / 2), false) as unknown as Cartesian3,
         cylinder: { length: new CallbackProperty(height, false), topRadius: 28, bottomRadius: 34, material: col.withAlpha(0.85), outline: false },
         label: { text: new CallbackProperty(() => { const q = Math.round(queueAt(sp.people, sp.perMin, sp.walk, minute)); return `${sp.s.name}${q ? ` · ${q.toLocaleString()} waiting` : ""}`; }, false) as unknown as string,
-          font: "700 12px -apple-system, system-ui, sans-serif", style: LabelStyle.FILL_AND_OUTLINE, fillColor: Color.WHITE, outlineColor: Color.BLACK, outlineWidth: 4, verticalOrigin: VerticalOrigin.BOTTOM, pixelOffset: new Cartesian2(0, -10), disableDepthTestDistance: Number.POSITIVE_INFINITY,
+          font: "700 12px 'Terreno Sans', 'Plus Jakarta Sans', system-ui, sans-serif", style: LabelStyle.FILL_AND_OUTLINE, fillColor: Color.WHITE, outlineColor: Color.BLACK, outlineWidth: 4, verticalOrigin: VerticalOrigin.BOTTOM, pixelOffset: new Cartesian2(0, -10), disableDepthTestDistance: Number.POSITIVE_INFINITY,
           eyeOffset: new CallbackProperty(() => new Cartesian3(0, 0, -height()), false) as unknown as Cartesian3 },
       });
     }

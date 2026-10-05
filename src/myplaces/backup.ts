@@ -35,7 +35,7 @@ export function keepStorage() {
   void navigator.storage?.persist?.().catch(() => false);
 }
 
-/** The "Your data" row for the bottom of My Places. */
+/** The "Your data" row for the bottom of My Place. */
 export function backupRow(toast: (m: string) => void): HTMLElement {
   const n = keys().filter((k) => k !== "atlas.welcomed" && k !== "atlas.recent-searches").length;
   const input = h("input", { type: "file", accept: "application/json,.json", hidden: true, onchange: async () => {

@@ -282,7 +282,7 @@ export class SolarSystem {
     const placed: [number, number, number, number][] = [];
     for (const l of this.labels.sort((a, b) => rank(a.id) - rank(b.id))) {
       const strong = l.id === this.focus || l.id === this.hover;
-      g.font = `${strong ? 700 : 600} ${Math.round(12.5 * l.u + 3)}px -apple-system, system-ui, sans-serif`;
+      g.font = `${strong ? 700 : 600} ${Math.round(12.5 * l.u + 3)}px "Terreno Sans", "Plus Jakarta Sans", system-ui, sans-serif`;
       const w = g.measureText(l.text).width, hh = 14 * l.u + 4;
       const box: [number, number, number, number] = [l.x - w / 2 - 4, l.y - hh, l.x + w / 2 + 4, l.y + 4];
       if (placed.some((b) => !(box[2] < b[0] || box[0] > b[2] || box[3] < b[1] || box[1] > b[3]))) continue;

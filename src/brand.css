@@ -211,3 +211,10 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 
 /* Flow lines and lens art keep their meaning, in pigment. */
 .flow-dots { background: repeating-linear-gradient(90deg, #8fb6dc 0 4px, transparent 4px 9px); background-size: 18px 6px; }
+
+/* ---- The first-run tour: the Earth is the hero, so the welcome sits low and the scrim is light ---- */
+.tour.centred .tour-hole { box-shadow: 0 0 0 9999px rgba(5, 8, 14, 0.22); }
+.tour.centred .tour-bubble { top: auto !important; bottom: calc(var(--gutter) + 96px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); border-radius: 14px;
+  box-shadow: 0 0 0 1px var(--hairline), 0 30px 80px -20px rgba(5, 8, 14, .55); }
+.tour-hole { box-shadow: 0 0 0 9999px rgba(5, 8, 14, 0.55), 0 0 0 1.5px var(--accent); border-radius: 12px; }
+.tour-bubble { border-radius: 12px; box-shadow: 0 0 0 1px var(--hairline), 0 24px 60px -16px rgba(5, 8, 14, .5); }

@@ -24,7 +24,7 @@ export function rose(shares: number[], color = "#3563d6", size = 150): HTMLCanva
   });
   g.globalAlpha = 1;
   g.fillStyle = css("--secondary");
-  g.font = "600 11px -apple-system, system-ui, sans-serif";
+  g.font = "600 11px 'Terreno Sans', 'Plus Jakarta Sans', system-ui, sans-serif";
   g.textAlign = "center"; g.textBaseline = "middle";
   ["N", "E", "S", "W"].forEach((t, i) => { const a = ((i * 90 - 90) * Math.PI) / 180; g.fillText(t, cx + Math.cos(a) * (R + 9), cy + Math.sin(a) * (R + 9)); });
   return c;
@@ -40,7 +40,7 @@ export function lines(series: { values: number[]; color: string }[], opts: { w?:
   const Y = (v: number) => pad.t + (1 - (v - lo) / (hi - lo || 1)) * (H - pad.t - pad.b);
   g.strokeStyle = css("--fill-strong");
   g.fillStyle = css("--secondary");
-  g.font = "10px -apple-system, system-ui, sans-serif";
+  g.font = "10px 'Terreno Sans', 'Plus Jakarta Sans', system-ui, sans-serif";
   for (const v of [lo, (lo + hi) / 2, hi]) { g.beginPath(); g.moveTo(pad.l, Y(v)); g.lineTo(W - pad.r, Y(v)); g.stroke(); g.fillText(opts.yLabel ? opts.yLabel(v) : String(Math.round(v)), 2, Y(v) + 3); }
   if (opts.xLabels) { g.fillText(opts.xLabels[0], pad.l, H - 4); g.textAlign = "right"; g.fillText(opts.xLabels[1], W - pad.r, H - 4); g.textAlign = "left"; }
   for (const s of series) {

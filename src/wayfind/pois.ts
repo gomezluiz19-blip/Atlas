@@ -10,7 +10,8 @@ const fromIntro = (p: IntroPlace): Poi => ({
   id: `i:${p.id}`, name: p.name, kind: p.tags?.includes("heritage") ? "heritage" : p.tags?.[0] ?? "landmark", lon: p.lon, lat: p.lat, where: p.where,
   line: p.lines[0] ?? "", weight: p.id.startsWith("whc-") ? 2 : 3,
 });
-const BIG = new Set(["peak", "volcano", "crater", "canyon", "waterfall", "deep", "lake"]);
+/** Kinds the whole world knows by name (weight 3); the rest are notable (2). */
+const BIG = new Set(["peak", "volcano", "crater", "canyon", "waterfall", "deep", "lake", "glacier", "island", "reef", "range", "plateau", "rift", "cave", "wetland"]);
 
 let base: Poi[] | null = null;
 /** The landmarks and features bundled with the app (pure data; built once). */

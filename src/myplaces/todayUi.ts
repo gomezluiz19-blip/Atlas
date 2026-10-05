@@ -1,4 +1,4 @@
-// The Today card at the top of My Places: the brief for your main place.
+// The Today card at the top of My Place: the brief for your main place.
 import { farmWeather, hourlyHumid, siteWeather } from "../data/openmeteo";
 import { flystrikeDays, huttonPeriods } from "./risks";
 import { areaM2 } from "../work/geo";

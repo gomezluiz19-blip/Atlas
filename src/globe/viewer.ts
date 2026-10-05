@@ -22,7 +22,7 @@ import { initMotion } from "./motion";
 import { currentQuality } from "./quality";
 import { imagery } from "./imagery";
 import { createTerrariumTerrain, terrainOptions } from "./terrain";
-import { finishGlobe, gradeLayer } from "./finish";
+import { blueMarble, finishGlobe, gradeLayer } from "./finish";
 
 export type BaseMap = "satellite" | "plain";
 export type OverlayKind = Exclude<AnalyticKind, "depth"> | "geology" | "species";
@@ -40,6 +40,8 @@ export interface LayerState {
 export class Globe {
   readonly viewer: Viewer;
   private satellite: ImageryLayer;
+  /** Blue Marble, the far-field base (globe/finish.ts). */
+  private far: ImageryLayer;
   private streetLayers: ImageryLayer[] = [];
   private backup: ImageryLayer;
   /** Messages worth showing the user (e.g. imagery failover). */
@@ -115,6 +117,9 @@ export class Globe {
     const esri = new UrlTemplateImageryProvider({ url: src.template, maximumLevel: src.maximumLevel, credit: src.credit });
     this.satellite = new ImageryLayer(esri);
     this.viewer.imageryLayers.add(this.satellite);
+    // From orbit: NASA's Blue Marble over the satellite imagery, fading out as the camera comes down.
+    this.far = blueMarble(this.viewer);
+    this.viewer.imageryLayers.add(this.far);
     // The house finish (globe/finish.ts): the grade on every base layer, sunlight from orbit, city lights at night.
     const nightLights = finishGlobe(this.viewer);
     this.addUnder(nightLights);
@@ -211,23 +216,24 @@ export class Globe {
     canvas.addEventListener("webglcontextrestored", () => location.reload());
   }
 
-  /** The satellite imagery and the fallbacks beneath it (all tinted together). */
+  /** The satellite imagery, the fallbacks beneath it and Blue Marble above it (all tinted together). */
   baseLayers(): ImageryLayer[] {
     const layers = this.viewer.imageryLayers, out: ImageryLayer[] = [];
-    for (let i = 0; i <= layers.indexOf(this.satellite); i++) out.push(layers.get(i));
+    for (let i = 0; i <= layers.indexOf(this.far); i++) out.push(layers.get(i));
     return out;
   }
 
   /** Adds a layer just above the satellite imagery, under every overlay and label layer. */
   addUnder(layer: ImageryLayer) {
     const layers = this.viewer.imageryLayers;
-    layers.add(layer, layers.indexOf(this.satellite) + 1);
+    layers.add(layer, layers.indexOf(this.far) + 1);
   }
 
   /** Pushes `state` onto the scene. Call after mutating state. */
   apply() {
     const s = this.state;
     this.satellite.show = s.base === "satellite";
+    this.far.show = s.base === "satellite";
     if (s.base !== "satellite") this.backup.show = false;
     for (const l of this.streetLayers) l.show = s.streets;
     for (const [kind, layer] of this.overlays) {
