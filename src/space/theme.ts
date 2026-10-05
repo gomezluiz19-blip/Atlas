@@ -16,7 +16,7 @@ export function spaceTheme(space: { open(): void; close(): void; toSolar(): void
     id: "space",
     label: "Space",
     icon: icons.saturn,
-    color: "#5e5ce6",
+    color: "#5160c2",
     intro: "The planet from orbit: day and night, satellites, launches and tonight's sky.",
     subtabs: [{
       id: "sky",

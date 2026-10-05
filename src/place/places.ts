@@ -12,6 +12,7 @@ import { assignSlugs, parseSlug, slugify, spotSlug, wikidataSlug, type PlaceEntr
 export const FEATURE_KIND: Record<FeatureKind, PlaceKind> = {
   river: "water", lake: "water", deep: "water", waterfall: "waterfall", peak: "peak", volcano: "volcano",
   crater: "nature", forest: "nature", canyon: "nature", desert: "desert", metro: "transport",
+  glacier: "glacier", island: "island", reef: "water", cave: "nature", range: "range", plateau: "region", wetland: "water", rift: "nature",
 };
 
 interface Index { bySlug: Map<string, PlaceEntry>; slugOf: Map<PlaceEntry, string>; byName: Map<string, PlaceEntry[]>; world: WorldLabel[]; detail: WorldLabel[] }

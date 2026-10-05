@@ -29,14 +29,14 @@ export interface Journey {
 
 /** Door-to-door estimates: typical speed (km/h), route length against the straight line, and time before and after (check-in, stations, waiting). */
 export const MODES: Record<Mode, { label: string; verb: string; emoji: string; color: string; kmh: number; detour: number; overheadH: number }> = {
-  fly: { label: "Fly", verb: "Fly", emoji: "✈️", color: "#0a84ff", kmh: 780, detour: 1.05, overheadH: 2.5 },
-  train: { label: "Train", verb: "Train", emoji: "🚆", color: "#bf5af2", kmh: 95, detour: 1.2, overheadH: 0.3 },
-  drive: { label: "Drive", verb: "Drive", emoji: "🚗", color: "#30d158", kmh: 70, detour: 1.3, overheadH: 0 },
-  taxi: { label: "Taxi", verb: "Taxi", emoji: "🚕", color: "#ffcc00", kmh: 35, detour: 1.35, overheadH: 0.1 },
-  bus: { label: "Bus", verb: "Bus", emoji: "🚌", color: "#ff9f0a", kmh: 45, detour: 1.3, overheadH: 0.2 },
-  ferry: { label: "Ferry", verb: "Ferry", emoji: "⛴️", color: "#64d2ff", kmh: 30, detour: 1.15, overheadH: 0.5 },
-  walk: { label: "Walk", verb: "Walk", emoji: "🚶", color: "#8e8e93", kmh: 4.8, detour: 1.25, overheadH: 0 },
-  bike: { label: "Bike", verb: "Cycle", emoji: "🚲", color: "#34c759", kmh: 15, detour: 1.25, overheadH: 0 },
+  fly: { label: "Fly", verb: "Fly", emoji: "✈️", color: "#3563d6", kmh: 780, detour: 1.05, overheadH: 2.5 },
+  train: { label: "Train", verb: "Train", emoji: "🚆", color: "#8b5fa8", kmh: 95, detour: 1.2, overheadH: 0.3 },
+  drive: { label: "Drive", verb: "Drive", emoji: "🚗", color: "#5b9467", kmh: 70, detour: 1.3, overheadH: 0 },
+  taxi: { label: "Taxi", verb: "Taxi", emoji: "🚕", color: "#e1b843", kmh: 35, detour: 1.35, overheadH: 0.1 },
+  bus: { label: "Bus", verb: "Bus", emoji: "🚌", color: "#d19a2e", kmh: 45, detour: 1.3, overheadH: 0.2 },
+  ferry: { label: "Ferry", verb: "Ferry", emoji: "⛴️", color: "#4c9ac9", kmh: 30, detour: 1.15, overheadH: 0.5 },
+  walk: { label: "Walk", verb: "Walk", emoji: "🚶", color: "#8c8f87", kmh: 4.8, detour: 1.25, overheadH: 0 },
+  bike: { label: "Bike", verb: "Cycle", emoji: "🚲", color: "#5b9467", kmh: 15, detour: 1.25, overheadH: 0 },
 };
 export const MODE_IDS = Object.keys(MODES) as Mode[];
 

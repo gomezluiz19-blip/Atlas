@@ -2,13 +2,12 @@
 // main thread (toBlob), so drawing a page's pins never stalls a tap.
 const cache = new Map<string, Promise<string>>();
 
-export function canvasUrl(key: string, draw: () => HTMLCanvasElement): Promise<string> {
+export function canvasUrl(key: string, draw: () => HTMLCanvasElement | Promise<HTMLCanvasElement>): Promise<string> {
   let p = cache.get(key);
   if (!p) {
-    p = new Promise((res) => {
-      const c = draw();
+    p = Promise.resolve(draw()).then((c) => new Promise<string>((res) => {
       c.toBlob((b) => res(b ? URL.createObjectURL(b) : c.toDataURL()), "image/png");
-    });
+    }));
     cache.set(key, p);
   }
   return p;

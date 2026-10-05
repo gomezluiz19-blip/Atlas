@@ -16,7 +16,7 @@ import { FlowOverlay, type FlowLine } from "../globe/flow";
 
 /** How each kind of channel flows on screen: rivers fast and bright, drains a trickle. */
 const FLOW: Partial<Record<CityWaterKind, { speed: number; density: number; size: number; color: string }>> = {
-  river: { speed: 90, density: 34, size: 2.2, color: "#7fd3ff" },
+  river: { speed: 90, density: 34, size: 2.2, color: "#8fb6dc" },
   canal: { speed: 45, density: 26, size: 2, color: "#8fd8ff" },
   stream: { speed: 70, density: 30, size: 1.8, color: "#9ee6ff" },
   drain: { speed: 40, density: 26, size: 1.5, color: "#b5f0ff" },
@@ -117,7 +117,7 @@ export function cityWaterSubtab(): Subtab {
     const where = app.place?.name?.title;
     // On the shared canvas: stays on while you look at this place through other themes.
     app.canvas.put({
-      id: "water:city", label: `Water › City water${where ? ` · ${where}` : ""}`, color: "#0a84ff", theme: "water", scope: "place", pinned: false,
+      id: "water:city", label: `Water › City water${where ? ` · ${where}` : ""}`, color: "#3563d6", theme: "water", scope: "place", pinned: false,
       show: (v) => { l.show = v; fl.show(v); },
       remove: () => {
         app.globe.viewer.imageryLayers.remove(l, true);

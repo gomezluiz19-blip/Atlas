@@ -27,16 +27,16 @@ interface WaterFeature {
 }
 
 const KIND: Record<Kind, { label: string; plural: string; color: string }> = {
-  river: { label: "River", plural: "Rivers", color: "#0a84ff" },
-  stream: { label: "Stream", plural: "Streams", color: "#64d2ff" },
-  canal: { label: "Canal", plural: "Canals", color: "#5ac8fa" },
-  lake: { label: "Lake or pond", plural: "Lakes & ponds", color: "#007aff" },
+  river: { label: "River", plural: "Rivers", color: "#3563d6" },
+  stream: { label: "Stream", plural: "Streams", color: "#4c9ac9" },
+  canal: { label: "Canal", plural: "Canals", color: "#4c9ac9" },
+  lake: { label: "Lake or pond", plural: "Lakes & ponds", color: "#3563d6" },
   reservoir: { label: "Reservoir", plural: "Reservoirs", color: "#5856d6" },
   wetland: { label: "Wetland", plural: "Wetlands", color: "#30b0c7" },
-  spring: { label: "Spring", plural: "Springs", color: "#34c759" },
-  well: { label: "Well", plural: "Wells", color: "#a2845e" },
+  spring: { label: "Spring", plural: "Springs", color: "#5b9467" },
+  well: { label: "Well", plural: "Wells", color: "#9a7552" },
   glacier: { label: "Glacier", plural: "Glaciers", color: "#d1e9ff" },
-  dam: { label: "Dam", plural: "Dams", color: "#8e8e93" },
+  dam: { label: "Dam", plural: "Dams", color: "#8c8f87" },
 };
 const ORDER: Kind[] = ["river", "lake", "reservoir", "stream", "canal", "spring", "well", "wetland", "glacier", "dam"];
 
@@ -167,7 +167,7 @@ export function waterTheme(app: App): Theme {
       if (!ds || !app.place || !ds.entities.values.length) return;
       const where = app.place.name?.title;
       app.canvas.put({
-        id: "water:nearby", label: `Water nearby${where ? ` · ${where}` : ""}`, color: "#0a84ff", theme: "water", scope: "place", pinned: false,
+        id: "water:nearby", label: `Water nearby${where ? ` · ${where}` : ""}`, color: "#3563d6", theme: "water", scope: "place", pinned: false,
         show: (v) => { if (ds) ds.show = v; },
         remove: () => { ds?.entities.removeAll(); },
       }, true);
@@ -178,7 +178,7 @@ export function waterTheme(app: App): Theme {
     id: "water",
     label: "Water",
     icon: icons.drop,
-    color: "#0a84ff",
+    color: "#3563d6",
     intro: "Rivers, lakes, springs, and where the rain goes.",
     subtabs: [
       overview,

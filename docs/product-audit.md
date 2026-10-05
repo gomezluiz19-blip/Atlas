@@ -12,7 +12,7 @@ and what still needs a decision.
 
 **Now:** three modes at the top, and nothing removed.
 
-- **My Places** is the daily reason to open Terreno: your home, farm, site or business, with Today's brief,
+- **My Place** is the daily reason to open Terreno: your home, farm, site or business, with Today's brief,
   your places, and the tools to run them (Grow, Flock, Build, live occupancy).
 - **Explore** is the reason to show someone Terreno: the Earth and space through themes and lenses.
 - **Create** is the reason to share it: Plan, Present, Video, Teach.
@@ -22,8 +22,8 @@ and what still needs a decision.
 | Finding | Status |
 |---|---|
 | No explanation of what Terreno is for | ✅ First-visit welcome: three ways in, with example requests |
-| Saving your place took four steps across two panels | ✅ An address box in My Places: Find → save form, one step |
-| An empty My Places shows nothing of what it can do | ✅ "Try a demo farm": animals, fields and paddocks, dated from today, removable in one tap |
+| Saving your place took four steps across two panels | ✅ An address box in My Place: Find → save form, one step |
+| An empty My Place shows nothing of what it can do | ✅ "Try a demo farm": animals, fields and paddocks, dated from today, removable in one tap |
 | The report that makes people say "how does it know?" didn't exist | ✅ About this place: slope and aspect, rock below, frost dates, growing heat and suitable crops, rain, nearest river, a sowing calendar |
 
 ## The daily loop (why they come back)
@@ -93,7 +93,7 @@ vet practices are good places to find them.
 
 **What to measure over four weeks:**
 
-- Do they open My Places without being reminded, in week 1 and in week 4?
+- Do they open My Place without being reminded, in week 1 and in week 4?
 - How many real records do they log?
 - Which items in the brief do they act on?
 - What do they ask for that isn't there?

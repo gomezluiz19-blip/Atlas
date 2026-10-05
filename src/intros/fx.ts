@@ -124,7 +124,7 @@ function river(f: Extract<Fx, { fx: "river" }>, o: Opts) {
   const total = lens.reduce((a, b) => a + b, 0) || 1;
   const n = f.n ?? 220, r = o.size / 260;
   const g = new THREE.SphereGeometry(r, 8, 6);
-  const mesh = new THREE.InstancedMesh(g, new THREE.MeshBasicMaterial({ color: f.color ?? "#5ab0ff", transparent: true, opacity: 0.85 }), n);
+  const mesh = new THREE.InstancedMesh(g, new THREE.MeshBasicMaterial({ color: f.color ?? "#4c9ac9", transparent: true, opacity: 0.85 }), n);
   const each = Array.from({ length: n }, () => ({ p: rnd(), o: (rnd() - 0.5) * r * 6 }));
   const m = new THREE.Matrix4(), v = new THREE.Vector3(), q = new THREE.Quaternion(), s = new THREE.Vector3(1, 1 / o.ex, 1);
   const at = (d: number) => { let i = 0; while (i < lens.length - 1 && d > lens[i]) { d -= lens[i]; i++; } const a = pts[i], b = pts[i + 1] ?? a; return a.clone().lerp(b, Math.min(1, d / (lens[i] || 1))); };

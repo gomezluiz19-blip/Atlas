@@ -12,6 +12,7 @@ import { latestKp } from "../data/space";
 import { magneticLatitude } from "../analysis/insights";
 import { h } from "../ui/dom";
 import { canvasUrl } from "../ui/canvasUrl";
+import { iconPin } from "../ui/glyph";
 import type { Lens, LensHost, Subject, SubjectKind } from "./types";
 
 // ---- The recipe ----------------------------------------------------------------------------------
@@ -107,7 +108,7 @@ export function lensFromJson(v: unknown): LensDef | null {
   const home = o.home as Record<string, unknown> | undefined;
   return {
     id: str(o.id, 60) || `lens-${Math.random().toString(36).slice(2, 9)}`,
-    name, icon: str(o.icon, 8) || "✨", color: /^#[0-9a-f]{6}$/i.test(str(o.color)) ? str(o.color) : "#0a84ff",
+    name, icon: str(o.icon, 8) || "✨", color: /^#[0-9a-f]{6}$/i.test(str(o.color)) ? str(o.color) : "#3563d6",
     blurb: str(o.blurb, 140) || blocks.map((b) => BLOCK_INFO[b.type].label).join(", "),
     author: str(o.author, 40) || undefined,
     for: (Array.isArray(o.for) ? o.for : []).filter((k): k is SubjectKind => KINDS.includes(k as SubjectKind)),
@@ -164,16 +165,7 @@ interface Verdict { score: number; why: string }
 
 type Ctx = { app: App; s: Subject; def: LensDef; pins: Entity[]; verdicts: Verdict[]; paintVerdict(): void; headless?: boolean; closed?: boolean };
 
-const pinFor = (emoji: string, color: string) => canvasUrl(`lens|${emoji}|${color}`, () => {
-  const c = document.createElement("canvas");
-  c.width = 44; c.height = 44;
-  const g = c.getContext("2d", { willReadFrequently: true })!;
-  g.beginPath(); g.arc(22, 22, 19, 0, Math.PI * 2); g.fillStyle = color; g.fill();
-  g.lineWidth = 3; g.strokeStyle = "#fff"; g.stroke();
-  g.font = "20px system-ui, 'Apple Color Emoji', 'Segoe UI Emoji', sans-serif"; g.textAlign = "center"; g.textBaseline = "middle";
-  g.fillText(emoji, 22, 23);
-  return c;
-});
+const pinFor = (emoji: string, color: string) => canvasUrl(`lens|${emoji}|${color}`, () => iconPin(emoji, color, 44));
 function pin(ctx: Ctx, lon: number, lat: number, emoji: string, name?: string) {
   if (ctx.headless) return;
   void pinFor(emoji, ctx.def.color).then((image) => { if (!ctx.closed) { addPin(ctx, lon, lat, image, name); ctx.app.globe.viewer.scene.requestRender(); } });
@@ -182,7 +174,7 @@ function addPin(ctx: Ctx, lon: number, lat: number, image: string, name?: string
   ctx.pins.push(ctx.app.globe.viewer.entities.add({
     position: Cartesian3.fromDegrees(lon, lat),
     billboard: { image, heightReference: HeightReference.CLAMP_TO_GROUND, verticalOrigin: VerticalOrigin.CENTER, scale: 0.55, disableDepthTestDistance: Number.POSITIVE_INFINITY },
-    label: name ? { text: name, font: "600 11px Inter, system-ui, sans-serif", fillColor: Color.WHITE, outlineColor: Color.BLACK.withAlpha(0.7), outlineWidth: 3, style: LabelStyle.FILL_AND_OUTLINE, verticalOrigin: VerticalOrigin.TOP, pixelOffset: { x: 0, y: 14 } as never, heightReference: HeightReference.CLAMP_TO_GROUND, disableDepthTestDistance: Number.POSITIVE_INFINITY, distanceDisplayCondition: { near: 0, far: 30_000 } as never } : undefined,
+    label: name ? { text: name, font: "600 11px 'Terreno Sans', 'Plus Jakarta Sans', system-ui, sans-serif", fillColor: Color.WHITE, outlineColor: Color.BLACK.withAlpha(0.7), outlineWidth: 3, style: LabelStyle.FILL_AND_OUTLINE, verticalOrigin: VerticalOrigin.TOP, pixelOffset: { x: 0, y: 14 } as never, heightReference: HeightReference.CLAMP_TO_GROUND, disableDepthTestDistance: Number.POSITIVE_INFINITY, distanceDisplayCondition: { near: 0, far: 30_000 } as never } : undefined,
   }));
 }
 const km = (lon1: number, lat1: number, lon2: number, lat2: number) => {

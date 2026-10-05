@@ -56,7 +56,7 @@ export function drawCard(ctx: CanvasRenderingContext2D, globe: CanvasImageSource
   g.addColorStop(1, "rgba(5,7,11,0.94)");
   ctx.fillStyle = g;
   ctx.fillRect(0, 0, W, H);
-  const x = 84, font = (w: number, px: number) => `${w} ${px}px Inter, -apple-system, "Segoe UI", sans-serif`;
+  const x = 84, font = (w: number, px: number) => `${w} ${px}px "Terreno Sans", "Plus Jakarta Sans", -apple-system, "Segoe UI", sans-serif`;
   let y = H - 150;
   ctx.fillStyle = "#fff";
   ctx.textBaseline = "alphabetic";

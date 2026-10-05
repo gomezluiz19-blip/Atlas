@@ -89,7 +89,7 @@ payment details.
 
 ## Cameras
 
-Cameras placed in My Places can be connected in Terreno Pro to count people,
+Cameras placed in My Place can be connected in Terreno Pro to count people,
 vehicles and bikes live. Detection runs on the viewer's device with a small
 TensorFlow.js model (COCO-SSD, loaded only when a camera is connected); video
 never leaves the browser, and it only recognises kinds of things, never who

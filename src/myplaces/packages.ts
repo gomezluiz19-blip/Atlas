@@ -7,11 +7,11 @@
 export type Carrier = "UPS" | "FedEx" | "USPS" | "DHL" | "Amazon" | "Royal Mail" | "Canada Post" | "Post";
 export type Status = "ordered" | "shipped" | "out" | "delivered" | "problem";
 export const STATUS: Record<Status, { label: string; color: string }> = {
-  ordered: { label: "Ordered", color: "#8e8e93" },
-  shipped: { label: "On the way", color: "#0a84ff" },
-  out: { label: "Out for delivery", color: "#ff9f0a" },
-  delivered: { label: "Delivered", color: "#30d158" },
-  problem: { label: "Problem", color: "#ff453a" },
+  ordered: { label: "Ordered", color: "#8c8f87" },
+  shipped: { label: "On the way", color: "#3563d6" },
+  out: { label: "Out for delivery", color: "#d19a2e" },
+  delivered: { label: "Delivered", color: "#5b9467" },
+  problem: { label: "Problem", color: "#c4513a" },
 };
 
 export interface Package { id: string; label: string; number: string; carrier: Carrier; status: Status; eta?: string; place?: string; added: string }

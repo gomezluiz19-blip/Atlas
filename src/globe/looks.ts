@@ -13,6 +13,7 @@ import { canvasLayer } from "./networkLayer";
 import { populationPoints, type PopPoint } from "../data/people";
 import type { Globe } from "./viewer";
 import { iconFor } from "../ui/glyph";
+import { HOUSE, OCEAN } from "./finish";
 
 interface Tint { brightness?: number; saturation?: number; contrast?: number; gamma?: number; hue?: number }
 interface LookLayer { layer: ImageryLayer; alpha: number; /** Lit side / night side only (with lighting on). */ day?: number; night?: number }
@@ -224,7 +225,8 @@ export class Looks {
     const prev = this.current;
     this.current = next;
     const scene = this.globe.viewer.scene;
-    scene.globe.enableLighting = !!next?.lighting;
+    // No look: the house finish, lit from orbit (globe/finish.ts). A look decides for itself.
+    scene.globe.enableLighting = next ? !!next.lighting : true;
     // Fade the old layers out and the new ones in, with the tint easing between.
     if (prev) for (const l of this.made.get(prev.id) ?? []) if (!next || next.id !== prev.id) this.animate(l.layer, 0, () => { l.layer.show = false; });
     if (next) for (const l of this.layersOf(next)) {
@@ -271,15 +273,15 @@ export class Looks {
     const t = look?.tint ?? {};
     const mix = (key: keyof Tint, base: number) => base + ((t[key] ?? base) - base) * f;
     for (const sat of this.globe.baseLayers()) {
-      sat.brightness = mix("brightness", 1);
-      sat.saturation = mix("saturation", 1);
-      sat.contrast = mix("contrast", 1);
-      sat.gamma = mix("gamma", 1);
-      sat.hue = mix("hue", 0);
+      sat.brightness = mix("brightness", HOUSE.brightness);
+      sat.saturation = mix("saturation", HOUSE.saturation);
+      sat.contrast = mix("contrast", HOUSE.contrast);
+      sat.gamma = mix("gamma", HOUSE.gamma);
+      sat.hue = mix("hue", HOUSE.hue);
     }
     if (look) for (const l of this.made.get(look.id) ?? []) { if (animated) this.animate(l.layer, l.alpha * f); else l.layer.alpha = l.alpha * f; }
     this.globe.viewer.scene.requestRender();
-    this.globe.viewer.scene.globe.baseColor = look?.id === "built" || look?.id === "animals" ? Color.fromCssColorString("#03070f") : Color.fromCssColorString("#0b1d33");
+    this.globe.viewer.scene.globe.baseColor = look?.id === "built" || look?.id === "animals" ? Color.fromCssColorString("#03070f") : Color.fromCssColorString(OCEAN);
   }
 
   private renderLegend() {

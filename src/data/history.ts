@@ -109,7 +109,7 @@ export class HistoryLayer {
       this.labels.entities.add({
         position: Cartesian3.fromDegrees(p.label[0], p.label[1]),
         label: {
-          text: p.name, font: "600 13px -apple-system, system-ui, sans-serif", style: LabelStyle.FILL_AND_OUTLINE,
+          text: p.name, font: "600 13px 'Terreno Sans', 'Plus Jakarta Sans', system-ui, sans-serif", style: LabelStyle.FILL_AND_OUTLINE,
           fillColor: Color.WHITE, outlineColor: Color.fromCssColorString("#0b1320"), outlineWidth: 4,
           scaleByDistance: new NearFarScalar(1e6, 1.1, 2e7, 0.7),
           distanceDisplayCondition: new DistanceDisplayCondition(0, far),

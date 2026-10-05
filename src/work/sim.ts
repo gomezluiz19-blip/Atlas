@@ -17,7 +17,7 @@ import { ACTIONS, DEBRIEF, newGame, pairKey, resolveTurn, wellbeing, type Action
 import { ListStore, download, newId } from "./store";
 
 const games = new ListStore<SimState>("atlas.work.sims.v1");
-const COLORS = ["#ff375f", "#0a84ff", "#30d158", "#ff9f0a", "#bf5af2", "#64d2ff", "#ffd60a", "#ac8e68"];
+const COLORS = ["#b8496a", "#3563d6", "#5b9467", "#d19a2e", "#8b5fa8", "#4c9ac9", "#e1b843", "#9a7552"];
 let fills: ImageryLayer | null = null;
 let lines: WorkLayer | null = null;
 
@@ -53,12 +53,12 @@ async function drawWorld(app: App, g: SimState) {
     }
   }, { maximumLevel: 7 });
   viewer.imageryLayers.add(fills);
-  lines ??= new WorkLayer(app, "work:summit", "World Summit", "#ff375f");
+  lines ??= new WorkLayer(app, "work:summit", "World Summit", "#b8496a");
   const at = (id: string) => { const n = g.nations.find((x) => x.id === id)!; return [n.lon, n.lat] as [number, number]; };
   lines.set([
-    ...g.alliances.map((k) => ({ id: `a${k}`, kind: "line" as const, pts: k.split("|").map(at), color: "#30d158" })),
-    ...g.trade.filter((k) => !g.alliances.includes(k)).map((k) => ({ id: `t${k}`, kind: "line" as const, pts: k.split("|").map(at), color: "#0a84ff", dashed: true })),
-    ...g.sanctions.map((k) => ({ id: `s${k}`, kind: "line" as const, pts: k.split(">").map(at), color: "#ff3b30", dashed: true })),
+    ...g.alliances.map((k) => ({ id: `a${k}`, kind: "line" as const, pts: k.split("|").map(at), color: "#5b9467" })),
+    ...g.trade.filter((k) => !g.alliances.includes(k)).map((k) => ({ id: `t${k}`, kind: "line" as const, pts: k.split("|").map(at), color: "#3563d6", dashed: true })),
+    ...g.sanctions.map((k) => ({ id: `s${k}`, kind: "line" as const, pts: k.split(">").map(at), color: "#c4513a", dashed: true })),
     ...g.nations.map((n) => ({ id: n.id, kind: "point" as const, pts: [[n.lon, n.lat] as [number, number]], color: n.color, label: `${n.team} · ${n.name}` })),
   ], `World Summit · ${g.name}`);
 }
@@ -129,7 +129,7 @@ function openSim(ctx: WorkCtx, id: string, back: () => void) {
     h("tbody", {}, ...ranked.map((n) => h("tr", {},
       h("td", {}, h("span", { class: "dot", style: `background:${n.color}` }), ` ${n.team}`, h("div", { class: "muted small" }, n.name)),
       h("td", {}, h("strong", {}, String(wellbeing(n)))),
-      h("td", {}, bar(n.economy, "#ffd60a")), h("td", {}, bar(n.security, "#ff375f")), h("td", {}, bar(n.stability, "#0a84ff")), h("td", {}, bar(n.environment, "#30d158")),
+      h("td", {}, bar(n.economy, "#e1b843")), h("td", {}, bar(n.security, "#b8496a")), h("td", {}, bar(n.stability, "#3563d6")), h("td", {}, bar(n.environment, "#5b9467")),
       h("td", {}, `${n.treasury}`))))));
 
   // This turn's choices, two per team.
@@ -151,7 +151,7 @@ function openSim(ctx: WorkCtx, id: string, back: () => void) {
       if (a.id === b.id) return h("td", {}, "");
       const v = relation(a.id, b.id), k = pairKey(a.id, b.id);
       const tag = g.alliances.includes(k) ? "🤝" : g.sanctions.includes(`${a.id}>${b.id}`) || g.sanctions.includes(`${b.id}>${a.id}`) ? "⛔" : g.trade.includes(k) ? "⇄" : "";
-      return h("td", { style: `background:${v >= 0 ? `rgba(48,209,88,${Math.min(0.5, v / 150)})` : `rgba(255,59,48,${Math.min(0.5, -v / 150)})`}`, title: `${v}` }, `${v > 0 ? "+" : ""}${v}${tag ? ` ${tag}` : ""}`);
+      return h("td", { style: `background:${v >= 0 ? `rgba(91, 148, 103,${Math.min(0.5, v / 150)})` : `rgba(255,59,48,${Math.min(0.5, -v / 150)})`}`, title: `${v}` }, `${v > 0 ? "+" : ""}${v}${tag ? ` ${tag}` : ""}`);
     }))))));
 
   const recent = g.news.filter((x) => x.turn >= g.turn - 1).slice(-14).reverse();

@@ -18,7 +18,7 @@ import { LANES } from "./scenarios";
 import { whatIfBar } from "./whatIf";
 
 const KEY = "atlas.econ.portfolio.v1";
-const COLORS = ["#0a84ff", "#ff9f0a", "#30d158", "#bf5af2", "#ff375f", "#64d2ff", "#ffd60a", "#ac8e68", "#5e5ce6", "#ff6482"];
+const COLORS = ["#3563d6", "#d19a2e", "#5b9467", "#8b5fa8", "#b8496a", "#4c9ac9", "#e1b843", "#9a7552", "#5160c2", "#ff6482"];
 export const loadPortfolio = (): Holding[] => { try { const v = JSON.parse(localStorage.getItem(KEY) ?? "[]"); return Array.isArray(v) ? v.filter((x) => company(x?.id) && x.value > 0) : []; } catch { return []; } };
 const save = (hs: Holding[]) => { try { localStorage.setItem(KEY, JSON.stringify(hs)); } catch { /* private mode */ } };
 const usd = (v: number) => `$${Math.round(v).toLocaleString("en-US")}`;
@@ -27,7 +27,7 @@ let layer: EconLayer | null = null;
 type Tab = "earn" | "made" | "policy" | "whatif";
 
 export function openPortfolio(ctx: WorkCtx, app: App) {
-  layer ??= new EconLayer(app, "econ:portfolio", "My portfolio", "#0a84ff", "📈");
+  layer ??= new EconLayer(app, "econ:portfolio", "My portfolio", "#3563d6", "📈");
   let hs = loadPortfolio();
   let tab: Tab = "earn";
   const body = h("div", { class: "pf-body" });
@@ -95,12 +95,12 @@ export function openPortfolio(ctx: WorkCtx, app: App) {
 
   function earn() {
     const ex = countryExposure(hs), total = totalValue(hs);
-    layer!.draw({ columns: ex.map((e) => ({ code: e.code, value: e.share * 1.4, color: "#0a84ff", label: e.share >= 4 ? `${countryName(e.code)} ${e.share}%` : undefined })), flows: chains() }, "My portfolio: where it earns");
+    layer!.draw({ columns: ex.map((e) => ({ code: e.code, value: e.share * 1.4, color: "#3563d6", label: e.share >= 4 ? `${countryName(e.code)} ${e.share}%` : undefined })), flows: chains() }, "My portfolio: where it earns");
     flyTilted(app, 20, 25, 19_000_000, -60);
     const covered = ex.reduce((a, e) => a + e.value, 0);
     body.replaceChildren(
       h("p", { class: "ec-lede" }, `Of every $100 you own, about $${Math.round(((ex[0]?.value ?? 0) / total) * 100)} is earned in ${countryName(ex[0]?.code ?? "US")}`, ex[1] ? ` and $${Math.round((ex[1].value / total) * 100)} in ${countryName(ex[1].code)}.` : "."),
-      bars(ex.slice(0, 10).map((e) => ({ label: countryName(e.code), value: e.share, note: `${e.share}%` })), "#0a84ff"),
+      bars(ex.slice(0, 10).map((e) => ({ label: countryName(e.code), value: e.share, note: `${e.share}%` })), "#3563d6"),
       h("p", { class: "fineprint" }, `${Math.round((covered / total) * 100)}% of revenue placed by country; the rest is reported as "other". Columns: where your companies sell. Streams: their suppliers, fabs, mines and plants abroad, flowing home.`),
       h("h3", { class: "group-title" }, "Supply chains"),
       ...hs.map((x) => { const c = company(x.id)!; const sites = c.sites.filter((s) => s.role !== "HQ"); return h("details", { class: "pf-chain", style: `--c:${colorOf(c.id)}` },
@@ -113,7 +113,7 @@ export function openPortfolio(ctx: WorkCtx, app: App) {
     const by = new Map<string, number>();
     for (const x of mats) { const m = market(x.id); if (m) for (const [c, s] of m.producers) by.set(c, (by.get(c) ?? 0) + ((x.buys + x.sells) * s) / 100); }
     const max = Math.max(1, ...by.values());
-    layer!.draw({ columns: [...by].map(([code, v]) => ({ code, value: (v / max) * 55, color: "#ff9f0a", label: v / max > 0.25 ? countryName(code) : undefined })) }, "My portfolio: the raw materials behind it");
+    layer!.draw({ columns: [...by].map(([code, v]) => ({ code, value: (v / max) * 55, color: "#d19a2e", label: v / max > 0.25 ? countryName(code) : undefined })) }, "My portfolio: the raw materials behind it");
     flyTilted(app, 40, 0, 19_000_000, -60);
     const top = Math.max(1, ...mats.map((x) => x.buys + x.sells));
     body.replaceChildren(
@@ -129,7 +129,7 @@ export function openPortfolio(ctx: WorkCtx, app: App) {
     const where = new Map<string, number>();
     for (const r of radar) for (const c of [...r.p.where]) where.set(c, Math.max(where.get(c) ?? 0, r.score));
     const max = Math.max(0.01, ...where.values());
-    layer!.draw({ halos: [...where].map(([code, s]) => ({ code, strength: s / max, color: "#ff9f0a", label: countryName(code) })), flows: chains() }, "My portfolio: policies to watch");
+    layer!.draw({ halos: [...where].map(([code, s]) => ({ code, strength: s / max, color: "#d19a2e", label: countryName(code) })), flows: chains() }, "My portfolio: policies to watch");
     flyTilted(app, 60, 25, 20_000_000, -65);
     body.replaceChildren(
       h("p", { class: "ec-lede" }, radar.length ? `${radar.length} policies touch what you own. The biggest first:` : "No tracked policies touch these holdings."),
@@ -149,9 +149,9 @@ export function openPortfolio(ctx: WorkCtx, app: App) {
         const r = portfolioImpact(hs, shock);
         const hit = Object.entries(shock.supply ?? {}).filter(([, v]) => v > 0);
         layer!.draw({
-          halos: hit.map(([code, v]) => ({ code, strength: v / 100, color: "#ff453a", label: `${countryName(code)} −${Math.round(v)}%` })),
-          pins: (shock.lanes ?? []).map((l) => ({ lon: LANES[l][0], lat: LANES[l][1], color: "#ff453a", label: `${l} closed` })),
-          flows: chains().map((f) => ({ ...f, color: hit.some(([c]) => c === f.from) ? "#ff453a" : f.color })),
+          halos: hit.map(([code, v]) => ({ code, strength: v / 100, color: "#c4513a", label: `${countryName(code)} −${Math.round(v)}%` })),
+          pins: (shock.lanes ?? []).map((l) => ({ lon: LANES[l][0], lat: LANES[l][1], color: "#c4513a", label: `${l} closed` })),
+          flows: chains().map((f) => ({ ...f, color: hit.some(([c]) => c === f.from) ? "#c4513a" : f.color })),
         }, `What if: ${picked.map((s) => s.name).join(" + ")}`);
         const f = picked[0]?.focus;
         if (f) flyTilted(app, f.lon, f.lat, f.height * 1.5, -55);

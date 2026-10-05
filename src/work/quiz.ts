@@ -21,7 +21,7 @@ const quizzes = new ListStore<Quiz>("atlas.work.quizzes.v1");
 const results = new ListStore<Result & { id: string }>("atlas.work.results.v1");
 const LETTERS = ["A", "B", "C", "D", "E", "F"];
 // Answer colours; green is kept for "right".
-const TILE = ["#ff375f", "#0a84ff", "#ffd60a", "#bf5af2", "#ff9f0a", "#64d2ff"];
+const TILE = ["#b8496a", "#3563d6", "#e1b843", "#8b5fa8", "#d19a2e", "#4c9ac9"];
 let marker: WorkLayer | null = null;
 
 const shuffle = <T,>(a: T[]) => { const b = [...a]; for (let i = b.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [b[i], b[j]] = [b[j], b[i]]; } return b; };
@@ -60,15 +60,15 @@ export function openQuizzes(ctx: WorkCtx, back: () => void) {
       h("div", { class: "list" }, ...quizzes.all().map((q) => {
         const n = results.all().filter((r) => r.quiz === q.id).length;
         return h("button", { class: "list-row", onclick: () => openQuiz(ctx, q.id, back) },
-          h("span", { class: "work-badge", style: "background:#ff375f" }, "?"),
+          h("span", { class: "work-badge", style: "background:#b8496a" }, "?"),
           h("span", { class: "list-text" }, h("span", { class: "list-title" }, q.title), h("span", { class: "list-sub" }, `${q.questions.length} questions${n ? ` · ${n} result${n === 1 ? "" : "s"}` : ""}`)),
           h("span", { class: "chev", html: "&rsaquo;" }));
       }))) : "",
     h("section", { class: "group" }, h("h2", { class: "group-title" }, "Ready to use"),
       h("div", { class: "work-types" },
-        h("button", { class: "work-type", style: "--c:#0a84ff", onclick: () => add(capitalsQuiz()) }, h("strong", {}, "Find the capital"), h("span", {}, "10 capitals to find on the globe")),
-        h("button", { class: "work-type", style: "--c:#30d158", onclick: () => add(landmarksQuiz()) }, h("strong", {}, "Wonders of the world"), h("span", {}, "8 famous places to find")),
-        h("button", { class: "work-type", style: "--c:#ff9f0a", onclick: () => add(earthQuiz()) }, h("strong", {}, "Our planet"), h("span", {}, "Oceans, continents, rivers and a map from 1914")))),
+        h("button", { class: "work-type", style: "--c:#3563d6", onclick: () => add(capitalsQuiz()) }, h("strong", {}, "Find the capital"), h("span", {}, "10 capitals to find on the globe")),
+        h("button", { class: "work-type", style: "--c:#5b9467", onclick: () => add(landmarksQuiz()) }, h("strong", {}, "Wonders of the world"), h("span", {}, "8 famous places to find")),
+        h("button", { class: "work-type", style: "--c:#d19a2e", onclick: () => add(earthQuiz()) }, h("strong", {}, "Our planet"), h("span", {}, "Oceans, continents, rivers and a map from 1914")))),
     h("div", { class: "pro-url-row" }, importIn, h("button", { class: "primary-btn", onclick: async () => {
       const m = /quiz=([\w-]+)/.exec(importIn.value);
       try {
@@ -106,7 +106,7 @@ function openQuiz(ctx: WorkCtx, id: string, back: () => void) {
 
   const row = (x: Question, k: number) => {
     const head = h("div", { class: "quiz-q-head" },
-      h("span", { class: "work-badge", style: "background:#ff375f" }, String(k + 1)),
+      h("span", { class: "work-badge", style: "background:#b8496a" }, String(k + 1)),
       h("span", { class: "muted small" }, x.kind === "choice" ? "Multiple choice" : x.kind === "truefalse" ? "True or false" : "Find on the map"),
       k > 0 ? h("button", { class: "link-btn", onclick: () => { [q.questions[k - 1], q.questions[k]] = [q.questions[k], q.questions[k - 1]]; save(); again(); } }, "Move up") : "",
       h("button", { class: "link-btn danger", onclick: () => { q.questions.splice(k, 1); save(); again(); } }, "Delete"));
@@ -204,7 +204,7 @@ export function stage(app: App) {
   const root = h("div", { class: "present stage" }, card, answers, side, bar);
   document.body.classList.add("presenting");
   document.body.append(root);
-  marker ??= new WorkLayer(app, "work:quiz", "Quiz answers", "#ff375f", false);
+  marker ??= new WorkLayer(app, "work:quiz", "Quiz answers", "#b8496a", false);
   marker.clear();
   return { root, card, answers, side, bar, close() { root.remove(); document.body.classList.remove("presenting"); marker?.clear(); app.cancelPick(); } };
 }
@@ -221,7 +221,7 @@ export function revealMap(app: App, x: Extract<Question, { kind: "map" }>, guess
   marker!.set([
     ...guesses.map((g, i) => ({ id: `l${i}`, kind: "line" as const, pts: [g.pt, [x.lon, x.lat] as [number, number]], color: g.color, dashed: true })),
     ...guesses.map((g, i) => ({ id: `g${i}`, kind: "point" as const, pts: [g.pt], color: g.color, label: g.label })),
-    { id: "answer", kind: "point", pts: [[x.lon, x.lat]], color: "#30d158", label: x.place },
+    { id: "answer", kind: "point", pts: [[x.lon, x.lat]], color: "#5b9467", label: x.place },
   ]);
   app.globe.viewer.camera.flyTo({ destination: Cartesian3.fromDegrees(x.lon, x.lat, 3_500_000), duration: 1.8 });
 }
@@ -371,7 +371,7 @@ export function take(app: App, q: Quiz, ctx?: WorkCtx) {
     const x = q.questions[i];
     const m = mark(x, a);
     if (x.kind === "map") {
-      revealMap(app, x, [{ pt: a as [number, number], color: "#0a84ff", label: "You" }]);
+      revealMap(app, x, [{ pt: a as [number, number], color: "#3563d6", label: "You" }]);
       s.answers.replaceChildren(h("div", { class: "stage-tile small " + (m >= 1 ? "right" : m > 0 ? "" : "wrong") }, h("b", {}, m >= 1 ? "✓" : `${Math.round(m * 100)}%`), h("span", {}, `${fmtDist(distanceKm(a as [number, number], [x.lon, x.lat]) * 1000)} from ${x.place}`)));
     } else {
       const right = x.kind === "choice" ? x.answer : x.answer ? 0 : 1;

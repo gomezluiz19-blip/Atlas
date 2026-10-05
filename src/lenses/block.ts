@@ -56,7 +56,7 @@ export const blockLens: Lens = {
   label: "Block",
   icon: "🧊",
   blurb: "Lift it out as a 3D block, with the rocks on its sides",
-  score: (s) => ({ peak: 1, volcano: 1, range: 0.9, crater: 1, canyon: 1, river: 0.6, glacier: 0.8, island: 0.8, sea: 0.5, lake: 0.6, coast: 0.7, desert: 0.6, forest: 0.5, land: 0.7, city: 0.4 })[s.kind],
+  score: (s) => ({ peak: 1, volcano: 1, range: 0.9, crater: 1, canyon: 1, river: 0.3, glacier: 0.8, island: 0.6, sea: 0.2, lake: 0.3, coast: 0.3, desert: 0.3, forest: 0.2, land: s.relief > 400 ? 0.6 : 0.3, city: 0.1 })[s.kind],
   async open(host, s) {
     const size = Math.min(80_000, Math.max(3000, s.radius * 2.2));
     const status = h("p", { class: "muted small" }, "Building the block…");

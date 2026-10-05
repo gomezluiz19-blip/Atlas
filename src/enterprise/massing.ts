@@ -232,7 +232,7 @@ export class Massing {
         if (b.onTap) makeTappable(e, b.onTap);
       }
       if (b.label) {
-        const e = this.ds.entities.add({ position: Cartesian3.fromDegrees(lon, lat, g + b.floors * fh + 12), label: { text: b.label, font: "700 12px -apple-system, system-ui, sans-serif", style: LabelStyle.FILL_AND_OUTLINE, fillColor: Color.WHITE,
+        const e = this.ds.entities.add({ position: Cartesian3.fromDegrees(lon, lat, g + b.floors * fh + 12), label: { text: b.label, font: "700 12px 'Terreno Sans', 'Plus Jakarta Sans', system-ui, sans-serif", style: LabelStyle.FILL_AND_OUTLINE, fillColor: Color.WHITE,
           outlineColor: Color.fromCssColorString("#0b1320"), outlineWidth: 4, verticalOrigin: VerticalOrigin.BOTTOM, pixelOffset: new Cartesian2(0, -4),
           scaleByDistance: new NearFarScalar(500, 1.1, 60_000, 0.6), translucencyByDistance: new NearFarScalar(60_000, 1, 260_000, 0) } });
         if (b.onTap) makeTappable(e, b.onTap);
@@ -262,7 +262,7 @@ export class Massing {
   private crane(b: MassBuilding, height: number, g: number, born: number) {
     const [lon, lat] = this.centre(b), mLon = M_LAT * Math.cos((lat * Math.PI) / 180);
     const mx = lon + (b.w / 2 + 8) / mLon, my = lat;
-    const mastH = height + 18, jib = Math.max(35, b.w * 0.9), yellow = Color.fromCssColorString("#ffcc00");
+    const mastH = height + 18, jib = Math.max(35, b.w * 0.9), yellow = Color.fromCssColorString("#e1b843");
     this.ds.entities.add({ position: Cartesian3.fromDegrees(mx, my, g + mastH / 2), box: { dimensions: new Cartesian3(2.4, 2.4, mastH), material: yellow } });
     const top = g + mastH;
     this.ds.entities.add({ polyline: { positions: new CallbackProperty(() => {

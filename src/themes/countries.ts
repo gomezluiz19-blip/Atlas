@@ -57,7 +57,7 @@ export function countriesTheme(): Theme {
     highlight = null;
     highlighted = shape?.id ?? "";
     if (!shape) return;
-    highlight = vectorLayer([shape], { stroke: "#ff375f", width: 2.5, fill: "rgba(255, 55, 95, 0.1)", scaleWithZoom: true });
+    highlight = vectorLayer([shape], { stroke: "#b8496a", width: 2.5, fill: "rgba(255, 55, 95, 0.1)", scaleWithZoom: true });
     layers.add(highlight);
   };
 
@@ -145,7 +145,7 @@ export function countriesTheme(): Theme {
     id: "countries",
     label: "Countries",
     icon: icons.flag,
-    color: "#ff375f",
+    color: "#b8496a",
     intro: "The nation a place belongs to: who governs it, its people, economy and environment.",
     subtabs: [overview, politicsSubtab(), people, economy, environment],
     enter(app) {

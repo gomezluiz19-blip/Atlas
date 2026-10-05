@@ -66,13 +66,13 @@ const wet = (a: Account) => wetNow(conds.get(a.id));
 
 // ---- The map ---------------------------------------------------------------------------------------
 
-const STATUS = { down: "#ff453a", overdue: "#ff9f0a", ok: "#30d158" };
+const STATUS = { down: "#c4513a", overdue: "#d19a2e", ok: "#5b9467" };
 
 function draw(app: App, c: Company) {
-  map ??= new OpsMap(app, "pro:services", "#ff9f0a");
+  map ??= new OpsMap(app, "pro:services", "#d19a2e");
   const t = today(), fs: WorkFeature[] = [], flows = [];
   const byAcc = (id: string) => c.assets.filter((a) => a.account === id);
-  const depots = () => c.depots.forEach((d) => fs.push({ id: d.id, kind: "point", pts: [[d.lon, d.lat]], color: "#bf5af2", label: `🏭 ${d.name}` }));
+  const depots = () => c.depots.forEach((d) => fs.push({ id: d.id, kind: "point", pts: [[d.lon, d.lat]], color: "#8b5fa8", label: `🏭 ${d.name}` }));
   if (view === "fleet") {
     for (const a of c.accounts) {
       const ms = byAcc(a.id), down = ms.some((m) => m.status === "down"), overdue = ms.some((m) => serviceDue(m, t).overdue);
@@ -82,28 +82,28 @@ function draw(app: App, c: Company) {
   } else if (view === "service") {
     const cov = coverage(c, airports, wet);
     for (const r of cov) fs.push({ id: r.a.id, kind: "point", pts: [[r.a.lon, r.a.lat]], color: r.within ? STATUS.ok : STATUS.down, label: `${r.a.site} · ${r.trip ? `${Math.round(r.trip.hours)} h` : "…"}` });
-    for (const tc of c.techs) fs.push({ id: tc.id, kind: "point", pts: [[tc.lon + 0.05, tc.lat + 0.05]], color: tc.available ? "#0a84ff" : "#8e8e93" });
+    for (const tc of c.techs) fs.push({ id: tc.id, kind: "point", pts: [[tc.lon + 0.05, tc.lat + 0.05]], color: tc.available ? "#3563d6" : "#8c8f87" });
     depots();
     for (const { j } of jobQueue(c, t)) {
       const tc = c.techs.find((x) => x.id === j.tech), a = c.accounts.find((x) => x.id === j.account);
-      if (tc && a) { const f = arcFlow(`job${j.id}`, tc, a, "#0a84ff", 0.6); fs.push(f.line); flows.push(f.flow); }
+      if (tc && a) { const f = arcFlow(`job${j.id}`, tc, a, "#3563d6", 0.6); fs.push(f.line); flows.push(f.flow); }
     }
     const b = airports.length ? bestBase(c, airports) : null;
-    if (b) fs.push({ id: "bestbase", kind: "point", pts: [[b.at.lon, b.at.lat]], color: "#ffd60a", label: `＋ New base? ${b.at.name}` });
+    if (b) fs.push({ id: "bestbase", kind: "point", pts: [[b.at.lon, b.at.lat]], color: "#e1b843", label: `＋ New base? ${b.at.name}` });
   } else if (view === "sites") {
     for (const a of c.accounts) {
       const x = conds.get(a.id);
       const s = x?.electric.score ?? 50;
-      fs.push({ id: a.id, kind: "point", pts: [[a.lon, a.lat]], color: !x ? "#8e8e93" : s >= 70 ? "#30d158" : s >= 45 ? "#ffd60a" : "#ff9f0a", label: `${a.site}${x ? ` · ${fmt(x.alt)} m` : ""}` });
+      fs.push({ id: a.id, kind: "point", pts: [[a.lon, a.lat]], color: !x ? "#8c8f87" : s >= 70 ? "#5b9467" : s >= 45 ? "#e1b843" : "#d19a2e", label: `${a.site}${x ? ` · ${fmt(x.alt)} m` : ""}` });
     }
   } else if (view === "market") {
-    for (const m of topProspects(c).slice(0, 250)) fs.push({ id: `m${m.m.id}`, kind: "point", pts: [[m.m.lon, m.m.lat]], color: m.f.score >= 80 ? "#30d158" : m.f.score >= 60 ? "#ffd60a" : "#8e8e93" });
-    for (const a of c.accounts) fs.push({ id: a.id, kind: "point", pts: [[a.lon, a.lat]], color: "#ff375f", label: a.site });
-    for (const o of c.opps.filter((x) => x.prospect && x.stage !== "lost")) fs.push({ id: o.id, kind: "point", pts: [[o.prospect!.lon, o.prospect!.lat]], color: "#0a84ff", label: `${o.prospect!.name} · ${o.product}` });
+    for (const m of topProspects(c).slice(0, 250)) fs.push({ id: `m${m.m.id}`, kind: "point", pts: [[m.m.lon, m.m.lat]], color: m.f.score >= 80 ? "#5b9467" : m.f.score >= 60 ? "#e1b843" : "#8c8f87" });
+    for (const a of c.accounts) fs.push({ id: a.id, kind: "point", pts: [[a.lon, a.lat]], color: "#b8496a", label: a.site });
+    for (const o of c.opps.filter((x) => x.prospect && x.stage !== "lost")) fs.push({ id: o.id, kind: "point", pts: [[o.prospect!.lon, o.prospect!.lat]], color: "#3563d6", label: `${o.prospect!.name} · ${o.product}` });
     depots();
   } else {
-    for (const a of c.accounts) fs.push({ id: a.id, kind: "point", pts: [[a.lon, a.lat]], color: conds.get(a.id)?.conflict ? "#ff453a" : "#ff9f0a", label: a.site });
-    for (const [i, x] of (hazards ?? []).entries()) fs.push({ id: `hz${i}`, kind: "point", pts: [[x.lon, x.lat]], color: "#ff453a", label: `${x.title} · ${kmText(x.km)} from ${x.site}` });
+    for (const a of c.accounts) fs.push({ id: a.id, kind: "point", pts: [[a.lon, a.lat]], color: conds.get(a.id)?.conflict ? "#c4513a" : "#d19a2e", label: a.site });
+    for (const [i, x] of (hazards ?? []).entries()) fs.push({ id: `hz${i}`, kind: "point", pts: [[x.lon, x.lat]], color: "#c4513a", label: `${x.title} · ${kmText(x.km)} from ${x.site}` });
   }
   map.draw(`Field network · ${c.name}`, fs, flows);
 }
@@ -251,12 +251,12 @@ function servicePanel(ctx: WorkCtx, c: Company) {
     title("Jobs"),
     q.length ? list(...q.map(({ j, age }) => {
       const a = c.accounts.find((x) => x.id === j.account)!, tc = c.techs.find((x) => x.id === j.tech), best = dispatch(c, j, airports, wet(a))[0];
-      return row({ color: j.priority === 1 ? STATUS.down : j.priority === 2 ? STATUS.overdue : "#8e8e93" }, `${j.kind[0].toUpperCase() + j.kind.slice(1)} · ${a.site}`,
+      return row({ color: j.priority === 1 ? STATUS.down : j.priority === 2 ? STATUS.overdue : "#8c8f87" }, `${j.kind[0].toUpperCase() + j.kind.slice(1)} · ${a.site}`,
         tc ? `${tc.name} assigned · ${j.status}` : best ? `Send ${best.t.name}: ${hoursText(best.trip.hours)} (${best.trip.how})${best.t.available ? "" : ", busy"}` : "No one with the skill", () => jobScreen(ctx, c, j), ageBadge(age, "days", j.priority === 1 && age > 1));
     })) : empty("No open jobs."),
     h("button", { class: "link-btn", onclick: () => jobScreen(ctx, c, null) }, "+ A job"),
     title("Technicians"),
-    list(...c.techs.map((tc) => row({ color: tc.available ? "#0a84ff" : "#8e8e93" }, tc.name, `${tc.base} · ${tc.skills.join(", ")} · ${tc.available ? "available" : "on a job"}`, () => { tc.available = !tc.available; save(c); openServices(ctx); }))),
+    list(...c.techs.map((tc) => row({ color: tc.available ? "#3563d6" : "#8c8f87" }, tc.name, `${tc.base} · ${tc.skills.join(", ")} · ${tc.available ? "available" : "on a job"}`, () => { tc.available = !tc.available; save(c); openServices(ctx); }))),
     title("Parts"),
     list(...c.depots.filter((d) => d.stock?.length).flatMap((d) => covered(d).map(({ s, weeks }) => row({ color: weeks < 4 ? STATUS.down : weeks < 8 ? STATUS.overdue : STATUS.ok }, `${s.part} · ${d.name}`, `${fmt(s.qty)} in stock · ${fmt(s.perMonth, 1)} a month · ${Number.isFinite(weeks) ? `${weeks.toFixed(1)} weeks` : "not moving"}`,
       () => { const v = prompt(`How many ${s.part} at ${d.name}?`, String(s.qty)); if (v !== null && Number.isFinite(Number(v))) { s.qty = Math.max(0, Number(v)); save(c); openServices(ctx); } })))));
@@ -274,7 +274,7 @@ function jobScreen(ctx: WorkCtx, c: Company, j: Job | null) {
     field("Kind", select(x.kind, (["breakdown", "scheduled service", "commissioning", "inspection", "training", "upgrade"] as JobKind[]).map((k) => [k, k] as [JobKind, string]), (v) => (x.kind = v))),
     field("Priority", select(String(x.priority) as "1" | "2" | "3", [["1", "Urgent"], ["2", "Normal"], ["3", "Low"]], (v) => (x.priority = Number(v) as 1 | 2 | 3))),
     field("Part needed", input(x.part ?? "", (v) => (x.part = v || undefined), { placeholder: "e.g. Hydraulic pump" })),
-    !fresh && options.length ? h("div", {}, title("Who to send"), list(...options.slice(0, 5).map((o) => row({ color: o.t.available ? "#0a84ff" : "#8e8e93" }, o.t.name,
+    !fresh && options.length ? h("div", {}, title("Who to send"), list(...options.slice(0, 5).map((o) => row({ color: o.t.available ? "#3563d6" : "#8c8f87" }, o.t.name,
       `${hoursText(o.trip.hours)} · ${o.trip.how}${o.t.available ? "" : " · on another job"}${a && wet(a) ? " · wet season" : ""}`,
       () => { x.tech = o.t.id; x.status = "assigned"; o.t.available = false; save(c); openServices(ctx); }, x.tech === o.t.id ? h("span", { class: "chip on" }, "Sent") : undefined)))) : "",
     part ? lines(`📦 ${x.part}: nearest in stock at ${part.d.name}, ${hoursText(part.trip.hours)} away (${part.trip.how}).`) : x.part ? lines(`📦 No depot has ${x.part} in stock: order from the factory.`) : "",
@@ -305,7 +305,7 @@ function sitesPanel(ctx: WorkCtx, c: Company) {
       if (!x) return row("⏳", a.site, "Reading conditions…");
       const cl = x.climate;
       const i = ins(a);
-      return row({ color: i.good ? "#30d158" : "#ff9f0a" }, a.site,
+      return row({ color: i.good ? "#5b9467" : "#d19a2e" }, a.site,
         [`${fmt(x.alt)} m${x.derate ? ` (−${Math.round(x.derate)}% diesel)` : ""}`, cl ? `${Math.round(cl.coldest)} to ${Math.round(cl.hottest)} °C` : "", cl?.wetMonths.length ? `wet ${cl.wetMonths.map((m) => MONTHS[m]).join(", ")}` : cl ? "dry year-round" : "",
           x.grid ? `grid ${kmText(x.grid.km)}` : "", x.airport ? `${x.airport.iata} ${kmText(x.airport.km)}` : "", `${i.label.toLowerCase()} ${i.value}`].filter(Boolean).join(" · "),
         () => accountScreen(ctx, c, a));
@@ -322,7 +322,7 @@ function marketPanel(ctx: WorkCtx, c: Company) {
     lines(`${pl.open} open deals worth ${usd(pl.value)}; ${usd(pl.weighted)} weighted by stage.${pl.winRate !== null ? ` Win rate ${Math.round(pl.winRate * 100)}%.` : ""}`),
     h("div", { class: "fn-stages" }, ...pl.stages.filter((s) => s.stage !== "lost").map((s) => h("div", {}, h("span", {}, s.stage), h("i", { style: `width:${(s.value / most) * 100}%` }), h("small", {}, `${s.n} · ${usdShort(s.value)}`)))),
     title("Deals"),
-    list(...[...c.opps].filter((o) => o.stage !== "lost").sort((a, b) => a.close.localeCompare(b.close)).map((o) => row({ color: o.stage === "won" ? "#30d158" : "#0a84ff" }, `${o.product} · ${acc(o.account)?.site ?? o.prospect?.name ?? ""}`,
+    list(...[...c.opps].filter((o) => o.stage !== "lost").sort((a, b) => a.close.localeCompare(b.close)).map((o) => row({ color: o.stage === "won" ? "#5b9467" : "#3563d6" }, `${o.product} · ${acc(o.account)?.site ?? o.prospect?.name ?? ""}`,
       `${o.stage} · ${usd(o.value)} · closes ${o.close} · ${Math.round(STAGE_ODDS[o.stage] * 100)}%`, () => oppStage(ctx, c, o.id)))),
     title(`Prospects: ${S(c).sites}, scored`),
     h("p", { class: "muted small" }, S(c).market.label + "."),
@@ -332,7 +332,7 @@ function marketPanel(ctx: WorkCtx, c: Company) {
     rows.length ? h("div", {},
         lines(`${fmt(rows.length)} ${S(c).sites} known; ${fmt(rows.filter((r) => r.f.score >= 80).length)} are a strong fit.`,
           `${fmt(rows.filter((r) => r.f.score >= 60 && r.f.why.some((w) => w.includes("new base"))).length)} good fits are too far from any base to service: where a new base would open a market.`),
-        list(...rows.slice(0, 25).map((r) => row({ color: r.f.score >= 80 ? "#30d158" : r.f.score >= 60 ? "#ffd60a" : "#8e8e93" }, `${r.m.name} · ${r.f.score}`, [r.m.country, r.m.tags.map((x) => commodity(x)?.name ?? x).join(", "), r.m.detail, r.f.why.join("; ")].filter(Boolean).join(" · "),
+        list(...rows.slice(0, 25).map((r) => row({ color: r.f.score >= 80 ? "#5b9467" : r.f.score >= 60 ? "#e1b843" : "#8c8f87" }, `${r.m.name} · ${r.f.score}`, [r.m.country, r.m.tags.map((x) => commodity(x)?.name ?? x).join(", "), r.m.detail, r.f.why.join("; ")].filter(Boolean).join(" · "),
           () => prospectScreen(ctx, c, r.m, r.f))))) : "");
 }
 
@@ -378,7 +378,7 @@ async function loadHazards(c: Company) {
 
 function riskPanel(_ctx: WorkCtx, c: Company) {
   const ex = exposure(c), flagged = c.accounts.filter((a) => conds.get(a.id)?.conflict);
-  const bars = (xs: { k: string; share: number; n: number }[]) => h("div", { class: "fo-inds" }, ...xs.slice(0, 6).map((x) => h("div", { class: "fo-ind" }, h("span", {}, `${commodity(x.k)?.name ?? x.k} · ${x.n} ${S(c).machines}`), h("span", { class: "fo-bar" }, h("i", { style: `width:${x.share * 100}%;background:#ff9f0a` })), h("small", {}, `${Math.round(x.share * 100)}%`))));
+  const bars = (xs: { k: string; share: number; n: number }[]) => h("div", { class: "fo-inds" }, ...xs.slice(0, 6).map((x) => h("div", { class: "fo-ind" }, h("span", {}, `${commodity(x.k)?.name ?? x.k} · ${x.n} ${S(c).machines}`), h("span", { class: "fo-bar" }, h("i", { style: `width:${x.share * 100}%;background:#d19a2e` })), h("small", {}, `${Math.round(x.share * 100)}%`))));
   return h("div", {},
     lines(
       ex.commodity[0] ? (c.vertical === "mining" ? `${Math.round(ex.commodity[0].share * 100)}% of the installed base digs ${commodity(ex.commodity[0].k)?.name.toLowerCase() ?? ex.commodity[0].k}: a price fall there hits service hours and new orders together.` : `${Math.round(ex.commodity[0].share * 100)}% of the installed base is at ${ex.commodity[0].k} ${S(c).sites}.`) : "",

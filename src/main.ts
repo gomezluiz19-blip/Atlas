@@ -1,9 +1,14 @@
 import "./styles.css";
+import "./brand.css";
+import { installEmojiGuard } from "./ui/noEmoji";
+import { wordmarkHtml } from "./ui/brand";
 // Cesium loads its web workers and assets relative to this URL.
 (window as unknown as { CESIUM_BASE_URL: string }).CESIUM_BASE_URL = new URL("./cesium/", document.baseURI).href;
 
 import { BoundingSphere, Cartesian2, Cartesian3, HeadingPitchRange, Math as CesiumMath, SceneTransforms } from "cesium";
 import { createMapControls, homeRegion } from "./globe/controls";
+import { installWayfinder } from "./wayfind/ui";
+import { qrSvg } from "./ui/qr";
 import { Looks } from "./globe/looks";
 import { featureChips } from "./explore/featureLayers";
 import { App, type Theme } from "./app";
@@ -88,6 +93,9 @@ import { topicThemes } from "./topics/themes";
 import { openWorldNow } from "./live/worldNow";
 import { createTraffic } from "./live/tracks";
 import { createCityLife } from "./city/life";
+
+// Terreno's own icons, never a phone's emoji (src/ui/noEmoji.ts).
+installEmojiGuard();
 
 // The address the page opened with: the camera keeps the hash up to date as it moves, so links that open
 // something (a TV, a quiz) are read from here rather than from the hash later on.
@@ -195,8 +203,8 @@ const siteMatches = (q: string): SearchResult[] => {
     .map((s) => ({ name: s.name, detail: `${s.where} · ${s.why}`, lon: s.lon, lat: s.lat, radius: s.radius, source: "local" as const, icon: "target" as const }));
 };
 
-// ---- The three modes: My Places, Explore, Create -------------------------------------------------
-// My Places: saved places (home, a farm, a hotel…) with today's brief, 3D, energy, water and
+// ---- The three modes: My Place, Explore, Create -------------------------------------------------
+// My Place: saved places (home, a farm, a hotel…) with today's brief, 3D, energy, water and
 // security, and the tools to run them (Grow, Flock, Build, live occupancy).
 // Look: the Earth through themes and lenses (the place card), plus Space and Learn.
 // Make: Plan, Present, Video and Teach.
@@ -204,40 +212,40 @@ const myStore = new PlaceStore();
 const myScene = new PlaceScene(globe.viewer);
 const tool = (id: string, label: string, about: string, color: string, icon: string, open: (ctx: WorkCtx) => void): WorkTool => ({ id, label, about, color, icon, open });
 const PLACE_TOOLS: WorkTool[] = [
-  tool("reach", "Getting around", "Walk, bike or drive: how far you get in 15 minutes, which way wins to the places you go, and what's within a short walk", "#30d158", icons.route, (ctx) => void import("./travel/reachUi").then((m) => m.openReach(ctx, app))),
-  tool("travel", "Travel", "Go somewhere: the way there drawn on the globe, the time change and the weather when you land, stays near what you came for, and where to book", "#0a84ff", icons.suitcase, (ctx) => void import("./travel/travelUi").then((m) => m.openTravel(ctx, app))),
-  tool("myplans", "My plans", "Everything you've planned across Terreno on one map: the darker the blue, the sooner", "#1f6fe5", icons.flag, (ctx) => void import("./plans/ui").then((m) => m.openPlans(ctx))),
-  tool("packages", "Packages", "What's on the way to you: paste a tracking number or the shipping email", "#bf5af2", icons.suitcase, (ctx) => void import("./myplaces/packagesUi").then((m) => m.openPackages(ctx))),
-  tool("grow", "Grow", "Fields and crops: growth stage, harvest, water and frost", "#30d158", icons.sprout, openGrow),
-  tool("flock", "Flock", "Animals in your care: farms, vets, rescues and adoption", "#8bd346", icons.paw, openFlock),
-  tool("build", "Build", "Model a building on its site and track construction; worksite tools (Pro)", "#ff9f0a", icons.crane, openBuild),
+  tool("reach", "Getting around", "Walk, bike or drive: how far you get in 15 minutes, which way wins to the places you go, and what's within a short walk", "#5b9467", icons.route, (ctx) => void import("./travel/reachUi").then((m) => m.openReach(ctx, app))),
+  tool("travel", "Travel", "Go somewhere: the way there drawn on the globe, the time change and the weather when you land, stays near what you came for, and where to book", "#3563d6", icons.suitcase, (ctx) => void import("./travel/travelUi").then((m) => m.openTravel(ctx, app))),
+  tool("myplans", "My plans", "Everything you've planned across Terreno on one map: the darker the blue, the sooner", "#3563d6", icons.flag, (ctx) => void import("./plans/ui").then((m) => m.openPlans(ctx))),
+  tool("packages", "Packages", "What's on the way to you: paste a tracking number or the shipping email", "#8b5fa8", icons.suitcase, (ctx) => void import("./myplaces/packagesUi").then((m) => m.openPackages(ctx))),
+  tool("grow", "Grow", "Fields and crops: growth stage, harvest, water and frost", "#5b9467", icons.sprout, openGrow),
+  tool("flock", "Flock", "Animals in your care: farms, vets, rescues and adoption", "#8faa5a", icons.paw, openFlock),
+  tool("build", "Build", "Model a building on its site and track construction; worksite tools (Pro)", "#d19a2e", icons.crane, openBuild),
 ];
 const WORK_TOOLS: WorkTool[] = [
-  tool("buildpro", "Build Pro", "For builders and contractors: every site's schedule and critical path, the weather against the plan, the money as earned value, deliveries, neighbours and permits", "#ff9f0a", icons.crane, (ctx) => void import("./pro/build/ui").then((m) => m.openBuildPro(ctx))),
-  tool("occupancy", "Live occupancy", "Rooms, floors and bookings from your booking system (Pro)", "#ff375f", icons.building, () => app.actions.get("pro:occupancy")?.run()),
-  tool("office", "Politics Pro", "Run a legislative office: the district and its people, casework, events, and the whip count on your bills", "#5e5ce6", icons.flag, (ctx) => void import("./pro/office/ui").then((m) => m.openOffice(ctx))),
-  tool("network", "Business network", "Your sites, suppliers, partners and customers, and the goods, people and money moving between them", "#ff9f0a", icons.route, (ctx) => void import("./pro/network/ui").then((m) => m.openNetwork(ctx))),
-  tool("sports", "Sports Pro", "Run a club: fixtures and the season's travel, where the fans are, match-day crowds and the players you're scouting", "#ff375f", icons.trophy, (ctx) => void import("./pro/sports/ui").then((m) => m.openSports(ctx))),
-  tool("shipping", "Freight Desk", "For freight forwarders, shipping agents and shippers: every shipment on its sea route with its ship, real ETAs against promises, port waits and demurrage, chokepoint what-ifs (Suez, Red Sea, Panama), carbon and the EU ETS bill, and risks on the way", "#0a84ff", icons.globe, (ctx) => void import("./pro/shipping/ui").then((m) => m.openShipping(ctx))),
-  tool("relief", "Relief Pipeline", "For humanitarian logisticians: port to people. When each place runs out and the last day to send more, roads, rivers and air links cut by rains or incidents, what's on the way, and the fastest, cheapest or ground-only way to move the next load", "#30d158", icons.route, (ctx) => void import("./pro/relief/ui").then((m) => m.openRelief(ctx))),
-  tool("services", "Field Network", "For companies that sell to and service many sites (mining, farm machinery, wind and solar, medical equipment, telecom towers, cranes, sports facilities): site conditions, your equipment and its service, technicians and travel, parts, prospects and risk", "#ff9f0a", icons.gem, (ctx) => void import("./pro/services/ui").then((m) => m.openServices(ctx))),
-  tool("mining", "Mining Pro", "Run a mine: pit to smelter, what the year is worth, communities and grievances, permits, and who lives downhill of the dam", "#ac8e68", icons.pick, (ctx) => void import("./pro/mining/ui").then((m) => m.openMining(ctx))),
-  tool("field", "Field Ops", "Run an aid or development programme: who is too far from water, health or school, where one more site helps most, supplies and incidents", "#30d158", icons.medical, (ctx) => void import("./pro/field/ui").then((m) => m.openField(ctx))),
+  tool("buildpro", "Build Pro", "For builders and contractors: every site's schedule and critical path, the weather against the plan, the money as earned value, deliveries, neighbours and permits", "#d19a2e", icons.crane, (ctx) => void import("./pro/build/ui").then((m) => m.openBuildPro(ctx))),
+  tool("occupancy", "Live occupancy", "Rooms, floors and bookings from your booking system (Pro)", "#b8496a", icons.building, () => app.actions.get("pro:occupancy")?.run()),
+  tool("office", "Politics Pro", "Run a legislative office: the district and its people, casework, events, and the whip count on your bills", "#5160c2", icons.flag, (ctx) => void import("./pro/office/ui").then((m) => m.openOffice(ctx))),
+  tool("network", "Business network", "Your sites, suppliers, partners and customers, and the goods, people and money moving between them", "#d19a2e", icons.route, (ctx) => void import("./pro/network/ui").then((m) => m.openNetwork(ctx))),
+  tool("sports", "Sports Pro", "Run a club: fixtures and the season's travel, where the fans are, match-day crowds and the players you're scouting", "#b8496a", icons.trophy, (ctx) => void import("./pro/sports/ui").then((m) => m.openSports(ctx))),
+  tool("shipping", "Freight Desk", "For freight forwarders, shipping agents and shippers: every shipment on its sea route with its ship, real ETAs against promises, port waits and demurrage, chokepoint what-ifs (Suez, Red Sea, Panama), carbon and the EU ETS bill, and risks on the way", "#3563d6", icons.globe, (ctx) => void import("./pro/shipping/ui").then((m) => m.openShipping(ctx))),
+  tool("relief", "Relief Pipeline", "For humanitarian logisticians: port to people. When each place runs out and the last day to send more, roads, rivers and air links cut by rains or incidents, what's on the way, and the fastest, cheapest or ground-only way to move the next load", "#5b9467", icons.route, (ctx) => void import("./pro/relief/ui").then((m) => m.openRelief(ctx))),
+  tool("services", "Field Network", "For companies that sell to and service many sites (mining, farm machinery, wind and solar, medical equipment, telecom towers, cranes, sports facilities): site conditions, your equipment and its service, technicians and travel, parts, prospects and risk", "#d19a2e", icons.gem, (ctx) => void import("./pro/services/ui").then((m) => m.openServices(ctx))),
+  tool("mining", "Mining Pro", "Run a mine: pit to smelter, what the year is worth, communities and grievances, permits, and who lives downhill of the dam", "#9a7552", icons.pick, (ctx) => void import("./pro/mining/ui").then((m) => m.openMining(ctx))),
+  tool("field", "Field Ops", "Run an aid or development programme: who is too far from water, health or school, where one more site helps most, supplies and incidents", "#5b9467", icons.medical, (ctx) => void import("./pro/field/ui").then((m) => m.openField(ctx))),
 ];
 const MAKE_TOOLS: WorkTool[] = [
-  tool("plan", "Plan", "Trips told step by step, an event's running order, sites, zones and routes", "#0a84ff", icons.route, openPlans),
-  tool("present", "Stories", "Tell a story on the globe, publish it, and use or remix others'", "#e0b050", icons.slides, openPresent),
-  tool("video", "Video", "A studio: the globe on a monitor, shots, looks, camera moves and narration", "#ff375f", icons.video, openVideo),
-  tool("studio3d", "3D Studio", "Put real 3D on the real Earth: Gaussian-splat captures, scans, 3D tiles and models, filmed with drone and crane moves and graded like a film", "#64d2ff", icons.cube, (ctx) => void import("./render/studio").then((m) => m.openStudio(ctx))),
-  tool("teach", "Teach", "Lessons, quizzes, games, a world politics simulation and field trips", "#bf5af2", icons.graduate, openTeach),
-  tool("whatif", "What if…", "Model a shock (a blockade, an export ban, a drought, your own) and watch prices, countries, companies and your portfolio react", "#ff453a", icons.activity, (ctx) => void import("./econ/labUi").then((m) => m.openLab(ctx, app))),
+  tool("plan", "Plan", "Trips told step by step, an event's running order, sites, zones and routes", "#3563d6", icons.route, openPlans),
+  tool("present", "Stories", "Tell a story on the globe, publish it, and use or remix others'", "#c9a256", icons.slides, openPresent),
+  tool("video", "Video", "A studio: the globe on a monitor, shots, looks, camera moves and narration", "#b8496a", icons.video, openVideo),
+  tool("studio3d", "3D Studio", "Put real 3D on the real Earth: Gaussian-splat captures, scans, 3D tiles and models, filmed with drone and crane moves and graded like a film", "#4c9ac9", icons.cube, (ctx) => void import("./render/studio").then((m) => m.openStudio(ctx))),
+  tool("teach", "Teach", "Lessons, quizzes, games, a world politics simulation and field trips", "#8b5fa8", icons.graduate, openTeach),
+  tool("whatif", "What if…", "Model a shock (a blockade, an export ban, a drought, your own) and watch prices, countries, companies and your portfolio react", "#c4513a", icons.activity, (ctx) => void import("./econ/labUi").then((m) => m.openLab(ctx, app))),
 ];
 const LOOK_TOOLS: WorkTool[] = [
-  tool("news", "World now", "The biggest stories, the latest headlines, fires, storms and quakes going on, and what the world is reading", "#ff375f", icons.globe, (ctx) => openWorldNow(ctx)),
-  tool("year", "The year breathes", "Spin through the seasons: the sun, polar night and the planet greening week by week", "#30d158", icons.sprout, (ctx) => { ctx.close(); app.actions.get("rhythms:year")?.run(); }),
+  tool("news", "World now", "The biggest stories, the latest headlines, fires, storms and quakes going on, and what the world is reading", "#b8496a", icons.globe, (ctx) => openWorldNow(ctx)),
+  tool("year", "The year breathes", "Spin through the seasons: the sun, polar night and the planet greening week by week", "#5b9467", icons.sprout, (ctx) => { ctx.close(); app.actions.get("rhythms:year")?.run(); }),
   tool("ask", "Ask the map", "Find places that meet many things at once: ground, climate, towns, access, rivers, hazards", "#ffb04a", icons.sparkle, openAsk),
-  tool("learn", "Learn", "Games, a daily challenge, your passport, and museums and libraries near you", "#30d158", icons.book, openLearn),
-  tool("space", "Space", "Satellites, the ISS, rocket launches and the solar system", "#5e5ce6", icons.saturn, () => app.setTheme("space")),
+  tool("learn", "Learn", "Games, a daily challenge, your passport, and museums and libraries near you", "#5b9467", icons.book, openLearn),
+  tool("space", "Space", "Satellites, the ISS, rocket launches and the solar system", "#5160c2", icons.saturn, () => app.setTheme("space")),
 ];
 
 /** The saved place at (or nearest to) the chosen spot, else home, else the first one. */
@@ -310,7 +318,7 @@ const placeHub = createWork(app, PLACE_TOOLS, {
         h("p", { class: "small" }, "Save your home, farm, site or business and Terreno gives you a daily brief there: frost, heat, storms, and what's due for your animals, fields and projects."),
         addressBox(),
         ...list,
-        h("button", { class: "pill-btn", onclick: () => { loadDemo(myStore); openMode("place"); app.toast("Hillside Farm is a demo: sheep, cattle, hens and three fields. Remove it any time from the bottom of My Places.", 7000); } }, "Or try a demo farm")),
+        h("button", { class: "pill-btn", onclick: () => { loadDemo(myStore); openMode("place"); app.toast("Hillside Farm is a demo: sheep, cattle, hens and three fields. Remove it any time from the bottom of My Place.", 7000); } }, "Or try a demo farm")),
       h("h2", { class: "group-title" }, "Run your place"),
     ];
     return [
@@ -410,15 +418,15 @@ function dockFor(place: MyPlace, brief?: TodayItem[]): DockItem[] {
   const urgent = brief?.filter((b) => b.urgency !== "fyi").length ?? 0;
   const n = (x: number) => (x ? String(x) : undefined);
   return [
-    { id: "today", label: "Today", icon: icons.sun, color: "#ffd60a", badge: n(urgent), alert: !!brief?.some((b) => b.urgency === "now") },
-    { id: "packages", label: "Packages", icon: icons.suitcase, color: "#bf5af2", badge: n(pk.coming), alert: pk.today > 0 || pk.problems > 0 },
-    { id: "cameras", label: "Cameras", icon: icons.video, color: "#ff375f", badge: n(cams) },
-    { id: "events", label: "What's on", icon: icons.music, color: "#ff9f0a" },
-    { id: "myplans", label: "Plans", icon: icons.flag, color: "#1f6fe5" },
-    { id: "grow", label: "Grow", icon: icons.sprout, color: "#30d158", badge: n(rec.fields.length) },
-    { id: "flock", label: "Flock", icon: icons.paw, color: "#8bd346", badge: n(rec.flock?.animals.length ?? 0) },
-    { id: "build", label: "Build", icon: icons.crane, color: "#ff9f0a", badge: n(rec.builds.length) },
-    { id: "energy", label: "Energy & water", icon: icons.pylon, color: "#64d2ff" },
+    { id: "today", label: "Today", icon: icons.sun, color: "#e1b843", badge: n(urgent), alert: !!brief?.some((b) => b.urgency === "now") },
+    { id: "packages", label: "Packages", icon: icons.suitcase, color: "#8b5fa8", badge: n(pk.coming), alert: pk.today > 0 || pk.problems > 0 },
+    { id: "cameras", label: "Cameras", icon: icons.video, color: "#b8496a", badge: n(cams) },
+    { id: "events", label: "What's on", icon: icons.music, color: "#d19a2e" },
+    { id: "myplans", label: "Plans", icon: icons.flag, color: "#3563d6" },
+    { id: "grow", label: "Grow", icon: icons.sprout, color: "#5b9467", badge: n(rec.fields.length) },
+    { id: "flock", label: "Flock", icon: icons.paw, color: "#8faa5a", badge: n(rec.flock?.animals.length ?? 0) },
+    { id: "build", label: "Build", icon: icons.crane, color: "#d19a2e", badge: n(rec.builds.length) },
+    { id: "energy", label: "Energy & water", icon: icons.pylon, color: "#4c9ac9" },
   ];
 }
 function pickDock(place: MyPlace, id: string) {
@@ -580,7 +588,7 @@ function openMode(m: Mode) {
   // Tapping the current mode again goes back to its home screen.
   hub.ctx.open();
   hub.ctx.home();
-  // My Places takes you to your place when you're looking at somewhere far away.
+  // My Place takes you to your place when you're looking at somewhere far away.
   const main = m === "place" ? savedPlaceHere() : undefined;
   if (main) {
     const cam = globe.viewer.camera.positionCartographic;
@@ -589,7 +597,7 @@ function openMode(m: Mode) {
   }
 }
 const modes = createModeBar(openMode);
-app.actions.set("mode:place", { label: "My Places", run: () => openMode("place") });
+app.actions.set("mode:place", { label: "My Place", run: () => openMode("place") });
 app.actions.set("mode:make", { label: "Create", run: () => openMode("make") });
 app.actions.set("mode:work", { label: "Work", run: () => openMode("work") });
 app.actions.set("myplace:report", {
@@ -614,7 +622,7 @@ const syncMode = () => {
   modes.set([placeHub.panel, myPlaces.panel].some(shown) ? "place" : [workHub.panel, pro.panel].some(shown) ? "work" : shown(makeHub.panel) ? "make" : "look");
   // Phones have room for one panel: the place card steps aside while a mode panel is open.
   document.body.dataset.panel = [placeHub.panel, myPlaces.panel, pro.panel, makeHub.panel, workHub.panel, lookHub.panel, space.panel].some(shown) ? "open" : "";
-  // Working in My Places or Make: the empty Explore card steps aside so the mode has the screen.
+  // Working in My Place or Make: the empty Explore card steps aside so the mode has the screen.
   document.body.dataset.work = [placeHub.panel, myPlaces.panel, pro.panel, makeHub.panel, workHub.panel].some(shown) ? "1" : "";
 };
 const watcher = new MutationObserver(syncMode);
@@ -678,7 +686,7 @@ app.actions.set("pro:occupancy", {
   run: () => {
     const p = savedPlaceHere();
     if (p) pro.open(p.id);
-    else { app.toast("Save the building in My Places first, then connect its bookings.", 6000); openMode("place"); }
+    else { app.toast("Save the building in My Place first, then connect its bookings.", 6000); openMode("place"); }
   },
 });
 
@@ -875,7 +883,32 @@ app.connections = (themeId, subtabId) => {
 };
 
 // Zoom buttons, a compass and double-click zoom.
-$("ui").append(createMapControls(globe.viewer));
+const mapControls = createMapControls(globe.viewer);
+$("ui").append(mapControls);
+
+// The wayfinder: the compass ribbon, what you're passing, where you seem to be going, and Guide (GPS).
+const wayfinder = installWayfinder(app, $("ui"));
+mapControls.prepend(wayfinder.guideButton);
+// Phone and TV: a phone that has driven a TV in the last half day can hand it whatever place is open here.
+const pairedTv = (): string | null => { try { const v = JSON.parse(localStorage.getItem("atlas.tv.code") ?? "null") as { code: string; at: number } | null; return v && Date.now() - v.at < 12 * 3_600_000 ? v.code : null; } catch { return null; } };
+app.actions.set("tv:show", { label: "Show on the TV", isOn: () => !!pairedTv(), run: () => {
+  const p = app.place, code = pairedTv();
+  if (!p || !code) return;
+  void import("./tv/link").then((m) => { m.send(code, "cmd", { t: "goto", lon: p.lon, lat: p.lat, title: p.name?.title ?? "A place on Earth", sub: p.name?.context }); app.toast("On the TV now.", 2500); });
+} });
+// Web to phone: the view you're looking at, as a code your phone's camera opens (and Guide can take you there).
+app.actions.set("handoff:phone", { label: "Continue on your phone", run: () => {
+  document.querySelector(".handoff")?.remove();
+  const link = app.shareLink?.() ?? location.href;
+  const close = () => box.remove();
+  const box = h("div", { class: "handoff reg", role: "dialog", "aria-label": "Continue on your phone" },
+    h("div", { class: "handoff-qr", html: qrSvg(link) }),
+    h("div", { class: "handoff-text" }, h("strong", {}, "Continue on your phone"), h("p", {}, "Point your phone's camera at the code. The same view opens there; tap Guide me to be taken to it."),
+      h("button", { class: "pill-btn", onclick: close }, "Done")));
+  $("ui").append(box);
+  addEventListener("keydown", (e: KeyboardEvent) => { if (e.key === "Escape") close(); }, { once: true });
+} });
+app.actions.set("wayfind:guide", { label: "Guide me there", run: () => { const p = app.place; if (p) wayfinder.guideTo({ id: `place:${p.lon},${p.lat}`, name: p.name?.title ?? "there", lon: p.lon, lat: p.lat, why: "poi", weight: 1 }); } });
 
 // Everything on the map, from every theme.
 // Everything on the map as bubbles at the edge of the globe; + adds a view without leaving it.
@@ -931,11 +964,11 @@ const toggleLayers = (open = layers.hidden) => {
 
 // Analysis layers from the Layers popover (and elsewhere) live on the shared canvas too.
 const GLOBE_LAYERS: { kind: OverlayKind; label: string; color: string }[] = [
-  { kind: "geology", label: "🪨 Geologic map", color: "#a2845e" },
-  { kind: "elevation", label: "⛰️ Elevation colours", color: "#34c759" },
-  { kind: "slope", label: "📐 Slope", color: "#ff9f0a" },
+  { kind: "geology", label: "🪨 Geologic map", color: "#9a7552" },
+  { kind: "elevation", label: "⛰️ Elevation colours", color: "#5b9467" },
+  { kind: "slope", label: "📐 Slope", color: "#d19a2e" },
   { kind: "contours", label: "〰️ Contour lines", color: "#d1d1d6" },
-  { kind: "species", label: "🔬 Species records", color: "#30d158" },
+  { kind: "species", label: "🔬 Species records", color: "#5b9467" },
 ];
 // Hidden for now from the stack of views: off on the globe, but still listed.
 const resting = new Set<OverlayKind>();
@@ -1005,12 +1038,14 @@ app.actions.set("tv:cast", { label: "Show Terreno on a TV", run: () => void impo
   if (tvLink) setTimeout(() => app.actions.get("tv:mode")?.run(tvLink[2]?.toUpperCase()), 2600);
 }
 const about = $("about-btn");
+// The mark and the name, top left: the brand's one place on screen; it opens About.
+document.querySelector(".topbar")?.prepend(h("button", { class: "brand", "aria-label": "About Terreno", html: wordmarkHtml(26), onclick: () => about.click() }));
 about.innerHTML = icons.info;
 const soundBtn = h("button", { class: "pill-btn sound-toggle", "aria-pressed": String(soundOn()) }, soundOn() ? "Sounds on" : "Sounds off") as HTMLButtonElement;
 soundBtn.addEventListener("click", () => { const on = !soundOn(); setSound(on); soundBtn.textContent = on ? "Sounds on" : "Sounds off"; soundBtn.setAttribute("aria-pressed", String(on)); });
 const aboutPanel = h("div", { class: "popover about", hidden: true },
   h("div", { class: "about-head" }, h("h2", { class: "group-title" }, "About Terreno"), h("button", { class: "icon-btn", "aria-label": "Close", html: icons.close, onclick: () => (aboutPanel.hidden = true) })),
-  h("p", {}, "Terreno does three things, switched at the top. Explore: the whole Earth and space; tap anything, then flip through the themes or look at it through a lens. Create: trips, stories, videos and lessons made from the map. My Places: your home, farm, site or business, with a daily brief and the tools to run it."),
+  h("p", {}, "Terreno does three things, switched at the top. Explore: the whole Earth and space; tap anything, then flip through the themes or look at it through a lens. Create: trips, stories, videos and lessons made from the map. My Place: your home, farm, site or business, with a daily brief and the tools to run it."),
   h("p", {}, "You can also type a request into the search box, like \u201cstorm drains and railways in Chicago\u201d, and Terreno will plan the steps and do them."),
   h("p", {}, "People have pages here too: the places they love, a journal, and lenses they've made. Make your own from the account button, and a lens of your own in Lens Studio."),
   h("button", { class: "pill-btn about-ai", onclick: () => { aboutPanel.hidden = true; aiSettings.open(); } }, aiOn() ? "Terreno AI: connected · settings" : "Connect Terreno AI (Claude)…"),
@@ -1146,7 +1181,7 @@ app.onPlace = (p) => {
   void lenses.update(p);
   // Its page address, for the link in the URL.
   if (p && !p.slug) void slugOfPlace(p).then((s) => { if (app.place === p) { p.slug = s; syncHash(); } }).catch(() => {});
-  // My Places's home lists "Save this spot": keep it in step with the selection.
+  // My Place's home lists "Save this spot": keep it in step with the selection.
   if (!placeHub.panel.hidden && placeHub.panel.querySelector(".today-card")) placeHub.ctx.home();
   syncHash();
   myPlaces.refresh();
@@ -1246,7 +1281,7 @@ else if (!shared.camera && !pageLinked && myStore.all().length) {
   setTimeout(() => {
     void flyToPlace(globe, { name: home.name, lon: home.lon, lat: home.lat, radius: 400 });
     app.select({ lon: home.lon, lat: home.lat, height: 0 }, { title: home.name, context: home.address ?? "My place" });
-    app.toast(`Welcome back to ${home.name}. My Places (top right) has today's brief and its dashboard.`, 6000);
+    app.toast(`Welcome back to ${home.name}. My Place has today's brief and its dashboard.`, 6000);
   }, 1200);
 }
 

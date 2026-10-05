@@ -68,16 +68,16 @@ The pitch in the product: *the whole Earth, and your own corner of it*.
    web pages (`/p/<name>/`) for search engines, which is the growth loop.
 3. **People and making**: pages of places people love, and lenses anyone can make by describing them.
    Every page and lens is a shareable link, so each user brings the next.
-4. **A daily reason to return**: My Places › *Or try a demo farm*: today's brief (frost, heat, animals due);
+4. **A daily reason to return**: My Place › *Or try a demo farm*: today's brief (frost, heat, animals due);
    and *Watch* on any lens (alerts when it's a good time).
-5. **Businesses**: a shop's own cameras in My Places (see *Cameras* below): who came in, where people
+5. **Businesses**: a shop's own cameras in My Place (see *Cameras* below): who came in, where people
    spend their time, the moments worth seeing, all on the device.
 6. **What's real and what's next**: every figure comes from live public data (sources in About). The back
    end is built and switches on with a Supabase project (`docs/backend.md`, about 25 minutes).
 
 ## Cameras (5 minutes, for owners and investors)
 
-Have the shop's recorded clip on the laptop (Flor Boutique's works). My Places › the business › Cameras &
+Have the shop's recorded clip on the laptop (Flor Boutique's works). My Place › the business › Cameras &
 security › Live › *Open a recorded clip*. While it plays: *🔥 Where people spend time*, drag a zone over a
 rack, tap a moment to jump there. At the end, the clip's summary in a sentence. Setup notes, including
 CCTV recorders: `docs/cameras.md`.

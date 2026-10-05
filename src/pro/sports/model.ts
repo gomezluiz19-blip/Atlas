@@ -11,8 +11,8 @@ export interface Fixture { id: string; date: string; time?: string; opponent: st
 export interface FanGroup { id: string; name: string; lon: number; lat: number; members: number }
 export type TargetStatus = "watch" | "shortlist" | "bid" | "signed" | "passed";
 export const TARGET_STATUS: Record<TargetStatus, { label: string; color: string }> = {
-  watch: { label: "Watching", color: "#8e8e93" }, shortlist: { label: "Shortlist", color: "#0a84ff" }, bid: { label: "Bid in", color: "#ff9f0a" },
-  signed: { label: "Signed", color: "#30d158" }, passed: { label: "Passed", color: "#636366" },
+  watch: { label: "Watching", color: "#8c8f87" }, shortlist: { label: "Shortlist", color: "#3563d6" }, bid: { label: "Bid in", color: "#d19a2e" },
+  signed: { label: "Signed", color: "#5b9467" }, passed: { label: "Passed", color: "#636366" },
 };
 export interface Target { id: string; name: string; position: string; age?: number; club: string; lon: number; lat: number; status: TargetStatus; rating?: number; notes?: string; log: Log[] }
 export interface Club {

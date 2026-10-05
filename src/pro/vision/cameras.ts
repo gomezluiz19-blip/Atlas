@@ -1,4 +1,4 @@
-// A place's cameras, live. Connect each camera placed in My Places to its
+// A place's cameras, live. Connect each camera placed in My Place to its
 // feed (a stream link, this device's camera, or a recorded clip) and it
 // watches for you: who's in view now, who came in and went out across a
 // line you draw over the doorway, where people spend their time (a heatmap,
@@ -14,7 +14,7 @@ import { groundPoint, type Kind } from "./analytics";
 import { BRANDS, brand, go2rtcConfig, go2rtcLinks, linkKind, linkProblem, WAYS, type Way } from "./connect";
 import { CameraMonitor, type FeedKind, type MonitorState } from "./monitor";
 
-const COLORS: Record<Kind, string> = { person: "#ff375f", vehicle: "#0a84ff", bike: "#ffd60a" };
+const COLORS: Record<Kind, string> = { person: "#b8496a", vehicle: "#3563d6", bike: "#e1b843" };
 const WORD: Record<Kind, [string, string]> = { person: ["person", "people"], vehicle: ["vehicle", "vehicles"], bike: ["bike", "bikes"] };
 const n = (k: Kind, v: number) => `${v} ${WORD[k][v === 1 ? 0 : 1]}`;
 const clock = (s: number) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
@@ -57,7 +57,7 @@ function build(app: App, scene: PlaceScene, store?: PlaceStore) {
     h("p", { class: "fineprint" }, "Everything runs on this device: video never leaves the browser. Terreno sees kinds of things (people, vehicles, bikes) and movement, never who someone is. Map positions are approximate."));
   let place: MyPlace | null = null;
 
-  /** Saves a change to a camera (its line or zones) back to My Places. */
+  /** Saves a change to a camera (its line or zones) back to My Place. */
   const saveCam = (cam: Device) => {
     if (!store || !place) return;
     const p = store.get(place.id);
@@ -103,7 +103,7 @@ function build(app: App, scene: PlaceScene, store?: PlaceStore) {
       const ctx = overlay.getContext("2d")!;
       ctx.scale(devicePixelRatio, devicePixelRatio);
       if (heatOn) mon.motion.paintHeat(ctx, r.width, r.height);
-      ctx.font = "600 11px -apple-system, system-ui, sans-serif";
+      ctx.font = "600 11px 'Terreno Sans', 'Plus Jakarta Sans', system-ui, sans-serif";
       for (const z of cam.zones ?? []) {
         const [x, y, w, hh] = z.box;
         ctx.strokeStyle = "rgba(255,255,255,.9)"; ctx.lineWidth = 1.5; ctx.setLineDash([5, 4]);
@@ -115,7 +115,7 @@ function build(app: App, scene: PlaceScene, store?: PlaceStore) {
         ctx.fillStyle = "#fff"; ctx.fillText(z.name, x * r.width + 5, y * r.height + 12);
       }
       if (tool?.kind === "zone" && tool.start && tool.now) {
-        ctx.strokeStyle = "#ffd60a"; ctx.lineWidth = 2;
+        ctx.strokeStyle = "#e1b843"; ctx.lineWidth = 2;
         ctx.strokeRect(tool.start[0] * r.width, tool.start[1] * r.height, (tool.now[0] - tool.start[0]) * r.width, (tool.now[1] - tool.start[1]) * r.height);
       }
       ctx.lineWidth = 2;
@@ -127,12 +127,12 @@ function build(app: App, scene: PlaceScene, store?: PlaceStore) {
       }
       const l = mon.analyzer.line;
       if (l) {
-        ctx.strokeStyle = "#30d158"; ctx.lineWidth = 3; ctx.setLineDash([7, 5]);
+        ctx.strokeStyle = "#5b9467"; ctx.lineWidth = 3; ctx.setLineDash([7, 5]);
         ctx.beginPath(); ctx.moveTo(l.a[0] * r.width, l.a[1] * r.height); ctx.lineTo(l.b[0] * r.width, l.b[1] * r.height); ctx.stroke();
         ctx.setLineDash([]);
-        ctx.fillStyle = "#30d158"; ctx.fillText("IN →", ((l.a[0] + l.b[0]) / 2) * r.width + 6, ((l.a[1] + l.b[1]) / 2) * r.height - 6);
+        ctx.fillStyle = "#5b9467"; ctx.fillText("IN →", ((l.a[0] + l.b[0]) / 2) * r.width + 6, ((l.a[1] + l.b[1]) / 2) * r.height - 6);
       }
-      if (tool?.kind === "line") for (const p of tool.pts) { ctx.fillStyle = "#30d158"; ctx.beginPath(); ctx.arc(p[0] * r.width, p[1] * r.height, 5, 0, Math.PI * 2); ctx.fill(); }
+      if (tool?.kind === "line") for (const p of tool.pts) { ctx.fillStyle = "#5b9467"; ctx.beginPath(); ctx.arc(p[0] * r.width, p[1] * r.height, 5, 0, Math.PI * 2); ctx.fill(); }
     };
 
     addEventListener("keydown", (e: KeyboardEvent) => { if (e.key === "Escape" && tool) { tool = null; hint.hidden = true; draw(); } });

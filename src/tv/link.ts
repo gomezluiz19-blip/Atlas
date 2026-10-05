@@ -13,7 +13,11 @@ import { splitText } from "./rooms";
 export type Cmd = { id?: string } & (
   | { t: "fly"; q: string } | { t: "type"; q: string } | { t: "pick"; i: number } | { t: "search"; open: boolean }
   | { t: "scene"; scene: string } | { t: "lens"; lens: string }
-  | { t: "pan"; dx: number; dy: number } | { t: "zoom"; f: number } | { t: "dpad"; dir: "up" | "down" | "left" | "right" }
+  | { t: "pan"; dx: number; dy: number } | { t: "zoom"; f: number }
+  // Two fingers: turn the view around what's in the middle (radians), and tilt toward the horizon.
+  | { t: "orbit"; turn: number; tilt: number }
+  // A place handed over from Terreno on the phone: show it on the TV.
+  | { t: "goto"; lon: number; lat: number; title: string; sub?: string } | { t: "dpad"; dir: "up" | "down" | "left" | "right" }
   | { t: "select" } | { t: "back" } | { t: "menu" }
   | { t: "holo" } | { t: "wind" } | { t: "next" } | { t: "exit" } | { t: "hello" } | { t: "ping" }
   | { t: "set"; value: string; done?: boolean }
@@ -38,7 +42,11 @@ export type State = { id?: string } & (
   | { t: "tools"; room: string; label: string; items: ToolItem[]; mode: string | null; rooms: { id: string; icon: string; label: string; who: string }[]; decks: { id: string; name: string }[]; quizzes: { id: string; name: string }[] }
   | { t: "present"; deck: string; i: number; n: number; title: string; notes: string; next: string }
   | { t: "quiz"; title: string; i: number; n: number; prompt: string; answer: string; revealed: boolean; ends: number }
-  | { t: "panel"; kind: "none" });
+  | { t: "panel"; kind: "none" }
+  // Where the TV's camera is (sent when it settles), for the remote's readouts and "open here".
+  | { t: "cam"; lon: number; lat: number; alt: number; heading: number; pitch: number }
+  // What the TV is passing as it flies (the wayfinder's card), for the phone to keep.
+  | { t: "passing"; name: string; line: string; kind: string; color: string; lon: number; lat: number; where: string });
 
 const RELAY = "https://ntfy.sh";
 const ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
@@ -120,7 +128,7 @@ export function hostDirect(code: string, offerSdp: string, on: (c: Cmd) => void)
  */
 export function joinTv(code: string, onState: (s: State) => void) {
   let channel: RTCDataChannel | null = null;
-  let pending: { dx: number; dy: number; f: number; point?: Cmd } | null = null, lastSlow = 0, slowTimer = 0;
+  let pending: { dx: number; dy: number; f: number; turn: number; tilt: number; point?: Cmd } | null = null, lastSlow = 0, slowTimer = 0;
   const stop = listen<State>(code, "state", (s) => {
     if (s.t === "rtc-answer") { void pc?.setRemoteDescription({ type: "answer", sdp: s.sdp }).catch(() => {}); return; }
     onState(s);
@@ -145,6 +153,7 @@ export function joinTv(code: string, onState: (s: State) => void) {
     const relay = (m: Cmd) => void fetch(`${RELAY}/${topic(code, "cmd")}`, { method: "POST", body: JSON.stringify({ ...m, id: newId() }) }).catch(() => {});
     if (p.dx || p.dy) relay({ t: "pan", dx: p.dx, dy: p.dy });
     if (p.f !== 1) relay({ t: "zoom", f: p.f });
+    if (p.turn || p.tilt) relay({ t: "orbit", turn: p.turn, tilt: p.tilt });
     if (p.point) relay(p.point);
   };
   const sameBrowser = (m: Cmd) => { try { const bc = new BroadcastChannel(topic(code, "cmd")); bc.postMessage({ ...m, id: newId() }); bc.close(); } catch { /* old browser */ } };
@@ -152,11 +161,12 @@ export function joinTv(code: string, onState: (s: State) => void) {
     get direct() { return !!channel; },
     send(c: Cmd) {
       if (channel?.readyState === "open") { channel.send(JSON.stringify({ ...c, id: newId() })); return; }
-      if (c.t === "pan" || c.t === "zoom" || (c.t === "point" && !c.down)) {
+      if (c.t === "pan" || c.t === "zoom" || c.t === "orbit" || (c.t === "point" && !c.down)) {
         // Same browser: straight through. Across devices: gathered up and sent every 400 ms.
         sameBrowser(c);
-        pending ??= { dx: 0, dy: 0, f: 1 };
-        if (c.t === "pan") { pending.dx += c.dx; pending.dy += c.dy; } else if (c.t === "zoom") pending.f *= c.f; else pending.point = c;
+        pending ??= { dx: 0, dy: 0, f: 1, turn: 0, tilt: 0 };
+        if (c.t === "pan") { pending.dx += c.dx; pending.dy += c.dy; } else if (c.t === "zoom") pending.f *= c.f;
+        else if (c.t === "orbit") { pending.turn += c.turn; pending.tilt += c.tilt; } else pending.point = c;
         clearTimeout(slowTimer);
         slowTimer = window.setTimeout(flushSlow, Math.max(0, 400 - (Date.now() - lastSlow)));
         return;

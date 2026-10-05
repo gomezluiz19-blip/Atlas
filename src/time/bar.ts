@@ -47,7 +47,7 @@ export class TimeBar {
   private eras(): string {
     const n = this.list.length - 1, at = (k: number) => `${((k / n) * 100).toFixed(2)}%`;
     const firstSat = this.list.findIndex((m) => m.kind === "imagery"), now = this.list.findIndex((m) => m.kind === "now");
-    return `linear-gradient(90deg, #e0b050 0 ${at(firstSat)}, #0a84ff ${at(firstSat)} ${at(now)}, #ffffff ${at(now)} ${at(now + 0.35)}, #ff6b5a ${at(now + 0.35)} 100%)`;
+    return `linear-gradient(90deg, #c9a256 0 ${at(firstSat)}, #3563d6 ${at(firstSat)} ${at(now)}, #ffffff ${at(now)} ${at(now + 0.35)}, #ff6b5a ${at(now + 0.35)} 100%)`;
   }
 
   get current(): Moment { return this.list[this.i]; }
@@ -174,7 +174,7 @@ export class TimeBar {
     }
     if (my !== this.job) return;
     if (m.kind === "now") this.app.canvas.drop("time");
-    else this.app.canvas.put({ id: "time", label: `Time: ${m.label}`, color: m.kind === "borders" ? "#e0b050" : m.kind === "imagery" ? "#0a84ff" : "#ff6b5a", scope: "world", pinned: true,
+    else this.app.canvas.put({ id: "time", label: `Time: ${m.label}`, color: m.kind === "borders" ? "#c9a256" : m.kind === "imagery" ? "#3563d6" : "#ff6b5a", scope: "world", pinned: true,
       show: (v) => { if (this.imagery) this.imagery.show = v; if (this.bordersOn) present.borders(this.app).setVisible(v); },
       remove: () => this.close() }, true);
   }

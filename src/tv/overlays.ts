@@ -19,7 +19,7 @@ export class Ink {
   private last: { x: number; y: number } | null = null;
   private strokes: { x: number; y: number }[][] = [];
   mode: InkMode | null = null;
-  color = "#ff3b30";
+  color = "#c4513a";
 
   constructor() {
     this.canvas = h("canvas", { class: "tv-ink" }) as HTMLCanvasElement;

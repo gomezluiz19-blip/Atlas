@@ -102,7 +102,7 @@ function deviceIcon(type: Device["type"]): string {
     ctx.strokeStyle = "#fff";
     ctx.stroke();
     ctx.fillStyle = "#1c1c1e";
-    ctx.font = "700 20px -apple-system, system-ui, sans-serif";
+    ctx.font = "700 20px 'Terreno Sans', 'Plus Jakarta Sans', system-ui, sans-serif";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     const glyph: Record<Device["type"], string> = { camera: "◉", solar: "☀", battery: "⚡", generator: "G", tank: "💧", well: "W", gate: "⊓", alarm: "!", light: "✦", sensor: "•" };
@@ -142,7 +142,7 @@ export class PlaceScene {
 
   draw(p: MyPlace) {
     this.ds.entities.removeAll();
-    const accent = Color.fromCssColorString("#ff9f0a");
+    const accent = Color.fromCssColorString("#d19a2e");
     for (const b of this.buildings) {
       const mine = b === this.own;
       const e = this.ds.entities.add({
@@ -173,7 +173,7 @@ export class PlaceScene {
         position: Cartesian3.fromDegrees(d.lon, d.lat),
         billboard: { image: deviceIcon(d.type), width: 28, height: 28, heightReference: HeightReference.CLAMP_TO_GROUND, disableDepthTestDistance: Number.POSITIVE_INFINITY },
         label: {
-          text: d.label || DEVICES[d.type].label, font: "600 12px -apple-system, system-ui, sans-serif", style: LabelStyle.FILL_AND_OUTLINE,
+          text: d.label || DEVICES[d.type].label, font: "600 12px 'Terreno Sans', 'Plus Jakarta Sans', system-ui, sans-serif", style: LabelStyle.FILL_AND_OUTLINE,
           fillColor: Color.WHITE, outlineColor: Color.fromCssColorString("#0b1320"), outlineWidth: 3, verticalOrigin: VerticalOrigin.TOP,
           pixelOffset: new Cartesian2(0, 16), heightReference: HeightReference.CLAMP_TO_GROUND, disableDepthTestDistance: Number.POSITIVE_INFINITY,
           scale: 0.95,
@@ -216,14 +216,14 @@ export class PlaceScene {
           hierarchy,
           height: i === 1 ? base - 1 : bottom + 0.25,
           extrudedHeight: bottom + storey - 0.25,
-          material: Color.fromCssColorString(f?.color ?? "#8e8e93").withAlpha(f ? 0.95 : 0.5),
+          material: Color.fromCssColorString(f?.color ?? "#8c8f87").withAlpha(f ? 0.95 : 0.5),
         },
       });
       if (f)
         this.floorDs.entities.add({
           position: Cartesian3.fromDegrees(east[0], east[1], bottom + storey / 2),
           label: {
-            text: f.label, font: "700 13px -apple-system, system-ui, sans-serif", style: LabelStyle.FILL_AND_OUTLINE,
+            text: f.label, font: "700 13px 'Terreno Sans', 'Plus Jakarta Sans', system-ui, sans-serif", style: LabelStyle.FILL_AND_OUTLINE,
             fillColor: Color.WHITE, outlineColor: Color.fromCssColorString("#0b1320"), outlineWidth: 4,
             horizontalOrigin: HorizontalOrigin.LEFT, pixelOffset: new Cartesian2(12, 0), disableDepthTestDistance: Number.POSITIVE_INFINITY,
           },

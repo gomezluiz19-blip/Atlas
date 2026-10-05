@@ -30,8 +30,8 @@ export function priceChart(years: number[], prices: number[], color: string, nex
     <path d="${area}" fill="url(#${id})"/><path d="${line}" fill="none" stroke="${color}" stroke-width="2.4" stroke-linejoin="round" class="ec-line"/>
     ${years.map((yr, i) => (i % 3 === 0 || i === years.length - 1 ? `<text x="${x(i)}" y="${H - 6}" class="ec-axis" text-anchor="middle">${yr}</text>` : "")).join("")}
     <circle cx="${x(pk)}" cy="${y(prices[pk])}" r="4" fill="${color}" stroke="#fff" stroke-width="1.5"/><text x="${x(pk)}" y="${y(prices[pk]) - 8}" class="ec-peak" text-anchor="middle">peak ${fmt(prices[pk])}</text>
-    ${next !== undefined ? `<path d="M${x(prices.length - 1)},${y(prices[prices.length - 1])}L${x(n - 1)},${y(next)}" stroke="${next >= prices[prices.length - 1] ? "#ff453a" : "#30d158"}" stroke-width="2.4" stroke-dasharray="5 4" fill="none"/>
-      <circle cx="${x(n - 1)}" cy="${y(next)}" r="5" fill="${next >= prices[prices.length - 1] ? "#ff453a" : "#30d158"}" stroke="#fff" stroke-width="1.5" class="ec-next"/><text x="${x(n - 1)}" y="${y(next) - 9}" class="ec-peak" text-anchor="middle">what if</text>` : ""}`;
+    ${next !== undefined ? `<path d="M${x(prices.length - 1)},${y(prices[prices.length - 1])}L${x(n - 1)},${y(next)}" stroke="${next >= prices[prices.length - 1] ? "#c4513a" : "#5b9467"}" stroke-width="2.4" stroke-dasharray="5 4" fill="none"/>
+      <circle cx="${x(n - 1)}" cy="${y(next)}" r="5" fill="${next >= prices[prices.length - 1] ? "#c4513a" : "#5b9467"}" stroke="#fff" stroke-width="1.5" class="ec-next"/><text x="${x(n - 1)}" y="${y(next) - 9}" class="ec-peak" text-anchor="middle">what if</text>` : ""}`;
   return svg;
 }
 

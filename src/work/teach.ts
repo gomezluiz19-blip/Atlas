@@ -63,11 +63,11 @@ export function openTeach(ctx: WorkCtx) {
   ctx.show("Teach", ctx.home,
     h("p", { class: "mp-intro" }, "Teach with the whole planet: lessons with a pen and notes, quizzes and tests, games, a world politics simulation, and field trips."),
     h("div", { class: "work-tools" },
-      tile("Lessons", "Slides on the globe, with a pen, your notes and a timer", "#e0b050", "📖", () => openLessons(ctx, home)),
-      tile("Quizzes and tests", "Host with teams on the class screen, or send a link", "#ff375f", "❓", () => openQuizzes(ctx, home)),
-      tile("Games", "Where in the world? · Time traveller", "#0a84ff", "🎯", () => openGames(ctx, home)),
-      tile("World Summit", "A simulation of world politics, played over weeks", "#bf5af2", "🌐", () => openSims(ctx, home)),
-      tile("Field trips", "The day step by step: timetable, buses, costs, safety and permission slips", "#ff9f0a", "🚌", () => openTrips(ctx, home))),
+      tile("Lessons", "Slides on the globe, with a pen, your notes and a timer", "#c9a256", "📖", () => openLessons(ctx, home)),
+      tile("Quizzes and tests", "Host with teams on the class screen, or send a link", "#b8496a", "❓", () => openQuizzes(ctx, home)),
+      tile("Games", "Where in the world? · Time traveller", "#3563d6", "🎯", () => openGames(ctx, home)),
+      tile("World Summit", "A simulation of world politics, played over weeks", "#8b5fa8", "🌐", () => openSims(ctx, home)),
+      tile("Field trips", "The day step by step: timetable, buses, costs, safety and permission slips", "#d19a2e", "🚌", () => openTrips(ctx, home))),
   );
 }
 
@@ -78,13 +78,13 @@ function openLessons(ctx: WorkCtx, back: () => void) {
     decks().length ? h("section", { class: "group" }, h("h2", { class: "group-title" }, "Your lessons and presentations"),
       h("div", { class: "list" }, ...decks().map((d) =>
         h("div", { class: "list-row static" },
-          d.slides[0]?.thumb ? h("img", { class: "present-mini", src: d.slides[0].thumb, alt: "" }) : h("span", { class: "work-badge", style: "background:#e0b050" }, "📖"),
+          d.slides[0]?.thumb ? h("img", { class: "present-mini", src: d.slides[0].thumb, alt: "" }) : h("span", { class: "work-badge", style: "background:#c9a256" }, "📖"),
           h("span", { class: "list-text" }, h("span", { class: "list-title" }, d.name), h("span", { class: "list-sub" }, `${d.slides.length} slides`)),
           h("button", { class: "pill-btn", disabled: !d.slides.length, onclick: () => { ctx.close(); play(ctx.app, d, { teach: true }); } }, "Teach"),
           h("button", { class: "link-btn", onclick: () => openDeck(ctx, d.id) }, "Edit"))))) : "",
     h("section", { class: "group" }, h("h2", { class: "group-title" }, "Lesson starters"),
       h("div", { class: "work-types" }, ...LESSONS.map((l) =>
-        h("button", { class: "work-type", style: "--c:#e0b050", onclick: () => {
+        h("button", { class: "work-type", style: "--c:#c9a256", onclick: () => {
           const d = { id: newId(), name: l.name, created: Date.now(), slides: l.slides.map((s) => ({ ...s, id: newId() })) };
           saveDeck(d);
           again();

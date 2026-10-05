@@ -90,12 +90,12 @@ export function exploreTheme(app: App, feeds: Feeds, overlays: Overlays, openSit
     const lead = h("small", { class: "world-lead" }, "The biggest stories, fires, storms and quakes going on");
     void import("../live/worldNow").then((m) => m.leadStory()).then((st) => { if (st) lead.textContent = st.text; }).catch(() => {});
     return h("div", { class: "look-further" },
-      h("button", { class: "look-tile surprise-tile world-tile", onclick: go("news:open") }, h("span", { class: "look-tile-icon", style: "--c:#ff375f", html: icons.globe }), h("span", {}, h("strong", {}, h("span", { class: "pulse-dot" }), " World now"), lead)),
+      h("button", { class: "look-tile surprise-tile world-tile", onclick: go("news:open") }, h("span", { class: "look-tile-icon", style: "--c:#b8496a", html: icons.globe }), h("span", {}, h("strong", {}, h("span", { class: "pulse-dot" }), " World now"), lead)),
       h("button", { class: "look-tile", onclick: go("work:ask") }, h("span", { class: "look-tile-icon", style: "--c:#ffb04a", html: icons.sparkle }), h("span", {}, h("strong", {}, "Ask the map"), h("small", {}, "Where fits many things at once"))),
-      h("button", { class: "look-tile", onclick: go("rhythms:year") }, h("span", { class: "look-tile-icon", style: "--c:#30d158", html: icons.sprout }), h("span", {}, h("strong", {}, "The year breathes"), h("small", {}, "The seasons sweep the planet"))),
-      h("button", { class: "look-tile", onclick: () => app.setTheme("space") }, h("span", { class: "look-tile-icon", style: "--c:#5e5ce6", html: icons.saturn }), h("span", {}, h("strong", {}, "Space"), h("small", {}, "Satellites, the ISS, launches, planets"))),
-      h("button", { class: "look-tile", onclick: go("work:learn") }, h("span", { class: "look-tile-icon", style: "--c:#30d158", html: icons.book }), h("span", {}, h("strong", {}, "Learn"), h("small", {}, "Games, daily challenge, places to learn"))),
-      h("button", { class: "look-tile surprise-tile", onclick: go("surprise") }, h("span", { class: "look-tile-icon", style: "--c:#ff9f0a", html: iconSvg("🎲", 18) ?? icons.sparkle }), h("span", {}, h("strong", {}, "Show me something amazing"), h("small", {}, "Somewhere unexpected, and why"))));
+      h("button", { class: "look-tile", onclick: go("rhythms:year") }, h("span", { class: "look-tile-icon", style: "--c:#5b9467", html: icons.sprout }), h("span", {}, h("strong", {}, "The year breathes"), h("small", {}, "The seasons sweep the planet"))),
+      h("button", { class: "look-tile", onclick: () => app.setTheme("space") }, h("span", { class: "look-tile-icon", style: "--c:#5160c2", html: icons.saturn }), h("span", {}, h("strong", {}, "Space"), h("small", {}, "Satellites, the ISS, launches, planets"))),
+      h("button", { class: "look-tile", onclick: go("work:learn") }, h("span", { class: "look-tile-icon", style: "--c:#5b9467", html: icons.book }), h("span", {}, h("strong", {}, "Learn"), h("small", {}, "Games, daily challenge, places to learn"))),
+      h("button", { class: "look-tile surprise-tile", onclick: go("surprise") }, h("span", { class: "look-tile-icon", style: "--c:#d19a2e", html: iconSvg("🎲", 18) ?? icons.sparkle }), h("span", {}, h("strong", {}, "Show me something amazing"), h("small", {}, "Somewhere unexpected, and why"))));
   };
   /** First visit: what Terreno is for, in three taps. */
   const welcome = (app: App) => {
@@ -108,9 +108,9 @@ export function exploreTheme(app: App, feeds: Feeds, overlays: Overlays, openSit
     card.append(
       h("div", { class: "welcome-head" }, h("strong", {}, "Welcome to Terreno"), h("button", { class: "icon-btn", "aria-label": "Dismiss", html: icons.close, onclick: done })),
       h("p", {}, "The whole Earth, and your own corner of it. Three ways in:"),
-      h("button", { class: "welcome-row", onclick: go("mode:place") }, h("span", { class: "welcome-icon", style: "--c:#ff9f0a", html: icons.home }), h("span", {}, h("strong", {}, "My Places"), h("small", {}, "Save your home, farm or site for a daily brief and the tools to run it"))),
-      h("button", { class: "welcome-row", onclick: done }, h("span", { class: "welcome-icon", style: "--c:#0a84ff", html: icons.eye }), h("span", {}, h("strong", {}, "Explore"), h("small", {}, "Tap any mountain, sea, river or city and look at it through a lens"))),
-      h("button", { class: "welcome-row", onclick: go("mode:make") }, h("span", { class: "welcome-icon", style: "--c:#bf5af2", html: icons.pencil }), h("span", {}, h("strong", {}, "Create"), h("small", {}, "Trips, stories, videos and lessons from the map"))),
+      h("button", { class: "welcome-row", onclick: go("mode:place") }, h("span", { class: "welcome-icon", style: "--c:#d19a2e", html: icons.home }), h("span", {}, h("strong", {}, "My Place"), h("small", {}, "Save your home, farm or site for a daily brief and the tools to run it"))),
+      h("button", { class: "welcome-row", onclick: done }, h("span", { class: "welcome-icon", style: "--c:#3563d6", html: icons.eye }), h("span", {}, h("strong", {}, "Explore"), h("small", {}, "Tap any mountain, sea, river or city and look at it through a lens"))),
+      h("button", { class: "welcome-row", onclick: go("mode:make") }, h("span", { class: "welcome-icon", style: "--c:#8b5fa8", html: icons.pencil }), h("span", {}, h("strong", {}, "Create"), h("small", {}, "Trips, stories, videos and lessons from the map"))),
       h("p", { class: "muted small" }, "Or just type what you want in the search box: \u201cslice open Mount Fuji\u201d, \u201cfrost at my farm\u201d, \u201csubway map of Tokyo\u201d."));
     return card;
   };
@@ -118,7 +118,7 @@ export function exploreTheme(app: App, feeds: Feeds, overlays: Overlays, openSit
     const insightsBox = h("div", { class: "insights" });
     const inView = h("div", { class: "in-view" });
     const storiesBox = h("div", { class: "stories-here" });
-    const start = siteBrowser(SITES.explore, openSite, { color: "#0a84ff" });
+    const start = siteBrowser(SITES.explore, openSite, { color: "#3563d6" });
     body.append(
       welcome(app),
       // How to start, until someone has: after their first tap it's just clutter.
@@ -195,7 +195,7 @@ export function exploreTheme(app: App, feeds: Feeds, overlays: Overlays, openSit
       img,
       h("div", { class: "badge-row" },
         h("span", { class: "badge", style: `--theme:${KIND_INFO[kind].color}` }, singular(kind, n?.types[0])),
-        n?.heritage ? h("span", { class: "badge", style: "--theme:#bf5af2" }, "UNESCO World Heritage") : "",
+        n?.heritage ? h("span", { class: "badge", style: "--theme:#8b5fa8" }, "UNESCO World Heritage") : "",
         n && n.sitelinks >= 20 ? h("span", { class: "badge muted-badge" }, `Wikipedia in ${n.sitelinks} languages`) : "",
         w?.kind === "peak" && w.detail ? h("span", { class: "badge muted-badge" }, w.detail) : ""),
       text,
@@ -324,7 +324,7 @@ export function exploreTheme(app: App, feeds: Feeds, overlays: Overlays, openSit
     id: "explore",
     label: "Overview",
     icon: icons.compass,
-    color: "#0a84ff",
+    color: "#3563d6",
     intro: "Move the map; tap anything to learn about it.",
     subtabs: [here],
     renderEmpty,

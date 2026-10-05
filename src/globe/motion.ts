@@ -71,7 +71,10 @@ export function setQuality(next: Quality) {
   v.resolutionScale = q.pixelRatio / dpr;
   v.scene.globe.maximumScreenSpaceError = q.sse;
   v.scene.globe.tileCacheSize = q.tileCache;
-  v.scene.postProcessStages.fxaa.enabled = q.fxaa;
+  // Multisampling where WebGL 2 has it; FXAA otherwise (one or the other, never both: FXAA softens).
+  const msaa = (v.scene as unknown as { context: { webgl2: boolean } }).context.webgl2 ? q.msaa : 1;
+  v.scene.msaaSamples = msaa;
+  v.scene.postProcessStages.fxaa.enabled = q.fxaa || (q.msaa > 1 && msaa === 1);
   v.scene.requestRender();
 }
 

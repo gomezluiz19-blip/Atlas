@@ -6,15 +6,15 @@ import type { OsmElement } from "../data/overpass";
 export type CityWaterKind = "river" | "stream" | "canal" | "drain" | "basin" | "supply" | "wastewater" | "pipe" | "control";
 
 export const CITY_WATER: Record<CityWaterKind, { label: string; color: string; about: string }> = {
-  river: { label: "Rivers", color: "#0a84ff", about: "Rivers and tidal channels" },
-  stream: { label: "Streams", color: "#64d2ff", about: "Small natural channels, including ones buried in culverts" },
-  canal: { label: "Canals", color: "#5e5ce6", about: "Channels dug for boats, supply or drainage" },
+  river: { label: "Rivers", color: "#3563d6", about: "Rivers and tidal channels" },
+  stream: { label: "Streams", color: "#4c9ac9", about: "Small natural channels, including ones buried in culverts" },
+  canal: { label: "Canals", color: "#5160c2", about: "Channels dug for boats, supply or drainage" },
   drain: { label: "Drains & ditches", color: "#30b0c7", about: "Channels that carry stormwater away" },
-  basin: { label: "Stormwater basins", color: "#34c759", about: "Ponds and basins that hold back floodwater" },
-  supply: { label: "Water supply", color: "#007aff", about: "Water works, towers, covered reservoirs, wells and pumping stations" },
-  wastewater: { label: "Wastewater", color: "#a2845e", about: "Sewage treatment plants and sewage pumping" },
-  pipe: { label: "Water & sewer mains", color: "#8e8e93", about: "Mapped water, sewage and rainwater pipelines" },
-  control: { label: "Dams, weirs & gates", color: "#ff9f0a", about: "Structures that hold back or control the flow" },
+  basin: { label: "Stormwater basins", color: "#5b9467", about: "Ponds and basins that hold back floodwater" },
+  supply: { label: "Water supply", color: "#3563d6", about: "Water works, towers, covered reservoirs, wells and pumping stations" },
+  wastewater: { label: "Wastewater", color: "#9a7552", about: "Sewage treatment plants and sewage pumping" },
+  pipe: { label: "Water & sewer mains", color: "#8c8f87", about: "Mapped water, sewage and rainwater pipelines" },
+  control: { label: "Dams, weirs & gates", color: "#d19a2e", about: "Structures that hold back or control the flow" },
 };
 
 export interface CityWaterFeature {

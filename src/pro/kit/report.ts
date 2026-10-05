@@ -45,9 +45,9 @@ export function reportHtml(title: string, subtitle: string, sections: Section[],
     return `<section><h2>${esc(s.heading)}</h2>${inner}</section>`;
   }).join("");
   return `<!doctype html><html><head><meta charset="utf-8"><title>${esc(title)}</title><style>
-body{font:14px/1.45 -apple-system,system-ui,"Segoe UI",Roboto,sans-serif;color:#1b1b1a;max-width:860px;margin:32px auto;padding:0 24px}
-h1{font-size:26px;margin:0 0 4px;letter-spacing:-.01em}.sub{color:#6b6961;margin:0 0 24px}h2{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:#6b6961;margin:28px 0 10px;border-bottom:1px solid #e3e0d8;padding-bottom:6px}
-.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.kpis div{background:#f5f4f0;border-radius:10px;padding:10px 12px;display:flex;flex-direction:column}.kpis b{font-size:22px}.kpis span{font-size:12px;color:#6b6961}
+body{font:14px/1.45 'Terreno Sans','Plus Jakarta Sans',system-ui,"Segoe UI",Roboto,sans-serif;color:#1b1d1a;max-width:860px;margin:32px auto;padding:0 24px}
+h1{font-size:26px;margin:0 0 4px;letter-spacing:-.01em}.sub{color:#5e625a;margin:0 0 24px}h2{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:#5e625a;margin:28px 0 10px;border-bottom:1px solid #e3e0d8;padding-bottom:6px}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.kpis div{background:#f5f4f0;border-radius:10px;padding:10px 12px;display:flex;flex-direction:column}.kpis b{font-size:22px}.kpis span{font-size:12px;color:#5e625a}
 ul{padding-left:18px;margin:0}li{margin:4px 0}table{width:100%;border-collapse:collapse;font-size:12.5px}th,td{text-align:left;padding:6px 8px;border-bottom:1px solid #ecebe6;vertical-align:top}th{font-weight:600;color:#55534e}
 footer{margin-top:32px;color:#8a877f;font-size:11.5px}@media print{body{margin:0}.noprint{display:none}}
 </style></head><body><p class="noprint"><button id="print">Print or save as PDF</button></p><h1>${esc(title)}</h1><p class="sub">${esc(subtitle)}</p>${body}<footer>${esc(footer)}</footer></body></html>`;

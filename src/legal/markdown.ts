@@ -72,8 +72,8 @@ export function legalPage(name: string, md: string, c: Company): string {
   const draft = !c.reviewed_by_counsel ? `<p class="draft">Draft for review: not yet in effect.</p>` : "";
   const nav = LEGAL_PAGES.map(([n, t]) => `<a href="${n}.html"${n === name ? ' aria-current="page"' : ""}>${t}</a>`).join("");
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(title)} · ${esc(c.product || "Terreno")}</title>
-<style>:root{color-scheme:light dark;--fg:#1b1b1a;--muted:#6b6961;--line:#e3e0d8;--bg:#fbfaf7;--link:#0a64d8}@media(prefers-color-scheme:dark){:root{--fg:#ecebe6;--muted:#a19f97;--line:#34332f;--bg:#141413;--link:#6cb2ff}}
-body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 -apple-system,system-ui,"Segoe UI",Roboto,sans-serif}main{max-width:760px;margin:0 auto;padding:24px 20px 64px}
+<style>:root{color-scheme:light dark;--fg:#1b1d1a;--muted:#5e625a;--line:#e3e0d8;--bg:#fbfaf7;--link:#0a64d8}@media(prefers-color-scheme:dark){:root{--fg:#ecebe6;--muted:#a19f97;--line:#34332f;--bg:#141413;--link:#6cb2ff}}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 'Terreno Sans','Plus Jakarta Sans',system-ui,"Segoe UI",Roboto,sans-serif}main{max-width:760px;margin:0 auto;padding:24px 20px 64px}
 nav{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:14px;padding:14px 20px;border-bottom:1px solid var(--line);max-width:760px;margin:0 auto}nav a{color:var(--muted);text-decoration:none}nav a[aria-current]{color:var(--fg);font-weight:600}
 h1{font-size:30px;letter-spacing:-.01em;margin:16px 0 8px}h2{font-size:20px;margin:32px 0 8px}h3{font-size:16px;margin:24px 0 6px}a{color:var(--link)}code{font-size:.9em}
 table{width:100%;border-collapse:collapse;font-size:14px;margin:12px 0}th,td{text-align:left;padding:8px;border-bottom:1px solid var(--line);vertical-align:top}.draft{padding:10px 14px;border-radius:10px;background:#fff4d6;color:#7a5200;font-weight:600}@media(prefers-color-scheme:dark){.draft{background:#3a2f12;color:#f5d58a}}

@@ -62,7 +62,7 @@ export class EconLayer {
       if (c.label)
         this.ds.entities.add({
           position: new CallbackProperty(() => Cartesian3.fromDegrees(lon, at.lat, full * grow() + 90_000), false) as unknown as Cartesian3,
-          label: { text: c.label, font: "700 13px -apple-system, system-ui, sans-serif", style: LabelStyle.FILL_AND_OUTLINE, fillColor: Color.WHITE, outlineColor: Color.fromCssColorString("#0b1320"), outlineWidth: 4,
+          label: { text: c.label, font: "700 13px 'Terreno Sans', 'Plus Jakarta Sans', system-ui, sans-serif", style: LabelStyle.FILL_AND_OUTLINE, fillColor: Color.WHITE, outlineColor: Color.fromCssColorString("#0b1320"), outlineWidth: 4,
             verticalOrigin: VerticalOrigin.BOTTOM, pixelOffset: new Cartesian2(0, -4), scaleByDistance: new NearFarScalar(2e6, 1.1, 2.4e7, 0.75) },
         });
     }
@@ -74,14 +74,14 @@ export class EconLayer {
       this.ds.entities.add({
         position: Cartesian3.fromDegrees(at.lon, at.lat),
         ellipse: { semiMajorAxis: r, semiMinorAxis: r, height: 0, material: new ColorMaterialProperty(new CallbackProperty(() => col.withAlpha(pulse()), false)), outline: false },
-        label: hl.label ? { text: hl.label, font: "700 12px -apple-system, system-ui, sans-serif", style: LabelStyle.FILL_AND_OUTLINE, fillColor: Color.WHITE, outlineColor: col.darken(0.5, new Color()), outlineWidth: 4, pixelOffset: new Cartesian2(0, 18) } : undefined,
+        label: hl.label ? { text: hl.label, font: "700 12px 'Terreno Sans', 'Plus Jakarta Sans', system-ui, sans-serif", style: LabelStyle.FILL_AND_OUTLINE, fillColor: Color.WHITE, outlineColor: col.darken(0.5, new Color()), outlineWidth: 4, pixelOffset: new Cartesian2(0, 18) } : undefined,
       });
     }
     for (const p of opts.pins ?? [])
       this.ds.entities.add({
         position: Cartesian3.fromDegrees(p.lon, p.lat),
         point: { pixelSize: new CallbackProperty(() => 12 + 6 * (0.5 + 0.5 * Math.sin((performance.now() - this.born) / 300)), false), color: Color.fromCssColorString(p.color), outlineColor: Color.WHITE, outlineWidth: 2, disableDepthTestDistance: Number.POSITIVE_INFINITY },
-        label: { text: p.label, font: "700 12px -apple-system, system-ui, sans-serif", style: LabelStyle.FILL_AND_OUTLINE, fillColor: Color.WHITE, outlineColor: Color.fromCssColorString("#0b1320"), outlineWidth: 4, verticalOrigin: VerticalOrigin.BOTTOM, pixelOffset: new Cartesian2(0, -14), disableDepthTestDistance: Number.POSITIVE_INFINITY },
+        label: { text: p.label, font: "700 12px 'Terreno Sans', 'Plus Jakarta Sans', system-ui, sans-serif", style: LabelStyle.FILL_AND_OUTLINE, fillColor: Color.WHITE, outlineColor: Color.fromCssColorString("#0b1320"), outlineWidth: 4, verticalOrigin: VerticalOrigin.BOTTOM, pixelOffset: new Cartesian2(0, -14), disableDepthTestDistance: Number.POSITIVE_INFINITY },
       });
     // Flows: streams of light arcing between countries, heavier for bigger trade.
     const max = Math.max(1, ...(opts.flows ?? []).map((f) => f.weight));

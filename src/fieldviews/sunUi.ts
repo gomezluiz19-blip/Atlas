@@ -60,9 +60,9 @@ export function openSun(ctx: WorkCtx, app: App) {
       const cx = out[0] * (b.length / 2 + n.distance + 9), cy = out[1] * (b.depth / 2 + n.distance + 9);
       const w = out[0] ? 18 : b.length + 10, d = out[0] ? b.depth + 10 : 18;
       const nc = [pt(cx - w / 2, cy - d / 2), pt(cx + w / 2, cy - d / 2), pt(cx + w / 2, cy + d / 2), pt(cx - w / 2, cy + d / 2)];
-      ds!.entities.add({ polygon: { hierarchy: Cartesian3.fromDegreesArray(nc.flat()), height: ground, extrudedHeight: ground + n.height, material: Color.fromCssColorString("#8e8e93").withAlpha(0.55), outline: true, outlineColor: Color.WHITE.withAlpha(0.6) } });
+      ds!.entities.add({ polygon: { hierarchy: Cartesian3.fromDegreesArray(nc.flat()), height: ground, extrudedHeight: ground + n.height, material: Color.fromCssColorString("#8c8f87").withAlpha(0.55), outline: true, outlineColor: Color.WHITE.withAlpha(0.6) } });
     }
-    app.canvas.put({ id: "view:sun", label: `☀️ Sun on a building · ${at.name}`, color: "#ffd60a", scope: "world", pinned: true, show: (v) => { ds!.show = v; }, remove: () => ds?.entities.removeAll() }, true);
+    app.canvas.put({ id: "view:sun", label: `☀️ Sun on a building · ${at.name}`, color: "#e1b843", scope: "world", pinned: true, show: (v) => { ds!.show = v; }, remove: () => ds?.entities.removeAll() }, true);
     wake(1200);
     // The grid: faces across, floors up, hours in each cell.
     const max = Math.max(...table.flatMap((t) => t.floors));

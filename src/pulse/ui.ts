@@ -93,14 +93,14 @@ export function openPulse(app: App) {
       ds.entities.add({
         position: P([a.lon, a.lat], 50),
         billboard: { image: glow(a.color), scale: 0.55 * a.size, disableDepthTestDistance: Number.POSITIVE_INFINITY, scaleByDistance: new NearFarScalar(2e5, 1.4, 2e7, 0.7) },
-        label: { text: a.label, font: "600 12px Inter, system-ui, sans-serif", fillColor: Color.WHITE, outlineColor: C("#000", 0.7), outlineWidth: 3, style: LabelStyle.FILL_AND_OUTLINE, verticalOrigin: VerticalOrigin.TOP, pixelOffset: new Cartesian2(0, 12), disableDepthTestDistance: Number.POSITIVE_INFINITY, translucencyByDistance: new NearFarScalar(5e5, 1, 6e6, 0) },
+        label: { text: a.label, font: "600 12px 'Terreno Sans', 'Plus Jakarta Sans', system-ui, sans-serif", fillColor: Color.WHITE, outlineColor: C("#000", 0.7), outlineWidth: 3, style: LabelStyle.FILL_AND_OUTLINE, verticalOrigin: VerticalOrigin.TOP, pixelOffset: new Cartesian2(0, 12), disableDepthTestDistance: Number.POSITIVE_INFINITY, translucencyByDistance: new NearFarScalar(5e5, 1, 6e6, 0) },
       });
     }
     for (const m of world.movers.filter((x) => show(x.layer))) {
       ds.entities.add({
         position: P([m.lon, m.lat], 80),
         billboard: { image: glow(LAYERS[m.layer].color, "#ffffff"), scale: 0.9, disableDepthTestDistance: Number.POSITIVE_INFINITY },
-        label: { text: m.label, font: "700 12px Inter, system-ui, sans-serif", fillColor: Color.WHITE, outlineColor: C("#000", 0.75), outlineWidth: 3, style: LabelStyle.FILL_AND_OUTLINE, verticalOrigin: VerticalOrigin.BOTTOM, pixelOffset: new Cartesian2(0, -14), disableDepthTestDistance: Number.POSITIVE_INFINITY, translucencyByDistance: new NearFarScalar(1e6, 1, 2e7, 0.15) },
+        label: { text: m.label, font: "700 12px 'Terreno Sans', 'Plus Jakarta Sans', system-ui, sans-serif", fillColor: Color.WHITE, outlineColor: C("#000", 0.75), outlineWidth: 3, style: LabelStyle.FILL_AND_OUTLINE, verticalOrigin: VerticalOrigin.BOTTOM, pixelOffset: new Cartesian2(0, -14), disableDepthTestDistance: Number.POSITIVE_INFINITY, translucencyByDistance: new NearFarScalar(1e6, 1, 2e7, 0.15) },
       });
     }
     scene.requestRender();
@@ -147,8 +147,8 @@ export function openPulse(app: App) {
     const node = NODES[CHOKEPOINTS[c].edges[0].split("-")[1]] ?? NODES[CHOKEPOINTS[c].edges[0].split("-")[0]];
     const t0 = performance.now();
     // The strait seals: a red ring that breathes.
-    theatre.entities.add({ position: P([node[0], node[1]]), ellipse: { semiMajorAxis: new CallbackProperty(() => 120_000 + 60_000 * Math.sin(Math.floor((performance.now() - t0) / 10) / 30), false), semiMinorAxis: new CallbackProperty(() => 0.95 * (120_000 + 60_000 * Math.sin(Math.floor((performance.now() - t0) / 10) / 30)), false), material: C("#ff453a", 0.25), outline: false } as never });
-    theatre.entities.add({ position: P([node[0], node[1]], 2000), label: { text: `${CHOKEPOINTS[c].label} closed`, font: "800 15px Inter, system-ui, sans-serif", fillColor: C("#ff6b5f"), outlineColor: C("#000", 0.8), outlineWidth: 4, style: LabelStyle.FILL_AND_OUTLINE, pixelOffset: new Cartesian2(0, -26), disableDepthTestDistance: Number.POSITIVE_INFINITY } });
+    theatre.entities.add({ position: P([node[0], node[1]]), ellipse: { semiMajorAxis: new CallbackProperty(() => 120_000 + 60_000 * Math.sin(Math.floor((performance.now() - t0) / 10) / 30), false), semiMinorAxis: new CallbackProperty(() => 0.95 * (120_000 + 60_000 * Math.sin(Math.floor((performance.now() - t0) / 10) / 30)), false), material: C("#c4513a", 0.25), outline: false } as never });
+    theatre.entities.add({ position: P([node[0], node[1]], 2000), label: { text: `${CHOKEPOINTS[c].label} closed`, font: "800 15px 'Terreno Sans', 'Plus Jakarta Sans', system-ui, sans-serif", fillColor: C("#ff6b5f"), outlineColor: C("#000", 0.8), outlineWidth: 4, style: LabelStyle.FILL_AND_OUTLINE, pixelOffset: new Cartesian2(0, -26), disableDepthTestDistance: Number.POSITIVE_INFINITY } });
     // The new world, then each affected ship's new way round drawn growing.
     world = worldAt(t, closed);
     draw();
@@ -197,7 +197,7 @@ export function openPulse(app: App) {
 
   // ---- Capture ----
   async function shoot(asFilm: boolean) {
-    const card = { title: "My world", sub: `${fmtDate(t)} · ${world.anchors.length} places, ${world.movers.length} on the move`, accent: "#5ad8ff" };
+    const card = { title: "My world", sub: `${fmtDate(t)} · ${world.anchors.length} places, ${world.movers.length} on the move`, accent: "#8fa8f2" };
     const src = scene.canvas;
     if (!asFilm) { await still(src, (cb) => { const off = scene.postRender.addEventListener(() => { off(); cb(); }); scene.requestRender(); }, card); return; }
     await film(src, (cb) => scene.postRender.addEventListener(cb), card, 8, () => {

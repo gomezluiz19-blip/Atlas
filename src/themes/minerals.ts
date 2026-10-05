@@ -41,7 +41,7 @@ function commodityMarker(c: Commodity, size = 34): string {
     ctx.strokeStyle = "#fff";
     ctx.stroke();
     ctx.fillStyle = lightColor(c.color) ? "#1c1c1e" : "#fff";
-    ctx.font = `700 ${c.tag.length > 2 ? s * 0.3 : s * 0.4}px -apple-system, system-ui, sans-serif`;
+    ctx.font = `700 ${c.tag.length > 2 ? s * 0.3 : s * 0.4}px "Terreno Sans", "Plus Jakarta Sans", system-ui, sans-serif`;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillText(c.tag, s / 2, s / 2 + 1);
@@ -140,7 +140,7 @@ export function mineralsTheme(app: App): Theme {
         },
         label: {
           text: mn.name,
-          font: "600 13px -apple-system, system-ui, sans-serif",
+          font: "600 13px 'Terreno Sans', 'Plus Jakarta Sans', system-ui, sans-serif",
           style: LabelStyle.FILL_AND_OUTLINE, fillColor: Color.WHITE, outlineColor: Color.fromCssColorString("#0b1320"), outlineWidth: 4,
           verticalOrigin: VerticalOrigin.TOP, pixelOffset: new Cartesian2(0, 18),
           heightReference: HeightReference.CLAMP_TO_GROUND, disableDepthTestDistance: Number.POSITIVE_INFINITY,

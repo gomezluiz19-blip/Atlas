@@ -51,12 +51,12 @@ export const FREE_MUSEUMS: FreeMuseum[] = [
 export type LearnKind = "museum" | "science" | "art" | "history" | "nature" | "library";
 
 export const KINDS: Record<LearnKind, { label: string; emoji: string; color: string }> = {
-  museum: { label: "Museums", emoji: "🏛️", color: "#bf5af2" },
-  science: { label: "Science and space", emoji: "🔭", color: "#0a84ff" },
-  art: { label: "Art", emoji: "🎨", color: "#ff375f" },
-  history: { label: "History", emoji: "🏰", color: "#ac8e68" },
-  nature: { label: "Zoos, aquariums, gardens", emoji: "🦁", color: "#30d158" },
-  library: { label: "Libraries", emoji: "📚", color: "#ff9f0a" },
+  museum: { label: "Museums", emoji: "🏛️", color: "#8b5fa8" },
+  science: { label: "Science and space", emoji: "🔭", color: "#3563d6" },
+  art: { label: "Art", emoji: "🎨", color: "#b8496a" },
+  history: { label: "History", emoji: "🏰", color: "#9a7552" },
+  nature: { label: "Zoos, aquariums, gardens", emoji: "🦁", color: "#5b9467" },
+  library: { label: "Libraries", emoji: "📚", color: "#d19a2e" },
 };
 
 /** Sorts an OpenStreetMap feature into a kind of place to learn. */

@@ -52,13 +52,13 @@ export const figuresQuery = (q: string) => `SELECT ?pid ?amount ?unitLabel ?date
 
 export type Tie = "parent" | "owner" | "subsidiary" | "division" | "owns" | "partner" | "member";
 export const TIES: Record<Tie, { label: string; color: string; up?: boolean }> = {
-  parent: { label: "Parent", color: "#ff9f0a", up: true },
-  owner: { label: "Owners", color: "#ffd60a", up: true },
-  subsidiary: { label: "Subsidiaries", color: "#0a84ff" },
-  division: { label: "Divisions", color: "#64d2ff" },
-  owns: { label: "Assets it owns", color: "#30d158" },
-  partner: { label: "Partners", color: "#bf5af2" },
-  member: { label: "Alliances and memberships", color: "#ff375f" },
+  parent: { label: "Parent", color: "#d19a2e", up: true },
+  owner: { label: "Owners", color: "#e1b843", up: true },
+  subsidiary: { label: "Subsidiaries", color: "#3563d6" },
+  division: { label: "Divisions", color: "#4c9ac9" },
+  owns: { label: "Assets it owns", color: "#5b9467" },
+  partner: { label: "Partners", color: "#8b5fa8" },
+  member: { label: "Alliances and memberships", color: "#b8496a" },
 };
 
 /** Everyone tied to the company and how, with where each is based (pure). */

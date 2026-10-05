@@ -7,12 +7,12 @@ import { sunAltAz, sunDirection } from "./astro";
 export interface Sat { name: string; id: number; rec: SatRec; group: string }
 
 export const GROUPS: { id: string; label: string; color: string; about: string }[] = [
-  { id: "stations", label: "Space stations", color: "#ffd60a", about: "The ISS, China's Tiangong and the craft visiting them" },
+  { id: "stations", label: "Space stations", color: "#e1b843", about: "The ISS, China's Tiangong and the craft visiting them" },
   { id: "visual", label: "Brightest", color: "#ffffff", about: "The 100 or so satellites easiest to see by eye" },
-  { id: "science", label: "Science", color: "#bf5af2", about: "Space telescopes and research satellites, like Hubble" },
-  { id: "weather", label: "Weather", color: "#64d2ff", about: "Satellites watching clouds and storms" },
-  { id: "gps-ops", label: "GPS", color: "#30d158", about: "The navigation satellites in your phone's location" },
-  { id: "geo", label: "Geostationary", color: "#ff9f0a", about: "Satellites that hover over one spot, 35,786 km up" },
+  { id: "science", label: "Science", color: "#8b5fa8", about: "Space telescopes and research satellites, like Hubble" },
+  { id: "weather", label: "Weather", color: "#4c9ac9", about: "Satellites watching clouds and storms" },
+  { id: "gps-ops", label: "GPS", color: "#5b9467", about: "The navigation satellites in your phone's location" },
+  { id: "geo", label: "Geostationary", color: "#d19a2e", about: "Satellites that hover over one spot, 35,786 km up" },
   { id: "starlink", label: "Starlink", color: "#8e8ef0", about: "SpaceX's internet constellation, thousands of satellites" },
 ];
 

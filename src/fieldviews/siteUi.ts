@@ -20,7 +20,7 @@ let ds: CustomDataSource | null = null;
 /** A point `dist` metres from the site at a bearing and height (ENU). */
 function local(frame: Matrix4, east: number, north: number, up: number) { return Matrix4.multiplyByPoint(frame, new Cartesian3(east, north, up), new Cartesian3()); }
 const skyPoint = (frame: Matrix4, alt: number, az: number, r: number) => local(frame, r * Math.cos(alt * R) * Math.sin(az * R), r * Math.cos(alt * R) * Math.cos(az * R), r * Math.sin(alt * R));
-const speedColor = (v: number) => Color.fromCssColorString(v < 4 ? "#64d2ff" : v < 6 ? "#30d158" : v < 8 ? "#ffd60a" : v < 10 ? "#ff9f0a" : "#ff453a");
+const speedColor = (v: number) => Color.fromCssColorString(v < 4 ? "#4c9ac9" : v < 6 ? "#5b9467" : v < 8 ? "#e1b843" : v < 10 ? "#d19a2e" : "#c4513a");
 
 export function openSite(ctx: WorkCtx, app: App) {
   const viewer = app.globe.viewer;
@@ -37,12 +37,12 @@ export function openSite(ctx: WorkCtx, app: App) {
   const site = ds;
   const draw3d = () => {
   // The sun's paths: longest day (warm), equinox, shortest day (cool), with the hours marked.
-  for (const [date, color, label] of [[`${year}-06-21`, "#ff9f0a", "21 June"], [`${year}-03-20`, "#ffd60a", "Equinox"], [`${year}-12-21`, "#64d2ff", "21 December"]] as const) {
+  for (const [date, color, label] of [[`${year}-06-21`, "#d19a2e", "21 June"], [`${year}-03-20`, "#e1b843", "Equinox"], [`${year}-12-21`, "#4c9ac9", "21 December"]] as const) {
     const path = sunPath(at.lat, at.lon, Date.parse(`${date}T00:00:00Z`));
     if (path.length < 2) continue;
     site.entities.add({ polyline: { positions: path.map((p) => skyPoint(frame, p.alt, p.az, dome)), width: 3, material: Color.fromCssColorString(color).withAlpha(0.9) } });
     const noon = path.reduce((a, p) => (p.alt > a.alt ? p : a), path[0]);
-    site.entities.add({ position: skyPoint(frame, noon.alt, noon.az, dome + 25), label: { text: `${label} · ${Math.round(noon.alt)}°`, font: "700 12px -apple-system, system-ui, sans-serif", fillColor: Color.fromCssColorString(color), outlineColor: Color.BLACK, outlineWidth: 3, style: 2 } });
+    site.entities.add({ position: skyPoint(frame, noon.alt, noon.az, dome + 25), label: { text: `${label} · ${Math.round(noon.alt)}°`, font: "700 12px 'Terreno Sans', 'Plus Jakarta Sans', system-ui, sans-serif", fillColor: Color.fromCssColorString(color), outlineColor: Color.BLACK, outlineWidth: 3, style: 2 } });
   }
   // Today's sun, travelling its arc once every 12 seconds.
   const today = sunPath(at.lat, at.lon, Date.parse(`${new Date().toISOString().slice(0, 10)}T00:00:00Z`));
@@ -54,10 +54,10 @@ export function openSite(ctx: WorkCtx, app: App) {
   // The compass ring on the ground.
   site.entities.add({ polyline: { positions: Array.from({ length: 73 }, (_, i) => local(frame, dome * Math.sin(i * 5 * R), dome * Math.cos(i * 5 * R), 2)), width: 2, material: Color.WHITE.withAlpha(0.6) } });
   for (const [d, n] of [[0, "N"], [90, "E"], [180, "S"], [270, "W"]] as const)
-    site.entities.add({ position: local(frame, (dome + 30) * Math.sin(d * R), (dome + 30) * Math.cos(d * R), 4), label: { text: n, font: "800 15px -apple-system, system-ui, sans-serif", fillColor: Color.WHITE, outlineColor: Color.BLACK, outlineWidth: 3, style: 2 } });
+    site.entities.add({ position: local(frame, (dome + 30) * Math.sin(d * R), (dome + 30) * Math.cos(d * R), 4), label: { text: n, font: "800 15px 'Terreno Sans', 'Plus Jakarta Sans', system-ui, sans-serif", fillColor: Color.WHITE, outlineColor: Color.BLACK, outlineWidth: 3, style: 2 } });
   };
   const stopAnim = (() => { let on = true; const tick = () => { if (!on) return; wake(400); setTimeout(tick, 300); }; tick(); return () => { on = false; }; })();
-  app.canvas.put({ id: "view:site", label: `⚡ Site potential · ${at.name}`, color: "#ffd60a", scope: "world", pinned: true, show: (v) => { ds!.show = v; }, remove: () => { stopAnim(); ds?.entities.removeAll(); } }, true);
+  app.canvas.put({ id: "view:site", label: `⚡ Site potential · ${at.name}`, color: "#e1b843", scope: "world", pinned: true, show: (v) => { ds!.show = v; }, remove: () => { stopAnim(); ds?.entities.removeAll(); } }, true);
   void ground.then((z) => {
     frame = Transforms.eastNorthUpToFixedFrame(Cartesian3.fromDegrees(at.lon, at.lat, z + 3));
     draw3d();

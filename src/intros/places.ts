@@ -500,6 +500,8 @@ export function loadWorldHeritage(): Promise<void> {
   return (listing ??= import("./unesco").then((m) => { listed = m.worldHeritage(INTROS).map((p) => ({ p, n: norm(p.name) })); }));
 }
 export const worldHeritageCount = () => listed.length;
+/** Every intro and listing once the World Heritage List has loaded (the intros alone before). */
+export const worldHeritagePlaces = (): IntroPlace[] => (listed.length ? listed.map((x) => x.p) : INTROS);
 
 /** Like introFor, after making sure the World Heritage List is loaded. */
 export async function introForAsync(name?: string | null, lon?: number, lat?: number): Promise<IntroPlace | null> {

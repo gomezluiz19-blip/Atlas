@@ -24,7 +24,7 @@ export const OVERLAYS: { id: OverlayId; label: string; about: string }[] = [
 ];
 
 const OVERLAY_COLOR: Record<OverlayId, string> = {
-  labels: "#ffffff", aurora: "#30d158", quakes: "#ff9500", plates: "#ff6347", lights: "#ffcc66", radar: "#0a84ff", species: "#34c759",
+  labels: "#ffffff", aurora: "#5b9467", quakes: "#d19a2e", plates: "#ff6347", lights: "#ffcc66", radar: "#3563d6", species: "#5b9467",
 };
 
 const NIGHT_LIGHTS = "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/VIIRS_Black_Marble/default/2016-01-01/GoogleMapsCompatible_Level8/{z}/{y}/{x}.png";
@@ -133,7 +133,7 @@ export class Overlays {
           for (const l of lines) for (let i = 0; i < l.length; i += 2) { w = Math.min(w, l[i]); e = Math.max(e, l[i]); s = Math.min(s, l[i + 1]); n = Math.max(n, l[i + 1]); }
           return { polygons: lines.map((l) => [pairs(l)]), bbox: [w, s, e, n] as [number, number, number, number] };
         });
-        return vectorLayer(shapes, { stroke: "rgba(255, 99, 71, 0.95)", width: 2.2, scaleWithZoom: true });
+        return vectorLayer(shapes, { stroke: "rgba(196, 81, 58, 0.95)", width: 2.2, scaleWithZoom: true });
       }
       case "aurora": return auroraLayer(await auroraForecast());
     }
@@ -146,7 +146,7 @@ export class Overlays {
       const now = Date.now();
       for (const q of await recentQuakes()) {
         const days = (now - q.time) / 86_400_000;
-        const color = days < 1 ? "#ff3b30" : days < 3 ? "#ff9500" : "#ffcc00";
+        const color = days < 1 ? "#c4513a" : days < 3 ? "#d19a2e" : "#e1b843";
         const e = ds.entities.add({
           position: Cartesian3.fromDegrees(q.lon, q.lat),
           point: {
@@ -157,7 +157,7 @@ export class Overlays {
             disableDepthTestDistance: Number.POSITIVE_INFINITY,
           },
           label: q.mag >= 5 ? {
-            text: `M${q.mag.toFixed(1)}`, font: "600 12px -apple-system, system-ui, sans-serif", fillColor: Color.WHITE,
+            text: `M${q.mag.toFixed(1)}`, font: "600 12px 'Terreno Sans', 'Plus Jakarta Sans', system-ui, sans-serif", fillColor: Color.WHITE,
             outlineColor: Color.BLACK, outlineWidth: 3, style: LabelStyle.FILL_AND_OUTLINE, verticalOrigin: VerticalOrigin.BOTTOM,
             pixelOffset: new Cartesian2(0, -10), disableDepthTestDistance: Number.POSITIVE_INFINITY,
           } : undefined,

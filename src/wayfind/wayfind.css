@@ -1,0 +1,119 @@
+/* The wayfinder: a compass ribbon, passing cards, the guess and Guide's instrument bar. See src/wayfind/ui.ts. */
+
+/* ---- The compass ribbon: an instrument strip under the top bar ---- */
+.wf-compass {
+  position: absolute; z-index: 11; left: 50%; top: calc(var(--gutter) + env(safe-area-inset-top, 0px) + 54px); transform: translateX(-50%);
+  width: min(380px, calc(100vw - 2 * var(--gutter) - 120px)); height: 30px; border-radius: 9px; color: var(--label);
+  background: var(--material); -webkit-backdrop-filter: blur(20px) saturate(115%); backdrop-filter: blur(20px) saturate(115%);
+  box-shadow: 0 0 0 1px var(--hairline), 0 6px 18px rgba(10, 12, 9, .14); pointer-events: none;
+  transition: opacity .35s var(--ease), transform .35s var(--ease);
+}
+.wf-compass.off { opacity: 0; transform: translate(-50%, -6px); }
+.wf-ticks { position: absolute; inset: 0; width: 100%; height: 100%; -webkit-mask: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent); mask: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent); }
+.wf-caret { position: absolute; left: 50%; top: 0; width: 0; height: 0; margin-left: -5px; border: 5px solid transparent; border-top: 6px solid var(--ochre); }
+.wf-read { position: absolute; left: 50%; top: calc(100% + 4px); transform: translateX(-50%); font: 600 10px/1 var(--font-mono); letter-spacing: .1em; color: #f5f2eb; text-shadow: 0 1px 3px rgba(10, 12, 9, .8); white-space: nowrap; }
+.wf-marks { position: absolute; inset: 0; }
+.wf-mark { position: absolute; top: 9px; width: 0; height: 0; padding: 0; border: 0; background: none; pointer-events: auto; cursor: pointer; color: inherit; font: inherit; }
+.wf-mark i { position: absolute; left: -5px; top: 0; width: 10px; height: 10px; border-radius: 2.5px; background: var(--c); box-shadow: 0 0 0 1.5px var(--material-strong); transition: transform .2s var(--ease); }
+.wf-mark:hover i, .wf-mark:focus-visible i { transform: scale(1.35); }
+.wf-mark span { position: absolute; top: 40px; left: 0; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 1px; white-space: nowrap;
+  font: 600 11.5px/1.15 var(--font); color: #f5f2eb; text-shadow: 0 0 2px rgba(10, 12, 9, .8), 0 1px 4px rgba(10, 12, 9, .55); }
+.wf-mark small { font: 500 9.5px/1 var(--font-mono); letter-spacing: .06em; opacity: .85; }
+.wf-mark.dest i { left: -6px; top: -1px; width: 12px; height: 12px; border-radius: 2px; transform: rotate(45deg); background: var(--accent); box-shadow: 0 0 0 1.5px #f5f2eb; }
+.wf-mark.dest span { color: #dfe6fb; }
+.wf-mark:not(.named) span { display: none; }
+
+/* ---- The passing card: a found place, framed like a plate ---- */
+.wf-pass {
+  position: absolute; z-index: 14; right: calc(var(--gutter) + 52px); top: calc(var(--gutter) + env(safe-area-inset-top, 0px) + 54px); width: 300px;
+  display: flex; flex-direction: column; gap: 6px; padding: 13px 14px 11px; border-radius: 12px; overflow: hidden; color: var(--label);
+  background: var(--material-strong); box-shadow: 0 0 0 1px var(--hairline), inset 3px 0 0 var(--c), 0 18px 40px -12px rgba(10, 12, 9, .35);
+}
+.wf-pass[hidden] { display: none; }
+.wf-pass.in { animation: wf-in .42s var(--ease) both; }
+.wf-pass.out { animation: wf-out .26s ease both; }
+@keyframes wf-in { from { opacity: 0; transform: translateX(16px); clip-path: inset(0 0 0 100%); } to { clip-path: inset(0); } }
+@keyframes wf-out { to { opacity: 0; transform: translateY(-6px); } }
+.wf-pass-k { display: flex; align-items: center; gap: 7px; font: 650 10px/1.2 var(--font); letter-spacing: .14em; text-transform: uppercase; color: var(--secondary); }
+.wf-tile { width: 9px; height: 9px; border-radius: 2px; background: var(--c); flex: none; }
+.wf-pass strong { font: 700 17px/1.2 var(--font-display); letter-spacing: -.01em; }
+.wf-pass p { margin: 0; font-size: 13px; line-height: 1.4; color: var(--secondary); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.wf-pass-row { display: flex; align-items: center; gap: 10px; margin-top: 3px; }
+.wf-look { border: 0; border-radius: 7px; padding: 6px 12px; background: var(--accent); color: #fff; font: 600 12.5px var(--font); cursor: pointer; }
+.wf-found { font: 500 10px/1 var(--font-mono); letter-spacing: .08em; color: var(--secondary); }
+.wf-x { margin-left: auto; width: 26px; height: 26px; border: 0; border-radius: 6px; background: transparent; color: var(--secondary); font-size: 17px; line-height: 1; cursor: pointer; }
+.wf-x:hover { background: var(--fill); }
+.wf-timer { position: absolute; left: 0; bottom: 0; height: 2px; width: 100%; background: var(--c); transform-origin: left; animation: wf-timer 9s linear both; opacity: .55; }
+.wf-pass:hover .wf-timer { animation-play-state: paused; }
+@keyframes wf-timer { to { transform: scaleX(0); } }
+
+/* ---- The guess: "Heading for Kyoto?" ---- */
+.wf-guess {
+  position: absolute; z-index: 13; left: 50%; top: calc(var(--gutter) + env(safe-area-inset-top, 0px) + 112px); transform: translateX(-50%);
+  display: flex; align-items: center; gap: 10px; padding: 6px 6px 6px 14px; border-radius: 11px; white-space: nowrap; color: var(--label);
+  background: var(--material-strong); box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 40%, transparent), 0 12px 30px -10px rgba(10, 12, 9, .35);
+  animation: wf-drop .35s var(--ease) both;
+}
+.wf-guess[hidden] { display: none; }
+@keyframes wf-drop { from { opacity: 0; transform: translate(-50%, -8px); } }
+.wf-guess-k { font: 650 10px/1 var(--font); letter-spacing: .14em; text-transform: uppercase; color: var(--accent); }
+.wf-guess strong { font: 700 14.5px/1 var(--font); }
+.wf-guess-d { font: 500 11px/1 var(--font-mono); color: var(--secondary); }
+.wf-go { border: 0; border-radius: 8px; padding: 8px 12px; background: var(--accent); color: #fff; font: 600 13px var(--font); cursor: pointer; }
+.wf-no { border: 0; border-radius: 8px; padding: 8px 10px; background: transparent; color: var(--secondary); font: 500 12.5px var(--font); cursor: pointer; }
+.wf-no:hover { background: var(--fill); }
+
+/* ---- Guide: the arrow, the instrument bar, recentre ---- */
+.wf-guide-btn[aria-pressed="true"] { background: var(--accent); color: #fff; }
+.wf-bar {
+  position: absolute; z-index: 15; left: 50%; transform: translateX(-50%); bottom: calc(var(--gutter) + 72px + env(safe-area-inset-bottom, 0px));
+  width: min(520px, calc(100vw - 2 * var(--gutter))); display: flex; align-items: center; gap: 14px; padding: 10px 10px 10px 16px; border-radius: 14px;
+  color: #ece8de; background: rgba(20, 22, 19, .92); -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px); box-shadow: 0 0 0 1px rgba(236, 232, 222, .1), 0 18px 40px -12px rgba(0, 0, 0, .5);
+}
+.wf-bar[hidden] { display: none; }
+.wf-bar-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.wf-bar-main small, .wf-bar-fig small { font: 650 10px/1 var(--font); letter-spacing: .14em; text-transform: uppercase; color: #a5a79c; }
+.wf-bar-main strong { font: 700 18px/1.2 var(--font-display); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wf-bar-fig { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; padding-left: 14px; border-left: 1px solid rgba(236, 232, 222, .14); }
+.wf-bar-fig strong { font: 600 18px/1 var(--font-mono); font-variant-numeric: tabular-nums; }
+.wf-bar-x { width: 34px; height: 34px; border: 0; border-radius: 9px; background: rgba(236, 232, 222, .08); color: inherit; font-size: 18px; cursor: pointer; }
+.wf-recentre { position: absolute; z-index: 15; left: 50%; transform: translateX(-50%); bottom: calc(var(--gutter) + 148px + env(safe-area-inset-bottom, 0px)); border: 0; border-radius: 10px; padding: 9px 16px;
+  background: var(--accent); color: #fff; font: 600 13px var(--font); box-shadow: var(--shadow); cursor: pointer; }
+.wf-recentre[hidden] { display: none; }
+body.wf-guiding .wf-compass { top: calc(var(--gutter) + env(safe-area-inset-top, 0px) + 54px); }
+
+/* ---- Phones: the ribbon full width under the bar, cards drop from the top ---- */
+@media (max-width: 820px) {
+  .wf-compass { top: calc(var(--gutter) + env(safe-area-inset-top, 0px) + var(--bar) + 6px); width: calc(100vw - 124px); }
+  body.wf-guiding .wf-compass { top: calc(var(--gutter) + env(safe-area-inset-top, 0px) + var(--bar) + 6px); }
+  .wf-pass { left: var(--gutter); right: var(--gutter); width: auto; top: auto; bottom: calc(var(--gutter) + 76px + env(safe-area-inset-bottom, 0px)); }
+  body.wf-guiding .sheet.collapsed { display: none; }
+  body.wf-guiding .wf-pass { bottom: calc(var(--gutter) + 150px + env(safe-area-inset-bottom, 0px)); }
+  /* The guess sits where a thumb is: just above the bar along the bottom. */
+  .wf-guess { top: auto; bottom: calc(var(--gutter) + 76px + env(safe-area-inset-bottom, 0px)); width: calc(100vw - 2 * var(--gutter)); padding: 8px 8px 8px 14px; }
+  body.wf-guiding .wf-guess { bottom: calc(var(--gutter) + 150px + env(safe-area-inset-bottom, 0px)); }
+  .wf-guess strong { overflow: hidden; text-overflow: ellipsis; min-width: 0; flex: 1; }
+  .wf-guess-d { display: none; }
+}
+
+/* ---- TV: a broadcast card under the brand, read from across the room; no ribbon ---- */
+body.tv-mode .wf-pass { left: 4vw; right: auto; top: 11vh; bottom: auto; width: 30vw; z-index: 950; padding: 1.3vw 1.5vw 1.2vw; gap: .45vw; border-radius: .9vw;
+  background: rgba(20, 22, 19, .84); -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); color: #ece8de; box-shadow: inset .28vw 0 0 var(--c), 0 2vw 4vw rgba(0, 0, 0, .35); }
+body.tv-mode .wf-pass-k { font-size: .8vw; color: #a5a79c; gap: .5vw; }
+body.tv-mode .wf-tile { width: .7vw; height: .7vw; }
+body.tv-mode .wf-pass strong { font-size: 1.9vw; }
+body.tv-mode .wf-pass p { font-size: 1.05vw; color: #c9c6bc; }
+body.tv-mode .wf-pass-row { display: none; }
+body.tv-mode .wf-timer { height: .2vw; animation-duration: 12s; }
+
+@media (prefers-reduced-motion: reduce) { .wf-pass.in, .wf-pass.out, .wf-guess, .wf-timer { animation: none; } }
+
+/* ---- Web to phone: the view as a code ---- */
+.handoff { position: absolute; z-index: 40; left: 50%; top: 50%; transform: translate(-50%, -50%); display: flex; gap: 20px; align-items: center; width: min(520px, calc(100vw - 32px)); padding: 22px;
+  border-radius: 14px; background: var(--material-strong); color: var(--label); box-shadow: 0 0 0 1px var(--hairline), 0 30px 80px -20px rgba(10, 12, 9, .45); animation: wf-drop .3s var(--ease) both; --rc: var(--accent); }
+.handoff-qr { flex: none; width: 168px; height: 168px; padding: 8px; border-radius: 8px; background: #f5f2eb; }
+.handoff-qr svg { width: 100%; height: 100%; display: block; }
+.handoff-qr svg path, .handoff-qr svg rect[fill="black"], .handoff-qr svg rect:not([fill="white"]) { fill: #1b1d1a; }
+.handoff-text { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
+.handoff-text strong { font: 700 18px/1.2 var(--font-display); }
+.handoff-text p { margin: 0; color: var(--secondary); font-size: 13.5px; line-height: 1.45; }

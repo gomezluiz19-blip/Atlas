@@ -341,3 +341,11 @@ SITES.water.push({ title: "Great lakes of the world", sites: fromFeatures("water
 SITES.water.push({ title: "Great waterfalls", sites: fromFeatures("water", "waterfall", () => 3000) });
 SITES.land.push({ title: "Canyons of the world", sites: fromFeatures("land", "canyon", () => 30_000) });
 SITES.land.push({ title: "Deserts", sites: fromFeatures("land", "desert", () => 900_000) });
+SITES.land.push({ title: "Mountain ranges", sites: fromFeatures("land", "range", () => 900_000) });
+SITES.land.push({ title: "Where the plates meet", sites: fromFeatures("land", "rift", () => 250_000) });
+SITES.land.push({ title: "Plateaus", sites: fromFeatures("land", "plateau", () => 600_000) });
+SITES.land.push({ title: "Caves", sites: fromFeatures("land", "cave", () => 4000) });
+SITES.land.push({ title: "Islands", sites: fromFeatures("land", "island", () => 300_000) });
+SITES.water.push({ title: "Ice", sites: fromFeatures("water", "glacier", () => 120_000) });
+SITES.water.push({ title: "Coral reefs", sites: fromFeatures("water", "reef", () => 150_000) });
+SITES.water.push({ title: "Wetlands and deltas", sites: fromFeatures("water", "wetland", () => 150_000) });

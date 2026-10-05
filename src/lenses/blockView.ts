@@ -104,7 +104,7 @@ export function createBlockView(d: BlockData, name: string, onClose?: () => void
   const northCanvas = document.createElement("canvas");
   northCanvas.width = northCanvas.height = 128;
   const ng = northCanvas.getContext("2d")!;
-  ng.fillStyle = "#fff"; ng.font = "bold 72px -apple-system, system-ui, sans-serif"; ng.textAlign = "center"; ng.textBaseline = "middle"; ng.fillText("N", 64, 70);
+  ng.fillStyle = "#fff"; ng.font = "bold 72px 'Terreno Sans', 'Plus Jakarta Sans', system-ui, sans-serif"; ng.textAlign = "center"; ng.textBaseline = "middle"; ng.fillText("N", 64, 70);
   const north = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(northCanvas), transparent: true }));
   north.scale.set(0.9, 0.9, 1);
   scene.add(north);

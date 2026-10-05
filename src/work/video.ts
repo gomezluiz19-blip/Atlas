@@ -105,12 +105,12 @@ export class Recording {
         g.lineWidth = 1.5 * px; g.strokeStyle = "#fff"; g.stroke();
         tx = x + 16 * px;
       }
-      g.font = `${n.italic ? "italic " : ""}600 ${Math.round(12.5 * px)}px -apple-system, "SF Pro Text", "Segoe UI", system-ui, sans-serif`;
+      g.font = `${n.italic ? "italic " : ""}600 ${Math.round(12.5 * px)}px "Terreno Sans", "Plus Jakarta Sans", system-ui, sans-serif`;
       g.lineWidth = 3.5 * px; g.strokeStyle = "rgba(0,0,0,0.65)"; g.strokeText(n.name, tx, y);
       g.fillStyle = "#fff"; g.fillText(n.name, tx, y);
       if (n.sub) {
         const w = g.measureText(n.name).width;
-        g.font = `500 ${Math.round(11 * px)}px -apple-system, system-ui, sans-serif`;
+        g.font = `500 ${Math.round(11 * px)}px "Terreno Sans", "Plus Jakarta Sans", system-ui, sans-serif`;
         g.strokeText(n.sub, tx + w + 5 * px, y); g.fillStyle = "rgba(255,255,255,0.85)"; g.fillText(n.sub, tx + w + 5 * px, y);
       }
     }
@@ -123,7 +123,7 @@ export class Recording {
     g.drawImage(src, c.sx, c.sy, c.sw, c.sh, 0, 0, w, hh);
     const u = Math.min(w, hh) / 1080, pad = 48 * u;
     if (this.s.names) this.drawNames(g, src, c);
-    const font = (weight: number, px: number) => `${weight} ${Math.round(px * u)}px -apple-system, "SF Pro Display", "Segoe UI", system-ui, sans-serif`;
+    const font = (weight: number, px: number) => `${weight} ${Math.round(px * u)}px "Terreno Sans", "Plus Jakarta Sans", system-ui, sans-serif`;
     g.textBaseline = "top";
     if (this.s.title) {
       g.font = font(700, 64);
@@ -153,7 +153,7 @@ export class Recording {
       if (chip) {
         g.font = font(700, 26);
         const cw = g.measureText(chip).width + 28 * u;
-        g.fillStyle = "#e0b050";
+        g.fillStyle = "#c9a256";
         g.beginPath();
         g.roundRect(x + ip, cy, cw, 38 * u, 19 * u);
         g.fill();

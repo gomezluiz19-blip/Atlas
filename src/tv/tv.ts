@@ -13,12 +13,14 @@
 // (lessons, quizzes, sites). Commands pause the playlist so whoever's driving stays in charge. Escape leaves.
 import { Cartesian2, Cartesian3, HeadingPitchRange, Math as CesiumMath, Matrix4 } from "cesium";
 import { wake } from "../globe/motion";
-import qrcode from "qrcode-generator";
+import { qrSvg } from "../ui/qr";
 import type { App } from "../app";
 import { closeSpace } from "../delight/spaces";
 import { earthNow } from "../delight/pulse";
 import { EXCHANGES, session } from "../finance/model";
 import { h } from "../ui/dom";
+import { groundAt } from "../globe/controls";
+import { KIND_COLOR, wayfinder } from "../wayfind/ui";
 import { searchPlaces } from "../place/places";
 import { flyToPlace, geocode } from "../ui/search";
 import { TEMPLATES, deckFromJson, type Deck } from "../work/presentModel";
@@ -48,13 +50,6 @@ const read = (k: string) => { try { return localStorage.getItem(k); } catch { re
 const write = (k: string, v: string) => { try { localStorage.setItem(k, v); } catch { /* storage off */ } };
 const list = <T>(k: string): T[] => { try { const v = JSON.parse(read(k) ?? "[]"); return Array.isArray(v) ? v : []; } catch { return []; } };
 
-/** The QR code for a link, as an SVG string. */
-function qrSvg(text: string): string {
-  const q = qrcode(0, "M");
-  q.addData(text);
-  q.make();
-  return q.createSvgTag({ cellSize: 4, margin: 2, scalable: true });
-}
 
 export function enterTv(app: App, given?: string) {
   if (active) return active;
@@ -414,6 +409,17 @@ export function enterTv(app: App, given?: string) {
     cam.rotateDown(dy * k);
     wake(800);
   }
+  /** Two fingers on the remote: turn the view around what's in the middle, and tilt toward the horizon. */
+  function orbit(turnBy: number, tiltBy: number) {
+    stopSpin();
+    const t = groundAt(viewer);
+    if (!t) { cam.lookRight(turnBy); return; }
+    const range = Cartesian3.distance(cam.positionWC, t);
+    const pitch = Math.max(-CesiumMath.PI_OVER_TWO + 0.02, Math.min(-0.08, cam.pitch - tiltBy));
+    cam.lookAt(t, new HeadingPitchRange(cam.heading + turnBy, pitch, range));
+    cam.lookAtTransform(Matrix4.IDENTITY);
+    wake(800);
+  }
   function zoomBy(f: number) {
     stopSpin();
     const hgt = cam.positionCartographic.height, target = Math.min(30_000_000, Math.max(250, hgt / f));
@@ -493,10 +499,13 @@ export function enterTv(app: App, given?: string) {
       case "hello":
         send(code, "state", { t: "state", scene: playlist()[scene] ?? "", title: title.textContent || room.label, sub: sub.textContent ?? "" });
         sendTools();
+        sendCam();
         if (quiz) send(code, "state", { t: "quiz", ...quiz.state });
         return;
       case "pan": if (ink.mode) return; pan(c.dx, c.dy); return;
       case "zoom": zoomBy(c.f); return;
+      case "orbit": if (ink.mode) return; orbit(c.turn, c.tilt); return;
+      case "goto": cleanScene(); stopSpin(); app.select({ lon: c.lon, lat: c.lat, height: 0 }, { title: c.title, context: c.sub ?? "" }); say(c.title, c.sub ?? "From your phone"); return;
       case "point": ink.move(c.x, c.y, c.down); return;
       case "point-end": ink.lift(); return;
       case "dpad": {
@@ -588,8 +597,19 @@ export function enterTv(app: App, given?: string) {
   const mouse = (e: PointerEvent) => { if (ink.mode && ink.mode !== "pen") ink.move(e.clientX / innerWidth, e.clientY / innerHeight); };
   addEventListener("pointermove", mouse);
 
+  // The phone's readouts: where the camera settled. And what the TV passes, handed to the phone to keep.
+  const sendCam = () => {
+    const g = groundAt(viewer), c = g ? viewer.scene.globe.ellipsoid.cartesianToCartographic(g) : cam.positionCartographic;
+    send(code, "state", { t: "cam", lon: CesiumMath.toDegrees(c.longitude), lat: CesiumMath.toDegrees(c.latitude), alt: cam.positionCartographic.height, heading: CesiumMath.toDegrees(cam.heading), pitch: CesiumMath.toDegrees(cam.pitch) });
+  };
+  let camTimer = 0;
+  const offCam = cam.moveEnd.addEventListener(() => { clearTimeout(camTimer); camTimer = window.setTimeout(sendCam, 250); });
+  const wf = wayfinder();
+  if (wf) wf.onPassing = (s) => send(code, "state", { t: "passing", name: s.poi.name, line: s.poi.line, kind: s.poi.kind, color: KIND_COLOR[s.poi.kind] ?? "#b8496a", lon: s.poi.lon, lat: s.poi.lat, where: s.poi.where ?? "" });
+
   const self = {
     exit() {
+      offCam(); clearTimeout(camTimer); if (wf) wf.onPassing = undefined;
       clearTimeout(timer); clearInterval(clockTimer); clearInterval(quietTimer); clearInterval(focusTimer); clearTimeout(chooserTimer); unlisten(); closeDirect?.();
       removeEventListener("keydown", keys); removeEventListener("pointermove", mouse);
       window.removeEventListener("atlas:caption", onCaption); clearFocus();

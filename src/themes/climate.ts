@@ -131,8 +131,8 @@ export function climateTheme(overlays: Overlays): Theme {
         const showShift = () => {
           if (!shift.km) return;
           const to = offsetKm(place.lon, place.lat, place.lat >= 0 ? 180 : 0, shift.km);
-          arrow ??= new WorkLayer(app, "climate-shift", "How far the climate has moved", "#ff6b3d");
-          arrow.set([{ id: "shift", kind: "line", pts: [[place.lon, place.lat], to], color: "#ff6b3d", solid: true }, { id: "shift-to", kind: "point", pts: [to], color: "#ff6b3d", label: `Its 1950s climate is now about here` }]);
+          arrow ??= new WorkLayer(app, "climate-shift", "How far the climate has moved", "#c4513a");
+          arrow.set([{ id: "shift", kind: "line", pts: [[place.lon, place.lat], to], color: "#c4513a", solid: true }, { id: "shift-to", kind: "point", pts: [to], color: "#c4513a", label: `Its 1950s climate is now about here` }]);
         };
         return [
           h("div", { class: "stripes-card" }, stripes(years), h("div", { class: "stripes-years" }, h("span", {}, String(xs[0])), h("span", {}, String(last)))),
@@ -163,7 +163,7 @@ export function climateTheme(overlays: Overlays): Theme {
     id: "climate",
     label: "Climate",
     icon: icons.cloudSun,
-    color: "#ff9f0a",
+    color: "#d19a2e",
     intro: "Today's weather, the long-term climate, and how it's changing.",
     subtabs: [now, climate, change],
     enter() {

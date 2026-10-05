@@ -102,9 +102,9 @@ async function showMap(app: App, mode: MapMode | null) {
       const e = code ? next[code]?.[0] : undefined;
       if (!e) return "rgba(120,120,130,0.25)";
       const months = (Date.parse(e.date) - now) / (30.4 * 86_400_000);
-      return months < 3 ? "rgba(255,69,58,0.75)" : months < 12 ? "rgba(255,159,10,0.62)" : months < 24 ? "rgba(255,214,10,0.45)" : "rgba(52,199,89,0.35)";
+      return months < 3 ? "rgba(196, 81, 58,0.75)" : months < 12 ? "rgba(209, 154, 46,0.62)" : months < 24 ? "rgba(255,214,10,0.45)" : "rgba(52,199,89,0.35)";
     } });
-    app.looks?.setLegend({ emoji: "🗳️", name: "Next national election", stops: ["rgba(255,69,58,0.9)", "rgba(255,159,10,0.9)", "rgba(255,214,10,0.8)", "rgba(52,199,89,0.7)"], from: "within 3 months", to: "2+ years" });
+    app.looks?.setLegend({ emoji: "🗳️", name: "Next national election", stops: ["rgba(196, 81, 58,0.9)", "rgba(209, 154, 46,0.9)", "rgba(255,214,10,0.8)", "rgba(52,199,89,0.7)"], from: "within 3 months", to: "2+ years" });
   } else {
     const [shapes, govs, members] = await Promise.all([usStates(), mode === "governors" ? governors().catch(() => ({} as Record<string, Person>)) : Promise.resolve({} as Record<string, Person>), mode === "senate" ? congress() : Promise.resolve([] as Member[])]);
     const senate = (code: string) => {
@@ -121,13 +121,13 @@ async function showMap(app: App, mode: MapMode | null) {
   if (mapMode !== mode) return;
   mapLayer = layer;
   app.globe.viewer.imageryLayers.add(layer);
-  app.canvas.put({ id: "politics:map", label: mode === "governors" ? "Governors" : mode === "senate" ? "Senate delegations" : "Next elections", color: "#bf5af2", scope: "world", pinned: true,
+  app.canvas.put({ id: "politics:map", label: mode === "governors" ? "Governors" : mode === "senate" ? "Senate delegations" : "Next elections", color: "#8b5fa8", scope: "world", pinned: true,
     show: (on) => { if (mapLayer) mapLayer.show = on; }, remove: () => void showMap(app, null) }, true);
 }
 
 function mapChips(app: App, us: boolean): HTMLElement {
   const box = h("div", { class: "fl-chips" });
-  const chip = (mode: MapMode, label: string) => h("button", { class: `fl-chip${mapMode === mode ? " on" : ""}`, style: "--c:#bf5af2", "aria-pressed": String(mapMode === mode), onclick: async () => { await showMap(app, mapMode === mode ? null : mode).catch(() => app.toast("Couldn't load that map just now.", 4000)); render(); } }, label);
+  const chip = (mode: MapMode, label: string) => h("button", { class: `fl-chip${mapMode === mode ? " on" : ""}`, style: "--c:#8b5fa8", "aria-pressed": String(mapMode === mode), onclick: async () => { await showMap(app, mapMode === mode ? null : mode).catch(() => app.toast("Couldn't load that map just now.", 4000)); render(); } }, label);
   const render = () => box.replaceChildren(...(us ? [chip("governors", "States by governor"), chip("senate", "Senate by state")] : []), chip("elections", "World: next elections"));
   render();
   return h("section", { class: "group fl-group" }, h("h2", { class: "group-title" }, "On the map"), box);
@@ -149,7 +149,7 @@ function outline(app: App, rings: [number, number][][] | null) {
     ctx.fillStyle = "rgba(191, 90, 242, 0.14)";
     ctx.fill("evenodd");
     ctx.lineWidth = 3;
-    ctx.strokeStyle = "#bf5af2";
+    ctx.strokeStyle = "#8b5fa8";
     ctx.stroke();
   }, { maximumLevel: 14, credit: "Congressional districts: U.S. Census Bureau TIGERweb" });
   app.globe.viewer.imageryLayers.add(districtLayer);

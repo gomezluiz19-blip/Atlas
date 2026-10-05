@@ -7,19 +7,19 @@ import type { Subject, SubjectKind } from "./types";
 const FOR: Partial<Record<SubjectKind, { kinds: FeatureKind[]; km: number }>> = {
   peak: { kinds: ["peak", "volcano"], km: 12 },
   volcano: { kinds: ["volcano", "peak"], km: 20 },
-  range: { kinds: ["peak", "volcano"], km: 0 },
+  range: { kinds: ["range", "peak", "volcano"], km: 0 },
   crater: { kinds: ["crater", "volcano"], km: 25 },
-  river: { kinds: ["river", "waterfall"], km: 0 },
-  sea: { kinds: ["deep"], km: 400 },
-  coast: { kinds: ["deep"], km: 0 },
+  river: { kinds: ["river", "waterfall", "wetland"], km: 0 },
+  sea: { kinds: ["deep", "reef"], km: 400 },
+  coast: { kinds: ["reef", "deep", "wetland"], km: 30 },
   forest: { kinds: ["forest"], km: 60 },
   city: { kinds: ["metro"], km: 30 },
   lake: { kinds: ["lake", "waterfall", "crater", "volcano"], km: 20 },
-  land: { kinds: ["crater", "peak", "volcano", "forest", "waterfall", "canyon"], km: 5 },
+  land: { kinds: ["crater", "peak", "volcano", "forest", "waterfall", "canyon", "cave", "rift", "wetland"], km: 5 },
   canyon: { kinds: ["canyon", "river"], km: 40 },
-  island: { kinds: ["volcano"], km: 25 },
-  glacier: { kinds: ["peak", "volcano"], km: 15 },
-  desert: { kinds: ["desert", "crater"], km: 0 },
+  island: { kinds: ["island", "volcano", "reef"], km: 25 },
+  glacier: { kinds: ["glacier", "peak", "volcano"], km: 15 },
+  desert: { kinds: ["desert", "plateau", "crater"], km: 0 },
 };
 
 export function factsFor(s: Subject): Feature | undefined {

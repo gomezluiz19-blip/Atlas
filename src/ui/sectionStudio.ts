@@ -17,7 +17,7 @@ export interface SectionData {
 }
 
 const M = { top: 18, right: 14, bottom: 30, left: 66 };
-const BASEMENT = "#8d8a86";
+const BASEMENT = "#8c8f87";
 
 export class SectionStudio {
   readonly el: HTMLElement;
@@ -346,7 +346,7 @@ export class SectionStudio {
 
     // Layer names where there is room.
     if (state.ma === null && state.erosion >= 1) {
-      ctx.font = "600 11.5px system-ui, sans-serif";
+      ctx.font = "600 11.5px 'Terreno Sans', 'Plus Jakarta Sans', system-ui, sans-serif";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
       stack.forEach((l) => {

@@ -42,7 +42,7 @@ relies on the browser's normal cache until a licence allows storing it.
 
 | Source | Used for | Status | What to do |
 |---|---|---|---|
-| Open-Meteo (forecast, ERA5 archive) | Weather, the Today brief, Grow, frost dates, place report | ❌ free tier | The free API is non-commercial. Commercial use needs an Open-Meteo API plan (reasonably priced); the data itself is CC BY 4.0. Highest priority: My Places depends on it. |
+| Open-Meteo (forecast, ERA5 archive) | Weather, the Today brief, Grow, frost dates, place report | ❌ free tier | The free API is non-commercial. Commercial use needs an Open-Meteo API plan (reasonably priced); the data itself is CC BY 4.0. Highest priority: My Place depends on it. |
 | RainViewer | Rain radar | ⚠️ | Check current API terms for commercial use and limits. |
 | Macrostrat | Geology: rock columns, bedrock map | ✅ | CC BY 4.0; be gentle with request volume and cache. |
 | GPlates Web Service | Rewind: deep time | ⚠️ | An academic service; ask before heavy use, or run pyGPlates yourself. |
@@ -109,7 +109,7 @@ relies on the browser's normal cache until a licence allows storing it.
 
 ## Launch checklist, in order
 
-1. **Weather:** an Open-Meteo commercial plan (My Places depends on it).
+1. **Weather:** an Open-Meteo commercial plan (My Place depends on it).
 2. **Imagery:** choose a satellite provider with a commercial licence (Esri with keys, MapTiler, Mapbox, or Google/Bing via Cesium ion); decide on Rewind's source.
 3. **Search and OSM:** a geocoding provider (or self-hosted Photon and Nominatim) and a self-hosted or paid Overpass.
 4. **Non-commercial layers:** license or remove the cable map and the EOX 2020 mosaic; resolve the historical borders licence.

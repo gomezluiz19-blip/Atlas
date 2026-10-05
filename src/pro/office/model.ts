@@ -20,11 +20,11 @@ export const stanceOf = (s?: Stance) => STANCES.find((x) => x.id === s) ?? STANC
 
 export type ContactKind = "constituent" | "stakeholder" | "organisation" | "press" | "official";
 export const CONTACT_KINDS: Record<ContactKind, { label: string; color: string }> = {
-  constituent: { label: "Constituent", color: "#0a84ff" },
-  stakeholder: { label: "Stakeholder", color: "#bf5af2" },
-  organisation: { label: "Organisation", color: "#ff9f0a" },
-  press: { label: "Press", color: "#ff375f" },
-  official: { label: "Official", color: "#30d158" },
+  constituent: { label: "Constituent", color: "#3563d6" },
+  stakeholder: { label: "Stakeholder", color: "#8b5fa8" },
+  organisation: { label: "Organisation", color: "#d19a2e" },
+  press: { label: "Press", color: "#b8496a" },
+  official: { label: "Official", color: "#5b9467" },
 };
 
 export interface Spot { name: string; lon: number; lat: number }

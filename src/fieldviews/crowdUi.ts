@@ -18,7 +18,7 @@ import { clearance, disperse, kindOf, type Station } from "./crowdModel";
 
 interface Venue { name: string; lon: number; lat: number; capacity: number }
 const VENUES: Venue[] = introsTagged("stadium", "arena").map((p) => ({ name: p.name, lon: p.lon, lat: p.lat, capacity: p.tags?.includes("arena") ? 19_000 : 60_000 })).sort((a, b) => a.name.localeCompare(b.name));
-const KIND_COLOR = { rail: "#0a84ff", subway: "#ff9f0a", tram: "#30d158", bus: "#bf5af2" } as const;
+const KIND_COLOR = { rail: "#3563d6", subway: "#d19a2e", tram: "#5b9467", bus: "#8b5fa8" } as const;
 const km = (a: { lon: number; lat: number }, b: { lon: number; lat: number }) => Math.hypot((a.lon - b.lon) * 111.32 * Math.cos((a.lat * Math.PI) / 180), (a.lat - b.lat) * 110.57);
 
 let ds: CustomDataSource | null = null, flow: FlowOverlay | null = null;
@@ -66,8 +66,8 @@ export function openCrowd(ctx: WorkCtx, app: App) {
   function draw() {
     const splits = disperse(crowd, share, stations, boost), { minutes, worst } = clearance(splits);
     ds!.entities.removeAll();
-    ds!.entities.add({ position: Cartesian3.fromDegrees(venue.lon, venue.lat, 40), point: { pixelSize: 18, color: Color.fromCssColorString("#ff375f"), outlineColor: Color.WHITE, outlineWidth: 3, disableDepthTestDistance: Number.POSITIVE_INFINITY },
-      label: { text: venue.name, font: "800 14px -apple-system, system-ui, sans-serif", style: LabelStyle.FILL_AND_OUTLINE, fillColor: Color.WHITE, outlineColor: Color.BLACK, outlineWidth: 4, verticalOrigin: VerticalOrigin.BOTTOM, pixelOffset: new Cartesian2(0, -14), disableDepthTestDistance: Number.POSITIVE_INFINITY } });
+    ds!.entities.add({ position: Cartesian3.fromDegrees(venue.lon, venue.lat, 40), point: { pixelSize: 18, color: Color.fromCssColorString("#b8496a"), outlineColor: Color.WHITE, outlineWidth: 3, disableDepthTestDistance: Number.POSITIVE_INFINITY },
+      label: { text: venue.name, font: "800 14px 'Terreno Sans', 'Plus Jakarta Sans', system-ui, sans-serif", style: LabelStyle.FILL_AND_OUTLINE, fillColor: Color.WHITE, outlineColor: Color.BLACK, outlineWidth: 4, verticalOrigin: VerticalOrigin.BOTTOM, pixelOffset: new Cartesian2(0, -14), disableDepthTestDistance: Number.POSITIVE_INFINITY } });
     const maxQ = Math.max(1, ...splits.map((s) => s.people));
     for (const sp of splits) {
       const col = Color.fromCssColorString(KIND_COLOR[sp.s.kind]);
@@ -76,7 +76,7 @@ export function openCrowd(ctx: WorkCtx, app: App) {
         position: new CallbackProperty(() => Cartesian3.fromDegrees(sp.s.lon, sp.s.lat, height() / 2), false) as unknown as Cartesian3,
         cylinder: { length: new CallbackProperty(height, false), topRadius: 28, bottomRadius: 34, material: col.withAlpha(0.85), outline: false },
         label: { text: new CallbackProperty(() => { const q = Math.round(queueAt(sp.people, sp.perMin, sp.walk, minute)); return `${sp.s.name}${q ? ` · ${q.toLocaleString()} waiting` : ""}`; }, false) as unknown as string,
-          font: "700 12px -apple-system, system-ui, sans-serif", style: LabelStyle.FILL_AND_OUTLINE, fillColor: Color.WHITE, outlineColor: Color.BLACK, outlineWidth: 4, verticalOrigin: VerticalOrigin.BOTTOM, pixelOffset: new Cartesian2(0, -10), disableDepthTestDistance: Number.POSITIVE_INFINITY,
+          font: "700 12px 'Terreno Sans', 'Plus Jakarta Sans', system-ui, sans-serif", style: LabelStyle.FILL_AND_OUTLINE, fillColor: Color.WHITE, outlineColor: Color.BLACK, outlineWidth: 4, verticalOrigin: VerticalOrigin.BOTTOM, pixelOffset: new Cartesian2(0, -10), disableDepthTestDistance: Number.POSITIVE_INFINITY,
           eyeOffset: new CallbackProperty(() => new Cartesian3(0, 0, -height()), false) as unknown as Cartesian3 },
       });
     }
@@ -86,7 +86,7 @@ export function openCrowd(ctx: WorkCtx, app: App) {
       return { pts, color: KIND_COLOR[s.s.kind], speed: 60, density: 0.02 + (s.people / maxQ) * 0.25, size: 1.4 + (s.people / maxQ) * 2.4 };
     }));
     flow!.show(true);
-    app.canvas.put({ id: "view:crowd", label: `🚇 Crowd flow · ${venue.name}`, color: "#ff375f", scope: "world", pinned: true, show: (v) => { ds!.show = v; flow!.show(v); }, remove: () => { ds?.entities.removeAll(); flow?.set([]); } }, true);
+    app.canvas.put({ id: "view:crowd", label: `🚇 Crowd flow · ${venue.name}`, color: "#b8496a", scope: "world", pinned: true, show: (v) => { ds!.show = v; flow!.show(v); }, remove: () => { ds?.entities.removeAll(); flow?.set([]); } }, true);
     wake(1000);
     const driving = Math.round(crowd * (1 - share));
     head.replaceChildren(

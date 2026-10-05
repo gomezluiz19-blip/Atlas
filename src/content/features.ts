@@ -4,7 +4,10 @@
 // sources differ (river lengths especially); coordinates mark the feature (for
 // rivers, roughly the middle of the main stem).
 
-export type FeatureKind = "river" | "peak" | "volcano" | "crater" | "deep" | "forest" | "metro" | "lake" | "waterfall" | "canyon" | "desert";
+import { LANDFORMS } from "./landforms";
+
+export type FeatureKind = "river" | "peak" | "volcano" | "crater" | "deep" | "forest" | "metro" | "lake" | "waterfall" | "canyon" | "desert"
+  | "glacier" | "island" | "reef" | "cave" | "range" | "plateau" | "wetland" | "rift";
 
 export interface Feature {
   name: string;
@@ -359,6 +362,8 @@ export const FEATURES: Feature[] = [
   metro("Dhaka Metro Rail", "Dhaka", 23.81, 90.41, 2022, "Cut hour-long journeys across one of the world's densest cities to minutes.", ["Dhaka MRT"]),
   metro("Lagos Rail Mass Transit", "Lagos", 6.45, 3.39, 2023, "The Blue Line: West Africa's first urban rail in a megacity.", ["Lagos Blue Line"]),
   metro("Ho Chi Minh City Metro", "Ho Chi Minh City", 10.77, 106.7, 2024, "Line 1 runs from Bến Thành out to Suối Tiên.", ["Saigon Metro"]),
+  // Ice, islands, reefs, caves, ranges, plateaus, wetlands and the plate boundaries (content/landforms.ts).
+  ...LANDFORMS,
 ];
 
 const norm = (s: string) => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/^(the|mount|mt\.?|lake|river)\s+/g, "").replace(/\s+(river|trench|crater|forest|rainforest|volcano|metro|subway)$/g, "").replace(/[^a-z0-9]+/g, " ").trim();

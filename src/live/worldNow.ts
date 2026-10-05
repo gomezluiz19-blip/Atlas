@@ -32,7 +32,7 @@ function drawPins(app: App, list: Pin[]) {
   }
   pins.show = pinsOn;
   app.canvas.put({
-    id: "world-now", label: "World now", color: "#ff375f", scope: "world", pinned: true,
+    id: "world-now", label: "World now", color: "#b8496a", scope: "world", pinned: true,
     show: (v) => { if (pins) pins.show = v && pinsOn; },
     remove: () => { pins?.entities.removeAll(); },
   }, true);
@@ -111,7 +111,7 @@ export function openWorldNow(ctx: WorkCtx, back: (() => void) | null = ctx.home)
   void worldStories().then(({ stories, reading, onThisDay }) => {
     stamp.textContent = `Updated ${new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}`;
     slots.stories.replaceChildren(...(stories.length ? stories.slice(0, 6).map((s, i) => storyCard(app, s, i)) : [h("p", { class: "muted small" }, "No stories posted yet today.")]));
-    addPins(stories.filter((s) => s.lon !== undefined).map((s) => ({ lon: s.lon!, lat: s.lat!, title: s.links.find((l) => l.lat !== undefined)?.title ?? "In the news", context: clip(s.text, 140), color: "#ff375f", size: 13 })));
+    addPins(stories.filter((s) => s.lon !== undefined).map((s) => ({ lon: s.lon!, lat: s.lat!, title: s.links.find((l) => l.lat !== undefined)?.title ?? "In the news", context: clip(s.text, 140), color: "#b8496a", size: 13 })));
     if (reading.length) section(slots.reading, "What the world is reading today", h("div", { class: "list" }, ...reading.slice(0, 8).map((r) =>
       h("button", { class: "list-row", onclick: () => (r.lat !== undefined ? goTo(app, r.lon!, r.lat, r.title, r.about ?? "Most read on Wikipedia today", 150_000) : open(r.url)) },
         h("span", { class: "wn-rank" }, String(r.rank)),
@@ -142,7 +142,7 @@ export function openWorldNow(ctx: WorkCtx, back: (() => void) | null = ctx.home)
         h("span", { class: "wn-mag" }, q.mag.toFixed(1)),
         h("span", { class: "list-text" }, h("span", { class: "list-title" }, q.place), h("span", { class: "list-sub" }, `${ago(q.time)} · ${Math.round(q.depthKm)} km deep`)),
         h("span", { class: "chev", html: "&rsaquo;" })))));
-    addPins(big.map((q) => ({ lon: q.lon, lat: q.lat, title: `Magnitude ${q.mag.toFixed(1)} earthquake`, context: q.place, color: "#ff9500", size: 8 + q.mag })));
+    addPins(big.map((q) => ({ lon: q.lon, lat: q.lat, title: `Magnitude ${q.mag.toFixed(1)} earthquake`, context: q.place, color: "#d19a2e", size: 8 + q.mag })));
   }).catch(() => {});
 
   void upcoming().then((ls: Launch[]) => {

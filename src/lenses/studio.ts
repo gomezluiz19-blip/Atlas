@@ -15,7 +15,7 @@ import { IDEAS, LENS_SCHEMA, LENS_SYSTEM, composeLens } from "./compose";
 import { BLOCK_INFO, SPECIES_GROUPS, lensFromJson, type Block, type LensDef } from "./custom";
 import { allLenses, deleteLens, findLens, isKept, isMade, keep, madeLenses, rememberLens, saveLens } from "./library";
 
-const COLORS = ["#30b0c7", "#0a84ff", "#5e5ce6", "#bf5af2", "#ff375f", "#ff9f0a", "#34c759", "#a2845e"];
+const COLORS = ["#30b0c7", "#3563d6", "#5160c2", "#8b5fa8", "#b8496a", "#d19a2e", "#5b9467", "#9a7552"];
 
 /** One line about what a block will show. */
 export function blockDetail(b: Block): string {

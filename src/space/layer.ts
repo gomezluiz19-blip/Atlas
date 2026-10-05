@@ -120,9 +120,9 @@ export class SpaceLayer {
       const pos = new CallbackProperty(() => { const st = stateAt(s, Date.now()); return st ? Cartesian3.fromDegrees(st.lon, st.lat, st.alt * 1000) : undefined; }, false);
       const e = this.ds.entities.add({
         position: pos as never,
-        billboard: { image: emojiIcon("🛰️", s === iss ? "rgba(255,214,10,0.9)" : "rgba(255,69,58,0.85)"), width: 34, height: 34, disableDepthTestDistance: 0 },
+        billboard: { image: emojiIcon("🛰️", s === iss ? "rgba(255,214,10,0.9)" : "rgba(196, 81, 58,0.85)"), width: 34, height: 34, disableDepthTestDistance: 0 },
         label: {
-          text: s === iss ? "ISS" : "Tiangong", font: "700 14px -apple-system, system-ui, sans-serif", style: LabelStyle.FILL_AND_OUTLINE, fillColor: Color.WHITE,
+          text: s === iss ? "ISS" : "Tiangong", font: "700 14px 'Terreno Sans', 'Plus Jakarta Sans', system-ui, sans-serif", style: LabelStyle.FILL_AND_OUTLINE, fillColor: Color.WHITE,
           outlineColor: Color.fromCssColorString("#0b1320"), outlineWidth: 4, verticalOrigin: VerticalOrigin.BOTTOM, pixelOffset: new Cartesian2(0, -22),
         },
       });
@@ -141,8 +141,8 @@ export class SpaceLayer {
     const toPos = (pts: [number, number, number][]) => pts.map(([lon, lat, alt]) => Cartesian3.fromDegrees(lon, lat, alt * 1000));
     const ahead = groundTrack(this.iss, Date.now(), 0, 92, 1), behind = groundTrack(this.iss, Date.now(), -45, 0, 1);
     this.trackEntities.push(
-      this.ds.entities.add({ polyline: { positions: toPos(ahead), width: 2.5, material: Color.fromCssColorString("#ffd60a").withAlpha(0.85), arcType: ArcType.NONE } }),
-      this.ds.entities.add({ polyline: { positions: toPos(behind), width: 2, material: new PolylineDashMaterialProperty({ color: Color.fromCssColorString("#ffd60a").withAlpha(0.5) }), arcType: ArcType.NONE } }),
+      this.ds.entities.add({ polyline: { positions: toPos(ahead), width: 2.5, material: Color.fromCssColorString("#e1b843").withAlpha(0.85), arcType: ArcType.NONE } }),
+      this.ds.entities.add({ polyline: { positions: toPos(behind), width: 2, material: new PolylineDashMaterialProperty({ color: Color.fromCssColorString("#e1b843").withAlpha(0.5) }), arcType: ArcType.NONE } }),
     );
   }
 
@@ -165,7 +165,7 @@ export class SpaceLayer {
         billboard: { image: emojiIcon("🚀"), width: 30, height: 30, disableDepthTestDistance: Number.POSITIVE_INFINITY },
         label: {
           text: new CallbackProperty(() => `${l.rocket}\n${inFlight(l) ? "In flight" : countdown(l.net)}`, false) as never,
-          font: "600 12px -apple-system, system-ui, sans-serif", style: LabelStyle.FILL_AND_OUTLINE, fillColor: Color.WHITE, outlineColor: Color.fromCssColorString("#0b1320"), outlineWidth: 4,
+          font: "600 12px 'Terreno Sans', 'Plus Jakarta Sans', system-ui, sans-serif", style: LabelStyle.FILL_AND_OUTLINE, fillColor: Color.WHITE, outlineColor: Color.fromCssColorString("#0b1320"), outlineWidth: 4,
           verticalOrigin: VerticalOrigin.BOTTOM, pixelOffset: new Cartesian2(0, -20), scaleByDistance: new NearFarScalar(1e6, 1, 2e7, 0.6), disableDepthTestDistance: Number.POSITIVE_INFINITY,
         },
       });
@@ -177,7 +177,7 @@ export class SpaceLayer {
         const rocket = this.ds.entities.add({
           position: new CallbackProperty(at, false) as never,
           billboard: { image: emojiIcon("🚀", "rgba(255,59,48,0.9)"), width: 36, height: 36, disableDepthTestDistance: Number.POSITIVE_INFINITY },
-          label: { text: `${l.rocket} (illustrative path)`, font: "700 12px -apple-system, system-ui, sans-serif", style: LabelStyle.FILL_AND_OUTLINE, fillColor: Color.WHITE, outlineColor: Color.BLACK, outlineWidth: 4, pixelOffset: new Cartesian2(0, -26), disableDepthTestDistance: Number.POSITIVE_INFINITY },
+          label: { text: `${l.rocket} (illustrative path)`, font: "700 12px 'Terreno Sans', 'Plus Jakarta Sans', system-ui, sans-serif", style: LabelStyle.FILL_AND_OUTLINE, fillColor: Color.WHITE, outlineColor: Color.BLACK, outlineWidth: 4, pixelOffset: new Cartesian2(0, -26), disableDepthTestDistance: Number.POSITIVE_INFINITY },
         });
         const trail = this.ds.entities.add({
           polyline: {
@@ -185,7 +185,7 @@ export class SpaceLayer {
               const t = (Date.now() - l.net) / 1000;
               return Array.from({ length: 40 }, (_, i) => { const a = ascent(l, (t * i) / 39); return Cartesian3.fromDegrees(a.lon, a.lat, a.alt); });
             }, false) as never,
-            width: 4, material: Color.fromCssColorString("#ff9f0a").withAlpha(0.9), arcType: ArcType.NONE,
+            width: 4, material: Color.fromCssColorString("#d19a2e").withAlpha(0.9), arcType: ArcType.NONE,
           },
         });
         (rocket as unknown as { _space: { launch: Launch } })._space = { launch: l };

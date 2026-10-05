@@ -434,7 +434,7 @@ export class App {
       position: Cartesian3.fromDegrees(p.lon, p.lat),
       point: {
         pixelSize: 16,
-        color: Color.fromCssColorString("#ff3b30"),
+        color: Color.fromCssColorString("#c4513a"),
         outlineColor: Color.WHITE,
         outlineWidth: 3,
         heightReference: HeightReference.CLAMP_TO_GROUND,
@@ -459,6 +459,7 @@ export class App {
     menu.replaceChildren(
       item("Copy link to this place", () => this.shareLink?.() ?? location.href, "Link copied"),
       this.actions.has("place:card") ? h("button", { role: "menuitem", class: "share-item", onclick: () => { this.toggleShare(false); this.actions.get("place:card")?.run(); } }, "Make a picture card") : "",
+      this.actions.has("handoff:phone") && !matchMedia("(pointer: coarse)").matches ? h("button", { role: "menuitem", class: "share-item", onclick: () => { this.toggleShare(false); this.actions.get("handoff:phone")?.run(); } }, "Continue on your phone") : "",
       item("Copy coordinates", () => `${p.lat.toFixed(6)}, ${p.lon.toFixed(6)}`, "Coordinates copied"),
       item("Copy as degrees, minutes, seconds", () => formatDms(p.lat, p.lon), "Coordinates copied"),
       address ? item("Copy name and area", () => address, "Copied") : "",

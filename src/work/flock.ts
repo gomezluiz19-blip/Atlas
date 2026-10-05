@@ -135,10 +135,10 @@ function randomInside(ring: LonLat[]): LonLat {
 
 function drawFlock(app: App) {
   if (!flock) return;
-  paddockLayer ??= new WorkLayer(app, "work:flock", "Paddocks", "#30d158");
+  paddockLayer ??= new WorkLayer(app, "work:flock", "Paddocks", "#5b9467");
   paddockLayer.set(flock.paddocks.map((p) => {
     const n = flock!.animals.filter((a) => a.paddock === p.id).length;
-    return { id: p.id, kind: "area" as const, pts: p.pts, color: "#8bd346", fill: 0.12, label: `${p.name}${n ? ` · ${n}` : ""}` };
+    return { id: p.id, kind: "area" as const, pts: p.pts, color: "#8faa5a", fill: 0.12, label: `${p.name}${n ? ` · ${n}` : ""}` };
   }), `${flock.name} · paddocks`);
   if (!herd) {
     herd = new CustomDataSource("work-flock");
@@ -180,7 +180,7 @@ function drawFlock(app: App) {
       },
     });
   }
-  app.canvas.put({ id: "work:herd", label: `${flock.name} · animals`, color: "#8bd346", scope: "world", pinned: true, show: (v) => { if (herd) herd.show = v; }, remove: () => herd?.entities.removeAll() }, true);
+  app.canvas.put({ id: "work:herd", label: `${flock.name} · animals`, color: "#8faa5a", scope: "world", pinned: true, show: (v) => { if (herd) herd.show = v; }, remove: () => herd?.entities.removeAll() }, true);
 }
 
 // ---- Screens ----------------------------------------------------------------------------------
@@ -251,7 +251,7 @@ export function openFlock(ctx: WorkCtx) {
         const ha = areaM2(p.pts) / 1e4, here = f.animals.filter((a) => a.paddock === p.id);
         const g = grazing(ha, p.forage ?? 2000, here);
         return h("button", { class: "list-row", onclick: () => openPaddock(ctx, p.id) },
-          h("span", { class: "dot big", style: "background:#8bd346" }),
+          h("span", { class: "dot big", style: "background:#8faa5a" }),
           h("span", { class: "list-text" }, h("span", { class: "list-title" }, p.name),
             h("span", { class: "list-sub" }, `${fmtArea(ha * 1e4)} · ${here.length} animal${here.length === 1 ? "" : "s"}${g.au > 0 ? ` · ${g.auPerHa.toFixed(1)} AU/ha · grass for ~${Number.isFinite(g.days) ? Math.round(g.days) : "∞"} days` : ""}`)),
           h("span", { class: "chev", html: "&rsaquo;" }));
@@ -284,7 +284,7 @@ function setup(ctx: WorkCtx) {
     h("p", { class: "mp-intro" }, "Keep track of the animals in your care: who they are, their health and weights, what's due, and where they graze."),
     name,
     h("div", { class: "work-types" }, ...(Object.keys(ORGS) as Org[]).map((o) =>
-      h("button", { class: "work-type" + (flock?.org === o ? " on" : ""), style: "--c:#8bd346", onclick: () => {
+      h("button", { class: "work-type" + (flock?.org === o ? " on" : ""), style: "--c:#8faa5a", onclick: () => {
         if (flock) flock.org = o;
         else flock = { org: o, name: "", animals: [], paddocks: [] };
         flock.name = name.value.trim() || flock.name || ORGS[o].label;
@@ -330,7 +330,7 @@ function addAnimals(ctx: WorkCtx, n: number) {
 
 async function addPaddock(ctx: WorkCtx) {
   ctx.hide();
-  const pts = await drawOnMap(ctx.app, "area", "#8bd346", "Tap around the fence line");
+  const pts = await drawOnMap(ctx.app, "area", "#8faa5a", "Tap around the fence line");
   ctx.unhide();
   if (!pts) return openFlock(ctx);
   const p = { id: newId(), name: `${flock!.org === "farm" ? "Paddock" : "Enclosure"} ${flock!.paddocks.length + 1}`, pts, forage: 2000 };
@@ -461,7 +461,7 @@ function listing() {
   const f = flock!;
   const pick = f.animals.filter((a) => (f.org === "adoption" ? a.status === "Available" : a.status !== "Released"));
   download(`${f.name} ${f.org === "adoption" ? "adoption listing" : "update"}.html`, `<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>${esc(f.name)}</title>
-<style>body{font:15px/1.5 -apple-system,system-ui,sans-serif;margin:24px auto;max-width:960px;padding:0 16px;color:#1d1d1f}.g{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px}.c{border-radius:16px;background:#f5f5f7;overflow:hidden}.p{aspect-ratio:1;background:#e8e8ed;display:grid;place-items:center;font-size:72px}.p img{width:100%;height:100%;object-fit:cover}.t{padding:10px 14px 14px}.m{color:#6e6e73;font-size:13px}</style>
+<style>body{font:15px/1.5 'Terreno Sans','Plus Jakarta Sans',system-ui,sans-serif;margin:24px auto;max-width:960px;padding:0 16px;color:#1d1d1f}.g{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px}.c{border-radius:16px;background:#f5f5f7;overflow:hidden}.p{aspect-ratio:1;background:#e8e8ed;display:grid;place-items:center;font-size:72px}.p img{width:100%;height:100%;object-fit:cover}.t{padding:10px 14px 14px}.m{color:#6e6e73;font-size:13px}</style>
 <h1>${esc(f.name)}</h1><p class="m">${f.org === "adoption" ? `${pick.length} animals looking for a home` : `${pick.length} animals in our care`} · ${fmtDate(today())}</p>
 <div class="g">${pick.map((a) => `<div class="c"><div class="p">${a.photo ? `<img src="${a.photo}" alt="">` : speciesById(a.species).emoji}</div><div class="t"><b>${esc(label(a))}</b><div class="m">${esc([speciesById(a.species).label, a.sex === "F" ? "Female" : a.sex === "M" ? "Male" : "", age(a.born, today())].filter(Boolean).join(" · "))}</div><p>${esc(a.notes ?? "")}</p></div></div>`).join("")}</div>`, "text/html");
 }

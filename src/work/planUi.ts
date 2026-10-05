@@ -229,7 +229,7 @@ async function analyse(p: Plan, box: HTMLElement, redraw: (extra?: import("./lay
       if (!venue) { box.replaceChildren(h("p", { class: "muted small" }, "Place the venue to see how far people can come from.")); return; }
       const v = venue.pts[0];
       // Reach rings for the way people will come, at typical door-to-door speeds in town.
-      const REACH = { walk: { label: "On foot", emoji: "🚶", kmh: 4.8, color: "#8e8e93" }, bike: { label: "By bike", emoji: "🚲", kmh: 14, color: "#34c759" }, transit: { label: "Bus or train", emoji: "🚌", kmh: 18, color: "#ff9f0a" }, drive: { label: "By car", emoji: "🚗", kmh: 30, color: PLAN_TYPES.event.color } } as const;
+      const REACH = { walk: { label: "On foot", emoji: "🚶", kmh: 4.8, color: "#8c8f87" }, bike: { label: "By bike", emoji: "🚲", kmh: 14, color: "#5b9467" }, transit: { label: "Bus or train", emoji: "🚌", kmh: 18, color: "#d19a2e" }, drive: { label: "By car", emoji: "🚗", kmh: 30, color: PLAN_TYPES.event.color } } as const;
       const how = (p.mode && p.mode in REACH ? p.mode : "drive") as keyof typeof REACH;
       const rm = REACH[how];
       const rings = [15, 30, 60].map((min) => ({ min, r: (rm.kmh * 1000 * min) / 60 / 1.3 }));

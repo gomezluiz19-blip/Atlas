@@ -64,3 +64,29 @@ describe("reloading onto a new deploy", () => {
     expect(isStaleChunk(undefined)).toBe(false);
   });
 });
+
+import { anyIconHtml, flagCode, isEmoji } from "../src/ui/glyph";
+import { withoutEmoji } from "../src/ui/noEmoji";
+describe("no borrowed emoji", () => {
+  it("knows an emoji picture from a typographic mark", () => {
+    expect(isEmoji("🏔️")).toBe(true);
+    expect(isEmoji("🦊")).toBe(true);
+    expect(isEmoji("🇫🇷")).toBe(true);
+    expect(isEmoji("✓")).toBe(false);
+    expect(isEmoji("✕")).toBe(false);
+    expect(isEmoji("★")).toBe(false);
+    expect(isEmoji("↗")).toBe(false);
+  });
+  it("always draws Terreno's own icon", () => {
+    expect(anyIconHtml("✈️")).toContain("<svg");
+    expect(anyIconHtml("🦊")).toContain("<svg");
+    expect(anyIconHtml("🫨")).toContain("<rect"); // unknown: a tessera
+    expect(anyIconHtml("🇯🇵")).toContain("JP");
+    expect(flagCode("🇧🇷")).toBe("BR");
+    expect(flagCode("🏔️")).toBeNull();
+  });
+  it("takes emoji out of tooltips and labels", () => {
+    expect(withoutEmoji("📍 Our sites")).toBe("Our sites");
+    expect(withoutEmoji("Hologram ✓")).toBe("Hologram ✓");
+  });
+});

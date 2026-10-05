@@ -21,6 +21,8 @@ import { teamCard, teamSync } from "../kit/team";
 import { downloadCsv, pickFile, printReport } from "../kit/report";
 import { kpis, list, row, title } from "../kit/ui";
 import { demoCity } from "./demo";
+import { canvasUrl } from "../../ui/canvasUrl";
+import { iconPin } from "../../ui/glyph";
 import {
   agencyStats, CONDITION_COLOR, CONDITION_LABEL, COVERAGE_KM, coverageGaps, cityKpis, daysBetween, facilitiesFromCsv, facilitiesFromRows, facilityFlags, from311, fromFacDb, heatCells, isoDay, money, morningBrief, projectStatus, topTypes,
   type Agency, type City, type Facility, type FacilityKind, type Incident, type Project,
@@ -34,16 +36,16 @@ type Tab = "desk" | "agencies" | "projects" | "311" | "bids";
 const TABS: [Tab, string][] = [["desk", "Mayor's desk"], ["agencies", "Agencies"], ["projects", "Projects"], ["311", "311"], ["bids", "Bids"]];
 const INCIDENT_EMOJI: Record<Incident["kind"], string> = { fire: "🔥", "water main": "💧", power: "⚡", collision: "🚑", flooding: "🌊", building: "🏚️", police: "🚓", weather: "⛈️" };
 const KIND_LABEL: Record<FacilityKind, string> = { firehouse: "Firehouse", precinct: "Precinct", school: "School", hospital: "Hospital", library: "Library", garage: "Garage", park: "Recreation center", shelter: "Shelter", plant: "Treatment plant", yard: "Yard", office: "Office", other: "Facility" };
-const RAG = { red: "#ff453a", amber: "#ff9f0a", green: "#30d158" };
+const RAG = { red: "#c4513a", amber: "#d19a2e", green: "#5b9467" };
 const S311 = "https://data.cityofnewyork.us/resource/erm2-nwe9.json";
 const FACDB = "https://data.cityofnewyork.us/resource/ji82-xba5.json";
-const heatColor = (t: number) => t > 0.66 ? "#ff3b30" : t > 0.33 ? "#ff9f0a" : "#ffd60a";
+const heatColor = (t: number) => t > 0.66 ? "#c4513a" : t > 0.33 ? "#d19a2e" : "#e1b843";
 
 let mass: Massing | null = null, projMass: Massing | null = null, live: CustomDataSource | null = null;
 
 export function openCityOps(ctx: WorkCtx, app: App, view?: string) {
-  mass ??= new Massing(app, "city:facilities", "City facilities", "#5e5ce6", "🏛️");
-  projMass ??= new Massing(app, "city:projects", "Capital projects", "#ff9f0a", "🏗️");
+  mass ??= new Massing(app, "city:facilities", "City facilities", "#5160c2", "🏛️");
+  projMass ??= new Massing(app, "city:projects", "Capital projects", "#d19a2e", "🏗️");
   if (!live) { live = new CustomDataSource("city-live"); void app.globe.viewer.dataSources.add(live); }
   const today = isoDay();
   let C = load();
@@ -66,9 +68,9 @@ export function openCityOps(ctx: WorkCtx, app: App, view?: string) {
     if (!C) return;
     const fs = C.facilities.filter((f) => !onlyAgency || f.agency === onlyAgency);
     const bs: MassBuilding[] = fs.map((f) => {
-      const col = colourBy === "agency" ? agency(f.agency)?.color ?? "#8e8e93" : CONDITION_COLOR[f.condition];
+      const col = colourBy === "agency" ? agency(f.agency)?.color ?? "#8c8f87" : CONDITION_COLOR[f.condition];
       return { id: f.id, lon: f.lon, lat: f.lat, w: f.w, d: f.d, bearing: f.bearing, floors: f.floors, floorH: f.kind === "office" ? 4 : 3.8, floorColor: () => col,
-        pulse: f.status !== "open" ? "#ff453a" : undefined, dot: focus || tab === "311" ? undefined : col, label: focus?.id === f.id || (onlyAgency && fs.length < 30) ? f.name : undefined, onTap: () => facilityPage(f) };
+        pulse: f.status !== "open" ? "#c4513a" : undefined, dot: focus || tab === "311" ? undefined : col, label: focus?.id === f.id || (onlyAgency && fs.length < 30) ? f.name : undefined, onTap: () => facilityPage(f) };
     });
     mass!.draw(bs, onlyAgency ? `${agency(onlyAgency)?.short} facilities` : `${C.name}: facilities`, false);
   }
@@ -84,18 +86,18 @@ export function openCityOps(ctx: WorkCtx, app: App, view?: string) {
     if (!C) return;
     const born = performance.now();
     for (const i of C.incidents.filter((x) => x.status !== "closed")) {
-      const col = Color.fromCssColorString(i.severity >= 3 ? "#ff453a" : i.severity === 2 ? "#ff9f0a" : "#ffd60a");
+      const col = Color.fromCssColorString(i.severity >= 3 ? "#c4513a" : i.severity === 2 ? "#d19a2e" : "#e1b843");
       const base = 120 + i.severity * 90;
       // A steady ring that breathes in brightness: only its colour changes, so no geometry is rebuilt per frame.
       const pulse = () => 0.5 + 0.5 * Math.sin((performance.now() - born) / 300);
       live!.entities.add({ position: Cartesian3.fromDegrees(i.lon, i.lat), ellipse: { semiMajorAxis: base, semiMinorAxis: base,
         material: new ColorMaterialProperty(new CallbackProperty(() => col.withAlpha(0.18 + 0.32 * pulse()), false)) } });
-      const e = live!.entities.add({ position: Cartesian3.fromDegrees(i.lon, i.lat), label: { text: `${INCIDENT_EMOJI[i.kind]}`, font: "22px sans-serif", verticalOrigin: VerticalOrigin.CENTER, disableDepthTestDistance: Number.POSITIVE_INFINITY, scaleByDistance: new NearFarScalar(2000, 1.2, 80_000, 0.7) } });
+      const e = live!.entities.add({ position: Cartesian3.fromDegrees(i.lon, i.lat), billboard: { image: canvasUrl(`gov|${i.kind}|${i.severity}`, () => iconPin(INCIDENT_EMOJI[i.kind], col.toCssHexString(), 44)) as never, verticalOrigin: VerticalOrigin.CENTER, disableDepthTestDistance: Number.POSITIVE_INFINITY, scaleByDistance: new NearFarScalar(2000, 0.75, 80_000, 0.45) } });
       makeTappable(e, () => incidentPage(i));
     }
     wake(800);
     ambient(app.globe.viewer.scene, live, C.incidents.some((x) => x.status !== "closed"));
-    app.canvas.put({ id: "city:live", label: "🚨 Incidents and 311", color: "#ff453a", scope: "world", pinned: true, show: (v) => { live!.show = v; wake(600); }, remove: () => clearLive() }, true);
+    app.canvas.put({ id: "city:live", label: "🚨 Incidents and 311", color: "#c4513a", scope: "world", pinned: true, show: (v) => { live!.show = v; wake(600); }, remove: () => clearLive() }, true);
   }
   function drawHeat(from?: number, to?: number, type?: string) {
     if (!C) return;
@@ -110,7 +112,7 @@ export function openCityOps(ctx: WorkCtx, app: App, view?: string) {
   function drawGaps(kind: FacilityKind, maxKm: number) {
     const gaps = coverageGaps(C!, kind, maxKm);
     // Each gap a soft magenta patch about a grid cell across, so together they read as areas.
-    const gc = Color.fromCssColorString("#ff2d55").withAlpha(0.38);
+    const gc = Color.fromCssColorString("#b8496a").withAlpha(0.38);
     for (const g of gaps) live!.entities.add({ position: Cartesian3.fromDegrees(g.lon, g.lat), ellipse: { semiMajorAxis: 420, semiMinorAxis: 420, material: gc } });
     wake(400);
     return gaps;
@@ -133,7 +135,7 @@ export function openCityOps(ctx: WorkCtx, app: App, view?: string) {
       h("div", { class: "pf-add con-base" }, name, h("button", { class: "pill-btn", onclick: async () => {
         const g = (await geocode(name.value).catch(() => []))[0];
         if (!g) { app.toast("Couldn't find that place."); return; }
-        C = { id: `c${Date.now()}`, name: name.value || g.name, lon: g.lon, lat: g.lat, agencies: [{ id: "city", name: "City", short: "City", color: "#5e5ce6", emoji: "🏛️", budget: 0, headcount: 0, vacancies: 0, overtime: 0, head: "" }], facilities: [], projects: [], incidents: [], requests: [], bids: [] };
+        C = { id: `c${Date.now()}`, name: name.value || g.name, lon: g.lon, lat: g.lat, agencies: [{ id: "city", name: "City", short: "City", color: "#5160c2", emoji: "🏛️", budget: 0, headcount: 0, vacancies: 0, overtime: 0, head: "" }], facilities: [], projects: [], incidents: [], requests: [], bids: [] };
         persist(); home();
       } }, "Create")),
       h("p", { class: "fineprint" }, "The demo's agencies, facilities, projects and incidents are invented and placed near real neighbourhoods; budgets and headcounts are illustrative. Live 311 and the city's facilities database load from NYC Open Data."));
@@ -286,7 +288,7 @@ export function openCityOps(ctx: WorkCtx, app: App, view?: string) {
       kpis([`${mins < 60 ? `${mins} min` : `${Math.floor(mins / 60)} h ${mins % 60} min`}`, "since reported"], [["", "Minor", "Serious", "Major"][i.severity], "severity", i.severity >= 3], [i.status, "status"]),
       h("p", { class: "ec-note" }, `Agencies: ${i.agencies.join(", ")}`),
       title("Closest city facilities"),
-      list(...(["firehouse", "precinct", "hospital", "shelter", "school"] as FacilityKind[]).map((k) => nearest(k)).filter(Boolean).map((x) => row({ color: agency(x!.f.agency)?.color ?? "#8e8e93" }, x!.f.name, `${KIND_LABEL[x!.f.kind]} · ${x!.km.toFixed(1)} km · ${x!.f.status === "open" ? "open" : x!.f.status}`, () => facilityPage(x!.f)))),
+      list(...(["firehouse", "precinct", "hospital", "shelter", "school"] as FacilityKind[]).map((k) => nearest(k)).filter(Boolean).map((x) => row({ color: agency(x!.f.agency)?.color ?? "#8c8f87" }, x!.f.name, `${KIND_LABEL[x!.f.kind]} · ${x!.km.toFixed(1)} km · ${x!.f.status === "open" ? "open" : x!.f.status}`, () => facilityPage(x!.f)))),
       h("div", { class: "edu-actions" },
         i.status === "active" ? h("button", { class: "pill-btn", onclick: () => { i.status = "contained"; persist(); clearLive(); drawIncidents(); incidentPage(i); } }, "Mark contained") : "",
         h("button", { class: "pill-btn", onclick: () => { i.status = "closed"; persist(); clearLive(); drawIncidents(); home(); } }, "Close")));
@@ -386,7 +388,7 @@ export function openCityOps(ctx: WorkCtx, app: App, view?: string) {
     const rest = C!.bids.filter((b) => b.status !== "open");
     const bidRow = (b: City["bids"][number]) => {
       const days = daysBetween(today, b.due), a = agency(b.agency), p = C!.projects.find((x) => x.id === b.project);
-      return row({ color: a?.color ?? "#8e8e93" }, b.title, `${a?.short ?? ""} · ${money(b.value)} · ${b.bidders} bidder${b.bidders === 1 ? "" : "s"} · ${b.status === "open" ? `closes ${b.due}` : b.status}`, p ? () => projectPage(p) : undefined,
+      return row({ color: a?.color ?? "#8c8f87" }, b.title, `${a?.short ?? ""} · ${money(b.value)} · ${b.bidders} bidder${b.bidders === 1 ? "" : "s"} · ${b.status === "open" ? `closes ${b.due}` : b.status}`, p ? () => projectPage(p) : undefined,
         b.status === "open" ? h("span", { class: `con-badge ${days <= 7 ? "now" : "soon"}` }, days <= 0 ? "Today" : `${days} d`) : undefined);
     };
     return [

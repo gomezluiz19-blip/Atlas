@@ -40,7 +40,7 @@ let focusChoke: string | null = null;
 let extraPorts: Port[] = [];
 void loadPorts().then((ps) => { extraPorts = ps.map((p) => ({ name: p.name, lon: p.lon, lat: p.lat, country: "" })); }).catch(() => {});
 
-const C = { ok: "#0a84ff", late: "#ff453a", risk: "#ff9f0a", done: "#8e8e93", port: "#5e5ce6", alt: "#ff9f0a", early: "#30d158" };
+const C = { ok: "#3563d6", late: "#c4513a", risk: "#d19a2e", done: "#8c8f87", port: "#5160c2", alt: "#d19a2e", early: "#5b9467" };
 const nm = (km: number) => `${fmt(Math.round(km / NM))} nm`;
 const tco2 = (t: number) => (t >= 100 ? `${fmt(Math.round(t))} t` : `${fmt(t, 1)} t`);
 const eur = (v: number) => `€${v >= 10_000 ? `${fmt(Math.round(v / 1000))}k` : fmt(Math.round(v))}`;
@@ -51,7 +51,7 @@ const lateText = (e: Eta) => (e.basis === "arrived" ? (e.late > 0 ? `arrived ${e
 // ---- The map ---------------------------------------------------------------------------------------
 
 function draw(app: App, d: Desk, only?: Shipment) {
-  map ??= new OpsMap(app, "pro:shipping", "#0a84ff");
+  map ??= new OpsMap(app, "pro:shipping", "#3563d6");
   const now = Date.now(), fs: WorkFeature[] = [];
   const ports = new Map<string, Port>();
   const items = only ? [{ s: only, e: eta(d, only, now), f: risks(d, only, eta(d, only, now), today()) }] : attention(d, now);
@@ -73,7 +73,7 @@ function draw(app: App, d: Desk, only?: Shipment) {
   }
   if (view === "routes") for (const [id, c] of Object.entries(CHOKEPOINTS)) {
     const [a] = c.edges[0].split("-"), n = NODES[a], used = items.filter((x) => x.e.route?.chokepoints.includes(id)).length;
-    fs.push({ id: `c${id}`, kind: "point", pts: [[n[0], n[1]]], color: d.closed.includes(id) ? C.late : used ? C.risk : "#8e8e93", label: `${d.closed.includes(id) ? "⛔ " : ""}${c.label}${used ? ` · ${used}` : ""}` });
+    fs.push({ id: `c${id}`, kind: "point", pts: [[n[0], n[1]]], color: d.closed.includes(id) ? C.late : used ? C.risk : "#8c8f87", label: `${d.closed.includes(id) ? "⛔ " : ""}${c.label}${used ? ` · ${used}` : ""}` });
   }
   if (view === "risk") for (const a of WARNING_AREAS) { const [w, s, e, n] = a.box; fs.push({ id: `w${a.id}`, kind: "area", pts: [[w, s], [e, s], [e, n], [w, n]], color: C.late, fill: 0.15 }); }
   const arrivals = arrivalsByPort(d, now);
@@ -186,7 +186,7 @@ function portsPanel(ctx: WorkCtx, d: Desk) {
         h("div", { class: "row" },
           h("button", { class: "pill-btn holo-go", onclick: () => void openSpace(ctx.app, {
             name: g.port.name, kicker: `Port · ${g.port.country}${g.port.code ? ` · ${g.port.code}` : ""}`, lon: g.port.lon, lat: g.port.lat, size: 2400, tint: "cyan",
-            markers: [{ lon: g.port.lon, lat: g.port.lat, color: w && w.days >= 3 ? "#ff9f0a" : "#5ad8ff", label: `${g.items.length} arriving`, pulse: !!w && w.days >= 3, ring: 900, height: 120 }],
+            markers: [{ lon: g.port.lon, lat: g.port.lat, color: w && w.days >= 3 ? "#d19a2e" : "#8fa8f2", label: `${g.items.length} arriving`, pulse: !!w && w.days >= 3, ring: 900, height: 120 }],
           }).then((hl) => hl.setHud([
             { k: "Arriving, 30 d", v: String(g.items.length) }, { k: "Wait to berth", v: w ? `${w.days} days` : "none reported" },
             ...g.items.slice(0, 3).map((it) => ({ k: it.eta, v: it.s.ref })),
@@ -252,7 +252,7 @@ function carbonPanel(ctx: WorkCtx, d: Desk) {
     title("By customer"),
     list(...[...byCust].sort((a, b) => b[1] - a[1]).map(([c, t]) => row("🌿", c, `${tco2(t)} CO₂ · ${Math.round((t / Math.max(1e-9, total)) * 100)}%`, () => customerReport(d, c)))),
     title("By shipment"),
-    list(...rowsData.sort((a, b) => b.t - a.t).map((x) => row({ color: x.ets.eur ? "#30d158" : C.done }, `${x.s.ref} · ${tco2(x.t)} CO₂`, `${x.s.origin.name} → ${x.s.dest.name} · ${nm(x.km)} · ${VESSEL_TYPES[x.v?.type ?? "container"].label.toLowerCase()}${x.ets.eur ? ` · EU ETS ${eur(x.ets.eur)}` : ""}`, () => shipmentScreen(ctx, d, x.s)))));
+    list(...rowsData.sort((a, b) => b.t - a.t).map((x) => row({ color: x.ets.eur ? "#5b9467" : C.done }, `${x.s.ref} · ${tco2(x.t)} CO₂`, `${x.s.origin.name} → ${x.s.dest.name} · ${nm(x.km)} · ${VESSEL_TYPES[x.v?.type ?? "container"].label.toLowerCase()}${x.ets.eur ? ` · EU ETS ${eur(x.ets.eur)}` : ""}`, () => shipmentScreen(ctx, d, x.s)))));
 }
 
 // ---- Risk --------------------------------------------------------------------------------------------
@@ -290,7 +290,7 @@ async function checkSeas(ctx: WorkCtx, d: Desk) {
 
 function portInput(p: Port | undefined, set: (p: Port) => void, placeholder: string) {
   const el = h("input", { class: "pro-url", value: p ? p.name : "", placeholder, list: "fd-ports" }) as HTMLInputElement;
-  el.onchange = () => { const f = findPort(el.value, extraPorts); if (f) { set(f); el.value = f.name; } else el.style.borderColor = "#ff453a"; };
+  el.onchange = () => { const f = findPort(el.value, extraPorts); if (f) { set(f); el.value = f.name; } else el.style.borderColor = "#c4513a"; };
   return el;
 }
 

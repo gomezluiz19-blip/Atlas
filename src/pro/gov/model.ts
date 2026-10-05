@@ -36,7 +36,7 @@ const DAY = 86_400_000;
 export const isoDay = (t = Date.now()) => new Date(t).toISOString().slice(0, 10);
 export const daysBetween = (a: string, b: string) => Math.round((Date.parse(b) - Date.parse(a)) / DAY);
 
-export const CONDITION_COLOR = ["#ff453a", "#ff453a", "#ff9f0a", "#ffd60a", "#8fd14f", "#30d158"];
+export const CONDITION_COLOR = ["#c4513a", "#c4513a", "#d19a2e", "#e1b843", "#8fd14f", "#5b9467"];
 export const CONDITION_LABEL = ["", "Poor", "Fair", "Adequate", "Good", "Excellent"];
 
 /** A capital project's state on a day: planned and actual progress, schedule slip in weeks, and the cost at completion at the current burn (pure). */

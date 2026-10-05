@@ -9,7 +9,7 @@ import type { Case, Contact } from "./model";
 export type Position = "support" | "oppose" | "neutral" | "question";
 export const POSITIONS: { id: Position; label: string; color: string }[] = [
   { id: "support", label: "Support", color: "#1f9d55" }, { id: "oppose", label: "Oppose", color: "#d64545" },
-  { id: "neutral", label: "Comment", color: "#8e8e93" }, { id: "question", label: "Question or request", color: "#0a84ff" },
+  { id: "neutral", label: "Comment", color: "#8c8f87" }, { id: "question", label: "Question or request", color: "#3563d6" },
 ];
 export const CHANNELS = ["Email", "Web form", "Letter", "Phone", "Social media", "In person"] as const;
 export interface Message { id: string; contact?: string; name: string; email?: string; topic: string; position: Position; channel: string; received: string; replied?: string; lon?: number; lat?: number; note?: string }

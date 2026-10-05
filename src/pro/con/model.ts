@@ -23,7 +23,7 @@ export const STAGE_TRADES: Record<Stage, string[]> = {
   finishes: ["Painters", "Tile, marble & terrazzo", "Floor layers", "Elevator constructors"],
   closeout: ["Laborers"],
 };
-export const STAGE_COLOR: Record<Stage, string> = { "site prep": "#a2845e", excavation: "#8b6b47", foundation: "#8e8e93", structure: "#c7c7cc", envelope: "#c0533a", interiors: "#64d2ff", finishes: "#30d158", closeout: "#5e5ce6" };
+export const STAGE_COLOR: Record<Stage, string> = { "site prep": "#9a7552", excavation: "#8b6b47", foundation: "#8c8f87", structure: "#c7c7cc", envelope: "#c0533a", interiors: "#4c9ac9", finishes: "#5b9467", closeout: "#5160c2" };
 
 export type Kind = "residential" | "mixed-use" | "commercial" | "institutional" | "industrial" | "civil";
 /** Share of a facade typically in masonry (brick, block, stone) for each kind of building: a rough planning figure. */

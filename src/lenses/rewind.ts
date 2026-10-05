@@ -125,8 +125,8 @@ async function deepTime(host: LensHost, box: HTMLElement, s: Subject) {
       viewer.imageryLayers.add(layer);
       ds.entities.removeAll();
       if (pt) {
-        ds.entities.add({ position: Cartesian3.fromDegrees(pt[0], pt[1]), point: { pixelSize: 14, color: Color.fromCssColorString("#ffd60a"), outlineColor: Color.BLACK, outlineWidth: 3, disableDepthTestDistance: Number.POSITIVE_INFINITY },
-          label: { text: `${s.name}, ${ma ? `${ma} Ma` : "today"}`, font: "700 14px -apple-system, system-ui, sans-serif", style: LabelStyle.FILL_AND_OUTLINE, fillColor: Color.WHITE, outlineColor: Color.BLACK, outlineWidth: 4, verticalOrigin: VerticalOrigin.BOTTOM, pixelOffset: new Cartesian2(0, -12), disableDepthTestDistance: Number.POSITIVE_INFINITY } });
+        ds.entities.add({ position: Cartesian3.fromDegrees(pt[0], pt[1]), point: { pixelSize: 14, color: Color.fromCssColorString("#e1b843"), outlineColor: Color.BLACK, outlineWidth: 3, disableDepthTestDistance: Number.POSITIVE_INFINITY },
+          label: { text: `${s.name}, ${ma ? `${ma} Ma` : "today"}`, font: "700 14px 'Terreno Sans', 'Plus Jakarta Sans', system-ui, sans-serif", style: LabelStyle.FILL_AND_OUTLINE, fillColor: Color.WHITE, outlineColor: Color.BLACK, outlineWidth: 4, verticalOrigin: VerticalOrigin.BOTTOM, pixelOffset: new Cartesian2(0, -12), disableDepthTestDistance: Number.POSITIVE_INFINITY } });
         viewer.camera.flyTo({ destination: Cartesian3.fromDegrees(pt[0], pt[1], 16_000_000), duration: 1.5 });
         const moved = Math.round(Math.hypot(pt[0] - s.lon, pt[1] - s.lat));
         status.textContent = `Then at ${Math.abs(pt[1]).toFixed(0)}°${pt[1] >= 0 ? "N" : "S"} (today ${Math.abs(s.lat).toFixed(0)}°${s.lat >= 0 ? "N" : "S"})${ma ? `, about ${moved}° away from where it is now.` : "."}${Math.abs(pt[1]) < 25 && Math.abs(s.lat) > 30 ? " It sat in the tropics." : ""}`;

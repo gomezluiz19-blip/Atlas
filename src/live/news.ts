@@ -202,17 +202,17 @@ export function naturalEvents(): Promise<NaturalEvent[]> {
 
 export const EVENT_LOOK: Record<EventKind, { emoji: string; label: string; color: string }> = {
   wildfires: { emoji: "🔥", label: "Wildfires", color: "#ff6b35" },
-  severeStorms: { emoji: "🌀", label: "Storms", color: "#5ac8fa" },
-  volcanoes: { emoji: "🌋", label: "Volcanoes", color: "#ff3b30" },
-  floods: { emoji: "🌊", label: "Floods", color: "#0a84ff" },
+  severeStorms: { emoji: "🌀", label: "Storms", color: "#4c9ac9" },
+  volcanoes: { emoji: "🌋", label: "Volcanoes", color: "#c4513a" },
+  floods: { emoji: "🌊", label: "Floods", color: "#3563d6" },
   seaLakeIce: { emoji: "🧊", label: "Sea and lake ice", color: "#a0e7ff" },
-  earthquakes: { emoji: "〰️", label: "Earthquakes", color: "#ff9500" },
-  landslides: { emoji: "⛰️", label: "Landslides", color: "#a2845e" },
-  drought: { emoji: "☀️", label: "Drought", color: "#e0b050" },
+  earthquakes: { emoji: "〰️", label: "Earthquakes", color: "#d19a2e" },
+  landslides: { emoji: "⛰️", label: "Landslides", color: "#9a7552" },
+  drought: { emoji: "☀️", label: "Drought", color: "#c9a256" },
   dustHaze: { emoji: "🌫️", label: "Dust and haze", color: "#c7a17a" },
-  tempExtremes: { emoji: "🌡️", label: "Heat and cold", color: "#ff453a" },
+  tempExtremes: { emoji: "🌡️", label: "Heat and cold", color: "#c4513a" },
   snow: { emoji: "❄️", label: "Snow", color: "#e5e5ea" },
-  other: { emoji: "•", label: "Other", color: "#8e8e93" },
+  other: { emoji: "•", label: "Other", color: "#8c8f87" },
 };
 
 /** "3 min ago", "5 h ago", "2 days ago". */

@@ -14,8 +14,8 @@ import { everyFrame } from "../globe/motion";
 import { elevation } from "../data/elevation";
 import { busyAt, dist, fetchCity, localHour, M_LAT, mLon, type CityData, type Mover, type Road } from "./data";
 
-const CAR_COLORS = ["#ff453a", "#0a84ff", "#ffd60a", "#f2f2f7", "#2c2c2e", "#30d158", "#ff9f0a", "#8e8e93", "#bf5af2", "#64d2ff", "#f2f2f7", "#1c1c1e"];
-const CLOTHES = ["#ff375f", "#5e5ce6", "#ffd60a", "#34c759", "#ff9f0a", "#64d2ff", "#f2f2f7", "#af52de", "#1c1c1e", "#0a84ff"];
+const CAR_COLORS = ["#c4513a", "#3563d6", "#e1b843", "#f2f2f7", "#2c2c2e", "#5b9467", "#d19a2e", "#8c8f87", "#8b5fa8", "#4c9ac9", "#f2f2f7", "#1c1c1e"];
+const CLOTHES = ["#b8496a", "#5160c2", "#e1b843", "#5b9467", "#d19a2e", "#4c9ac9", "#f2f2f7", "#8b5fa8", "#1c1c1e", "#3563d6"];
 const SKIN = ["#f3cfb3", "#e0ac7e", "#b67a4c", "#7b4b2a", "#5a3620"];
 const CLAY: Record<string, string> = { house: "#f1e7da", detached: "#f1e7da", residential: "#efe6d8", apartments: "#ece4d6", commercial: "#e7eaf0", retail: "#efe3e0", office: "#e3e8ef", industrial: "#ddd8cf", warehouse: "#ddd8cf", church: "#ecdcc4", school: "#f2e2c2", hospital: "#eef0f2", yes: "#ebe6de" };
 const ROOF: Record<string, string> = { house: "#c98f6c", detached: "#c98f6c", residential: "#b99c86", apartments: "#a9a39c", commercial: "#9fb0c2", retail: "#c7a19a", office: "#93a7bd", industrial: "#a7a39b", warehouse: "#a7a39b", church: "#8f9aa3", school: "#c9ad7d", hospital: "#b8c4cc", yes: "#b5aca1" };
@@ -42,7 +42,7 @@ export function createCityLife(app: App) {
 
   const status = (text: string) => {
     if (!on) return;
-    app.canvas.put({ id: "city:life", label: `Living city · ${text}`, color: "#ff9f0a", scope: "world", pinned: true,
+    app.canvas.put({ id: "city:life", label: `Living city · ${text}`, color: "#d19a2e", scope: "world", pinned: true,
       show: (v) => { for (const p of statics) p.show = v && !real3d(); for (const a of agents) a.prim.show = v; },
       remove: () => set(false) }, true);
   };

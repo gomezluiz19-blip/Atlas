@@ -39,9 +39,9 @@ export function openGames(ctx: WorkCtx, back: () => void) {
   ctx.show("Games", back,
     h("p", { class: "mp-intro" }, "Quick games for the start or end of a lesson, one player or the whole class calling out answers."),
     h("div", { class: "work-types" },
-      card("Where in the world? · Capitals", "Tap where each capital city is", "#0a84ff", "where-capitals", () => where(ctx.app, CAPITALS, "where-capitals", "capitals")),
-      card("Where in the world? · Wonders", "Mountains, ruins, reefs and falls", "#30d158", "where-wonders", () => where(ctx.app, LANDMARKS, "where-wonders", "wonders")),
-      card("Time traveller", "Here's the world's map. What year is it?", "#e0b050", "time", () => timeTraveller(ctx.app)),
+      card("Where in the world? · Capitals", "Tap where each capital city is", "#3563d6", "where-capitals", () => where(ctx.app, CAPITALS, "where-capitals", "capitals")),
+      card("Where in the world? · Wonders", "Mountains, ruins, reefs and falls", "#5b9467", "where-wonders", () => where(ctx.app, LANDMARKS, "where-wonders", "wonders")),
+      card("Time traveller", "Here's the world's map. What year is it?", "#c9a256", "time", () => timeTraveller(ctx.app)),
     ),
     h("p", { class: "muted small" }, "Long-running games for a whole unit are in World Summit."),
   );
@@ -61,7 +61,7 @@ export function where(app: App, places: GamePlace[], key: string, what: string) 
       const km = distanceKm([g.lon, g.lat], [p.lon, p.lat]);
       const pts = guessPoints(km);
       total += pts;
-      revealMap(app, { id: "", kind: "map", prompt: "", place: p.name, lon: p.lon, lat: p.lat, tolerance: 0 }, [{ pt: [g.lon, g.lat], color: "#0a84ff", label: "Your guess" }]);
+      revealMap(app, { id: "", kind: "map", prompt: "", place: p.name, lon: p.lon, lat: p.lat, tolerance: 0 }, [{ pt: [g.lon, g.lat], color: "#3563d6", label: "Your guess" }]);
       s.answers.replaceChildren(h("div", { class: "stage-tile small " + (pts > 700 ? "right" : pts < 100 ? "wrong" : "") }, h("b", {}, `+${pts}`), h("span", {}, km < 25 ? "Spot on!" : `${fmtDist(km * 1000)} away`)));
       s.bar.replaceChildren(h("button", { class: "present-btn wide", onclick: () => { r++; if (r < ROUNDS) void round(); else end(); } }, r + 1 < ROUNDS ? "Next" : "See score"));
     });
@@ -92,7 +92,7 @@ export function timeTraveller(app: App) {
     s.answers.replaceChildren(h("div", { class: "stage-hint" }, "Loading the map…"));
     s.bar.replaceChildren(h("button", { class: "present-btn", "aria-label": "Quit", onclick: () => { void showYear(app, null); s.close(); } }, "✕"));
     await Promise.all([flyToView(app, overhead(view.lon, view.lat, view.height), 2), showYear(app, answer).catch(() => [])]);
-    s.answers.replaceChildren(...options.map((y, j) => h("button", { class: "stage-tile", style: `--c:${["#ff375f", "#0a84ff", "#ffd60a", "#bf5af2"][j]}`, onclick: () => {
+    s.answers.replaceChildren(...options.map((y, j) => h("button", { class: "stage-tile", style: `--c:${["#b8496a", "#3563d6", "#e1b843", "#8b5fa8"][j]}`, onclick: () => {
       const pts = yearPoints(y, answer);
       total += pts;
       [...s.answers.children].forEach((el, k) => { (el as HTMLButtonElement).disabled = true; el.classList.add(options[k] === answer ? "right" : options[k] === y ? "wrong" : "dim"); });

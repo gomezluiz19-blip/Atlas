@@ -74,7 +74,7 @@ export const LINES: Line[] = [
     ...(SOURCE_STATIONS[i.id] ? [{ id: `source-${i.id}`, label: SOURCE_STATIONS[i.id][0], who: SOURCE_STATIONS[i.id][1], tool: `source:${i.id}`, words: SOURCE_STATIONS[i.id][2] }] : []),
     ...(i.sector && SERVES[i.sector] ? [{ id: `fn-${i.sector}`, label: SERVES[i.sector][0], who: SERVES[i.sector][1], tool: `services:${i.sector}`, words: SERVES[i.sector][2], key: "atlas.pro.services.v1" }] : []),
   ] })),
-  { id: "sport", label: "Sport", color: "#bf5af2", stations: [
+  { id: "sport", label: "Sport", color: "#8b5fa8", stations: [
     { id: "explore-sport", label: "Stadiums and games", who: "Grounds, gyms and pitches near you, and the world's great stadiums", tool: "explore:sport", words: "fan tickets match game stadium gym swim run" },
     { id: "scout-sport", label: "Gym and club scout", who: "Gyms, studios and clubs: where members will come from", tool: "scout:sport", words: "gym owner fitness studio personal trainer yoga studio climbing gym", key: "atlas.work.scout.v1" },
     { id: "sport-crowd", label: "Crowd flow", who: "How the crowd leaves: stations, queues in 3D, clearing times, and what if a station closes or extra trains run", tool: "view:crowd", words: "crowd management egress stewarding transit police event safety stadium operations" },
@@ -82,7 +82,7 @@ export const LINES: Line[] = [
     { id: "sports", label: "Sports Pro", who: "Clubs: fixtures, travel, fans, scouting", tool: "sports", words: "club team coach sports manager football soccer baseball league scouting", key: "atlas.pro.clubs.v1" },
     { id: "fn-sports", label: "Surfaces & facilities", who: "Pitch, turf and stadium equipment companies", tool: "services:sports", words: "pitch turf artificial grass stadium sports facilities groundskeeping floodlights", key: "atlas.pro.services.v1" },
   ] },
-  { id: "build", label: "Building", color: "#ff9f0a", stations: [
+  { id: "build", label: "Building", color: "#d19a2e", stations: [
     { id: "build", label: "Build", who: "Your own project: a house, an extension, a barn", tool: "build", words: "home renovation extension self build house barn homeowner", key: "atlas.work.build.v1" },
     { id: "buildpro", label: "Build Pro", who: "Builders and contractors running sites", tool: "buildpro", words: "contractor builder construction general contractor site manager project manager developer subcontractor civil engineering", key: "atlas.pro.build.v1" },
     { id: "con-pro", label: "Construction Pro", who: "The region's sites rising in 3D: stages, trades and when, schedule, materials and the pipeline, for contractors, unions, suppliers and planners", tool: "ent:con", words: "construction sites region pipeline permits developer planner general contractor trailer project manager superintendent", key: "atlas.pro.con.v1" },
@@ -90,7 +90,7 @@ export const LINES: Line[] = [
     { id: "con-supply", label: "Material demand", who: "Suppliers: what the region's sites will need month by month, and who to call", tool: "ent:con:supplier", words: "building materials supplier concrete ready mix rebar brick block drywall glazing sales leads merchant distributor" },
     { id: "fn-construction", label: "Suppliers & plant hire", who: "Cranes, lifts, plant and materials for sites", tool: "services:construction", words: "crane plant hire equipment rental lifts scaffolding building supplier materials merchant construction supplier", key: "atlas.pro.services.v1" },
   ] },
-  { id: "mine", label: "Mining", color: "#ac8e68", stations: [
+  { id: "mine", label: "Mining", color: "#9a7552", stations: [
     { id: "explore-mine", label: "Mines and minerals", who: "The world's great mines, what each metal is for, and what's under your feet", tool: "theme:minerals/commodities", words: "minerals metals commodities copper lithium gold rocks geology curious mines of the world" },
     { id: "desk-mine", label: "Commodity desk", who: "Each metal's market: where it's mined and refined, prices, supply risk, policies and what-ifs", tool: "econ:desk", words: "commodity metal prices market supply risk refining offtake trader" },
     { id: "mining", label: "Mining Pro", who: "Mine operators: pit to port, communities, permits, tailings", tool: "mining", words: "mine miner mining operator quarry pit smelter tailings community relations", key: "atlas.pro.mines.v1" },
@@ -113,41 +113,41 @@ export const LINES: Line[] = [
     { id: "bank-company", label: "Bank explorer", who: "Any bank: its group, subsidiaries, assets, listings and figures, and its branches near you", tool: "bank:company", words: "bank banking group lender subsidiaries total assets capital bank analyst regulator" },
     { id: "bank-coverage", label: "Branch coverage", who: "Bankers: each bank's share of branches around a place, and the areas more than 2 km from any branch", tool: "bank:coverage", words: "banker branch network retail banking branch planning market share banking desert financial inclusion credit union manager" },
   ] },
-  { id: "freight", label: "Freight & trade", color: "#0a84ff", stations: [
+  { id: "freight", label: "Freight & trade", color: "#3563d6", stations: [
     { id: "explore-freight", label: "Ships, live", who: "Cargo ships, tankers and ferries moving right now", tool: "action:live:ships", words: "ships boats vessels marine traffic container ships tankers" },
     { id: "shipping", label: "Freight Desk", who: "Forwarders, shipping agents and shippers", tool: "shipping", words: "freight forwarder shipping agent shipper logistics container import export customs broker ocean cargo vessel port", key: "atlas.pro.shipping.v1" },
     { id: "network", label: "Business network", who: "Your sites, suppliers and customers, and what flows between them", tool: "network", words: "supply chain suppliers distributor wholesale manufacturer business sites partners customers", key: "atlas.pro.networks.v1" },
   ] },
-  { id: "aid", label: "Aid & development", color: "#30d158", stations: [
+  { id: "aid", label: "Aid & development", color: "#5b9467", stations: [
     { id: "explore-aid", label: "Where people live", who: "How many people live where, their homes, health and who's online", tool: "theme:people", words: "population people density homes poverty" },
     { id: "field", label: "Field Ops", who: "Programme managers: who's out of reach of water, health, school", tool: "field", words: "ngo aid programme manager development humanitarian charity field coordinator water health school", key: "atlas.pro.field.v1" },
     { id: "relief", label: "Relief Pipeline", who: "Humanitarian logisticians: port to people", tool: "relief", words: "humanitarian logistics relief supply chain warehouse emergency response wfp unhcr food distribution", key: "atlas.pro.relief.v1" },
   ] },
-  { id: "farm", label: "Farming", color: "#8bd346", stations: [
+  { id: "farm", label: "Farming", color: "#8faa5a", stations: [
     { id: "farm-soil", label: "Soil profile", who: "The ground under a field in 3D, two metres down: texture, pH, carbon, the water it holds, how fast rain soaks in, what it suits", tool: "view:soil", words: "soil quality soil test ph acidity clay sand loam organic matter carbon drainage water holding agronomist farmer field" },
     { id: "grow", label: "Grow", who: "Your fields and crops: growth stage, harvest, water and frost", tool: "grow", words: "farmer grower fields crops garden allotment", key: "atlas.work.fields.v1" },
     { id: "flock", label: "Flock", who: "Animals in your care: herds, flocks, vets and their records", tool: "flock", words: "livestock sheep cattle cows herd flock vet hens animals rancher" },
     { id: "fn-agriculture", label: "Farm machinery & service", who: "Dealers and servicers of tractors, combines, irrigation", tool: "services:agriculture", words: "tractor dealer farm machinery combine irrigation agricultural equipment ag dealer", key: "atlas.pro.services.v1" },
   ] },
-  { id: "energy", label: "Energy", color: "#ffd60a", stations: [
+  { id: "energy", label: "Energy", color: "#e1b843", stations: [
     { id: "explore-energy", label: "Power around you", who: "Power plants, lines and wind and solar farms on the map", tool: "theme:built/energy", words: "power plants electricity grid power lines energy" },
     { id: "energy-site", label: "Site potential", who: "What a piece of land could make from sun and wind: the sun's paths and a wind rose in 3D, yearly yield, and what a calmer year or another power price would do", tool: "view:site", words: "solar farm wind farm developer site selection yield capacity factor irradiance wind resource renewable project land" },
     { id: "fn-energy", label: "Wind & solar O&M", who: "Operations and maintenance for wind and solar farms", tool: "services:energy", words: "wind turbine solar farm renewable energy o&m operations maintenance technician inverter power plant", key: "atlas.pro.services.v1" },
   ] },
-  { id: "health", label: "Health", color: "#ff375f", stations: [
+  { id: "health", label: "Health", color: "#b8496a", stations: [
     { id: "explore-health", label: "Care near you", who: "The nearest hospital, and clinics, doctors and pharmacies around a place", tool: "theme:health", words: "hospital clinic doctor pharmacy patient care near me" },
     { id: "fn-medical", label: "Medical equipment", who: "Companies that install and service hospital equipment", tool: "services:medical", words: "medical devices hospital equipment biomedical imaging scanner service engineer healthcare", key: "atlas.pro.services.v1" },
   ] },
-  { id: "telecom", label: "Telecoms", color: "#64d2ff", stations: [
+  { id: "telecom", label: "Telecoms", color: "#4c9ac9", stations: [
     { id: "explore-telecom", label: "Who's connected", who: "Undersea cables, data centres and how many people are online", tool: "theme:built/internet", words: "internet cables connectivity online broadband" },
     { id: "fn-telecom", label: "Tower services", who: "Towers, generators and fuel runs", tool: "services:telecom", words: "telecom tower mast mobile network generator fuel rigger isp", key: "atlas.pro.services.v1" },
   ] },
-  { id: "edu", label: "Education", color: "#0a84ff", stations: [
+  { id: "edu", label: "Education", color: "#3563d6", stations: [
     { id: "edu-learn", label: "Learn", who: "Games, a daily challenge, your passport, and museums and libraries near you", tool: "learn", words: "student learn games quiz museum library homework" },
     { id: "edu-teach", label: "Teach", who: "Teachers: lessons on the globe, quizzes, games, a politics simulation and field trips", tool: "teach", words: "teacher lesson quiz classroom field trip curriculum" },
     { id: "edu-pro", label: "Education Pro", who: "Principals and districts: staff and cover, every room in 3D, repairs, drills, attendance, buses, field trips and lessons", tool: "ent:edu", words: "principal headteacher district superintendent school administrator assistant principal school operations substitute cover attendance staff", key: "atlas.pro.edu.v1" },
   ] },
-  { id: "gov", label: "Government", color: "#5e5ce6", stations: [
+  { id: "gov", label: "Government", color: "#5160c2", stations: [
     { id: "explore-gov", label: "Who governs", who: "Your representatives, the districts and the people who run a place", tool: "theme:politics", words: "who represents me representative senator elections government citizen voter" },
     { id: "city-ops", label: "City Ops", who: "Mayors, deputy mayors and city hall: every facility, agency and person, capital projects, incidents and 311 on one map", tool: "ent:gov", words: "mayor city hall city government deputy mayor chief of staff commissioner agency municipal county executive city manager operations facilities 311 capital projects public works", key: "atlas.pro.city.v1" },
     { id: "city-311", label: "311 and incidents", who: "Agency operations: a day of 311 as a heat map you can play, and incidents live", tool: "ent:gov:311", words: "311 service requests complaints emergency management operations center incidents dispatch" },

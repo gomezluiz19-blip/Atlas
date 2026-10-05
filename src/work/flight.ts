@@ -36,7 +36,7 @@ function planeIcon(): string {
   const g = c.getContext("2d", { willReadFrequently: true })!;
   g.translate(48, 48);
   g.fillStyle = "#fff";
-  g.strokeStyle = "#0a84ff";
+  g.strokeStyle = "#3563d6";
   g.lineWidth = 3;
   g.beginPath();
   // Fuselage, wings and tail, pointing up.

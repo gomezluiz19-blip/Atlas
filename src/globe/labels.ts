@@ -192,7 +192,7 @@ export class LabelLayer {
     return this.sorted.filter((n) => n.shown && Number.isFinite(n.tx)).map((n) => ({
       name: n.label.name, sub: n.label.sub, x: n.tx, y: n.ty, w: n.w, h: n.h,
       point: n.el.classList.contains("pt"), italic: n.label.kind === "water" && !n.el.classList.contains("pt"),
-      color: getComputedStyle(n.el).getPropertyValue("--c").trim() || "#ff375f",
+      color: getComputedStyle(n.el).getPropertyValue("--c").trim() || "#b8496a",
     }));
   }
 

@@ -15,6 +15,9 @@ import { validQuiz } from "../work/quizModel";
 import { cleanCode, joinTv, type Cmd, type State, type ToolItem } from "./link";
 import { edgeDir, IDENTITY, sphereLines, turn, type M3 } from "./orbGrid";
 import { allSites, clockText } from "./rooms";
+import { formatHash } from "../data/locationParse";
+import { installEmojiGuard } from "../ui/noEmoji";
+import { markSvg } from "../ui/brand";
 
 const $ = <K extends keyof HTMLElementTagNameMap>(tag: K, attrs: Record<string, string> = {}, ...kids: (Node | string)[]) => {
   const e = document.createElement(tag);
@@ -33,8 +36,8 @@ function pairScreen(note = "") {
   input.addEventListener("keydown", (e) => { if (e.key === "Enter") connect(); });
   input.addEventListener("animationend", () => input.classList.remove("shake"));
   root.replaceChildren($("div", { class: "r-pair" },
-    $("div", { class: "r-orb-mini" }),
-    $("div", { class: "r-brand" }, "TERRENO ", $("span", {}, "REMOTE")),
+    (() => { const m = $("div", { class: "r-mark" }); m.innerHTML = markSvg({ size: 76, background: null, grout: "#141613" }); return m; })(),
+    $("div", { class: "r-brand" }, "TERRENO", $("span", {}, "Remote")),
     $("p", {}, "Scan the code on the TV with your camera, or type it here."), input, go, note ? $("p", { class: "r-note" }, note) : ""));
 }
 
@@ -50,55 +53,73 @@ function start(code: string) {
     if (s.t === "present") presenter(s);
     if (s.t === "quiz") quizHost(s);
     if (s.t === "panel") closePanel();
+    if (s.t === "cam") { camNow = s; showCam(s); openHere.disabled = false; }
+    if (s.t === "passing") showPassing(s);
   });
+  let camNow: Extract<State, { t: "cam" }> | null = null;
+  try { localStorage.setItem("atlas.tv.code", JSON.stringify({ code, at: Date.now() })); } catch { /* private mode */ }
   const cmd = (c: Cmd) => tv.send(c);
   let tools: Extract<State, { t: "tools" }> | null = null;
-  window.setInterval(() => { cmd({ t: "ping" }); link.textContent = tv.direct ? "⚡ direct" : "via relay"; }, 4000);
+  window.setInterval(() => { cmd({ t: "ping" }); link.textContent = tv.direct ? "Direct" : "Relay"; link.classList.toggle("direct", tv.direct); }, 4000);
 
-  // ---- The deck: a big square, a trackball orb inside it, keys down both sides ----
-  // The square's four edges are the d-pad; the orb is a wireframe globe you roll in any direction.
+  // ---- The pad: the whole width of the phone, an instrument rather than a toy ----
+  // Drag anywhere to roll the Earth (flick and it coasts). Tap an edge for up, down, left or right through the
+  // TV's menus; tap the middle for OK, twice to dive in; hold for the menu. Two fingers: pinch to zoom, twist
+  // to turn the view, slide up or down together to tilt toward the horizon. The orb in the middle is a globe
+  // drawn in the pigments that rolls with your thumb; the corners read out where the TV's camera is.
   const grid = $("canvas", { class: "r-orb-grid", "aria-hidden": "true" }) as HTMLCanvasElement;
-  const orb = $("div", { class: "r-orb", role: "application", "aria-label": "Drag to spin the Earth, pinch to zoom, tap to pick" }, grid, $("div", { class: "r-orb-shine" }));
-  const edges: Record<string, HTMLElement> = {};
-  const DIRS = [["up", "▲"], ["right", "▶"], ["down", "▼"], ["left", "◀"]] as const;
-  for (const [dir, glyph] of DIRS) edges[dir] = $("span", { class: `r-edge r-edge-${dir}`, "aria-hidden": "true" }, glyph);
-  const square = $("div", { class: "r-square" },
-    ...["tl", "tr", "bl", "br"].map((c) => $("i", { class: `r-corner r-corner-${c}` })),
-    ...Object.values(edges), orb);
+  const orb = $("div", { class: "r-orb", "aria-hidden": "true" }, grid);
+  const chev = (dir: string) => $("span", { class: `r-edge r-edge-${dir}`, "aria-hidden": "true" });
+  const edges: Record<string, HTMLElement> = { up: chev("up"), right: chev("right"), down: chev("down"), left: chev("left") };
+  const corner = (pos: string) => $("span", { class: `r-hud r-hud-${pos}` }, $("small", {}), $("b", {}, "—"));
+  const hud = { tl: corner("tl"), tr: corner("tr"), bl: corner("bl"), br: corner("br") };
+  const label = (el: HTMLElement, k: string, v: string) => { el.querySelector("small")!.textContent = k; el.querySelector("b")!.textContent = v; };
+  label(hud.tl, "LAT", "—"); label(hud.tr, "LON", "—"); label(hud.bl, "ALT", "—"); label(hud.br, "HDG", "—");
+  const pad = $("div", { class: "r-pad", role: "application", "aria-label": "Drag to roll the Earth, pinch to zoom, twist to turn, tap the edges to move through menus, tap the middle for OK" },
+    ...["tl", "tr", "bl", "br"].map((c) => $("i", { class: `r-tick r-tick-${c}` })),
+    ...Object.values(hud), ...Object.values(edges), orb, $("p", { class: "r-hint" }, "Roll · pinch · twist"));
   const press = (dir: "up" | "down" | "left" | "right") => { buzz(10); edges[dir].classList.add("hit"); setTimeout(() => edges[dir].classList.remove("hit"), 180); cmd({ t: "dpad", dir }); };
-  square.addEventListener("pointerdown", (e) => {
-    if (orb.contains(e.target as Node)) return;
-    const r = square.getBoundingClientRect();
-    press(edgeDir(e.clientX - (r.left + r.width / 2), e.clientY - (r.top + r.height / 2)));
-  });
-  const hint = $("p", { class: "r-hint" }, "Drag to spin · pinch to zoom · tap to pick");
-  const readout = $("p", { class: "r-readout", "aria-hidden": "true" });
+  /** The TV's camera, read out in the pad's corners. */
+  const showCam = (c: Extract<State, { t: "cam" }>) => {
+    label(hud.tl, "LAT", `${Math.abs(c.lat).toFixed(3)}° ${c.lat >= 0 ? "N" : "S"}`);
+    label(hud.tr, "LON", `${Math.abs(c.lon).toFixed(3)}° ${c.lon >= 0 ? "E" : "W"}`);
+    label(hud.bl, "ALT", c.alt >= 100_000 ? `${Math.round(c.alt / 1000).toLocaleString("en")} km` : c.alt >= 1000 ? `${(c.alt / 1000).toFixed(1)} km` : `${Math.round(c.alt)} m`);
+    const hd = ((c.heading % 360) + 360) % 360;
+    label(hud.br, "HDG", `${String(Math.round(hd)).padStart(3, "0")}° ${["N", "NE", "E", "SE", "S", "SW", "W", "NW"][Math.round(hd / 45) % 8]}`);
+  };
 
-  // The orb's grid: near side bright, far side a ghost; the equator and prime meridian in the accent colour.
+  // The orb's grid: near side bright, far side a ghost; the equator and prime meridian picked out; a bezel of
+  // degree ticks around it that turns with the ball.
   let ball: M3 = turn(turn(IDENTITY, 0.08, 0), 0, -0.12);
   const draw = () => {
     const w = orb.clientWidth || 200, k = devicePixelRatio || 1;
     if (grid.width !== Math.round(w * k)) { grid.width = grid.height = Math.round(w * k); }
     const g = grid.getContext("2d");
     if (!g) return;
-    const r = (w / 2) * 0.96, c = w / 2;
+    const c = w / 2, r = c * 0.8;
     g.setTransform(k, 0, 0, k, 0, 0);
     g.clearRect(0, 0, w, w);
     g.lineCap = "round";
+    // The bezel: a tick every 10°, longer every 30°, north in terracotta, turning with the ball's yaw.
+    const yaw = Math.atan2(ball[6], ball[8]);
+    for (let i = 0; i < 36; i++) {
+      const a = (i / 36) * Math.PI * 2 + yaw - Math.PI / 2, long = i % 3 === 0;
+      g.strokeStyle = i === 0 ? "rgba(217,128,93,.95)" : `rgba(236,232,222,${long ? 0.42 : 0.2})`;
+      g.lineWidth = i === 0 ? 2 : 1;
+      g.beginPath(); g.moveTo(c + Math.cos(a) * (c - 2), c + Math.sin(a) * (c - 2)); g.lineTo(c + Math.cos(a) * (c - (long ? 9 : 5)), c + Math.sin(a) * (c - (long ? 9 : 5))); g.stroke();
+    }
+    g.strokeStyle = "rgba(236,232,222,.14)"; g.lineWidth = 1;
+    g.beginPath(); g.arc(c, c, r + 0.5, 0, Math.PI * 2); g.stroke();
     for (const line of sphereLines(ball, 20, 72)) {
       const hot = line.kind !== "grid";
       for (let i = 1; i < line.pts.length; i++) {
-        const a = line.pts[i - 1], b = line.pts[i], z = (a.z + b.z) / 2;
-        const near = z > 0;
-        g.strokeStyle = hot ? (near ? `rgba(255,43,214,${0.55 + z * 0.4})` : "rgba(255,43,214,.10)") : near ? `rgba(0,240,255,${0.25 + z * 0.55})` : "rgba(0,240,255,.07)";
-        g.lineWidth = near ? (hot ? 1.6 : 1.1) : 0.8;
+        const a = line.pts[i - 1], b = line.pts[i], z = (a.z + b.z) / 2, near = z > 0;
+        const rgb = line.kind === "equator" ? "220,174,76" : line.kind === "meridian" ? "217,128,93" : "143,168,242";
+        g.strokeStyle = near ? `rgba(${rgb},${(hot ? 0.6 : 0.2) + z * (hot ? 0.35 : 0.45)})` : `rgba(${rgb},.06)`;
+        g.lineWidth = near ? (hot ? 1.6 : 1) : 0.8;
         g.beginPath(); g.moveTo(c + a.x * r, c + a.y * r); g.lineTo(c + b.x * r, c + b.y * r); g.stroke();
       }
     }
-    // How the ball is turned (it steers the TV's camera; it isn't the TV's own position).
-    const yaw = Math.atan2(ball[6], ball[8]) * 180 / Math.PI, pitch = Math.asin(Math.max(-1, Math.min(1, -ball[7]))) * 180 / Math.PI;
-    const deg = (v: number, w: number) => `${v >= 0 ? "+" : "−"}${Math.abs(v).toFixed(1).padStart(w, "0")}°`;
-    readout.textContent = `YAW ${deg(yaw, 5)}  PITCH ${deg(pitch, 4)}`;
   };
   new ResizeObserver(draw).observe(orb);
   // Left alone, the ball drifts slowly, so the remote looks alive on the coffee table.
@@ -113,31 +134,33 @@ function start(code: string) {
   document.addEventListener("visibilitychange", () => { if (!document.hidden && !idleRaf) idleRaf = requestAnimationFrame(idle); });
   idleRaf = requestAnimationFrame(idle);
 
-  // Gestures: one finger spins, two pinch, a quick touch picks, hold opens the menu.
+  // Gestures on the whole pad.
   const pts = new Map<number, { x: number; y: number }>();
-  let last = { x: 0, y: 0, t: 0 }, vel = { x: 0, y: 0 }, travelled = 0, downAt = 0, lastTap = 0, pinch0 = 0, holdTimer = 0, coast = 0, tick = 0;
-  const size = () => orb.getBoundingClientRect().width || 240;
+  let last = { x: 0, y: 0, t: 0 }, vel = { x: 0, y: 0 }, travelled = 0, downAt = 0, downXY = { x: 0, y: 0 }, lastTap = 0, holdTimer = 0, coast = 0, tick = 0;
+  let two: { d: number; a: number; my: number } | null = null;
+  const size = () => Math.min(pad.clientWidth, pad.clientHeight) || 300;
   const spinLines = (dx: number, dy: number) => { idleAt = performance.now(); ball = turn(ball, dx, dy); draw(); };
-  orb.addEventListener("pointerdown", (e) => {
-    orb.setPointerCapture(e.pointerId);
+  const pair = () => { const [a, b] = [...pts.values()]; return { d: Math.hypot(a.x - b.x, a.y - b.y), a: Math.atan2(b.y - a.y, b.x - a.x), my: (a.y + b.y) / 2 }; };
+  pad.addEventListener("pointerdown", (e) => {
+    pad.setPointerCapture(e.pointerId);
     cancelAnimationFrame(coast);
     pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
     root.classList.add("touched");
-    orb.classList.add("held");
+    pad.classList.add("held");
     if (pts.size === 1) {
-      last = { x: e.clientX, y: e.clientY, t: performance.now() }; vel = { x: 0, y: 0 }; travelled = 0; downAt = performance.now();
+      last = { x: e.clientX, y: e.clientY, t: performance.now() }; vel = { x: 0, y: 0 }; travelled = 0; downAt = performance.now(); downXY = { x: e.clientX, y: e.clientY };
       clearTimeout(holdTimer);
-      holdTimer = window.setTimeout(() => { if (travelled < 8) { buzz(30); orb.classList.add("pulse"); setTimeout(() => orb.classList.remove("pulse"), 500); cmd({ t: "menu" }); travelled = 999; } }, 520);
-    } else if (pts.size === 2) {
-      const [a, b] = [...pts.values()]; pinch0 = Math.hypot(a.x - b.x, a.y - b.y); clearTimeout(holdTimer);
-    }
+      holdTimer = window.setTimeout(() => { if (travelled < 8) { buzz(30); pad.classList.add("pulse"); setTimeout(() => pad.classList.remove("pulse"), 500); cmd({ t: "menu" }); travelled = 999; } }, 520);
+    } else if (pts.size === 2) { two = pair(); clearTimeout(holdTimer); travelled = 999; }
   });
-  orb.addEventListener("pointermove", (e) => {
+  pad.addEventListener("pointermove", (e) => {
     if (!pts.has(e.pointerId)) return;
     pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
-    if (pts.size === 2) {
-      const [a, b] = [...pts.values()], d = Math.hypot(a.x - b.x, a.y - b.y);
-      if (pinch0 > 0 && Math.abs(d / pinch0 - 1) > 0.04) { cmd({ t: "zoom", f: d / pinch0 }); orb.style.transform = `scale(${Math.min(1.15, Math.max(0.88, d / pinch0))})`; pinch0 = d; travelled = 999; }
+    if (pts.size === 2 && two) {
+      const now = pair();
+      const f = now.d / two.d, da = ((now.a - two.a + Math.PI * 3) % (Math.PI * 2)) - Math.PI, dy = (now.my - two.my) / size();
+      if (Math.abs(f - 1) > 0.035) { cmd({ t: "zoom", f }); two.d = now.d; orb.style.transform = `scale(${Math.min(1.12, Math.max(0.9, f))})`; }
+      if (Math.abs(da) > 0.02 || Math.abs(dy) > 0.01) { cmd({ t: "orbit", turn: -da, tilt: dy * 1.6 }); two.a = now.a; two.my = now.my; spinLines(-da * 0.3, 0); if ((tick += Math.abs(da)) > 0.2) { tick = 0; buzz(3); } }
       return;
     }
     const now = performance.now(), dx = (e.clientX - last.x) / size(), dy = (e.clientY - last.y) / size(), dt = Math.max(1, now - last.t);
@@ -154,13 +177,18 @@ function start(code: string) {
     if (!pts.has(e.pointerId)) return;
     pts.delete(e.pointerId);
     orb.style.transform = "";
-    if (pts.size) return;
-    orb.classList.remove("held");
+    if (pts.size) { two = null; return; }
+    two = null;
+    pad.classList.remove("held");
     clearTimeout(holdTimer);
     const quick = performance.now() - downAt < 260 && travelled < 8;
     if (quick) {
+      // An edge is a direction; anywhere else is OK.
+      const r = pad.getBoundingClientRect(), x = (downXY.x - r.left) / r.width, y = (downXY.y - r.top) / r.height;
+      const band = 0.17;
+      if (x < band || x > 1 - band || y < band || y > 1 - band) { press(edgeDir(x - 0.5, y - 0.5)); return; }
       const now = performance.now();
-      ripple();
+      ripple(downXY.x - r.left, downXY.y - r.top);
       if (now - lastTap < 320) { buzz(14); cmd({ t: "zoom", f: 2.6 }); lastTap = 0; } else { buzz(10); lastTap = now; window.setTimeout(() => { if (lastTap === now) cmd({ t: "select" }); }, 300); }
       return;
     }
@@ -175,20 +203,50 @@ function start(code: string) {
       coast = requestAnimationFrame(step);
     }
   };
-  orb.addEventListener("pointerup", up);
-  orb.addEventListener("pointercancel", up);
-  const ripple = () => { const r = $("i", { class: "r-ripple" }); orb.append(r); r.addEventListener("animationend", () => r.remove()); };
+  pad.addEventListener("pointerup", up);
+  pad.addEventListener("pointercancel", up);
+  const ripple = (x: number, y: number) => { const r = $("i", { class: "r-ripple" }); r.style.left = `${x}px`; r.style.top = `${y}px`; pad.append(r); r.addEventListener("animationend", () => r.remove()); };
 
-  // ---- Keys down both sides of the square ----
-  const key = (label: string, icon: string, fn: () => void, cls = "", short = label) => { const b = $("button", { class: `r-key ${cls}`, "aria-label": label }, $("span", {}, icon), $("small", {}, short)); b.addEventListener("click", () => { buzz(8); fn(); }); return b; };
-  const deck = $("div", { class: "r-deck" },
-    $("div", { class: "r-rail r-rail-left" },
-      key("Back", "‹", () => cmd({ t: "back" })), key("Menu", "☰", () => cmd({ t: "menu" })),
-      key("Zoom in", "+", () => cmd({ t: "zoom", f: 1.6 }), "", "In"), key("Zoom out", "−", () => cmd({ t: "zoom", f: 1 / 1.6 }), "", "Out")),
-    square,
-    $("div", { class: "r-rail r-rail-right" },
-      key("Search", "⌕", () => enterTyping(true)), key("Voice", "◉", () => listenVoice(), "r-key-voice"),
-      key("OK", "OK", () => cmd({ t: "select" }), "r-key-ok"), key("Next", "⏭", () => cmd({ t: "next" }))));
+  // ---- Under the pad: a zoom fader, then four keys ----
+  // Drag the fader to zoom smoothly (it springs back to the middle); tap either end for a step.
+  const knob = $("i", { class: "r-fader-knob" });
+  const fader = $("div", { class: "r-fader", role: "slider", "aria-label": "Zoom: drag right to come closer, left to pull back", "aria-valuenow": "0", "aria-valuemin": "-1", "aria-valuemax": "1", tabindex: "0" },
+    $("span", { class: "r-fader-end" }, "−"), $("span", { class: "r-fader-track" }, $("small", {}, "ZOOM"), knob), $("span", { class: "r-fader-end" }, "+"));
+  let fx0 = 0, fLast = 0, fRaf = 0, fPos = 0;
+  const fadeLoop = () => { if (Math.abs(fPos) > 0.04) cmd({ t: "zoom", f: Math.exp(fPos * 0.09) }); fRaf = requestAnimationFrame(fadeLoop); };
+  fader.addEventListener("pointerdown", (e) => {
+    const r = fader.getBoundingClientRect(), x = (e.clientX - r.left) / r.width;
+    if (x < 0.16 || x > 0.84) { buzz(8); cmd({ t: "zoom", f: x < 0.5 ? 1 / 1.6 : 1.6 }); return; }
+    fader.setPointerCapture(e.pointerId); fx0 = e.clientX; fLast = 0; fader.classList.add("on"); fRaf = requestAnimationFrame(fadeLoop);
+  });
+  fader.addEventListener("pointermove", (e) => {
+    if (!fader.classList.contains("on")) return;
+    const span = fader.clientWidth * 0.32;
+    fPos = Math.max(-1, Math.min(1, (e.clientX - fx0) / span));
+    knob.style.transform = `translateX(${fPos * span * 0.9}px)`;
+    if (Math.abs(fPos - fLast) > 0.25) { fLast = fPos; buzz(3); }
+  });
+  const fadeEnd = () => { fader.classList.remove("on"); cancelAnimationFrame(fRaf); fPos = 0; knob.style.transform = ""; };
+  fader.addEventListener("pointerup", fadeEnd); fader.addEventListener("pointercancel", fadeEnd);
+  fader.addEventListener("keydown", (e) => { if (e.key === "ArrowRight") cmd({ t: "zoom", f: 1.6 }); if (e.key === "ArrowLeft") cmd({ t: "zoom", f: 1 / 1.6 }); });
+
+  const ICON: Record<string, string> = {
+    back: '<path d="M15 5l-7 7 7 7"/>',
+    menu: '<rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/>',
+    search: '<circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/>',
+    voice: '<rect x="9" y="3.5" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/>',
+  };
+  const svg = (k: string) => `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${ICON[k]}</svg>`;
+  const key = (label: string, icon: string, fn: () => void, cls = "") => {
+    const b = $("button", { class: `r-key ${cls}`, "aria-label": label }, $("span", { class: "r-key-icon" }), $("small", {}, label));
+    b.querySelector(".r-key-icon")!.innerHTML = svg(icon);
+    b.addEventListener("click", () => { buzz(8); fn(); });
+    return b;
+  };
+  const keys = $("div", { class: "r-keys" },
+    key("Back", "back", () => cmd({ t: "back" })), key("Menu", "menu", () => cmd({ t: "menu" })),
+    key("Search", "search", () => enterTyping(true)), key("Voice", "voice", () => listenVoice(), "r-key-voice"));
+  const deck = $("div", { class: "r-deck" }, pad, fader, keys);
 
   // ---- Typing: the orb gives way to a search bar and the keyboard ----
   const field = $("input", { type: "text", enterkeyhint: "go", autocapitalize: "words", placeholder: "Where to?", autocomplete: "off", "aria-label": "Search on the TV" }) as HTMLInputElement;
@@ -474,14 +532,36 @@ function start(code: string) {
       (() => { const b = $("button", {}, "Exit TV mode"); b.addEventListener("click", () => cmd({ t: "exit" })); return b; })(),
       (() => { const b = $("button", {}, "Connect a different TV"); b.addEventListener("click", () => { tv.close(); location.hash = ""; root.className = ""; pairScreen(); }); return b; })()));
 
+  // ---- Phone and TV together: take the TV's view with you, keep what it passed ----
+  /** Terreno on this phone, at a place or the TV's own view. */
+  const appLink = (place?: { lon: number; lat: number }) => new URL(`./${formatHash(place ? { place: { lon: place.lon, lat: place.lat } } : camNow ? { camera: { lon: camNow.lon, lat: camNow.lat, height: camNow.alt, heading: camNow.heading, pitch: camNow.pitch } } : {})}`, location.href).href;
+  const openHere = $("button", { class: "r-open", "aria-label": "Open the TV's view in Terreno on this phone", disabled: "" }, "Open here") as HTMLButtonElement;
+  openHere.addEventListener("click", () => { buzz(10); location.href = appLink(); });
+  const passBox = $("div", { class: "r-pass", hidden: "" });
+  let passTimer = 0;
+  function showPassing(s: Extract<State, { t: "passing" }>) {
+    const open = $("a", { class: "r-pass-open", href: appLink(s) }, "Open on phone");
+    passBox.style.setProperty("--c", s.color);
+    passBox.replaceChildren($("p", { class: "r-pass-k" }, $("i"), "Passing on the TV"), $("strong", {}, s.name), s.line ? $("p", { class: "r-pass-line" }, s.line) : "", open);
+    passBox.hidden = false;
+    passBox.classList.remove("in"); void passBox.offsetWidth; passBox.classList.add("in");
+    buzz(6);
+    clearTimeout(passTimer);
+    passTimer = window.setTimeout(() => { passBox.hidden = true; }, 15_000);
+  }
+
   root.replaceChildren(
-    $("header", { class: "r-now" }, $("span", { class: "r-live" }), $("div", {}, $("small", {}, "On the TV ", link), titleEl, subEl), more),
+    $("header", { class: "r-now" },
+      $("div", { class: "r-now-k" }, $("span", { class: "r-live" }), $("small", {}, "On the TV"), link, openHere, more),
+      titleEl, subEl),
+    passBox,
     strip,
-    $("div", { class: "r-stage" }, deck, readout, hint),
+    $("div", { class: "r-stage" }, deck),
     $("div", { class: "r-typing" }, typeBar, sugg));
   cmd({ t: "hello" });
   setTimeout(() => { if (!root.classList.contains("live")) { titleEl.textContent = "Waiting for the TV…"; subEl.textContent = `Is the TV showing code ${code}?`; cmd({ t: "hello" }); } }, 4000);
 }
 
+installEmojiGuard();
 const initial = cleanCode(location.hash.slice(1));
 if (initial.length === 6) start(initial); else pairScreen();
