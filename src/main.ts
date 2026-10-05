@@ -89,6 +89,10 @@ import { openWorldNow } from "./live/worldNow";
 import { createTraffic } from "./live/tracks";
 import { createCityLife } from "./city/life";
 
+// The address the page opened with: the camera keeps the hash up to date as it moves, so links that open
+// something (a TV, a quiz) are read from here rather than from the hash later on.
+const startHash = location.hash;
+
 const $ = (id: string) => document.getElementById(id)!;
 
 // Tools that aren't needed to show the globe load when first opened.
@@ -655,7 +659,7 @@ const placeHash = () => {
 };
 addEventListener("hashchange", placeHash);
 // A student opening a quiz link from their teacher.
-const quizLink = /^#quiz=([\w-]+)/.exec(location.hash);
+const quizLink = /^#quiz=([\w-]+)/.exec(startHash);
 if (quizLink) void import("./work/quiz").then((m) => m.openQuizLink(app, quizLink[1]));
 app.actions.set("story:open", { label: "Open a story", run: (id) => { if (id) void import("./stories/ui").then((m) => { makeHub.ctx.open(); void m.openStory(makeHub.ctx, id); }); } });
 // A story someone shared: from the library (#story=…) or carried in the link (#s=…).
@@ -977,7 +981,7 @@ app.actions.set("time:go", { label: "Go to a year", run: (arg) => {
 
 // About / data sources.
 // Terreno on a TV: TV mode plays by itself and a phone is the remote (src/tv). A link to #/tv/CODE opens it.
-const tvLink = /^#\/tv(\/([A-Za-z0-9]{6}))?$/.exec(location.hash);
+const tvLink = /^#\/tv(\/([A-Za-z0-9]{6}))?$/.exec(startHash);
 // The economy views from anywhere (search, the Minerals theme, the robot): the commodity desk (optionally on one material), your portfolio, the What if lab.
 for (const [id, label, load] of [
   ["econ:desk", "Commodity desk", (arg?: string) => void import("./econ/deskUi").then((m) => m.openDesk(workHub.ctx, app, arg || undefined))],

@@ -5,24 +5,40 @@
 //     the orb goes phone → TV directly, quickly and without limits. If the
 //     direct channel can't open, everything still goes through the relay,
 //     with dragging thinned out (the relay limits how often it can be used).
-// Messages carry an id, so one that arrives two ways is acted on once.
+// Messages carry an id, so one that arrives two ways is acted on once (so no message uses `id` for its own payload).
 // The code on the TV is the channel; anyone with it can drive that TV (fine
 // for a demo; Supabase Realtime with a pairing token later, see docs/tv.md).
+import { splitText } from "./rooms";
+
 export type Cmd = { id?: string } & (
   | { t: "fly"; q: string } | { t: "type"; q: string } | { t: "pick"; i: number } | { t: "search"; open: boolean }
-  | { t: "scene"; id: string } | { t: "lens"; id: string }
+  | { t: "scene"; scene: string } | { t: "lens"; lens: string }
   | { t: "pan"; dx: number; dy: number } | { t: "zoom"; f: number } | { t: "dpad"; dir: "up" | "down" | "left" | "right" }
   | { t: "select" } | { t: "back" } | { t: "menu" }
   | { t: "holo" } | { t: "wind" } | { t: "next" } | { t: "exit" } | { t: "hello" } | { t: "ping" }
   | { t: "set"; value: string; done?: boolean }
   | { t: "trip"; to: string; from?: string; depart?: string; back?: string; people?: number }
-  | { t: "rtc-offer"; sdp: string });
+  | { t: "rtc-offer"; sdp: string }
+  // Rooms and their tools.
+  | { t: "room"; room: string } | { t: "tool"; tool: string; arg?: string }
+  // Pointer, spotlight and pen: where the thumb is on the phone's pad, 0–1 across and down.
+  | { t: "point"; x: number; y: number; down?: boolean } | { t: "point-end" }
+  | { t: "timer"; seconds: number } | { t: "slide"; dir: 1 | -1 } | { t: "quiz"; act: "reveal" | "next" | "prev" | "end" }
+  // Things the phone hands the TV from its own Terreno: sites, a lesson, a quiz.
+  | { t: "share"; kind: "sites" | "deck" | "quiz"; data: unknown }
+  // A long message in pieces, for the relay.
+  | { t: "part"; key: string; i: number; n: number; data: string });
+export interface ToolItem { id: string; icon: string; label: string; about?: string }
 export type State = { id?: string } & (
   | { t: "state"; scene: string; title: string; sub?: string }
   | { t: "suggest"; q: string; items: string[]; focus: number }
   | { t: "input"; kind: "text" | "date" | "number" | "time"; label: string; value: string }
   | { t: "form"; kind: "trip" }
-  | { t: "rtc-answer"; sdp: string });
+  | { t: "rtc-answer"; sdp: string }
+  | { t: "tools"; room: string; label: string; items: ToolItem[]; mode: string | null; rooms: { id: string; icon: string; label: string; who: string }[]; decks: { id: string; name: string }[]; quizzes: { id: string; name: string }[] }
+  | { t: "present"; deck: string; i: number; n: number; title: string; notes: string; next: string }
+  | { t: "quiz"; title: string; i: number; n: number; prompt: string; answer: string; revealed: boolean; ends: number }
+  | { t: "panel"; kind: "none" });
 
 const RELAY = "https://ntfy.sh";
 const ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
@@ -104,7 +120,7 @@ export function hostDirect(code: string, offerSdp: string, on: (c: Cmd) => void)
  */
 export function joinTv(code: string, onState: (s: State) => void) {
   let channel: RTCDataChannel | null = null;
-  let pending: { dx: number; dy: number; f: number } | null = null, lastSlow = 0, slowTimer = 0;
+  let pending: { dx: number; dy: number; f: number; point?: Cmd } | null = null, lastSlow = 0, slowTimer = 0;
   const stop = listen<State>(code, "state", (s) => {
     if (s.t === "rtc-answer") { void pc?.setRemoteDescription({ type: "answer", sdp: s.sdp }).catch(() => {}); return; }
     onState(s);
@@ -129,19 +145,27 @@ export function joinTv(code: string, onState: (s: State) => void) {
     const relay = (m: Cmd) => void fetch(`${RELAY}/${topic(code, "cmd")}`, { method: "POST", body: JSON.stringify({ ...m, id: newId() }) }).catch(() => {});
     if (p.dx || p.dy) relay({ t: "pan", dx: p.dx, dy: p.dy });
     if (p.f !== 1) relay({ t: "zoom", f: p.f });
+    if (p.point) relay(p.point);
   };
   const sameBrowser = (m: Cmd) => { try { const bc = new BroadcastChannel(topic(code, "cmd")); bc.postMessage({ ...m, id: newId() }); bc.close(); } catch { /* old browser */ } };
   return {
     get direct() { return !!channel; },
     send(c: Cmd) {
       if (channel?.readyState === "open") { channel.send(JSON.stringify({ ...c, id: newId() })); return; }
-      if (c.t === "pan" || c.t === "zoom") {
+      if (c.t === "pan" || c.t === "zoom" || (c.t === "point" && !c.down)) {
         // Same browser: straight through. Across devices: gathered up and sent every 400 ms.
         sameBrowser(c);
         pending ??= { dx: 0, dy: 0, f: 1 };
-        if (c.t === "pan") { pending.dx += c.dx; pending.dy += c.dy; } else pending.f *= c.f;
+        if (c.t === "pan") { pending.dx += c.dx; pending.dy += c.dy; } else if (c.t === "zoom") pending.f *= c.f; else pending.point = c;
         clearTimeout(slowTimer);
         slowTimer = window.setTimeout(flushSlow, Math.max(0, 400 - (Date.now() - lastSlow)));
+        return;
+      }
+      // Big things (a lesson, a quiz, a fleet of sites) go through the relay in pieces.
+      const text = JSON.stringify(c);
+      if (text.length > 3000) {
+        const parts = splitText(text), key = newId();
+        parts.forEach((data, i) => send(code, "cmd", { t: "part", key, i, n: parts.length, data }));
         return;
       }
       send(code, "cmd", c);
