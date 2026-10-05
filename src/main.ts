@@ -889,6 +889,17 @@ document.addEventListener("atlas:home", (e) => {
   myStore.save(existing ? { ...existing, name: existing.name || name, lon, lat } : { ...blankPlace(name, lon, lat, "home"), name: "Home", address: name });
   void flyToPlace(globe, { name, lon, lat, radius: 1500 });
 });
+// Escape always leads back to the Earth: it closes whatever is over the globe, top layer first.
+addEventListener("keydown", (e: KeyboardEvent) => {
+  if (e.key !== "Escape" || e.defaultPrevented) return;
+  const t = e.target as HTMLElement | null;
+  if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable)) return;
+  const card = document.querySelector<HTMLElement>(".card-sheet");
+  if (card) { card.remove(); return; }
+  if (document.querySelector(".block-view")) { app.actions.get("lens:close")?.run(); return; }
+  if (activeSpace()) { closeHolo(); return; }
+});
+
 // Messages from parts of Terreno that don't hold the app (sign-in, deleting an account).
 document.addEventListener("atlas:toast", (e) => app.toast(String((e as CustomEvent<string>).detail), 5000));
 
