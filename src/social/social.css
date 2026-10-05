@@ -1,9 +1,9 @@
 /* ---------- People: avatars, sign-in, account menu ---------- */
 .avatar {
-  --size: 32px; flex: none; display: inline-grid; place-items: center; width: var(--size); height: var(--size); border-radius: 50%;
-  background: radial-gradient(120% 120% at 30% 20%, color-mix(in srgb, var(--av) 70%, #fff), var(--av));
-  box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.35), 0 1px 3px rgba(0, 0, 0, 0.18);
-  font-size: calc(var(--size) * 0.52); line-height: 1; color: #fff; font-weight: 700; user-select: none;
+  /* A tessera: the person's pigment, flat, with their initials. */
+  --size: 32px; flex: none; display: inline-grid; place-items: center; width: var(--size); height: var(--size); border-radius: 28%;
+  background: var(--av); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.16);
+  font: 700 calc(var(--size) * 0.4)/1 var(--font); letter-spacing: 0.02em; color: #fff; user-select: none;
 }
 .account-btn.signed-in { padding: 0; }
 .account-btn svg { width: 22px; height: 22px; }
@@ -15,7 +15,7 @@
 .am-me > span:last-child { display: flex; flex-direction: column; min-width: 0; }
 .am-me strong { font-size: 16px; }
 .am-me small { color: var(--secondary); font-size: 12.5px; }
-.am-signin { padding: 14px 12px 12px; border-radius: 14px; background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 16%, transparent), color-mix(in srgb, #8b5fa8 12%, transparent)); display: flex; flex-direction: column; gap: 6px; }
+.am-signin { padding: 14px 12px 12px; border-radius: 12px; background: color-mix(in srgb, var(--accent) 7%, transparent); box-shadow: inset 0 0 0 1px var(--hairline); display: flex; flex-direction: column; gap: 6px; }
 .am-signin strong { font-size: 16px; letter-spacing: -0.01em; }
 .am-signin p { font-size: 13px; color: var(--secondary); }
 .am-signin .primary-btn { align-self: flex-start; margin-top: 4px; }

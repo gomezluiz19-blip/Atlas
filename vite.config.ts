@@ -96,6 +96,8 @@ function placePages(): Plugin {
       const json = (f: string) => JSON.parse(readFileSync(join("public", "data", f), "utf8")) as LabelRow[];
       const pages = pagesFor(FEATURES, json("world-labels.json"), json("detail-labels.json"));
       // Place pages carry their own title and description for link previews.
+      // A failed bundle still reaches here: leave the real error to be reported instead of this one.
+      if (!existsSync(join(outDir, "index.html"))) return;
       const app = readFileSync(join(outDir, "index.html"), "utf8").replace(/\s*<meta property="og:(title|description|url)"[^>]*>/g, "");
       const site = (process.env.ATLAS_SITE_URL ?? "").replace(/\/?$/, "/").replace(/^\/$/, "");
       for (const p of pages) {

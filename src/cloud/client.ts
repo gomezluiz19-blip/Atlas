@@ -24,6 +24,27 @@ async function auth<T>(path: string, body: unknown): Promise<T> {
 const fromAuth = (r: { access_token: string; refresh_token: string; expires_in: number; user: { id: string; email?: string } }): Session =>
   ({ access_token: r.access_token, refresh_token: r.refresh_token, expires_at: Date.now() + r.expires_in * 1000, user: { id: r.user.id, email: r.user.email } });
 
+/** The address to send someone to for signing in with Google or Apple; they come back here with tokens in the hash. */
+export function oauthUrl(provider: "google" | "apple", back = location.href.replace(/#.*$/, "")): string {
+  return `${base()}/auth/v1/authorize?provider=${provider}&redirect_to=${encodeURIComponent(back)}`;
+}
+/** After an OAuth round trip: keeps the session the address brought back, and clears it from the address bar. */
+export async function takeOAuthReturn(r: { access_token: string; refresh_token: string; expires_in: number }): Promise<{ id: string; email?: string }> {
+  const res = await fetch(`${base()}/auth/v1/user`, { headers: { apikey: config.supabaseKey, Authorization: `Bearer ${r.access_token}` } });
+  if (!res.ok) throw new Error(`Sign-in failed (HTTP ${res.status})`);
+  const user = (await res.json()) as { id: string; email?: string };
+  keep(fromAuth({ ...r, user }));
+  return session!.user;
+}
+/** Deletes the signed-in account and everything stored with it on Terreno's servers (the delete_me function in backend.sql). */
+export async function deleteCloudAccount() {
+  const t = await token();
+  if (!t) return;
+  const res = await fetch(`${base()}/rest/v1/rpc/delete_me`, { method: "POST", headers: { apikey: config.supabaseKey, Authorization: `Bearer ${t}`, "Content-Type": "application/json" }, body: "{}" });
+  if (!res.ok) throw new Error(`Couldn't delete the account (HTTP ${res.status})`);
+  keep(null);
+}
+
 /** Emails a six-digit sign-in code (creating the account if it's new). */
 export async function sendCode(email: string) { await auth("otp", { email, create_user: true }); }
 /** Checks the code; on success the device is signed in. */

@@ -47,7 +47,7 @@ import { createSearch, flyToPlace, freeArea, geocode, type Command, type Place a
 import { createRobot } from "./ui/robotCard";
 import { createAiSettings } from "./ui/aiSettings";
 import { aiOn, looksLikeAsk } from "./robot/llm";
-import { PlaceStore, type MyPlace } from "./myplaces/store";
+import { PlaceStore, blankPlace, type MyPlace } from "./myplaces/store";
 import type { DockItem } from "./myplaces/holo";
 import { packageSummary, readPackages } from "./myplaces/packages";
 import { localRecords, type TodayItem } from "./myplaces/today";
@@ -882,6 +882,27 @@ app.connections = (themeId, subtabId) => {
   return rows.length ? h("section", { class: "group connected" }, h("h2", { class: "group-title" }, "Connected"), h("div", { class: "list" }, ...rows)) : null;
 };
 
+// From joining: home becomes a My Place, and the Earth flies there.
+document.addEventListener("atlas:home", (e) => {
+  const { name, lon, lat } = (e as CustomEvent<{ name: string; lon: number; lat: number }>).detail;
+  const existing = myStore.all().find((p) => p.kind === "home");
+  myStore.save(existing ? { ...existing, name: existing.name || name, lon, lat } : { ...blankPlace(name, lon, lat, "home"), name: "Home", address: name });
+  void flyToPlace(globe, { name, lon, lat, radius: 1500 });
+});
+// Escape always leads back to the Earth: it closes whatever is over the globe, top layer first.
+addEventListener("keydown", (e: KeyboardEvent) => {
+  if (e.key !== "Escape" || e.defaultPrevented) return;
+  const t = e.target as HTMLElement | null;
+  if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable)) return;
+  const card = document.querySelector<HTMLElement>(".card-sheet");
+  if (card) { card.remove(); return; }
+  if (document.querySelector(".block-view")) { app.actions.get("lens:close")?.run(); return; }
+  if (activeSpace()) { closeHolo(); return; }
+});
+
+// Messages from parts of Terreno that don't hold the app (sign-in, deleting an account).
+document.addEventListener("atlas:toast", (e) => app.toast(String((e as CustomEvent<string>).detail), 5000));
+
 // Zoom buttons, a compass and double-click zoom.
 const mapControls = createMapControls(globe.viewer);
 $("ui").append(mapControls);
@@ -1291,8 +1312,9 @@ if (import.meta.env.PROD) seamlessDeploys();
 // What people open next, fetched while the browser is idle.
 warmUp(globe, [() => import("./intros/intro"), () => loadWorldHeritage(), () => import("./answers/ui")]);
 
-// Handy for debugging from the browser console during development.
-if (import.meta.env.DEV) {
+// Handy for debugging from the browser console during development, and for automated test runs against a
+// real build (?qa). Nothing secret is on it: it's the same app the page already runs.
+if (import.meta.env.DEV || new URLSearchParams(location.search).has("qa")) {
   Object.assign(window, { atlas: { app, globe, labels, overlays, feeds, traffic, cityLife, cart: (lon: number, lat: number, h: number) => Cartesian3.fromDegrees(lon, lat, h) } });
   void import("cesium").then((Cesium) => Object.assign(window, { Cesium }));
 }
