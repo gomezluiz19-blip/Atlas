@@ -142,6 +142,12 @@ class Sheet {
       this.body,
     );
     this.grip.addEventListener("click", () => this.el.classList.toggle("collapsed"));
+    // On a phone the Earth leads: the card starts as just its heading (choosing a place opens it), and
+    // tapping that heading opens it too.
+    if (typeof matchMedia === "function" && matchMedia("(max-width: 820px)").matches) this.el.classList.add("collapsed");
+    this.el.querySelector(".sheet-head")?.addEventListener("click", (e) => {
+      if (this.el.classList.contains("collapsed") && !(e.target as HTMLElement).closest("button")) this.el.classList.remove("collapsed");
+    });
   }
 }
 
@@ -281,7 +287,7 @@ export class App {
         role: "tab",
         "aria-selected": "false",
         style: `--tab-color:${theme.color}`,
-        onclick: () => this.setTheme(theme.id),
+        onclick: () => { this.sheet.el.classList.remove("collapsed"); this.setTheme(theme.id); },
       },
       h("span", { class: "tab-icon", html: theme.icon }),
       h("span", { class: "tab-label" }, theme.label),
@@ -309,7 +315,7 @@ export class App {
       this.moreMenu.replaceChildren(
         h("p", { class: "more-title" }, "More ways to see a place"),
         h("div", { class: "more-grid" }, ...this.themes.filter((t) => t.more).map((t) =>
-          h("button", { class: "more-item", role: "menuitem", style: `--tab-color:${t.color}`, "aria-current": String(t === this.theme), onclick: () => { this.toggleMore(false); this.setTheme(t.id); } },
+          h("button", { class: "more-item", role: "menuitem", style: `--tab-color:${t.color}`, "aria-current": String(t === this.theme), onclick: () => { this.toggleMore(false); this.sheet.el.classList.remove("collapsed"); this.setTheme(t.id); } },
             h("span", { class: "more-icon", html: t.icon }),
             h("span", { class: "more-text" }, h("strong", {}, t.label), h("span", {}, t.intro))))),
         ...(this.moreExtras?.() ?? []));

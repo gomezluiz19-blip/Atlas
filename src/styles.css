@@ -550,6 +550,7 @@ input[type="range"] { accent-color: var(--accent); }
     transition: max-height 0.3s ease;
   }
   .sheet.collapsed { max-height: 118px; }
+  .sheet.collapsed .sheet-head { cursor: pointer; }
   .sheet-grip { display: block; width: 100%; height: 16px; border: 0; background: transparent; cursor: pointer; position: relative; flex-shrink: 0; }
   .sheet-grip::after { content: ""; position: absolute; left: 50%; top: 6px; width: 36px; height: 5px; margin-left: -18px; border-radius: 3px; background: var(--fill-strong); }
   .sheet-head { padding-top: 2px; }
