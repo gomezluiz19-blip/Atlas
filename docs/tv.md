@@ -34,8 +34,9 @@
 **The TV has to run Terreno itself.** Mirroring (AirPlay, Screen Mirroring, casting your screen) shows the phone's own screen, so that phone can't be the remote at the same time. So: open `…/Terreno/tv` on the TV's browser or a laptop plugged into the TV, or *Cast to a TV* from Chrome (the Chromecast loads Terreno by itself and the phone turns into the remote). Once a phone connects, the QR code steps aside; it comes back if the remote goes quiet.
 
 **The remote** is its own small page, `remote.html#CODE` (no globe, so it opens instantly), built as a controller:
-- **The orb**: drag to spin the Earth (its meridians turn under your thumb), flick and it coasts, pinch to zoom, tap to pick what's in the middle, double-tap to dive in, hold for the menu.
-- **The ring**: up, down, left, right through the TV's menu (the room's tools on the first row; change room and exit on the second) and through whatever is open on the TV. During a lesson it turns the slides; during a quiz it moves between questions; in the time machine it moves through the years.
+- **The deck**: a big rounded square with a trackball orb inside, keys down both sides (back, menu, zoom in and out; search, voice, OK, next), in a dark neon instrument style.
+- **The orb**: a wireframe globe that rolls under your thumb in any direction (its grid turns about the screen's own axes, like a real trackball) while the Earth on the TV turns with it; flick and it coasts, pinch to zoom, tap to pick what's in the middle, double-tap to dive in, hold for the menu. Under the square, the orb's yaw and pitch read out live.
+- **The square's edges**: up, down, left, right through the TV's menu (the room's tools on the first row; change room and exit on the second) and through whatever is open on the TV. During a lesson they turn the slides; during a quiz they move between questions; in the time machine they move through the years.
 - **The tool strip** under the title: the room's tools, filled in by the TV, so the phone always matches the screen.
 - **Search**: the orb gives way to a search bar and the keyboard; what you type appears big on the TV with suggestions on both screens.
 - **Voice**: say where to go; the TV shows your words as you speak (where the browser supports speech recognition).

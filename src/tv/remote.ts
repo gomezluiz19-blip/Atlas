@@ -1,9 +1,10 @@
 // The phone remote for Terreno TV, a controller rather than a list of buttons.
-//   The orb: a pearly sphere you hold like a trackball. Drag to spin the
-//     Earth on the TV (its meridians turn under your thumb), flick and it
-//     coasts, pinch to zoom, tap to pick what's in the middle, double-tap to
-//     dive in, press and hold for the menu.
-//   The ring around it: up, down, left, right through the TV's menu.
+//   The deck: a big rounded square with a trackball orb inside it. The orb is a
+//     wireframe globe that rolls under your thumb in any direction while the
+//     Earth on the TV turns with it; flick and it coasts, pinch to zoom, tap to
+//     pick what's in the middle, double-tap to dive in, hold for the menu.
+//     The square's four edges are up, down, left, right through the TV's menu.
+//   Keys down both sides: back, menu, zoom; search, voice, OK, next.
 //   Search: the orb gives way to a search bar and the keyboard; what you type
 //     appears big on the TV letter by letter, with suggestions on both.
 //   Voice: say where to go; the TV shows your words as you speak them.
@@ -12,6 +13,7 @@ import "./remote.css";
 import { TEMPLATES } from "../work/presentModel";
 import { validQuiz } from "../work/quizModel";
 import { cleanCode, joinTv, type Cmd, type State, type ToolItem } from "./link";
+import { edgeDir, IDENTITY, sphereLines, turn, type M3 } from "./orbGrid";
 import { allSites, clockText } from "./rooms";
 
 const $ = <K extends keyof HTMLElementTagNameMap>(tag: K, attrs: Record<string, string> = {}, ...kids: (Node | string)[]) => {
@@ -20,8 +22,6 @@ const $ = <K extends keyof HTMLElementTagNameMap>(tag: K, attrs: Record<string, 
   e.append(...kids);
   return e;
 };
-const NS = "http://www.w3.org/2000/svg";
-const svg = (tag: string, attrs: Record<string, string | number>) => { const e = document.createElementNS(NS, tag); for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, String(v)); return e; };
 const buzz = (ms = 8) => { try { navigator.vibrate?.(ms); } catch { /* not supported */ } };
 const root = document.getElementById("remote")!;
 
@@ -55,35 +55,69 @@ function start(code: string) {
   let tools: Extract<State, { t: "tools" }> | null = null;
   window.setInterval(() => { cmd({ t: "ping" }); link.textContent = tv.direct ? "⚡ direct" : "via relay"; }, 4000);
 
-  // ---- The orb and its ring ----
-  const orbLines = $("div", { class: "r-orb-lines" });
-  const orb = $("div", { class: "r-orb", role: "application", "aria-label": "Drag to spin the Earth, pinch to zoom, tap to pick" }, orbLines, $("div", { class: "r-orb-shine" }));
-  const ring = svg("svg", { viewBox: "0 0 200 200", class: "r-ring", "aria-hidden": "true" });
-  const segs: Record<string, SVGPathElement> = {};
-  const DIRS = [["up", -90], ["right", 0], ["down", 90], ["left", 180]] as const;
-  for (const [dir, a] of DIRS) {
-    const r0 = 74, r1 = 98, s = ((a - 38) * Math.PI) / 180, e = ((a + 38) * Math.PI) / 180, P = (r: number, t: number) => `${100 + r * Math.cos(t)},${100 + r * Math.sin(t)}`;
-    const path = svg("path", { d: `M${P(r1, s)} A${r1},${r1} 0 0 1 ${P(r1, e)} L${P(r0, e)} A${r0},${r0} 0 0 0 ${P(r0, s)} Z`, class: "r-seg" }) as SVGPathElement;
-    const m = ((a) * Math.PI) / 180, cx = 100 + 86 * Math.cos(m), cy = 100 + 86 * Math.sin(m);
-    const chev = svg("path", { d: "M-5,-3 L0,3 L5,-3", transform: `translate(${cx},${cy}) rotate(${a - 90})`, class: "r-chev" });
-    segs[dir] = path;
-    ring.append(path, chev);
-  }
-  const press = (dir: "up" | "down" | "left" | "right") => { buzz(10); segs[dir].classList.add("hit"); setTimeout(() => segs[dir].classList.remove("hit"), 180); cmd({ t: "dpad", dir }); };
-  ring.addEventListener("pointerdown", (e) => {
-    const r = ring.getBoundingClientRect(), x = e.clientX - (r.left + r.width / 2), y = e.clientY - (r.top + r.height / 2);
-    if (Math.hypot(x, y) < r.width * 0.36) return; // the orb's own area
-    const a = (Math.atan2(y, x) * 180) / Math.PI;
-    press(a > -135 && a <= -45 ? "up" : a > -45 && a <= 45 ? "right" : a > 45 && a <= 135 ? "down" : "left");
+  // ---- The deck: a big square, a trackball orb inside it, keys down both sides ----
+  // The square's four edges are the d-pad; the orb is a wireframe globe you roll in any direction.
+  const grid = $("canvas", { class: "r-orb-grid", "aria-hidden": "true" }) as HTMLCanvasElement;
+  const orb = $("div", { class: "r-orb", role: "application", "aria-label": "Drag to spin the Earth, pinch to zoom, tap to pick" }, grid, $("div", { class: "r-orb-shine" }));
+  const edges: Record<string, HTMLElement> = {};
+  const DIRS = [["up", "▲"], ["right", "▶"], ["down", "▼"], ["left", "◀"]] as const;
+  for (const [dir, glyph] of DIRS) edges[dir] = $("span", { class: `r-edge r-edge-${dir}`, "aria-hidden": "true" }, glyph);
+  const square = $("div", { class: "r-square" },
+    ...["tl", "tr", "bl", "br"].map((c) => $("i", { class: `r-corner r-corner-${c}` })),
+    ...Object.values(edges), orb);
+  const press = (dir: "up" | "down" | "left" | "right") => { buzz(10); edges[dir].classList.add("hit"); setTimeout(() => edges[dir].classList.remove("hit"), 180); cmd({ t: "dpad", dir }); };
+  square.addEventListener("pointerdown", (e) => {
+    if (orb.contains(e.target as Node)) return;
+    const r = square.getBoundingClientRect();
+    press(edgeDir(e.clientX - (r.left + r.width / 2), e.clientY - (r.top + r.height / 2)));
   });
   const hint = $("p", { class: "r-hint" }, "Drag to spin · pinch to zoom · tap to pick");
-  const pad = $("div", { class: "r-pad" }, ring, orb);
+  const readout = $("p", { class: "r-readout", "aria-hidden": "true" });
+
+  // The orb's grid: near side bright, far side a ghost; the equator and prime meridian in the accent colour.
+  let ball: M3 = turn(turn(IDENTITY, 0.08, 0), 0, -0.12);
+  const draw = () => {
+    const w = orb.clientWidth || 200, k = devicePixelRatio || 1;
+    if (grid.width !== Math.round(w * k)) { grid.width = grid.height = Math.round(w * k); }
+    const g = grid.getContext("2d");
+    if (!g) return;
+    const r = (w / 2) * 0.96, c = w / 2;
+    g.setTransform(k, 0, 0, k, 0, 0);
+    g.clearRect(0, 0, w, w);
+    g.lineCap = "round";
+    for (const line of sphereLines(ball, 20, 72)) {
+      const hot = line.kind !== "grid";
+      for (let i = 1; i < line.pts.length; i++) {
+        const a = line.pts[i - 1], b = line.pts[i], z = (a.z + b.z) / 2;
+        const near = z > 0;
+        g.strokeStyle = hot ? (near ? `rgba(255,43,214,${0.55 + z * 0.4})` : "rgba(255,43,214,.10)") : near ? `rgba(0,240,255,${0.25 + z * 0.55})` : "rgba(0,240,255,.07)";
+        g.lineWidth = near ? (hot ? 1.6 : 1.1) : 0.8;
+        g.beginPath(); g.moveTo(c + a.x * r, c + a.y * r); g.lineTo(c + b.x * r, c + b.y * r); g.stroke();
+      }
+    }
+    // How the ball is turned (it steers the TV's camera; it isn't the TV's own position).
+    const yaw = Math.atan2(ball[6], ball[8]) * 180 / Math.PI, pitch = Math.asin(Math.max(-1, Math.min(1, -ball[7]))) * 180 / Math.PI;
+    const deg = (v: number, w: number) => `${v >= 0 ? "+" : "−"}${Math.abs(v).toFixed(1).padStart(w, "0")}°`;
+    readout.textContent = `YAW ${deg(yaw, 5)}  PITCH ${deg(pitch, 4)}`;
+  };
+  new ResizeObserver(draw).observe(orb);
+  // Left alone, the ball drifts slowly, so the remote looks alive on the coffee table.
+  let idleAt = 0, idleRaf = 0;
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const idle = () => {
+    idleRaf = 0;
+    if (document.hidden || reduce) return;
+    if (performance.now() - idleAt > 2500) { ball = turn(ball, 0.0009, 0); draw(); }
+    idleRaf = requestAnimationFrame(idle);
+  };
+  document.addEventListener("visibilitychange", () => { if (!document.hidden && !idleRaf) idleRaf = requestAnimationFrame(idle); });
+  idleRaf = requestAnimationFrame(idle);
 
   // Gestures: one finger spins, two pinch, a quick touch picks, hold opens the menu.
   const pts = new Map<number, { x: number; y: number }>();
-  let last = { x: 0, y: 0, t: 0 }, vel = { x: 0, y: 0 }, travelled = 0, downAt = 0, lastTap = 0, pinch0 = 0, holdTimer = 0, coast = 0, rot = { x: 0, y: 0 }, tick = 0;
+  let last = { x: 0, y: 0, t: 0 }, vel = { x: 0, y: 0 }, travelled = 0, downAt = 0, lastTap = 0, pinch0 = 0, holdTimer = 0, coast = 0, tick = 0;
   const size = () => orb.getBoundingClientRect().width || 240;
-  const spinLines = (dx: number, dy: number) => { rot.x += dx * 120; rot.y += dy * 120; orbLines.style.backgroundPosition = `${rot.x}px ${rot.y}px, ${rot.x}px 0, 0 ${rot.y}px`; };
+  const spinLines = (dx: number, dy: number) => { idleAt = performance.now(); ball = turn(ball, dx, dy); draw(); };
   orb.addEventListener("pointerdown", (e) => {
     orb.setPointerCapture(e.pointerId);
     cancelAnimationFrame(coast);
@@ -145,12 +179,16 @@ function start(code: string) {
   orb.addEventListener("pointercancel", up);
   const ripple = () => { const r = $("i", { class: "r-ripple" }); orb.append(r); r.addEventListener("animationend", () => r.remove()); };
 
-  // ---- Buttons under the orb ----
-  const roundBtn = (label: string, icon: string, fn: () => void) => { const b = $("button", { class: "r-round", "aria-label": label }, $("span", {}, icon), $("small", {}, label)); b.addEventListener("click", () => { buzz(8); fn(); }); return b; };
-  const searchBtn = roundBtn("Search", "⌕", () => enterTyping(true));
-  const voiceBtn = roundBtn("Voice", "🎙", () => listenVoice());
-  const buttons = $("div", { class: "r-buttons" },
-    roundBtn("Back", "‹", () => cmd({ t: "back" })), roundBtn("Menu", "☰", () => cmd({ t: "menu" })), searchBtn, voiceBtn);
+  // ---- Keys down both sides of the square ----
+  const key = (label: string, icon: string, fn: () => void, cls = "", short = label) => { const b = $("button", { class: `r-key ${cls}`, "aria-label": label }, $("span", {}, icon), $("small", {}, short)); b.addEventListener("click", () => { buzz(8); fn(); }); return b; };
+  const deck = $("div", { class: "r-deck" },
+    $("div", { class: "r-rail r-rail-left" },
+      key("Back", "‹", () => cmd({ t: "back" })), key("Menu", "☰", () => cmd({ t: "menu" })),
+      key("Zoom in", "+", () => cmd({ t: "zoom", f: 1.6 }), "", "In"), key("Zoom out", "−", () => cmd({ t: "zoom", f: 1 / 1.6 }), "", "Out")),
+    square,
+    $("div", { class: "r-rail r-rail-right" },
+      key("Search", "⌕", () => enterTyping(true)), key("Voice", "◉", () => listenVoice(), "r-key-voice"),
+      key("OK", "OK", () => cmd({ t: "select" }), "r-key-ok"), key("Next", "⏭", () => cmd({ t: "next" }))));
 
   // ---- Typing: the orb gives way to a search bar and the keyboard ----
   const field = $("input", { type: "text", enterkeyhint: "go", autocapitalize: "words", placeholder: "Where to?", autocomplete: "off", "aria-label": "Search on the TV" }) as HTMLInputElement;
@@ -439,7 +477,7 @@ function start(code: string) {
   root.replaceChildren(
     $("header", { class: "r-now" }, $("span", { class: "r-live" }), $("div", {}, $("small", {}, "On the TV ", link), titleEl, subEl), more),
     strip,
-    $("div", { class: "r-stage" }, pad, hint, buttons),
+    $("div", { class: "r-stage" }, deck, readout, hint),
     $("div", { class: "r-typing" }, typeBar, sugg));
   cmd({ t: "hello" });
   setTimeout(() => { if (!root.classList.contains("live")) { titleEl.textContent = "Waiting for the TV…"; subEl.textContent = `Is the TV showing code ${code}?`; cmd({ t: "hello" }); } }, 4000);

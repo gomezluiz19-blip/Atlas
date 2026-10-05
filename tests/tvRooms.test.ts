@@ -121,3 +121,29 @@ describe("long messages through the relay", () => {
     expect(joiner()("one", 0, 1, "")).toBe("");
   });
 });
+
+import { edgeDir, IDENTITY, sphereLines, turn } from "../src/tv/orbGrid";
+describe("the remote's trackball orb", () => {
+  const front = (m: ReturnType<typeof turn>) => { const l = sphereLines(m, 90, 4).find((x) => x.kind === "meridian")!; return l.pts; };
+  it("turns the way the thumb drags, about the screen's own axes", () => {
+    // The point facing you (lat 0, lon 0) moves right when you drag right, down when you drag down.
+    const p0 = sphereLines(IDENTITY, 30, 12).find((x) => x.kind === "equator")!.pts[0];
+    expect([p0.x, p0.y, p0.z].map((v) => Math.round(v * 1e9) / 1e9 + 0)).toEqual([0, 0, 1]);
+    const right = sphereLines(turn(IDENTITY, 0.1, 0), 30, 12).find((x) => x.kind === "equator")!.pts[0];
+    expect(right.x).toBeGreaterThan(0.2);
+    const down = sphereLines(turn(IDENTITY, 0, 0.1), 30, 12).find((x) => x.kind === "equator")!.pts[0];
+    expect(down.y).toBeGreaterThan(0.2);
+    // Turned a long way, a drag still moves the facing side the same way.
+    let m = IDENTITY;
+    for (let i = 0; i < 40; i++) m = turn(m, 0.037, -0.021);
+    const det = m[0] * (m[4] * m[8] - m[5] * m[7]) - m[1] * (m[3] * m[8] - m[5] * m[6]) + m[2] * (m[3] * m[7] - m[4] * m[6]);
+    expect(det).toBeCloseTo(1, 6);
+    expect(front(m).every((p) => Math.abs(Math.hypot(p.x, p.y, p.z) - 1) < 1e-9)).toBe(true);
+  });
+  it("splits the square into four d-pad edges", () => {
+    expect(edgeDir(0, -50)).toBe("up");
+    expect(edgeDir(60, 10)).toBe("right");
+    expect(edgeDir(-60, 20)).toBe("left");
+    expect(edgeDir(5, 40)).toBe("down");
+  });
+});
