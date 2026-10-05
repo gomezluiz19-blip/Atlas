@@ -2,9 +2,11 @@
    four mineral pigments that carry meaning, and registration marks for what's chosen. See docs/design.md. */
 
 :root {
-  /* Type: Geist for the interface, Geist Mono for small capitals, data and readouts. */
-  --font: "Geist", ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-display: "Geist", ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  /* Type: Axiforma (as "Terreno Sans", see src/ui/fonts.ts; Plus Jakarta Sans until the licensed files are in
+     public/fonts), Heavy for the wordmark; Geist Mono only for figures, coordinates and readouts. */
+  --font: "Terreno Sans", "Plus Jakarta Sans", ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-display: var(--font);
+  --font-logo: var(--font);
   --font-mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 
   /* The pigments (from the brand board): cobalt, yellow ochre, green-grey, terracotta. */
@@ -3342,7 +3344,7 @@ body[data-work="1"] .holo:not(.mini) .holo-actions { margin-right: 440px; }
 
 /* ---- Terreno TV: the screen across the room, and the cast sheet ---- */
 /* On a TV the chrome goes, but the real tools stay: the hologram and its dock, a lens, a Work panel, a drawing bar. */
-body.tv-mode #ui > *:not(.holo):not(.lens-panel):not(.toast):not(.holo-tags):not(.work-panel):not(.draw-bar) { display: none !important; }
+body.tv-mode #ui > *:not(.holo):not(.lens-panel):not(.toast):not(.holo-tags):not(.work-panel):not(.draw-bar):not(.wf-pass) { display: none !important; }
 body.tv-mode .work-panel:not([hidden]) { zoom: 1.25; top: 3vh; right: 2vw; max-height: 74vh; z-index: 950; }
 body.tv-mode .draw-bar { zoom: 1.3; z-index: 950; }
 body.tv-mode .holo-dock { zoom: 1.3; bottom: 4vh; }

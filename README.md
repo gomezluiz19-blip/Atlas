@@ -1047,9 +1047,13 @@ These keys end up in the public page, so restrict them to your site's domain in 
 
 Terreno's look is a system, written down in [docs/design.md](docs/design.md): quiet paper and basalt surfaces
 around the globe, one action colour (cobalt), four mineral pigments that carry meaning (cobalt, ochre, sage,
-terracotta), Geist and Geist Mono, tiles rather than bubbles, and registration marks framing what's chosen. The
+terracotta), Axiforma (Heavy for the wordmark; Plus Jakarta Sans until the licensed files are in `public/fonts/`)
+with Geist Mono for figures, tiles rather than bubbles, and registration marks framing what's chosen. The
 mark is a dome of tesserae, generated in code (`src/ui/brand.ts`). No emoji: every one that reaches the page
 becomes Terreno's own icon (`src/ui/noEmoji.ts`). The globe has a house finish (`src/globe/finish.ts`).
+The wayfinder (`src/wayfind/`) gives the Earth a voice: a compass ribbon of what's ahead, a card for what you
+pass, a guess at where you're going, and Guide on phones (GPS, chase camera, turn-by-turn). Web, phone and TV
+hand off to each other (continue on your phone, open the TV's view here, show on TV).
 
 ## How it works
 

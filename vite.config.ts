@@ -6,6 +6,8 @@ import { defineConfig, type Plugin } from "vite";
 import { FEATURES } from "./src/content/features";
 import { LEGAL_PAGES, legalPage, type Company } from "./src/legal/markdown";
 import { pagesFor, renderPage, sitemap, type LabelRow } from "./src/place/prerender";
+import { axiformaFaces } from "./src/ui/fonts";
+import { existsSync } from "node:fs";
 
 /** Gzipped bytes every visitor downloads at startup; the build fails in CI past these. */
 const BUDGET = { app: 700 * 1024, cesium: 1250 * 1024 };
@@ -27,6 +29,16 @@ export const CSP = [
 ].join("; ");
 function contentSecurityPolicy(): Plugin {
   return { name: "atlas-csp", apply: "build", transformIndexHtml: (html) => html.replace("<head>", `<head>\n    <meta http-equiv="Content-Security-Policy" content="${CSP}" />`) };
+}
+
+/** The house face (src/ui/fonts.ts): Axiforma from public/fonts when its licensed files are there, else local or the open fallback. */
+function houseFont(): Plugin {
+  let base = "/";
+  return {
+    name: "terreno-font",
+    configResolved(c) { base = c.base; },
+    transformIndexHtml: (html) => html.replace("</head>", `  <style id="house-font">${axiformaFaces((f) => existsSync(join("public", "fonts", f)), `${base}fonts/`)}</style>\n  </head>`),
+  };
 }
 
 /** The legal and trust pages (docs/legal) at /legal/<name>.html, and /.well-known/security.txt once there's a security contact. */
@@ -131,7 +143,7 @@ export default defineConfig({
   // Relative base so the build works from any static host or subfolder.
   base: "./",
   worker: { format: "es" },
-  plugins: [contentSecurityPolicy(), linkPreview(), placePages(), legalPages()],
+  plugins: [houseFont(), contentSecurityPolicy(), linkPreview(), placePages(), legalPages()],
   build: {
     chunkSizeWarningLimit: 6000,
     // Cesium, small libraries and the bundled data each in their own file, so a deploy that

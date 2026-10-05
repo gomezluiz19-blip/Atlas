@@ -22,16 +22,16 @@ export function drawCard(g: CanvasRenderingContext2D, w: number, h: number, f: F
   g.fillStyle = accent;
   g.fillRect(pad, h - pad - 112 * s, 44 * s, 3 * s);
   g.fillStyle = "#fff";
-  g.font = `700 ${Math.round(54 * s)}px Geist, -apple-system, system-ui, sans-serif`;
+  g.font = `700 ${Math.round(54 * s)}px "Terreno Sans", "Plus Jakarta Sans", -apple-system, system-ui, sans-serif`;
   g.textBaseline = "alphabetic";
   g.fillText(f.title, pad, h - pad - 50 * s, w - pad * 2);
   if (f.sub) {
     g.fillStyle = "rgba(255,255,255,0.78)";
-    g.font = `500 ${Math.round(22 * s)}px Geist, -apple-system, system-ui, sans-serif`;
+    g.font = `500 ${Math.round(22 * s)}px "Terreno Sans", "Plus Jakarta Sans", -apple-system, system-ui, sans-serif`;
     g.fillText(f.sub, pad, h - pad - 14 * s, w - pad * 2);
   }
   // The mark and the date, top right, small.
-  g.font = `600 ${Math.round(15 * s)}px Geist, -apple-system, system-ui, sans-serif`;
+  g.font = `600 ${Math.round(15 * s)}px "Terreno Sans", "Plus Jakarta Sans", -apple-system, system-ui, sans-serif`;
   g.textAlign = "right";
   g.fillStyle = "rgba(255,255,255,0.85)";
   g.fillText("TERRENO", w - pad, pad + 4 * s);

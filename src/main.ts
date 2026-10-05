@@ -7,6 +7,8 @@ import { wordmarkHtml } from "./ui/brand";
 
 import { BoundingSphere, Cartesian2, Cartesian3, HeadingPitchRange, Math as CesiumMath, SceneTransforms } from "cesium";
 import { createMapControls, homeRegion } from "./globe/controls";
+import { installWayfinder } from "./wayfind/ui";
+import { qrSvg } from "./ui/qr";
 import { Looks } from "./globe/looks";
 import { featureChips } from "./explore/featureLayers";
 import { App, type Theme } from "./app";
@@ -881,7 +883,32 @@ app.connections = (themeId, subtabId) => {
 };
 
 // Zoom buttons, a compass and double-click zoom.
-$("ui").append(createMapControls(globe.viewer));
+const mapControls = createMapControls(globe.viewer);
+$("ui").append(mapControls);
+
+// The wayfinder: the compass ribbon, what you're passing, where you seem to be going, and Guide (GPS).
+const wayfinder = installWayfinder(app, $("ui"));
+mapControls.prepend(wayfinder.guideButton);
+// Phone and TV: a phone that has driven a TV in the last half day can hand it whatever place is open here.
+const pairedTv = (): string | null => { try { const v = JSON.parse(localStorage.getItem("atlas.tv.code") ?? "null") as { code: string; at: number } | null; return v && Date.now() - v.at < 12 * 3_600_000 ? v.code : null; } catch { return null; } };
+app.actions.set("tv:show", { label: "Show on the TV", isOn: () => !!pairedTv(), run: () => {
+  const p = app.place, code = pairedTv();
+  if (!p || !code) return;
+  void import("./tv/link").then((m) => { m.send(code, "cmd", { t: "goto", lon: p.lon, lat: p.lat, title: p.name?.title ?? "A place on Earth", sub: p.name?.context }); app.toast("On the TV now.", 2500); });
+} });
+// Web to phone: the view you're looking at, as a code your phone's camera opens (and Guide can take you there).
+app.actions.set("handoff:phone", { label: "Continue on your phone", run: () => {
+  document.querySelector(".handoff")?.remove();
+  const link = app.shareLink?.() ?? location.href;
+  const close = () => box.remove();
+  const box = h("div", { class: "handoff reg", role: "dialog", "aria-label": "Continue on your phone" },
+    h("div", { class: "handoff-qr", html: qrSvg(link) }),
+    h("div", { class: "handoff-text" }, h("strong", {}, "Continue on your phone"), h("p", {}, "Point your phone's camera at the code. The same view opens there; tap Guide me to be taken to it."),
+      h("button", { class: "pill-btn", onclick: close }, "Done")));
+  $("ui").append(box);
+  addEventListener("keydown", (e: KeyboardEvent) => { if (e.key === "Escape") close(); }, { once: true });
+} });
+app.actions.set("wayfind:guide", { label: "Guide me there", run: () => { const p = app.place; if (p) wayfinder.guideTo({ id: `place:${p.lon},${p.lat}`, name: p.name?.title ?? "there", lon: p.lon, lat: p.lat, why: "poi", weight: 1 }); } });
 
 // Everything on the map, from every theme.
 // Everything on the map as bubbles at the edge of the globe; + adds a view without leaving it.

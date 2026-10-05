@@ -50,9 +50,14 @@ madder #b8496a, violet #8b5fa8, ultramarine #5160c2, umber #9a7552, stone #8c8f8
 
 ## Type
 
-- **Geist** for everything you read: 13–15 px for interface text, 600 weight and tight tracking for titles.
-- **Geist Mono** for small capitals (section labels at 10.5 px, tracked 0.12 em), figures and readouts.
-- The wordmark is set in capitals, tracked wide (0.34 em), beside the mark.
+- **Axiforma** for everything you read (Kastelov's geometric sans): 13–15 px for interface text, 700 for titles,
+  small capitals tracked 0.14 em for section labels. **Axiforma Heavy** for the wordmark, tracked wide (0.3 em).
+- **Geist Mono** only for figures: coordinates, distances, headings, counters, the remote's readouts.
+- Axiforma is licensed. Drop the licensed webfonts into `public/fonts/` as `Axiforma-Regular`, `-Medium`,
+  `-SemiBold`, `-Bold` and `-Heavy` (`.woff2`, `.woff` or `.otf`) and the build serves them (`src/ui/fonts.ts`
+  writes the `@font-face` rules, under the family name "Terreno Sans"). A machine with Axiforma installed uses
+  its own copy. Until then everyone else sees **Plus Jakarta Sans**, the nearest open face (geometric, wide, a
+  two-storey a), at the same weights.
 
 ## The mark
 
@@ -77,8 +82,41 @@ it fades out as you come down to a city, where an evenly lit map matters more. N
 haze is thin and rich so land and sea read deep, the sun is a sun rather than a lens flare, and the stars are
 dimmed so the Earth is the brightest thing on screen.
 
+## A medium, not a map app
+
+Terreno should feel less like looking something up and more like being somewhere, the way a good open-world game
+does: you always know which way you're facing, the world tells you about itself as you move through it, and it
+seems to know where you're headed. Three rules carry that:
+
+1. **The world speaks up.** As you glide over the globe, walk, drive or fly, what you pass gets a card: its
+   name, the one line worth knowing, which side it's on. Each one is counted ("No. 014 found"), quietly.
+2. **You always have a bearing.** The compass ribbon under the top bar shows your heading and the landmarks
+   ahead as tiles; the place you seem to be making for is the cobalt diamond.
+3. **It guesses, then offers.** Move steadily toward one of your places (home, a saved place, a recent search,
+   today's plan) and Terreno asks "Heading home?" with one button to be taken there. Never more than a question.
+
+The model is `src/wayfind/model.ts` (pure, tested); the screens are `src/wayfind/ui.ts`.
+
+## Web, phone and TV
+
+Each is a different instrument for the same Earth, and each hands off to the others.
+
+- **Web** is the desk: the compass ribbon, passing cards top right, the guess under the ribbon, the full set of
+  tools. *Share › Continue on your phone* shows the view as a code your phone's camera opens.
+- **Phone** is the field: **Guide** (the arrow in the map controls) follows your GPS with a chase camera behind
+  you, tells you what you pass at street level (from Wikipedia), guesses where you're going and gives
+  turn-by-turn there (Valhalla over OpenStreetMap). The place card's *Guide me* starts it for any place.
+- **TV** is the room: playlists, rooms and tools, with passing cards as a broadcast panel under the brand.
+- **Between them**: the phone remote reads out the TV's camera (latitude, longitude, height, heading) in the
+  pad's corners and keeps each place the TV passes, with *Open on phone*; *Open here* takes the TV's whole
+  view onto the phone. A phone that has driven a TV in the last twelve hours gets *Show on TV* on every place.
+
 ## The remote and the TV
 
-The phone remote is an instrument in the same family: basalt and paper, a rounded square whose edges are the
-d-pad, a trackball orb drawn as a globe in the pigments (cobalt grid, ochre equator, terracotta meridian),
-registration marks at the corners, keys down both sides, one solid cobalt *OK*. No glow, no scan lines.
+The phone remote is an instrument in the same family: basalt, a hairline, figures in mono, one solid cobalt
+action. The pad takes the whole width of the phone: drag anywhere to roll the Earth, tap an edge to move through
+menus, tap the middle for OK, hold for the menu; pinch to zoom, twist two fingers to turn the view, slide them
+together to tilt. The orb in the middle is a globe drawn in the pigments (cobalt grid, ochre equator, terracotta
+meridian) inside a bezel of degree ticks; registration ticks mark the pad's corners, with the TV camera's
+readouts beside them. Under the pad, a zoom fader (drag for smooth zoom, tap the ends for a step) and four keys:
+Back, Menu, Search, Voice. No glow, no scan lines.
