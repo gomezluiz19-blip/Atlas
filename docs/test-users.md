@@ -42,5 +42,19 @@ Supabase and invite people from *Authentication › Users*.
 
 - `npm test`: the full suite, including every stylesheet parsed the way the build parses it, and load tests.
 - `npm run build`: fails on bundle budgets and broken styles.
-- Any build opened with `?qa` exposes `window.atlas` for automated runs (the action sweep drives every
-  action in the app this way and reports errors and overlapping panels).
+- Any build opened with `?qa` exposes `window.atlas` for automated runs.
+- The browser runs in `scripts/qa/` drive the built site in headless Chromium. They need Playwright
+  installed once (`npm i -g playwright`); serve a build with `npm run build && npx vite preview`, then:
+  - `node scripts/qa/sweep.mjs` fires every action and records errors and how much of the screen each one
+    covers (`--phone` for a 390×844 phone; a word after it limits the run, e.g. `sweep.mjs lens`).
+  - `node scripts/qa/stress.mjs` runs themes, layers, 40 places, lenses, tools and 300 pans and zooms,
+    printing heap, imagery layers, data sources, primitives and DOM size after each phase.
+  - `node scripts/qa/rapid.mjs` hits modes, layers, sign-in, search, tabs and the tour as fast as input
+    arrives and checks nothing doubles up.
+
+  Each exits non-zero on an error. Results and screenshots go to `qa-out/` (`QA_URL` and `QA_OUT` change
+  where they look and write). Software rendering is slow, so expect a full sweep to take 10–15 minutes.
+
+  The last runs before the test-user build: 123 actions on desktop and on a phone with no errors; the stress
+  run with no errors, imagery layers levelling off at 36 and the DOM back to where it began; rapid input with
+  no errors, one join card from fifteen opens and one tour from ten starts.
