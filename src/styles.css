@@ -565,6 +565,16 @@ input[type="range"] { accent-color: var(--accent); }
   .credits { top: calc(var(--gutter) + var(--bar) + 6px + env(safe-area-inset-top, 0px)); bottom: auto; max-width: 55%; }
   .species-detail { flex-direction: column; }
 }
+
+/* ---------- Phones: search gets its own full row, since it is the front door ---------- */
+@media (max-width: 560px) {
+  :root { --bar: 148px; }
+  .topbar > .brand { order: 0; }
+  .topbar > .topbar-actions { order: 1; margin-left: auto !important; gap: 6px; }
+  .topbar > .search { order: 2; flex: 1 1 100%; z-index: 5; }
+  .topbar > .mode-bar { order: 3; }
+}
+
 .async { display: flex; flex-direction: column; gap: 14px; }
 
 /* ---------- Live map labels ---------- */
@@ -2274,7 +2284,7 @@ body.time-open .look-legend { bottom: calc(var(--gutter) + 146px + env(safe-area
 .arrival-name { margin: 0; font: 650 clamp(32px, 4.6vw, 56px)/1.02 var(--font-display); letter-spacing: -0.025em; }
 .arrival-fact { margin: 10px auto 0; max-width: 460px; font: 450 15px/1.45 var(--font); color: rgba(255, 255, 255, 0.92); opacity: 0; transition: opacity 0.8s ease 0.2s; }
 .arrival-fact.on { opacity: 1; }
-@media (max-width: 820px) { .arrival { left: 50% !important; max-width: calc(100vw - 48px); top: calc(var(--gutter) + var(--bar) + 60px); } }
+@media (max-width: 820px) { .arrival { left: 50% !important; max-width: calc(100vw - 48px); top: calc(var(--gutter) + var(--bar) + 86px); } }
 @media (prefers-reduced-motion: reduce) { .arrival { transition-duration: 0.01s; } }
 
 /* Page headline, live reading, share cards, surprise */
@@ -3771,9 +3781,9 @@ body.tv-mode .lens-panel { transform: scale(1.15); transform-origin: top right; 
 .po-kpi strong { font-size: min(24px, 25cqi); white-space: nowrap; }
 
 /* While the globe moves: no live backdrop blur (it's recomputed every frame over WebGL), slightly more opaque
-   materials instead. See globe/motion.ts. */
-body.globe-moving { --material: rgba(250, 250, 252, 0.94); --material-strong: rgba(255, 255, 255, 0.985); }
-@media (prefers-color-scheme: dark) { body.globe-moving { --material: rgba(17, 19, 23, 0.94); --material-strong: rgba(24, 26, 31, 0.985); } }
+   materials instead (near-opaque, so nothing behind a panel reads through it). See globe/motion.ts. */
+body.globe-moving { --material: rgba(247, 244, 237, 0.985); --material-strong: rgba(250, 248, 243, 0.995); }
+@media (prefers-color-scheme: dark) { body.globe-moving { --material: rgba(22, 24, 21, 0.985); --material-strong: rgba(28, 31, 27, 0.995); } }
 body.globe-moving * { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
 
 /* ---- Team, versions and backup (pro/kit/team.ts) ---- */
