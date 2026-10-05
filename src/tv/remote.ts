@@ -9,7 +9,10 @@
 //   Voice: say where to go; the TV shows your words as you speak them.
 // A page of its own (no globe), so it opens instantly on a phone.
 import "./remote.css";
-import { cleanCode, joinTv, type Cmd, type State } from "./link";
+import { TEMPLATES } from "../work/presentModel";
+import { validQuiz } from "../work/quizModel";
+import { cleanCode, joinTv, type Cmd, type State, type ToolItem } from "./link";
+import { allSites, clockText } from "./rooms";
 
 const $ = <K extends keyof HTMLElementTagNameMap>(tag: K, attrs: Record<string, string> = {}, ...kids: (Node | string)[]) => {
   const e = document.createElement(tag);
@@ -43,8 +46,13 @@ function start(code: string) {
     if (s.t === "suggest") { if (editing) return; showSuggestions(s.items, s.focus); if (!root.classList.contains("typing") && !s.q) enterTyping(false); }
     if (s.t === "input") editField(s.kind, s.label, s.value);
     if (s.t === "form" && s.kind === "trip") tripSheet();
+    if (s.t === "tools") { tools = s; drawTools(); }
+    if (s.t === "present") presenter(s);
+    if (s.t === "quiz") quizHost(s);
+    if (s.t === "panel") closePanel();
   });
   const cmd = (c: Cmd) => tv.send(c);
+  let tools: Extract<State, { t: "tools" }> | null = null;
   window.setInterval(() => { cmd({ t: "ping" }); link.textContent = tv.direct ? "⚡ direct" : "via relay"; }, 4000);
 
   // ---- The orb and its ring ----
@@ -259,9 +267,169 @@ function start(code: string) {
     rec.start();
   }
 
+  // ---- The room's tools: a strip the TV fills in, so the phone always matches the screen ----
+  const strip = $("div", { class: "r-tools", role: "toolbar", "aria-label": "Tools for this screen" });
+  function drawTools() {
+    if (!tools) return;
+    strip.replaceChildren(...tools.items.map((t) => {
+      const on = tools!.mode === t.id;
+      const b = $("button", { class: "r-tool" + (on ? " on" : ""), "aria-pressed": String(on) }, $("span", {}, t.icon), $("small", {}, t.label));
+      b.addEventListener("click", () => { buzz(8); toolPress(t); });
+      return b;
+    }));
+    root.classList.toggle("has-tools", tools.items.length > 0);
+    if (tools.mode) inkPad(tools.mode); else if (panel?.classList.contains("r-ink")) closePanel();
+  }
+  /** Some tools need the phone first (what to present, how long a timer); the rest go straight to the TV. */
+  function toolPress(t: ToolItem) {
+    if (t.id === "lesson" || t.id === "present") lessonSheet(t.id);
+    else if (t.id === "quiz") quizSheet();
+    else if (t.id === "timer") timerSheet();
+    else if (t.id === "sites") shareSites();
+    else if (t.id === "search") enterTyping(true);
+    else if (t.id === "trip") tripSheet();
+    else cmd({ t: "tool", tool: t.id });
+  }
+  const mine = <T>(k: string): T[] => { try { const v = JSON.parse(localStorage.getItem(k) ?? "[]"); return Array.isArray(v) ? v : []; } catch { return []; } };
+
+  /** A sheet of choices sliding up over the remote. */
+  function sheet(titleText: string, note: string, rows: { label: string; sub?: string; icon?: string; go(): void }[]) {
+    root.querySelector(".r-sheet")?.remove();
+    const x = $("button", { class: "r-type-x", type: "button", "aria-label": "Close" }, "✕");
+    const box = $("div", { class: "r-sheet", role: "dialog", "aria-label": titleText },
+      $("header", {}, $("h2", {}, titleText), x),
+      note ? $("p", { class: "r-sheet-note" }, note) : "",
+      $("div", { class: "r-list" }, ...rows.map((r) => {
+        const b = $("button", { class: "r-list-row" }, r.icon ? $("span", { class: "r-list-icon" }, r.icon) : "", $("div", {}, $("strong", {}, r.label), r.sub ? $("small", {}, r.sub) : ""));
+        b.addEventListener("click", () => { buzz(10); close(); r.go(); });
+        return b;
+      })));
+    const close = () => { box.classList.add("out"); setTimeout(() => box.remove(), 300); };
+    x.addEventListener("click", close);
+    root.append(box);
+  }
+  function lessonSheet(kind: "lesson" | "present") {
+    const decks = mine<{ id: string; name: string; slides: { thumb?: string }[] }>("atlas.work.decks.v1");
+    const send = (d: { slides: { thumb?: string }[] }) => cmd({ t: "share", kind: "deck", data: { ...d, slides: d.slides.map((s) => ({ ...s, thumb: undefined })) } });
+    sheet(kind === "lesson" ? "📖 Lessons" : "🎞 Present", "Your notes and the next slide show here on your phone; the room sees the slides.", [
+      ...decks.map((d) => ({ icon: "📱", label: d.name, sub: `${d.slides.length} slides · on this phone`, go: () => send(d) })),
+      ...(tools?.decks ?? []).map((d) => ({ icon: "📺", label: d.name, sub: "Saved on the TV", go: () => cmd({ t: "tool", tool: kind, arg: d.id }) })),
+      ...TEMPLATES.map((t) => ({ icon: "✨", label: t.name, sub: `Ready-made · ${t.about}`, go: () => cmd({ t: "tool", tool: kind, arg: `tpl:${t.name}` }) })),
+    ]);
+  }
+  function quizSheet() {
+    const quizzes = mine<unknown>("atlas.work.quizzes.v1").filter(validQuiz);
+    sheet("❓ Class quiz", "Questions show big on the TV; the answers show only here, until you reveal them.", [
+      { icon: "✨", label: "Capitals and famous places", sub: "Ready-made · 8 questions, 20 seconds each", go: () => cmd({ t: "tool", tool: "quiz", arg: "starter" }) },
+      ...quizzes.map((q) => ({ icon: "📱", label: q.title, sub: `${q.questions.length} questions · on this phone`, go: () => cmd({ t: "share", kind: "quiz", data: q }) })),
+      ...(tools?.quizzes ?? []).map((q) => ({ icon: "📺", label: q.name, sub: "Saved on the TV", go: () => cmd({ t: "tool", tool: "quiz", arg: q.id }) })),
+    ]);
+  }
+  function timerSheet() {
+    sheet("⏱ Timer", "A countdown the whole room can see, with a chime at the end.", [
+      ...[1, 2, 3, 5, 10, 15, 30].map((m) => ({ label: `${m} minute${m === 1 ? "" : "s"}`, go: () => cmd({ t: "timer", seconds: m * 60 }) })),
+      { label: "Stop the timer", go: () => cmd({ t: "timer", seconds: 0 }) },
+    ]);
+  }
+  function roomSheet() {
+    if (!tools) return;
+    sheet("This screen is for…", "The TV sets itself up for the room: what plays by itself, and the tools here.",
+      tools.rooms.map((r) => ({ icon: r.icon, label: r.label + (r.id === tools!.room ? " ✓" : ""), sub: r.who, go: () => cmd({ t: "room", room: r.id }) })));
+  }
+  /** Hands the TV every site from the Pro tools on this phone. */
+  function shareSites() {
+    const sites = allSites((k) => localStorage.getItem(k));
+    if (sites.length) cmd({ t: "share", kind: "sites", data: sites });
+    else cmd({ t: "tool", tool: "sites" });
+  }
+
+  // ---- Panels over the orb: the ink pad, the presenter's view, the quiz host's view ----
+  let panel: HTMLElement | null = null;
+  function showPanel(p: HTMLElement) { panel?.remove(); panel = p; root.append(p); root.classList.add("paneled"); }
+  function closePanel() { panel?.remove(); panel = null; root.classList.remove("paneled"); }
+
+  /** Pointer, spotlight or pen: the pad is the TV's screen, shrunk; your thumb is the dot. */
+  function inkPad(mode: string) {
+    if (panel?.dataset.mode === mode) return;
+    const pad = $("div", { class: "r-inkpad", role: "application", "aria-label": "Move your thumb to point on the TV" }, $("span", {}, mode === "pen" ? "Draw here" : mode === "spotlight" ? "Move the spotlight" : "Point"));
+    const done = $("button", { class: "r-primary" }, "Done");
+    const clear = $("button", { class: "r-ghost" }, "Clear drawing");
+    const p = $("div", { class: "r-panel r-ink" }, $("p", { class: "r-panel-k" }, mode === "pen" ? "✎ Pen" : mode === "spotlight" ? "🔦 Spotlight" : "🔴 Pointer"), pad, $("div", { class: "r-row" }, mode === "pen" ? clear : "", done));
+    p.dataset.mode = mode;
+    const at = (e: PointerEvent) => { const r = pad.getBoundingClientRect(); return { x: (e.clientX - r.left) / r.width, y: (e.clientY - r.top) / r.height }; };
+    let down = false;
+    pad.addEventListener("pointerdown", (e) => { pad.setPointerCapture(e.pointerId); down = true; const q = at(e); pad.style.setProperty("--x", `${q.x * 100}%`); pad.style.setProperty("--y", `${q.y * 100}%`); cmd({ t: "point", ...q, down: mode === "pen" }); pad.classList.add("touch"); });
+    let lastSent = 0;
+    pad.addEventListener("pointermove", (e) => {
+      if (!down) return;
+      // Through the relay, strokes are thinned to a few points a second (it limits how often it's used).
+      if (mode === "pen" && !tv.direct && Date.now() - lastSent < 250) return;
+      lastSent = Date.now();
+      const q = at(e); pad.style.setProperty("--x", `${q.x * 100}%`); pad.style.setProperty("--y", `${q.y * 100}%`); cmd({ t: "point", ...q, down: mode === "pen" }); });
+    const up = () => { down = false; pad.classList.remove("touch"); cmd({ t: "point-end" }); };
+    pad.addEventListener("pointerup", up); pad.addEventListener("pointercancel", up);
+    done.addEventListener("click", () => { buzz(10); cmd({ t: "tool", tool: mode }); closePanel(); });
+    clear.addEventListener("click", () => { buzz(8); cmd({ t: "tool", tool: "ink-clear" }); });
+    showPanel(p);
+  }
+
+  let presentStart = 0, presentTimer = 0;
+  function presenter(s: Extract<State, { t: "present" }>) {
+    if (!panel?.classList.contains("r-present")) {
+      presentStart = Date.now();
+      const elapsed = $("span", { class: "r-elapsed" }, "0:00");
+      clearInterval(presentTimer);
+      presentTimer = window.setInterval(() => { elapsed.textContent = clockText((Date.now() - presentStart) / 1000); }, 1000);
+      const prev = $("button", { class: "r-big r-prev", "aria-label": "Previous slide" }, "‹");
+      const next = $("button", { class: "r-big r-next", "aria-label": "Next slide" }, "Next ›");
+      const end = $("button", { class: "r-ghost" }, "End");
+      prev.addEventListener("click", () => { buzz(10); cmd({ t: "slide", dir: -1 }); });
+      next.addEventListener("click", () => { buzz(14); cmd({ t: "slide", dir: 1 }); });
+      end.addEventListener("click", () => { cmd({ t: "back" }); closePanel(); });
+      showPanel($("div", { class: "r-panel r-present" },
+        $("div", { class: "r-panel-top" }, $("p", { class: "r-panel-k" }), elapsed),
+        $("h3", { class: "r-slide-title" }), $("div", { class: "r-notes" }), $("p", { class: "r-up-next" }),
+        $("div", { class: "r-row" }, prev, next), end));
+    }
+    const p = panel!;
+    p.querySelector(".r-panel-k")!.textContent = `${s.deck} · ${s.i + 1} of ${s.n}`;
+    p.querySelector(".r-slide-title")!.textContent = s.title;
+    p.querySelector(".r-notes")!.textContent = s.notes || "No notes for this slide.";
+    p.querySelector(".r-up-next")!.textContent = s.next ? `Next: ${s.next}` : "Last slide";
+  }
+
+  let quizTimer = 0;
+  function quizHost(s: Extract<State, { t: "quiz" }>) {
+    if (!panel?.classList.contains("r-quiz")) {
+      const reveal = $("button", { class: "r-big r-next" }, "Reveal");
+      const prev = $("button", { class: "r-big r-prev", "aria-label": "Previous question" }, "‹");
+      const end = $("button", { class: "r-ghost" }, "End the quiz");
+      reveal.addEventListener("click", () => { buzz(14); cmd({ t: "quiz", act: reveal.dataset.next ? "next" : "reveal" }); });
+      prev.addEventListener("click", () => { buzz(10); cmd({ t: "quiz", act: "prev" }); });
+      end.addEventListener("click", () => { cmd({ t: "quiz", act: "end" }); closePanel(); });
+      showPanel($("div", { class: "r-panel r-quiz" },
+        $("div", { class: "r-panel-top" }, $("p", { class: "r-panel-k" }), $("span", { class: "r-elapsed" })),
+        $("h3", { class: "r-slide-title" }),
+        $("div", { class: "r-answer" }, $("small", {}, "Answer · only you can see this"), $("strong", {})),
+        $("div", { class: "r-row" }, prev, reveal), end));
+    }
+    const p = panel!;
+    p.querySelector(".r-panel-k")!.textContent = `${s.title} · ${s.i + 1} of ${s.n}`;
+    p.querySelector(".r-slide-title")!.textContent = s.prompt;
+    p.querySelector(".r-answer strong")!.textContent = s.answer;
+    const btn = p.querySelector<HTMLElement>(".r-next")!;
+    btn.textContent = s.revealed ? (s.i + 1 < s.n ? "Next question ›" : "Finish") : "Reveal";
+    if (s.revealed) btn.dataset.next = "1"; else delete btn.dataset.next;
+    const left = p.querySelector(".r-elapsed")!;
+    clearInterval(quizTimer);
+    if (s.ends && !s.revealed) quizTimer = window.setInterval(() => { left.textContent = clockText((s.ends - Date.now()) / 1000); }, 250);
+    else left.textContent = "";
+  }
+
   // ---- More: a different TV, exit ----
   const more = $("details", { class: "r-more" }, $("summary", { "aria-label": "More" }, "⋯"),
-    $("div", {}, (() => { const b = $("button", {}, "✈ Plan a trip"); b.addEventListener("click", () => { (b.closest("details") as HTMLDetailsElement).open = false; tripSheet(); }); return b; })(),
+    $("div", {}, (() => { const b = $("button", {}, "▦ This screen is for…"); b.addEventListener("click", () => { (b.closest("details") as HTMLDetailsElement).open = false; roomSheet(); }); return b; })(),
+      (() => { const b = $("button", {}, "✈ Plan a trip"); b.addEventListener("click", () => { (b.closest("details") as HTMLDetailsElement).open = false; tripSheet(); }); return b; })(),
       (() => { const b = $("button", {}, "Next in the playlist ▶"); b.addEventListener("click", () => cmd({ t: "next" })); return b; })(),
       (() => { const b = $("button", {}, "💨 Wind on the TV"); b.addEventListener("click", () => cmd({ t: "wind" })); return b; })(),
       (() => { const b = $("button", {}, "◎ Hologram of this place"); b.addEventListener("click", () => cmd({ t: "holo" })); return b; })(),
@@ -270,6 +438,7 @@ function start(code: string) {
 
   root.replaceChildren(
     $("header", { class: "r-now" }, $("span", { class: "r-live" }), $("div", {}, $("small", {}, "On the TV ", link), titleEl, subEl), more),
+    strip,
     $("div", { class: "r-stage" }, pad, hint, buttons),
     $("div", { class: "r-typing" }, typeBar, sugg));
   cmd({ t: "hello" });

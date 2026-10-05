@@ -104,3 +104,44 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .r-step { width: 42px; height: 42px; border-radius: 50%; border: 1px solid var(--line); background: var(--card); color: var(--text); font-size: 22px; }
 .r-sheet .r-primary { max-width: none; background: linear-gradient(135deg, #5ac8fa, #0a84ff); color: #fff; }
 .r-sheet-note { margin: 0; color: var(--dim); font-size: 13px; text-align: center; }
+
+/* The room's tools: a strip the TV fills in */
+.r-tools { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; margin: 10px -18px 0; padding: 2px 18px 4px; }
+.r-tools:empty { display: none; }
+.r-tool { flex: none; width: 74px; display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 9px 4px 8px; border-radius: 16px; border: 1px solid var(--line); background: var(--card); }
+.r-tool span { font-size: 21px; line-height: 1; }
+.r-tool small { font-size: 10.5px; line-height: 1.15; color: var(--dim); text-align: center; }
+.r-tool.on { background: rgba(90, 200, 250, .2); border-color: var(--accent); }
+.r-tool.on small { color: var(--text); }
+.r-tool:active { transform: scale(.95); }
+
+/* Lists in sheets */
+.r-list { display: flex; flex-direction: column; gap: 8px; }
+.r-list-row { display: flex; align-items: center; gap: 12px; padding: 13px 14px; border-radius: 16px; border: 1px solid var(--line); background: var(--card); text-align: left; }
+.r-list-row strong { display: block; font-size: 15px; }
+.r-list-row small { display: block; color: var(--dim); font-size: 12px; margin-top: 2px; }
+.r-list-icon { font-size: 22px; width: 28px; text-align: center; flex: none; }
+
+/* Panels over the orb: the ink pad, the presenter's view, the quiz host's view */
+.paneled .r-stage { display: none; }
+.r-panel { flex: 1; display: flex; flex-direction: column; gap: 12px; padding-top: 14px; min-height: 0; animation: r-sheet-in .35s cubic-bezier(.2, .8, .2, 1) both; }
+.r-panel-top { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.r-panel-k { margin: 0; color: var(--dim); font-size: 12px; letter-spacing: .06em; text-transform: uppercase; }
+.r-elapsed { font-variant-numeric: tabular-nums; color: var(--accent); font-weight: 600; }
+.r-row { display: flex; gap: 10px; }
+.r-big { flex: 1; min-height: 72px; border-radius: 22px; border: 1px solid var(--line); background: var(--card); font-size: 20px; font-weight: 700; }
+.r-big.r-prev { flex: 0 0 76px; font-size: 30px; }
+.r-big.r-next { background: linear-gradient(135deg, #5ac8fa, #0a84ff); border: 0; color: #fff; }
+.r-big:active { transform: scale(.97); }
+.r-ghost { border: 0; background: none; color: var(--dim); padding: 10px; font-size: 14px; }
+.r-panel .r-primary { max-width: none; flex: 1; }
+.r-slide-title { margin: 0; font-size: 22px; line-height: 1.2; }
+.r-notes { flex: 1; min-height: 80px; overflow-y: auto; padding: 14px 16px; border-radius: 18px; background: var(--card); border: 1px solid var(--line); font-size: 17px; line-height: 1.5; white-space: pre-wrap; user-select: text; -webkit-user-select: text; }
+.r-up-next { margin: 0; color: var(--dim); font-size: 13px; }
+.r-answer { flex: 1; display: flex; flex-direction: column; gap: 6px; justify-content: center; padding: 16px; border-radius: 18px; background: rgba(48, 209, 88, .1); border: 1px dashed rgba(48, 209, 88, .5); }
+.r-answer small { color: #8be0a4; font-size: 12px; }
+.r-answer strong { font-size: 24px; }
+.r-inkpad { position: relative; flex: 1; min-height: 220px; max-height: 56vh; aspect-ratio: 16 / 9; align-self: stretch; border-radius: 20px; border: 1px solid var(--line); background: repeating-linear-gradient(0deg, rgba(255, 255, 255, .04) 0 1px, transparent 1px 32px), repeating-linear-gradient(90deg, rgba(255, 255, 255, .04) 0 1px, transparent 1px 32px), #07101b; touch-action: none; display: grid; place-items: center; overflow: hidden; --x: 50%; --y: 50%; }
+.r-inkpad span { color: var(--dim); font-size: 14px; pointer-events: none; }
+.r-inkpad::after { content: ""; position: absolute; left: var(--x); top: var(--y); width: 26px; height: 26px; margin: -13px 0 0 -13px; border-radius: 50%; background: radial-gradient(circle, #fff 0 18%, #ff3b30 30%, rgba(255, 59, 48, 0) 70%); opacity: 0; transition: opacity .2s; pointer-events: none; }
+.r-inkpad.touch::after { opacity: 1; }

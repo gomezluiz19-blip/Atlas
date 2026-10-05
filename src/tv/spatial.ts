@@ -11,7 +11,7 @@ export type Dir = "up" | "down" | "left" | "right";
 /** The screen the remote is driving now (the top-most open one), or null for the globe itself. */
 export function activeScope(): HTMLElement | null {
   const pick = (sel: string) => [...document.querySelectorAll<HTMLElement>(sel)].find((e) => !e.hidden && e.getClientRects().length > 0) ?? null;
-  return pick(".draw-bar") ?? pick(".tv-trips") ?? pick(".work-panel:not([hidden]):not(.tucked)") ?? pick(".lens-panel:not([hidden])") ?? pick(".holo:not(.mini):not(.out)");
+  return pick(".draw-bar") ?? pick(".tv-sheet") ?? pick(".tv-trips") ?? pick(".work-panel:not([hidden]):not(.tucked)") ?? pick(".lens-panel:not([hidden])") ?? pick(".holo:not(.mini):not(.out)");
 }
 
 const visible = (e: HTMLElement) => {

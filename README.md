@@ -617,9 +617,20 @@ credit union), the Bank explorer, and Branch coverage, each bank's share of the 
 as a ring and the areas more than 2 km from any branch shaded on the map. Companies on the place card's
 Money tab open straight into the explorer.
 
-**On a TV.** The 📺 button casts Terreno to a TV (or puts this screen in TV mode): big type, a playlist that
-runs by itself (Live Earth, great places, the markets, your home as a hologram), and a QR code that turns a
-phone into the remote: search on the phone and the TV flies there; tap a lens and it opens on the big screen.
+**On a TV.** The 📺 button casts Terreno to a TV (or puts this screen in TV mode), and a QR code turns a
+phone into the remote. The first time, the TV asks one question, *What's this screen for?*, and remembers it.
+Each room gets its own playlist and its own tools, on the TV's menu and on the phone:
+- **Home**: Live Earth, great places, the markets, your home as a hologram, plan a trip, my trips.
+- **Classroom** (for teachers): lessons with your notes, the next slide and a clock on your phone; a class
+  quiz with lettered answers big for the back row and the answer only on your phone until you reveal it;
+  *Where in the world?* (a clue, ten seconds, the reveal) playing between lessons; a time machine through the
+  world's borders; a laser pointer, a spotlight and a pen steered by your thumb; a timer the room can read.
+- **Operations** (control rooms, site offices): every site from your Pro tools with its local time and
+  weather on a board, earthquakes within reach of your sites, world clocks showing who's in working hours.
+- **Lobby** (reception, shops, waiting rooms): a welcome message with the weather and time here.
+- **Meeting room**: present a deck from your phone, point, draw, time the meeting, search anywhere.
+The phone hands the TV what's on it: your lessons, quizzes and sites travel from the phone, so the TV needn't
+be signed in to anything. It keeps the screen awake and nudges fixed titles to avoid burn-in.
 See [docs/tv.md](docs/tv.md).
 
 **The land too.** The hologram's survey also reads the water, pools and trees around a place: lakes and
@@ -1039,6 +1050,8 @@ src/
   main.ts              wiring: globe, themes, search, map-style and about popovers, Connected links
   canvas.ts            the shared canvas: what's on the map, across themes and places
   robot/               the task robot: plan.ts turns a request into steps, run.ts carries them out
+  tv/                  TV mode: rooms (what each screen is for), classroom (quiz, time machine), wall (sites,
+                       hazards, clocks, welcome), overlays (pointer, spotlight, pen, timer), the phone remote
   render/              3D Studio: splat/ (formats, worker, globe), import3d (tiles, glTF), cinema (shot splines),
                        play (camera), grade (post-processing), facade (procedural windows), store (IndexedDB)
   lenses/              lenses on a feature: identify.ts decides what it is, bar.ts offers lenses, one file per family

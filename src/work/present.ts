@@ -150,7 +150,7 @@ function penLayer() {
 }
 
 /** Plays a deck full screen; resolves when it ends or is closed. */
-export function play(app: App, deck: Deck, opts: PlayOptions = {}): { done: Promise<void>; close(): void } {
+export function play(app: App, deck: Deck, opts: PlayOptions = {}): { done: Promise<void>; close(): void; step(dir: 1 | -1): void } {
   let i = -1, stopOrbit = () => {}, timer = 0, closed = false, token = 0, paused = false;
   const prevYear = borders(app).year;
   const card = h("div", { class: "present-card" });
@@ -254,7 +254,7 @@ export function play(app: App, deck: Deck, opts: PlayOptions = {}): { done: Prom
   document.body.classList.add("presenting");
   document.body.append(root);
   void go(opts.start ?? 0);
-  return { done, close };
+  return { done, close, step: (dir) => void go(i + dir) };
 }
 
 // ---- Screens ---------------------------------------------------------------------------

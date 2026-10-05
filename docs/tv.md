@@ -1,6 +1,30 @@
 # Terreno on a TV (demo)
 
-**What it is.** TV mode is Terreno for a screen across the room: no panels, big type, and a playlist that runs by itself (Live Earth with wind and planes, great places, the world's markets, your home as a hologram). A QR code in the corner turns any phone into the remote: search on the phone and the TV flies there; tap a lens and it opens on the big screen. Remote commands pause the playlist for a minute.
+**What it is.** TV mode is Terreno for a screen across the room: no panels, big type, and a playlist that runs by itself. A QR code in the corner turns any phone into the remote. Remote commands pause the playlist for a minute.
+
+**What the screen is for.** A living-room TV, a classroom display, an operations wall, a lobby screen and a meeting-room screen need different things, so the first time the TV asks *What's this screen for?* (one question, remembered on that screen; *This screen is for…* on the menu or the phone changes it). If nobody answers within a minute it starts as Home, so a screen left alone never sits on a question. Each room has the same shape: what plays by itself, and the tools the remote reaches for (on the TV's menu, first row; and as a strip on the phone).
+
+| Room | Who it's for | Plays by itself | Tools |
+| --- | --- | --- | --- |
+| Home | the living room | Live Earth, great places, markets, your home | search, plan a trip, my trips, my place, Work, lenses, hologram, wind |
+| Classroom | teachers | Where in the world?, great places, Live Earth | lessons, class quiz, Where in the world?, time machine, pointer, spotlight, pen, timer, search, lenses |
+| Operations | control rooms, site offices | our sites, hazards, world clocks, Live Earth | sites, hazards, clocks, Work, search, pointer, timer |
+| Lobby | reception, shops, waiting rooms | welcome, great places, clocks, Live Earth | welcome message, search, clocks |
+| Meeting room | briefings and reviews | Live Earth, markets, hazards | present, pointer, spotlight, pen, timer, search, Work, sites, clocks |
+
+**For teachers.**
+- *Lessons*: any deck from Stories/Present, or a ready-made one. The room sees the slides (with the borders of the slide's year); the phone shows the slide's notes, what's next, the time since you started, and big ‹ and Next › buttons.
+- *Class quiz*: the question big enough for the back row, four lettered answers in four colours, a countdown bar. The answer shows only on the teacher's phone until *Reveal*, then the right one lights up and the globe flies to the place. Uses the teacher's own quizzes (from Teach) or a ready-made one (capitals and famous places, asked fairly: capitals among capitals).
+- *Where in the world?*: a clue and a spinning Earth, ten seconds to call it out, then the reveal. It plays by itself between lessons, a starter that needs no setting up.
+- *Time machine*: the world's borders from 123,000 BC to today, stepped with the remote's left and right.
+- *Pointer, spotlight, pen*: the phone's pad becomes the TV's screen in miniature; a thumb moves a red laser dot (with a fading tail), a spotlight that dims everything else, or a pen that draws over the globe.
+- *Timer*: 1 to 30 minutes, a ring in the corner the whole room can read, a chime at zero.
+
+**For operations.** *Our sites* gathers every named place in the Pro tools' workspaces (Build Pro, Construction, City Ops, Schools, Freight, Relief, Mining, Field Ops, Field Network, Business network, Sports, Office, Fields), frames them all, then visits each with its local time, weather and wind beside a board of all of them. *Hazards* lists this week's earthquakes (USGS) within reach of a site, the reach growing with magnitude. *World clocks* shows one clock per time zone your sites are in, green when it's working hours there, over the day and night on the globe.
+
+**The phone hands over what's on it.** The TV usually isn't the device where the lessons, quizzes and sites were made. The remote is part of Terreno, so it reads the phone's own saved decks, quizzes and Pro workspaces and sends them to the TV (📱 in its lists; 📺 marks what's saved on the TV itself). Big things go through the relay in pieces and are put back together on the TV.
+
+**For screens left on all day.** The screen is kept awake (Screen Wake Lock, asked again when the tab comes back) and the fixed titles drift a few pixels every few minutes so they don't burn in.
 
 **How to open it**
 - The 📺 button at the top of Terreno › *Cast to a TV* (Chrome and Edge show their own cast picker), or *TV mode on this screen*.
@@ -11,7 +35,8 @@
 
 **The remote** is its own small page, `remote.html#CODE` (no globe, so it opens instantly), built as a controller:
 - **The orb**: drag to spin the Earth (its meridians turn under your thumb), flick and it coasts, pinch to zoom, tap to pick what's in the middle, double-tap to dive in, hold for the menu.
-- **The ring**: up, down, left, right through the TV's menu (search, plan a trip, my trips, my place, work, the playlist, lenses, hologram, wind, exit) and through whatever is open on the TV.
+- **The ring**: up, down, left, right through the TV's menu (the room's tools on the first row; change room and exit on the second) and through whatever is open on the TV. During a lesson it turns the slides; during a quiz it moves between questions; in the time machine it moves through the years.
+- **The tool strip** under the title: the room's tools, filled in by the TV, so the phone always matches the screen.
 - **Search**: the orb gives way to a search bar and the keyboard; what you type appears big on the TV with suggestions on both screens.
 - **Voice**: say where to go; the TV shows your words as you speak (where the browser supports speech recognition).
 
@@ -21,6 +46,8 @@
 - **My trips**: your saved journeys as big cards; pick one and it plays.
 - **Work**: the industry tools, on the big screen.
 - **Any panel is drivable** (`src/tv/spatial.ts`): the focus ring goes to the nearest button, link or field in the direction pressed, and scrolls long panels. Selecting a text, date or number field opens the phone's keyboard or date picker, and what you type fills the TV's field live; *Done* submits it. While you're working on something, the playlist waits.
+
+**A keyboard works too** (a laptop on HDMI): arrows move, Enter picks, M opens the menu, Escape goes back (or leaves). With a mouse, the pointer and spotlight follow it.
 
 **How the two talk.** Two tabs in one browser use a BroadcastChannel. Two devices meet through [ntfy.sh](https://ntfy.sh), a free public relay, just long enough to open a direct WebRTC channel (the remote shows "⚡ direct"); the orb's dragging then goes phone to TV directly. If the direct channel can't open, everything goes through the relay, with dragging thinned to a few updates a second. Anyone who knows a code can drive that TV, which is fine for a demo. For the product, replace it with Supabase Realtime (already the back end) and a short-lived pairing token; `src/tv/link.ts` is the only file that changes.
 

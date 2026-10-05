@@ -28,10 +28,18 @@ export function warmUp(globe: Globe, loads: (() => Promise<unknown>)[]) {
   setTimeout(go, 12_000);
 }
 
+/** Whether an error is a script or stylesheet file that's gone (pure): what browsers say when a deploy replaced it. */
+export function isStaleChunk(err: unknown): boolean {
+  const msg = err instanceof Error ? err.message : String(err ?? "");
+  return /dynamically imported module|Importing a module script failed|Unable to preload CSS|module script.*MIME type/i.test(msg);
+}
+
 /** Registers the service worker and keeps the tab on the newest deploy. */
 export function seamlessDeploys() {
   // A screen whose file is gone (an old tab after a deploy): reload once onto the new version.
   addEventListener("vite:preloadError", (e) => {
+    // Only a missing file means a new deploy; a data source that didn't answer (offline, a slow API) is not a reason to reload.
+    if (!isStaleChunk((e as Event & { payload?: unknown }).payload)) return;
     try {
       if (sessionStorage.getItem("atlas.reloaded") === "1") return;
       sessionStorage.setItem("atlas.reloaded", "1");

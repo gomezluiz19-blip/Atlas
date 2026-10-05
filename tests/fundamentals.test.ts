@@ -42,6 +42,7 @@ describe("Saving to the browser", () => {
 });
 
 import { imagery, imageryTile } from "../src/globe/imagery";
+import { isStaleChunk } from "../src/ui/warm";
 describe("Imagery provider", () => {
   it("is Esri by default, with Esri's row/column order", () => {
     expect(imageryTile(3, 4, 5, imagery({}))).toBe("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/3/5/4");
@@ -50,5 +51,16 @@ describe("Imagery provider", () => {
     expect(imageryTile(3, 4, 5, imagery({ imagery: "maptiler", maptilerKey: "k" }))).toBe("https://api.maptiler.com/tiles/satellite-v2/3/4/5.jpg?key=k");
     expect(imagery({ imagery: "mapbox", mapboxToken: "t" }).id).toBe("mapbox");
     expect(imagery({ imagery: "maptiler" }).id).toBe("esri");
+  });
+});
+describe("reloading onto a new deploy", () => {
+  it("reloads for a missing file, never for a data source that didn't answer", () => {
+    expect(isStaleChunk(new TypeError("Failed to fetch dynamically imported module: https://terreno.site/assets/tv-abc.js"))).toBe(true);
+    expect(isStaleChunk(new TypeError("Importing a module script failed."))).toBe(true);
+    expect(isStaleChunk(new Error("error loading dynamically imported module"))).toBe(true);
+    expect(isStaleChunk(new Error("Unable to preload CSS for /assets/studio-x.css"))).toBe(true);
+    expect(isStaleChunk(new Error("Wikipedia: could not be reached"))).toBe(false);
+    expect(isStaleChunk(new TypeError("Failed to fetch"))).toBe(false);
+    expect(isStaleChunk(undefined)).toBe(false);
   });
 });
