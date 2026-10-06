@@ -22,7 +22,7 @@ import { SITES, type Site } from "../content/sites";
 import { action, asyncBlock, hero, note, section, stats } from "./common";
 import { acrossLayers, nearbyPages, pageHead, placesLike } from "../place/page";
 import { venueOfPlace } from "../place/venue";
-import { gettingThere, moreAboutArea, venueDetails, venueHead } from "../place/venueCard";
+import { venueCard } from "../place/venueCard";
 import { throughTime } from "../time/placeTime";
 import { iconSvg } from "../ui/glyph";
 
@@ -186,7 +186,7 @@ export function exploreTheme(app: App, feeds: Feeds, overlays: Overlays, openSit
   };
 
   /** A named feature's card. `rest`, when given, takes the area's deeper readings instead of the card (a venue's "More"). */
-  const featureCard = (place: Place, body: HTMLElement, rest?: (fill: (into: HTMLElement) => void) => void) => {
+  const featureCard = (place: Place, body: HTMLElement, rest?: (fill: (into: HTMLElement) => void) => void, themes = true) => {
     const f = place.feature as FeatureData;
     if ("type" in f && f.type === "quake") return quakeCard(place, f.quake, body);
     const d = f as LabelData;
@@ -214,7 +214,7 @@ export function exploreTheme(app: App, feeds: Feeds, overlays: Overlays, openSit
         text.replaceChildren(h("p", {}, s.extract), h("a", { class: "link-btn", href: s.url, target: "_blank", rel: "noopener" }, "Read more on Wikipedia"));
       })
       .catch(() => text.replaceChildren(...(n?.description ? [h("p", { class: "muted" }, n.description)] : [])));
-    const deeper = (into: HTMLElement) => { acrossLayers(app, place, into); throughTime(app, place, into); nearbyAndThemes(place, into, n?.id); };
+    const deeper = (into: HTMLElement) => { acrossLayers(app, place, into); throughTime(app, place, into); nearbyAndThemes(place, into, n?.id, themes); };
     if (rest) rest(deeper); else deeper(body);
   };
 
@@ -238,17 +238,17 @@ export function exploreTheme(app: App, feeds: Feeds, overlays: Overlays, openSit
   };
 
   /** A plain spot on the map: quick facts from every theme, insights and what's nearby. */
-  const placeCard = (place: Place, body: HTMLElement) => {
+  const placeCard = (place: Place, body: HTMLElement, themes = true) => {
     acrossLayers(app, place, body);
     throughTime(app, place, body);
     asyncBlock(app, body, "Looking for things worth knowing…", async () => {
       const list = await insightsFor(place.lon, place.lat, 60, feeds.notable);
       return list.length ? [section("Worth knowing here", ...list.slice(0, 4).map(insightCard))] : [];
     });
-    nearbyAndThemes(place, body);
+    nearbyAndThemes(place, body, undefined, themes);
   };
 
-  const nearbyAndThemes = (place: Place, body: HTMLElement, exclude?: string) => {
+  const nearbyAndThemes = (place: Place, body: HTMLElement, exclude?: string, themes = true) => {
     asyncBlock(app, body, "Finding what's nearby…", async () => {
       let pool = feeds.notable;
       if (!pool.length || currentView(app.globe.viewer).zoom < 9) {
@@ -302,11 +302,12 @@ export function exploreTheme(app: App, feeds: Feeds, overlays: Overlays, openSit
         h("button", { class: "link-btn", onclick: () => app.actions.get("news:open")?.run() }, "What's happening in the world ›"))] : [];
     });
     nearbyPages(app, place, body, (slug) => app.actions.get("place:open")?.run(slug));
-    body.append(
+    if (themes) body.append(
       section("See it through a theme",
         ...app.themes.filter((t) => t.id !== "explore" && !t.more).map((t) => action(t.label, () => app.setTheme(t.id), t.icon)),
         h("div", { class: "chips wrap topic-chips" }, h("span", { class: "chips-label" }, "More:"),
-          ...app.themes.filter((t) => t.more).map((t) => h("button", { class: "chip", onclick: () => app.setTheme(t.id) }, t.label)))),
+          ...app.themes.filter((t) => t.more).map((t) => h("button", { class: "chip", onclick: () => app.setTheme(t.id) }, t.label)))));
+    body.append(
       note("Places and descriptions from Wikidata and Wikipedia; importance is how many language editions write about a place."),
     );
   };
@@ -319,10 +320,9 @@ export function exploreTheme(app: App, feeds: Feeds, overlays: Overlays, openSit
       // the area's deeper readings behind one button.
       const venue = venueOfPlace(place);
       if (venue) {
-        body.append(venueHead(app, place, venue), gettingThere(app, place));
-        const later = (fill: (into: HTMLElement) => void) => body.append(moreAboutArea(fill));
-        if ((place.feature as { source?: string } | undefined)?.source) featureCard(place, body, later);
-        else { venueDetails(app, place, body); later((into) => placeCard(place, into)); }
+        const { about, more } = venueCard(app, place, venue, body);
+        if ((place.feature as { source?: string } | undefined)?.source) featureCard(place, about, more, false);
+        else more((into) => placeCard(place, into, false));
         return;
       }
       body.append(pageHead(app, place, () => void placesLike(app, place, (title, criteria) => app.actions.get("answers:preset")?.run(JSON.stringify({ title, criteria, exclude: [place.lon, place.lat] })))));
