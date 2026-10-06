@@ -102,7 +102,7 @@ function start(ctx: WorkCtx) {
     frameDistrict(app, o);
   };
   ctx.show("Politics Pro", ctx.home,
-    h("p", {}, "Run a legislative office on the map: the district and its people, your offices, constituents and stakeholders, casework, events, and the whip count on the bills you're working."),
+    h("p", {}, "Run a legislative office on the map: the district, casework, events and the whip count."),
     h("h2", { class: "group-title" }, "Your office"),
     input, list,
     h("div", { class: "row" }, h("button", { class: "primary-btn", onclick: () => void create() }, "Start the office"), msg),

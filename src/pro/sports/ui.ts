@@ -91,7 +91,7 @@ function start(ctx: WorkCtx) {
     save(c); openSports(ctx); show(ctx.app, c);
   };
   ctx.show("Sports Pro", ctx.home,
-    h("p", {}, "Run a club on the map: the season's fixtures and what the travel costs, where your fans live and how they reach the ground on match day, the players you're scouting worldwide, and the sponsors, supporters and officials you deal with."),
+    h("p", {}, "Run a club on the map: fixtures and travel, where the fans are, and the players you're scouting."),
     name, ground, cap,
     h("button", { class: "primary-btn", onclick: () => void go() }, "Start the club"),
     h("button", { class: "pill-btn", onclick: () => { const c = demoClub(); save(c); view = "travel"; openSports(ctx); show(ctx.app, c); } }, "Or try a demo: a football club in Belo Horizonte"),

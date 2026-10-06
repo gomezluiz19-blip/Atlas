@@ -68,7 +68,7 @@ export function openNetwork(ctx: WorkCtx) {
 function start(ctx: WorkCtx) {
   const name = h("input", { class: "pro-url", placeholder: "Your business's name" }) as HTMLInputElement;
   ctx.show("Business network", ctx.home,
-    h("p", {}, "Map a business as it really runs: your sites, your suppliers, partners and customers, and what moves between them (goods, people, money, data), with how far, how long and how much carbon."),
+    h("p", {}, "Your business as it really runs: sites, suppliers and customers, and what moves between them."),
     name,
     h("button", { class: "primary-btn", onclick: () => { save(blankNetwork(name.value.trim() || "My business")); openNetwork(ctx); } }, "Start mapping"),
     h("button", { class: "pill-btn", onclick: () => { const n = demoNetwork(); save(n); openNetwork(ctx); frame(ctx.app, n); } }, "Or try a demo: a coffee roaster"));

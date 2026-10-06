@@ -79,7 +79,7 @@ export function openEducation(ctx: WorkCtx, app: App) {
     mass!.clear(); lines!.clear();
     const name = h("input", { class: "pro-url", placeholder: "District or school name", "aria-label": "Name" }) as HTMLInputElement;
     ctx.show("Education Pro", leave,
-      h("p", { class: "mp-intro" }, "Run your schools from the map: who's out and who covers them, every room's state in 3D, repairs, drills and incidents, certificates coming due, attendance, buses and where students live, and the lessons and trips your teachers are running."),
+      h("p", { class: "mp-intro" }, "Run your schools from the map: cover, rooms, repairs, attendance and buses, in one place."),
       h("button", { class: "primary-btn", onclick: () => { d = demoDistrict(today); persist(); home(); } }, "Open the demo district"),
       h("h3", { class: "group-title" }, "Or start your own"),
       h("div", { class: "pf-add" }, name, h("button", { class: "pill-btn", onclick: () => { if (!name.value.trim()) return; d = { id: `d${Date.now()}`, name: name.value.trim(), schools: [], staff: [] }; persist(); home(); } }, "Create")),

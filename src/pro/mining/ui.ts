@@ -124,7 +124,7 @@ function start(ctx: WorkCtx) {
     save(m); view = "chain"; openMining(ctx); show(ctx.app, m);
   };
   ctx.show("Mining Pro", ctx.home,
-    h("p", {}, "Run a mine on the map: the chain from pit to port to smelter, what a year's production is worth, the towns and people around it and who lives downhill of the tailings dam, grievances and the groups you answer to, the permits that keep it open, and earthquakes nearby."),
+    h("p", {}, "Run a mine on the map: pit to port, what the year is worth, and the people downhill of the dam."),
     name, known,
     h("button", { class: "primary-btn", onclick: go }, "Start"),
     h("button", { class: "pill-btn", onclick: () => { const m = demoMine(); save(m); view = "chain"; openMining(ctx); show(ctx.app, m); } }, "Or try a demo: a copper mine in Zambia"));

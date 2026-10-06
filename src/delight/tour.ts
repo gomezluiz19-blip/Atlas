@@ -53,25 +53,25 @@ function clearSearch() {
 let windOn = false;
 
 const STEPS: Step[] = [
-  { title: "The whole Earth, live", text: "And your own corner of it. In the next minute Terreno will show you what it can do, for real, on the real planet. Leave any time." },
-  { target: ".search", kicker: "Ask", title: "One box understands anything", text: "A place, an address, coordinates, a year, something to show, or a question across every layer at once. This one finds flat land near an airport that stays warm in winter.",
+  { title: "The whole Earth, live", text: "And your own corner of it. A one-minute look at what Terreno does, on the real planet." },
+  { target: ".search", kicker: "Ask", title: "One box understands anything", text: "Type a place, an address, a year or a question. This one finds flat land near an airport that stays warm in winter.",
     before: () => typeInSearch("flat land near an airport, warm in winter"), after: () => clearSearch() },
-  { target: ".sheet", kicker: "Know", title: "Every place, every layer", text: "Its ground, climate, water, people, hazards and past, in one page with an address you can share. Here's Mount Fuji.",
+  { target: ".sheet", kicker: "Know", title: "Every place, every layer", text: "Ground, climate, water, people, hazards and history, on one page you can share. Here's Mount Fuji.",
     before: async (app) => { run(app, "place:open", "mount-fuji"); await wait(2600); } },
-  { target: ".lens-strip", kicker: "See inside", title: "Cut a mountain open", text: "Lenses work on anything: slice through to the rock, lift out a 3D block, trace where the rain goes, or watch a day's real shadows pass over it.",
+  { target: ".lens-strip", kicker: "See inside", title: "Cut a mountain open", text: "Lenses work on anything: cut down to the rock, lift out a 3D block, trace the rain, or watch a day's shadows pass.",
     before: async (app) => { run(app, "lens:slice"); await wait(2400); }, after: (app) => run(app, "lens:close") },
-  { kicker: "Boot it", title: "Any place, as a hologram", text: "From a volcano to your own home: the ground in 3D, every building, the water and the trees, with what's going on there now around it.",
+  { kicker: "Boot it", title: "Any place, as a hologram", text: "Any place in 3D, from a volcano to your own home, with what's happening there now.",
     before: async (app) => { run(app, "space:boot"); await wait(2600); }, after: () => closeSpace() },
-  { kicker: "Live", title: "The planet, moving", text: "Wind streaming across the globe, every plane in the sky, ships, storms, quakes and the aurora, live and refreshed as they happen.",
+  { kicker: "Live", title: "The planet, moving", text: "The wind, every plane in the sky, ships, storms, quakes and the aurora, all live.",
     before: async (app) => { run(app, "place:clear"); await fly(app, -30, 48, 6_500_000); run(app, "live:planes"); if (!windOn) { run(app, "wind:toggle"); windOn = true; } await wait(1800); },
     after: (app) => { app.actions.get("live:planes")?.stop?.(); if (windOn) { run(app, "wind:toggle"); windOn = false; } } },
-  { target: "#time-btn", kicker: "Rewind", title: "Any year", text: "The borders of 1914, the Earth from space on a day in any year since 2000, and the climate to 2050. Here's Europe on the eve of the First World War.",
+  { target: "#time-btn", kicker: "Rewind", title: "Any year", text: "Borders back to 1914, satellite views since 2000, and the climate to 2050. Here's Europe in 1914.",
     before: async (app) => { run(app, "time:go", "1914@15,50"); await wait(2400); }, after: (app) => run(app, "time:close") },
-  { target: ".work-panel:not([hidden])", kicker: "Work", title: "Pick your field", text: "Builders, miners, chefs, shippers, bankers, aid workers and more. Each field has its tools on three rungs: Everyday for anyone, Pro for the people who do the work, and Services for the companies that serve them.",
+  { target: ".work-panel:not([hidden])", kicker: "Work", title: "Pick your field", text: "Builders, miners, chefs, shippers, aid workers and more: each field has tools for everyone, and for the people who do the work.",
     before: async (app) => { run(app, "mode:work"); await wait(1200); } },
-  { target: ".work-panel:not([hidden])", kicker: "Yours", title: "Your place, every day", text: "Save your home, farm or business for a morning brief (frost, storms, deliveries), your cameras, how long to get anywhere, trips, and a hologram of your lot with its trees and water.",
+  { target: ".work-panel:not([hidden])", kicker: "Yours", title: "Your place, every day", text: "Save your home, farm or business for a morning brief, your cameras, your trips, and a hologram of the place.",
     before: async (app) => { run(app, "mode:place"); await wait(1200); } },
-  { title: "That's Terreno", text: "Make it yours: join to keep a page of the places you love and a daily brief for home. Or plan somewhere to go, or let Terreno surprise you.", finale: true },
+  { title: "That's Terreno", text: "Join to keep the places you love and a daily brief for home. Or plan a trip, or let Terreno surprise you.", finale: true },
 ];
 
 export function startTour(app: App) {
@@ -139,7 +139,7 @@ export function startTour(app: App) {
     extra.replaceChildren(...(s.finale ? [
       // Not signed in yet: joining is the way in (it sets home too); signed in, home is the next thing.
       signedIn()
-        ? h("button", { class: "primary-btn", onclick: () => { finish(); run(app, "mode:place"); } }, "🏠 Save my place")
+        ? h("button", { class: "primary-btn", onclick: () => { finish(); run(app, "mode:place"); } }, "Set up My Place")
         : h("button", { class: "primary-btn", onclick: () => { finish(); run(app, "account:signin"); } }, "Make it yours: join"),
       h("button", { class: "pill-btn", onclick: () => { finish(); run(app, "work:travel"); } }, "✈ Plan a trip"),
       h("button", { class: "pill-btn", onclick: () => { finish(); run(app, "surprise"); } }, "✨ Surprise me"),

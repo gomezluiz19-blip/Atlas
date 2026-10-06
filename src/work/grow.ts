@@ -142,7 +142,7 @@ export function openGrow(ctx: WorkCtx) {
   };
   const total = store.all().reduce((s, f) => s + areaM2(f.pts), 0);
   ctx.show("Grow", ctx.home,
-    h("p", { class: "mp-intro" }, "Draw your fields on the satellite map and say what's planted. Terreno follows each crop's season from the local weather: growth stage, harvest date, water use and irrigation, and frost or heat on the way."),
+    h("p", { class: "mp-intro" }, "Draw your fields and say what's planted. Terreno follows each crop through its season from the local weather."),
     h("div", { class: "chips wrap" },
       h("button", { class: "chip", onclick: () => void addField() }, "+ Draw a field"),
       h("button", { class: "chip" + (ndvi ? " on" : ""), "aria-pressed": String(!!ndvi), onclick: () => { setNdvi(app, !ndvi); openGrow(ctx); } }, ndvi ? "Plant health: on" : "Plant health from space")),

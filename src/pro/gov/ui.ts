@@ -129,7 +129,7 @@ export function openCityOps(ctx: WorkCtx, app: App, view?: string) {
     mass!.clear(); projMass!.clear(); clearLive();
     const name = h("input", { class: "pro-url", placeholder: "Your city or county", "aria-label": "City" }) as HTMLInputElement;
     ctx.show("City Ops", leave,
-      h("p", { class: "mp-intro" }, "Run a city from the map. Every facility your agencies run, as a 3D model in its agency's colour or its condition; the people in each; capital projects rising; incidents live; a day of 311 as a heat map you can play; and where each service is thin on the ground. For the mayor's office, commissioners, facility managers, and the vendors who bid for the work."),
+      h("p", { class: "mp-intro" }, "Run a city from the map: every facility in 3D, projects rising, incidents live, and where service is thin."),
       h("button", { class: "primary-btn", onclick: () => { C = demoCity(today); persist(); home(); } }, "Open the New York City demo"),
       h("h3", { class: "group-title" }, "Or start your own"),
       h("div", { class: "pf-add con-base" }, name, h("button", { class: "pill-btn", onclick: async () => {

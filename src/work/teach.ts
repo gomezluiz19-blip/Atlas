@@ -61,7 +61,7 @@ export function openTeach(ctx: WorkCtx) {
       h("span", { class: "work-tool-icon teach-emoji" }, iconFor(icon, 20)),
       h("span", { class: "work-tool-text" }, h("strong", {}, title), h("span", {}, about)));
   ctx.show("Teach", ctx.home,
-    h("p", { class: "mp-intro" }, "Teach with the whole planet: lessons with a pen and notes, quizzes and tests, games, a world politics simulation, and field trips."),
+    h("p", { class: "mp-intro" }, "Teach with the whole planet: lessons, quizzes, games and field trips."),
     h("div", { class: "work-tools" },
       tile("Lessons", "Slides on the globe, with a pen, your notes and a timer", "#c9a256", "📖", () => openLessons(ctx, home)),
       tile("Quizzes and tests", "Host with teams on the class screen, or send a link", "#b8496a", "❓", () => openQuizzes(ctx, home)),

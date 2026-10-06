@@ -153,7 +153,7 @@ export function openBuild(ctx: WorkCtx) {
     openProject(ctx, p.id);
   };
   ctx.show("Build", ctx.home,
-    h("p", { class: "mp-intro" }, "Model a building on the real site and follow its construction: a 3D model that grows with the schedule, planned against actual progress, floor area and cost, and the weather that stops work."),
+    h("p", { class: "mp-intro" }, "Model a building on its real site and watch it rise with the schedule."),
     h("div", { class: "chips wrap" }, h("button", { class: "chip", onclick: () => void add() }, "+ New project (draw the footprint)")),
     store.all().length ? h("section", { class: "group" }, h("h2", { class: "group-title" }, "Projects"),
       h("div", { class: "list" }, ...store.all().map((p) => {

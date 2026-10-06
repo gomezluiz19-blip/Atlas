@@ -47,7 +47,7 @@ export function openDesk(ctx: WorkCtx, app: App, id?: string) {
   // The overview on the globe: where the world's battery metals come from.
   drawOverview(app);
   ctx.show("Commodity desk", () => { layer?.clear(); ctx.home(); },
-    h("p", { class: "mp-intro" }, "Raw materials as a business sees them: where they're mined, where they're processed, what they cost, how risky the supply is, the policies moving them and what a shock would do."),
+    h("p", { class: "mp-intro" }, "Raw materials as a business sees them: where they're mined, what they cost, and what could move them."),
     tabs, grid,
     h("p", { class: "ec-legend" }, h("i", { class: "ec-risk r3" }), " high supply risk  ", h("i", { class: "ec-risk r2" }), " elevated  ", h("i", { class: "ec-risk r1" }), " moderate"),
     h("p", { class: "fineprint" }, "Approximate: USGS, IEA, Energy Institute, FAO and World Bank figures, rounded. Good for the shape of a market, not for trading."));

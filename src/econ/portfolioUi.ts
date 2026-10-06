@@ -87,7 +87,7 @@ export function openPortfolio(ctx: WorkCtx, app: App) {
           h("span", { class: "pf-val" }, usd(x.value)),
           h("button", { class: "icon-btn pf-x", "aria-label": `Remove ${c.name}`, onclick: () => { hs = hs.filter((y) => y.id !== x.id); save(hs); render(); } }, "✕"));
       }))] : [
-      h("div", { class: "pf-empty" }, h("strong", {}, "See where your money really is"), h("p", {}, "Add the companies you own, or start from a demo: the globe shows where they earn, the supply chains and raw materials behind them, and the policies and shocks that could move them."),
+      h("div", { class: "pf-empty" }, h("strong", {}, "See where your money really is"), h("p", {}, "Add the companies you own and see where they earn and what could move them. Or start from a demo."),
         h("button", { class: "primary-btn", onclick: () => { hs = DEMO_PORTFOLIO.map((x) => ({ ...x })); save(hs); render(); } }, "Try a demo portfolio"))]));
     if (!hs.length) { body.replaceChildren(); layer!.clear(); return; }
     if (tab === "earn") earn(); else if (tab === "made") made(); else if (tab === "policy") policy(); else whatIf();

@@ -119,7 +119,7 @@ export function createMyPlaces(app: App, store: PlaceStore, scene: PlaceScene, o
   const list = () => {
     panel.replaceChildren(
       h("div", { class: "mp-head" }, h("h2", {}, "My Place"), h("button", { class: "icon-btn", "aria-label": "Close", html: icons.close, onclick: () => ui.close() })),
-      h("p", { class: "mp-intro" }, "Save the places you care about, like home, a family hotel or a farm. See them in 3D, and keep track of their solar power, water and security."),
+      h("p", { class: "mp-intro" }, "Save the places you care about, like home or a farm, and see them in 3D with their power, water and security."),
       ...listBody());
   };
   /** Back to the list, or to the My Place home when there is one. */

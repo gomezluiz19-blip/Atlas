@@ -96,7 +96,7 @@ export function openShipping(ctx: WorkCtx) {
 function start(ctx: WorkCtx) {
   const name = h("input", { class: "pro-url", placeholder: "Your company's name" }) as HTMLInputElement;
   ctx.show("Freight Desk", ctx.home,
-    h("p", {}, "For freight forwarders, shipping agents and companies that ship: every shipment on its sea route with the ship where it is now, when it really arrives against what you promised, the wait at the port, free time and demurrage, what closing Suez, the Red Sea or Panama does to your cargo, the carbon and the EU ETS bill, and the risks on the way."),
+    h("p", {}, "Every shipment on its sea route: where the ship is, when it really arrives, and what's in the way."),
     name,
     h("button", { class: "primary-btn", onclick: () => { save({ id: newId(), name: name.value.trim() || "My freight desk", created: Date.now(), customers: [], vessels: [], shipments: [], waits: {}, closed: [], euaPrice: 70 }); openShipping(ctx); } }, "Start"),
     h("button", { class: "pill-btn", onclick: () => { const d = demoDesk(); save(d); view = "board"; openShipping(ctx); frame(ctx.app, d.name, d.shipments.map((s) => s.dest), 2_000_000); } }, "Or try a demo: a forwarder with 16 shipments at sea"));

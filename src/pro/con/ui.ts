@@ -105,7 +105,7 @@ export function openConstruction(ctx: WorkCtx, app: App, role?: string) {
   function start() {
     mass!.clear(); route!.clear();
     ctx.show("Construction Pro", leave,
-      h("p", { class: "mp-intro" }, "Every site in your region, rising on the map: what stage each is at, the trades it needs and when, who's signatory, the bricks and crews a facade takes, what the region will buy month by month, and the jobs coming next. For contractors in the trailer, organizers and business agents, suppliers and planners."),
+      h("p", { class: "mp-intro" }, "Every site in your region, rising on the map: its stage, the trades it needs, and the work coming next."),
       h("div", { class: "con-roles start" }, ...ROLES.map(([id, label, emoji]) => h("button", { class: "con-role-card", onclick: () => { R = { name: "DMV construction (demo)", sites: demoRegion(today), role: id, craft: "Bricklayers", base: { name: "Union hall (demo), Lanham MD", lon: -76.8619, lat: 38.9687 }, demo: true }; persist(); home(); } },
         h("span", {}, emoji), h("strong", {}, label), h("small", {}, id === "contractor" ? "Your jobs, schedule, crews, safety" : id === "union" ? "Sites needing your craft, signatories, today's route" : id === "supplier" ? "Material demand and who to call" : "Pipeline, permits and starts")))),
       h("p", { class: "fineprint" }, "Opens a demo region of two dozen made-up sites around DC, Maryland and Virginia. Every company name and union status in it is invented. Then bring your own: NYC DOB permits live, a CSV, or sites by address."));

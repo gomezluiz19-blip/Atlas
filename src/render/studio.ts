@@ -236,7 +236,7 @@ export function openStudio(ctx: WorkCtx) {
     } }, h("span", { class: "studio-swatch", "aria-hidden": "true" }), g.label)));
 
   ctx.show("3D Studio", () => ctx.home(),
-    h("p", { class: "mp-intro" }, "Put real 3D on the real Earth: scans, captures, buildings and models, stood on the ground where they belong. Then film them like a drone pilot and grade them like a colourist."),
+    h("p", { class: "mp-intro" }, "Real 3D captures on the real Earth, filmed like a drone shot."),
     drop, file,
     h("div", { class: "pro-url-row" }, link, h("button", { class: "primary-btn", onclick: () => void takeLink() }, "Add")),
     h("button", { class: "link-btn studio-demo", onclick: () => void addCapture("Demo knot.splat", demoSplat()) }, "No capture to hand? Try a demo one"),

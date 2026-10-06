@@ -24,7 +24,7 @@ export function createAiSettings() {
       mode !== "off" ? h("label", { class: "mp-field" }, h("span", {}, "Model"), model) : "");
     panel.replaceChildren(
       h("div", { class: "mp-head" }, h("h2", {}, "Terreno AI"), h("button", { class: "icon-btn", "aria-label": "Close", html: icons.close, onclick: () => (panel.hidden = true) })),
-      h("p", { class: "mp-intro" }, "Connect the search box's task robot to Claude. It understands any request or question, acts on the globe (places, layers, views, history, tools) and answers in a sentence or two."),
+      h("p", { class: "mp-intro" }, "Connect the search box to Claude so it understands any request and acts on the globe."),
       h("div", { class: "ai-modes" }, ...modes.map(([m, label, about]) =>
         h("label", { class: "ai-mode" }, h("input", { type: "radio", name: "ai-mode", checked: mode === m, onchange: () => { mode = m; fields(); } }), h("span", {}, h("strong", {}, label), h("span", { class: "muted small" }, about))))),
       body,
