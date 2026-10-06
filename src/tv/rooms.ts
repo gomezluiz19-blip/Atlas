@@ -48,7 +48,7 @@ export const ROOMS: Room[] = [
     scenes: ["live", "world", "places", "home"],
     tools: ["search", "trip", "trips", "myplace", "work", "scene:live", "scene:world", "scene:places", "lens:day", "wind"] },
   { id: "classroom", icon: "🎓", label: "Classroom", who: "For teachers",
-    about: "Lessons with your notes on the phone, class quizzes, a pointer and pen, a timer, and the world through time",
+    about: "Lessons with your notes on the phone, class quizzes, and tools to point, draw and time",
     scenes: ["wherein", "places", "live"],
     tools: ["lesson", "quiz", "wherein", "timemachine", "pointer", "spotlight", "pen", "timer", "search"] },
   { id: "ops", icon: "🛰", label: "Operations", who: "For control rooms and site offices",

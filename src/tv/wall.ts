@@ -39,7 +39,7 @@ export function sitesScene(ctx: WallCtx): () => void {
   const { app, sites } = ctx;
   if (!sites.length) {
     app.globe.viewer.camera.flyTo({ destination: Cartesian3.fromDegrees(0, 20, 20_000_000), duration: 2.5 });
-    ctx.say("No sites on this screen yet", "On your phone, open the remote and press 📍 Our sites: it sends the sites from your Terreno");
+    ctx.say("No sites on this screen yet", "On your phone's remote, press Our sites to send them here");
     return () => {};
   }
   pins(app).set(sites.map((s, i) => ({ id: `s${i}`, kind: "point", pts: [[s.lon, s.lat]], color: "#4c9ac9", label: s.name })));
