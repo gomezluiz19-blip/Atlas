@@ -4031,3 +4031,25 @@ body.tv-mode.presenting .tv-caption, body.tv-mode.presenting .tv-dots { opacity:
 
 /* The tour speaks alone: an arrival's caption and its intro chip wait until it's over. */
 body:has(> .tour:not(.out)) .arrival, body:has(> .tour:not(.out)) .lmi-replay { opacity: 0 !important; pointer-events: none; }
+
+/* ---- Social work (src/pro/social/ui.ts) ---- */
+.sw-chip.on { background: color-mix(in srgb, var(--accent) 14%, transparent); color: var(--accent); box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--accent) 55%, transparent); }
+.sw-asks .sw-chip { font-size: 13.5px; padding: 7px 12px; }
+.sw-ways { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
+.sw-way { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; padding: 11px 12px; border: 0; border-radius: 12px; background: var(--fill); color: var(--label); text-align: left; cursor: pointer; font: inherit; box-shadow: inset 0 0 0 1px transparent; }
+.sw-way strong { font-size: 14px; } .sw-way small { color: var(--secondary); font-size: 12px; line-height: 1.35; }
+.sw-way.on { background: color-mix(in srgb, var(--accent) 10%, transparent); box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--accent) 55%, transparent); }
+.sw-picker { display: flex; flex-direction: column; gap: 8px; }
+.sw-lines { display: flex; flex-direction: column; gap: 6px; margin: 4px 0 10px; }
+.sw-line { display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; border-radius: 12px; background: var(--fill); color: var(--label); text-decoration: none; }
+.sw-line strong { font-size: 14px; } .sw-line small { color: var(--secondary); font-size: 12.5px; }
+.sw-line.urgent { background: color-mix(in srgb, var(--terra, #c4513a) 12%, transparent); box-shadow: inset .22rem 0 0 var(--terra, #c4513a); }
+.sw-counts { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 6px; margin: 4px 0 10px; }
+.sw-count { display: flex; flex-direction: column; gap: 1px; padding: 9px 10px; border-radius: 10px; background: color-mix(in srgb, var(--c) 10%, transparent); box-shadow: inset 0 2px 0 var(--c); }
+.sw-count strong { font: 700 19px/1.1 var(--font-display); font-variant-numeric: tabular-nums; }
+.sw-count span { font-size: 12px; font-weight: 600; } .sw-count small { color: var(--secondary); font-size: 11px; }
+.sw-sheet { margin: 4px 0 8px; padding: 12px; border-radius: 10px; background: var(--fill); font: 12.5px/1.5 var(--font-mono); white-space: pre-wrap; overflow-wrap: anywhere; max-height: 260px; overflow: auto; }
+.sw-go { width: 100%; margin: 10px 0 4px; }
+.sw-day-head { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.sw-day-head .po-field { display: flex; flex-direction: column; align-items: stretch; gap: 4px; min-width: 0; }
+.sw-day-head input { width: 100%; min-width: 0; box-sizing: border-box; }

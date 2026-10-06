@@ -147,6 +147,11 @@ export const LINES: Line[] = [
     { id: "edu-teach", label: "Teach", who: "Teachers: lessons on the globe, quizzes, games, a politics simulation and field trips", tool: "teach", words: "teacher lesson quiz classroom field trip curriculum" },
     { id: "edu-pro", label: "Education Pro", who: "Run schools: cover, rooms, repairs, attendance and buses", tool: "ent:edu", words: "principal headteacher district superintendent school administrator assistant principal school operations substitute cover attendance staff", key: "atlas.pro.edu.v1" },
   ] },
+  { id: "social", label: "Social work", color: "#b8496a", stations: [
+    { id: "social-find", label: "Find support", who: "Food, a place to stay, someone to talk to, help with children or an older person, and the schools, parks and programmes around it", tool: "social:find", words: "help support food bank pantry shelter housing homeless counselling mental health crisis benefits welfare childcare family services senior centre social services near me" },
+    { id: "social-pro", label: "Social Work Pro", who: "Social workers and case managers: your worksite, caseload, visit days, referrals and gaps", tool: "social:pro", words: "social worker case manager caseload home visits clinic telehealth referrals msw lcsw child welfare cps school social worker hospital social worker community outreach therapist counselor", key: "atlas.pro.social.v1" },
+    { id: "social-agency", label: "Agency coverage", who: "Agencies and programmes: who you serve, your sites, and who's out of reach", tool: "field", words: "agency program director nonprofit social services department community programs coverage outreach" },
+  ] },
   { id: "gov", label: "Government", color: "#5160c2", stations: [
     { id: "explore-gov", label: "Who governs", who: "Your representatives, the districts and the people who run a place", tool: "theme:politics", words: "who represents me representative senator elections government citizen voter" },
     { id: "city-ops", label: "City Ops", who: "Mayors, deputy mayors and city hall: every facility, agency and person, capital projects, incidents and 311 on one map", tool: "ent:gov", words: "mayor city hall city government deputy mayor chief of staff commissioner agency municipal county executive city manager operations facilities 311 capital projects public works", key: "atlas.pro.city.v1" },
@@ -164,7 +169,7 @@ export const LINES: Line[] = [
 /** Which rung a station sits on (pure). */
 export function tierOf(s: Station): Tier {
   if (s.tool.startsWith("services:")) return "services";
-  if (/^(explore:|theme:|action:)/.test(s.tool) || ["build", "travel", "fin-markets", "fin-watch", "fin-portfolio", "bank-near"].includes(s.id)) return "everyday";
+  if (/^(explore:|theme:|action:)/.test(s.tool) || ["build", "travel", "fin-markets", "fin-watch", "fin-portfolio", "bank-near", "social-find"].includes(s.id)) return "everyday";
   return "pro";
 }
 
@@ -190,6 +195,7 @@ export const LOOKS: Record<string, FieldLook> = {
   sport: { icon: "trophy", family: "people", noun: "sport", blurb: "Stadiums and games, gyms and clubs, running a club, and the surfaces they play on." },
   health: { icon: "medical", family: "people", noun: "health care", blurb: "Care near you, and the engineers who install and service hospital equipment." },
   aid: { icon: "people", family: "people", noun: "aid work", blurb: "Who's out of reach of water, health and school, and getting supplies there." },
+  social: { icon: "heart", family: "people", noun: "social work", blurb: "Support near anyone, and a worksite for the people who give it: caseload, visits, referrals." },
   edu: { icon: "graduate", family: "people", noun: "education", blurb: "Learning for anyone, lessons for teachers, and whole schools for districts." },
   gov: { icon: "flag", family: "people", noun: "government", blurb: "Who governs a place, and running a legislative office." },
 };

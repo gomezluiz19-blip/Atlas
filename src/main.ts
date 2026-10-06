@@ -387,6 +387,7 @@ const openStation = (st: Station) => {
       "bank:near": () => m.openBanksNear(ctx, app), "bank:company": () => m.openCompany(ctx, app, "bank"), "bank:coverage": () => m.openCoverage(ctx, app) } as Record<string, () => void>)[st.tool]?.());
     return;
   }
+  if (st.tool.startsWith("social:")) { void import("./pro/social/ui").then((m) => (st.tool === "social:find" ? m.openFindSupport(ctx, app) : m.openSocialPro(ctx, app))); return; }
   if (st.tool.startsWith("services:")) { void import("./pro/services/ui").then((m) => m.openServices(ctx, st.tool.slice(9) as Parameters<typeof m.openServices>[1])); return; }
   const t = [...WORK_TOOLS, ...PLACE_TOOLS].find((x) => x.id === st.tool);
   if (t) t.open(ctx);
