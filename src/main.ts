@@ -1316,5 +1316,6 @@ warmUp(globe, [() => import("./intros/intro"), () => loadWorldHeritage(), () => 
 // real build (?qa). Nothing secret is on it: it's the same app the page already runs.
 if (import.meta.env.DEV || new URLSearchParams(location.search).has("qa")) {
   Object.assign(window, { atlas: { app, globe, labels, overlays, feeds, traffic, cityLife, cart: (lon: number, lat: number, h: number) => Cartesian3.fromDegrees(lon, lat, h) } });
-  void import("cesium").then((Cesium) => Object.assign(window, { Cesium }));
 }
+// The whole Cesium namespace only in development: in a build it would defeat tree-shaking and ship all of it.
+if (import.meta.env.DEV) void import("cesium").then((Cesium) => Object.assign(window, { Cesium }));
