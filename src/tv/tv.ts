@@ -2,11 +2,11 @@
 // A screen is for someone: a living room, a classroom, an operations room, a lobby or a meeting room. The
 // first time, the TV asks what it's for (one question, remembered), and that room decides what plays by
 // itself and which tools the remote reaches for:
-//   Home: the Earth live, great places, markets, your place as a hologram, trips.
+//   Home: the Earth live, what's happening now, a place read live, your place as a hologram, trips.
 //   Classroom: lessons with the teacher's notes on their phone, a class quiz with the answers on the phone,
 //     Where in the world?, the time machine, a pointer, spotlight and pen, and a timer the room can read.
 //   Operations: every site you run with its time and weather, hazards near them, world clocks, Work tools.
-//   Lobby: a welcome with the weather and time here, great places, clocks.
+//   Lobby: a welcome with the weather and time here, a place read live, what's happening now, clocks.
 //   Meeting room: present from your phone, point, draw, time the meeting, search anywhere.
 // A QR code pairs a phone, which becomes the remote: its orb spins the Earth, its ring moves through the
 // menu, its keyboard types into the TV, its pad steers the pointer, and it hands the TV what's on the phone
@@ -22,7 +22,7 @@ import { h } from "../ui/dom";
 import { groundAt } from "../globe/controls";
 import { KIND_COLOR, wayfinder } from "../wayfind/ui";
 import { searchPlaces } from "../place/places";
-import { flyToPlace, geocode } from "../ui/search";
+import { geocode } from "../ui/search";
 import { TEMPLATES, deckFromJson, type Deck } from "../work/presentModel";
 import { validQuiz, type Quiz } from "../work/quizModel";
 import { fromQuiz, hostQuiz, starterQuiz, timeMachine, whereIn, type QuizHost } from "./classroom";
@@ -30,18 +30,12 @@ import { hostDirect, listen, newCode, remoteUrl, send, type Cmd } from "./link";
 import { antiBurn, Countdown, Ink, stayAwake, type InkMode } from "./overlays";
 import { allSites, joiner, menuFor, mergeSites, ROOMS, roomOf, SCENE_LABELS, TOOLS, type Room, type SceneId, type WallSite } from "./rooms";
 import { activeScope, back as spatialBack, clearFocus, ensureFocus, move } from "./spatial";
+import { placeScene, SHOW_PLACES, worldScene, type ShowPlace } from "./showcase";
 import { clocksScene, hazardsScene, sitesScene, welcomeScene, type Welcome } from "./wall";
 
 const SCENE_MS = 26_000, HOLD_MS = 60_000, LONG_HOLD = 20 * 60_000;
 const ROOM_KEY = "atlas.tv.room", WELCOME_KEY = "atlas.tv.welcome";
 
-const PLACES = [
-  { name: "Mount Fuji", sub: "Japan's highest mountain, 3,776 m", lon: 138.7274, lat: 35.3606, radius: 9000 },
-  { name: "Grand Canyon", sub: "1,800 m deep, cut by the Colorado over 6 million years", lon: -112.1129, lat: 36.1069, radius: 12000 },
-  { name: "Machu Picchu", sub: "An Inca citadel 2,430 m up in the Andes", lon: -72.5450, lat: -13.1631, radius: 2500 },
-  { name: "Venice", sub: "118 islands, 400 bridges, sinking a few millimetres a year", lon: 12.3358, lat: 45.4371, radius: 4000 },
-  { name: "Mount Everest", sub: "8,849 m: the top of the world", lon: 86.9250, lat: 27.9881, radius: 14000 },
-];
 
 let active: { exit(): void } | null = null;
 export const inTv = () => !!active;
@@ -51,7 +45,7 @@ const write = (k: string, v: string) => { try { localStorage.setItem(k, v); } ca
 const list = <T>(k: string): T[] => { try { const v = JSON.parse(read(k) ?? "[]"); return Array.isArray(v) ? v : []; } catch { return []; } };
 
 
-export function enterTv(app: App, given?: string) {
+export function enterTv(app: App, given?: string, start?: ShowPlace) {
   if (active) return active;
   const code = given || newCode();
   const viewer = app.globe.viewer, cam = viewer.camera;
@@ -131,10 +125,9 @@ export function enterTv(app: App, given?: string) {
       say("Right now on Earth", "Wind and every plane in the sky, live");
       void earthNow().then((lines) => { if (playlist()[scene] === "live" && lines[0]) say("Right now on Earth", lines[0].text); });
     } else if (id === "places") {
-      const p = PLACES[step++ % PLACES.length];
-      void flyToPlace(app.globe, { name: p.name, lon: p.lon, lat: p.lat, radius: p.radius });
-      say(p.name, p.sub);
-      window.setTimeout(() => { if (playlist()[scene] === "places") startSpinAround(p); }, 4500);
+      stopScene = placeScene(wallCtx(), SHOW_PLACES[step++ % SHOW_PLACES.length], (p) => { if (playlist()[scene] === "places") startSpinAround(p); });
+    } else if (id === "world") {
+      stopScene = worldScene(wallCtx());
     } else if (id === "markets") {
       const now = new Date(), open = EXCHANGES.filter((e) => session(e, now).state === "open");
       cam.flyTo({ destination: Cartesian3.fromDegrees(open[0]?.lon ?? 0, 30, 18_000_000), duration: 3 });
@@ -143,7 +136,7 @@ export function enterTv(app: App, given?: string) {
         open.length ? open.map((e) => e.city).join(" · ") : `Next to open: ${EXCHANGES.map((e) => ({ e, s: session(e, now) })).sort((a, b) => a.s.next - b.s.next)[0].e.city}`);
     } else if (id === "home") {
       const home = list<{ id: string; name: string }>("atlas.myplaces.v1")[0];
-      if (!home) { say("My place", "Save your home in My Place first, then it plays here"); return; }
+      if (!home) { say("My Place", "Save your home in My Place first, then it plays here"); return; }
       app.actions.get("myplace:boot")?.run(home.id);
       say(home.name, "Home, live: the weather, the day's brief and your place in 3D");
     } else if (id === "wherein") {
@@ -231,9 +224,7 @@ export function enterTv(app: App, given?: string) {
     const local = hit ?? searchPlaces(q, 1)[0];
     const r = local ? { name: local.name, detail: local.detail, lon: local.lon, lat: local.lat, radius: local.radius } : (await geocode(q, null).catch(() => []))[0];
     if (!r) { say(`Couldn't find ${q}`); return; }
-    app.select({ lon: r.lon, lat: r.lat, height: 0 }, { title: r.name, context: r.detail ?? "" });
-    void flyToPlace(app.globe, { name: r.name, lon: r.lon, lat: r.lat, radius: r.radius || 6000 });
-    say(r.name, r.detail ?? "");
+    stopScene = placeScene(wallCtx(), { name: r.name, sub: r.detail ?? "", lon: r.lon, lat: r.lat, radius: r.radius || 6000 }, startSpinAround);
   }
   /** Whatever is in the middle of the screen becomes the chosen place, and the camera leans in. */
   function chooseMiddle() {
@@ -505,7 +496,8 @@ export function enterTv(app: App, given?: string) {
       case "pan": if (ink.mode) return; pan(c.dx, c.dy); return;
       case "zoom": zoomBy(c.f); return;
       case "orbit": if (ink.mode) return; orbit(c.turn, c.tilt); return;
-      case "goto": cleanScene(); stopSpin(); app.select({ lon: c.lon, lat: c.lat, height: 0 }, { title: c.title, context: c.sub ?? "" }); say(c.title, c.sub ?? "From your phone"); return;
+      // A place from a phone gets the same live reading as the playlist's places.
+      case "goto": cleanScene(); stopScene = placeScene(wallCtx(), { name: c.title, sub: c.sub ?? "From your phone", lon: c.lon, lat: c.lat, radius: 6000 }, startSpinAround); return;
       case "point": ink.move(c.x, c.y, c.down); return;
       case "point-end": ink.lift(); return;
       case "dpad": {
@@ -622,7 +614,12 @@ export function enterTv(app: App, given?: string) {
   };
   active = self;
   drawRoom();
-  if (read(ROOM_KEY)) { void show(0); say(`${room.icon} ${room.label}`, room.about); } else { void show(0); chooseRoom(true); }
+  if (start) {
+    // Sent from the app with a place open: the TV opens on it, read live, and the playlist waits.
+    if (!read(ROOM_KEY)) write(ROOM_KEY, room.id);
+    holdUntil = Date.now() + HOLD_MS * 3;
+    stopScene = placeScene(wallCtx(), start, startSpinAround);
+  } else if (read(ROOM_KEY)) { void show(0); say(`${room.icon} ${room.label}`, room.about); } else { void show(0); chooseRoom(true); }
   schedule();
   return self;
 }
@@ -632,7 +629,10 @@ export function openCast(app: App) {
   document.querySelector(".cast-sheet")?.remove();
   const code = newCode();
   const base = location.href.replace(/#.*$/, "");
-  const tvLink = new URL(`#/tv/${code}`, base).href, shortTv = new URL("tv/", base).href.replace(/^https?:\/\//, "");
+  // A place open in the app goes with it: the TV opens on it.
+  const p = app.place, here: ShowPlace | undefined = p ? { name: p.name?.title ?? "Here", sub: p.name?.context ?? "", lon: p.lon, lat: p.lat, radius: 6000 } : undefined;
+  const at = here ? `/@${here.lat.toFixed(5)},${here.lon.toFixed(5)}/${encodeURIComponent(here.name)}` : "";
+  const tvLink = new URL(`#/tv/${code}${at}`, base).href, shortTv = new URL("tv/", base).href.replace(/^https?:\/\//, "");
   const close = () => sheet.remove();
   const canPresent = typeof (window as unknown as { PresentationRequest?: unknown }).PresentationRequest === "function";
   const phone = matchMedia("(pointer: coarse)").matches && Math.min(innerWidth, innerHeight) < 600;
@@ -641,11 +641,11 @@ export function openCast(app: App) {
   const toRemote = (c: string) => { location.href = remoteUrl(c); };
   const sheet = h("div", { class: "cast-sheet", role: "dialog", "aria-label": "Show Terreno on a TV" },
     h("button", { class: "cast-x", "aria-label": "Close", onclick: close }, "✕"),
-    h("h2", {}, "📺 Terreno on a TV"),
-    h("p", { class: "muted" }, "The TV runs Terreno on its own and your phone becomes the controller: spin the Earth, zoom, search, open lenses."),
+    h("h2", {}, "Terreno on a TV"),
+    h("p", { class: "muted" }, here ? `The TV opens on ${here.name}, read live, and your phone becomes the remote.` : "The TV runs Terreno by itself, and your phone becomes the remote."),
     canPresent ? h("div", { class: "cast-step" },
       h("strong", {}, "Cast it"),
-      h("p", {}, "Pick a Chromecast or Google TV. The TV loads Terreno by itself and this screen turns into the remote."),
+      h("p", {}, "Pick a Chromecast or Google TV. This screen becomes the remote."),
       h("button", { class: "primary-btn", onclick: async () => {
         try {
           const Req = (window as unknown as { PresentationRequest: new (urls: string[]) => { start(): Promise<unknown> } }).PresentationRequest;
@@ -656,11 +656,11 @@ export function openCast(app: App) {
       } }, "Cast to a TV")) : "",
     h("div", { class: "cast-step" },
       h("strong", {}, canPresent ? "Or open it on the TV" : "Open it on the TV"),
-      h("p", {}, "On the TV's web browser, or a laptop plugged into the TV, go to ", h("code", {}, shortTv), ". Then scan its code with your phone, or type it here:"),
+      h("p", {}, "In the TV's browser, or on a laptop plugged into it, go to ", h("code", {}, shortTv), ". Then scan its code, or type it here:"),
       h("div", { class: "build-log-form" }, codeBox, h("button", { class: "pill-btn", onclick: () => { const c = codeBox.value.toUpperCase().replace(/[^A-Z0-9]/g, ""); if (c.length === 6) toRemote(c); else status.textContent = "The code on the TV has six letters and numbers."; } }, "Be the remote"))),
-    phone ? h("p", { class: "cast-note" }, "Mirroring (AirPlay, Screen Mirroring, Cast screen) shows this phone's own screen on the TV, so it can't be the remote at the same time. Use it to show things off; for the controller, the TV needs to run Terreno itself.") : "",
+    phone ? h("p", { class: "cast-note" }, "Mirroring shows this phone's own screen, so it can't be the remote too. For a remote, run Terreno on the TV itself.") : "",
     h("div", { class: "cast-options" },
-      phone ? "" : h("button", { class: "pill-btn", onclick: () => { close(); enterTv(app, code); } }, "TV mode on this screen"),
+      phone ? "" : h("button", { class: "pill-btn", onclick: () => { close(); enterTv(app, code, here); } }, "TV mode on this screen"),
       phone ? "" : h("a", { class: "pill-btn", href: remoteUrl(code), target: "_blank", rel: "noopener" }, "Open its remote")),
     status);
   document.body.append(sheet);
