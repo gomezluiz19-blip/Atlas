@@ -78,7 +78,7 @@ export function openField(ctx: WorkCtx) {
 function start(ctx: WorkCtx) {
   const name = h("input", { class: "pro-url", placeholder: "Your programme's name" }) as HTMLInputElement;
   ctx.show("Field Ops", ctx.home,
-    h("p", {}, "Run a humanitarian or development programme on the map: the communities you serve and what they need, your warehouses, clinics, water points and schools, who is too far from each, where one more site would reach the most people, the supply lines that feed it all, incidents, deliveries, and natural hazards nearby."),
+    h("p", {}, "Run a programme on the map: who you serve, who's out of reach, and where one more site helps most."),
     name,
     h("button", { class: "primary-btn", onclick: () => { save({ id: newId(), name: name.value.trim() || "My programme", sites: [], communities: [], moves: [], parties: [], incidents: [], deliveries: [], reach: defaultReach(), created: Date.now() }); openField(ctx); } }, "Start the programme"),
     h("button", { class: "pill-btn", onclick: () => { const p = demoProgramme(); save(p); view = "coverage"; openField(ctx); show(ctx.app, p); } }, "Or try a demo: water, health and schooling in Turkana, Kenya"));

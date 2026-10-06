@@ -5,7 +5,7 @@
 // code. Everything here is pure (no DOM, no globe), so it can be tested and shared with the phone.
 
 export type RoomId = "home" | "classroom" | "ops" | "lobby" | "meeting";
-export type SceneId = "live" | "places" | "markets" | "home" | "wherein" | "sites" | "hazards" | "clocks" | "welcome";
+export type SceneId = "live" | "world" | "places" | "markets" | "home" | "wherein" | "sites" | "hazards" | "clocks" | "welcome";
 export interface Tool { id: string; icon: string; label: string; /** One line the phone shows under it. */ about?: string }
 export interface Room { id: RoomId; icon: string; label: string; who: string; about: string; scenes: SceneId[]; tools: string[] }
 
@@ -14,7 +14,7 @@ export const TOOLS: Record<string, Tool> = {
   search: { id: "search", icon: "⌕", label: "Search", about: "Fly anywhere" },
   trip: { id: "trip", icon: "✈️", label: "Plan a trip", about: "Where, when and who, then the whole journey" },
   trips: { id: "trips", icon: "🧳", label: "My trips", about: "Play a saved journey" },
-  myplace: { id: "myplace", icon: "🏠", label: "My place", about: "Home as a hologram, with the day's brief" },
+  myplace: { id: "myplace", icon: "🏠", label: "My Place", about: "Home as a hologram, with the day's brief" },
   work: { id: "work", icon: "💼", label: "Work tools", about: "Your industry's tools on the big screen" },
   lesson: { id: "lesson", icon: "📖", label: "Lessons", about: "Present a lesson; your notes stay on the phone" },
   quiz: { id: "quiz", icon: "❓", label: "Class quiz", about: "Questions big for the room, the answers on your phone" },
@@ -30,7 +30,8 @@ export const TOOLS: Record<string, Tool> = {
   welcome: { id: "welcome", icon: "👋", label: "Welcome message", about: "Change what the screen says" },
   present: { id: "present", icon: "🎞", label: "Present", about: "A story or deck, with you as the clicker" },
   "scene:live": { id: "scene:live", icon: "🌍", label: "Live Earth" },
-  "scene:places": { id: "scene:places", icon: "🏔", label: "Great places" },
+  "scene:places": { id: "scene:places", icon: "🏔", label: "A place, live" },
+  "scene:world": { id: "scene:world", icon: "🌐", label: "Now on Earth" },
   "scene:markets": { id: "scene:markets", icon: "📈", label: "Markets" },
   "lens:slice": { id: "lens:slice", icon: "⛰", label: "Cut open" },
   "lens:block": { id: "lens:block", icon: "🧊", label: "3D block" },
@@ -43,24 +44,24 @@ export const TOOLS: Record<string, Tool> = {
 
 export const ROOMS: Room[] = [
   { id: "home", icon: "🛋", label: "Home", who: "For the living room",
-    about: "The Earth live, great places, the world's markets, your home and your trips",
-    scenes: ["live", "places", "markets", "home"],
-    tools: ["search", "trip", "trips", "myplace", "work", "scene:live", "scene:places", "scene:markets", "lens:day", "wind"] },
+    about: "The Earth live, what's happening now, any place read live, and your home",
+    scenes: ["live", "world", "places", "home"],
+    tools: ["search", "trip", "trips", "myplace", "work", "scene:live", "scene:world", "scene:places", "lens:day", "wind"] },
   { id: "classroom", icon: "🎓", label: "Classroom", who: "For teachers",
-    about: "Lessons with your notes on the phone, class quizzes, a pointer and pen, a timer, and the world through time",
+    about: "Lessons with your notes on the phone, class quizzes, and tools to point, draw and time",
     scenes: ["wherein", "places", "live"],
     tools: ["lesson", "quiz", "wherein", "timemachine", "pointer", "spotlight", "pen", "timer", "search"] },
   { id: "ops", icon: "🛰", label: "Operations", who: "For control rooms and site offices",
-    about: "Every site you run with its local time and weather, hazards near them, and your Work tools",
-    scenes: ["sites", "hazards", "clocks", "live"],
-    tools: ["sites", "hazards", "clocks", "work", "search", "pointer", "timer", "wind", "scene:live"] },
+    about: "Every site you run with its time and weather, hazards near them, and what's happening now",
+    scenes: ["sites", "hazards", "world", "clocks"],
+    tools: ["sites", "hazards", "clocks", "work", "search", "pointer", "timer", "wind", "scene:world"] },
   { id: "lobby", icon: "🏨", label: "Lobby", who: "For reception, shops and waiting rooms",
-    about: "A welcome, the weather and time here, the world's great places and the Earth live",
-    scenes: ["welcome", "places", "clocks", "live"],
-    tools: ["welcome", "search", "scene:places", "clocks", "scene:live"] },
+    about: "A welcome, the weather and time here, great places read live, and the Earth now",
+    scenes: ["welcome", "places", "world", "clocks"],
+    tools: ["welcome", "search", "scene:places", "scene:world", "clocks"] },
   { id: "meeting", icon: "💬", label: "Meeting room", who: "For briefings and reviews",
-    about: "Present from your phone, point at the map, search anywhere, and the world's markets and hazards",
-    scenes: ["live", "markets", "hazards"],
+    about: "Present from your phone, point at the map, search anywhere, and what's moving the world",
+    scenes: ["world", "markets", "hazards"],
     tools: ["present", "pointer", "spotlight", "pen", "timer", "search", "work", "sites", "clocks", "scene:markets"] },
 ];
 export const roomOf = (id: string | null | undefined): Room => ROOMS.find((r) => r.id === id) ?? ROOMS[0];
@@ -71,7 +72,7 @@ export function menuFor(room: Room): Tool[][] {
 }
 
 export const SCENE_LABELS: Record<SceneId, string> = {
-  live: "Live Earth", places: "Great places", markets: "Markets", home: "Home", wherein: "Where in the world?",
+  live: "Live Earth", world: "Now on Earth", places: "A place, live", markets: "Markets", home: "Home", wherein: "Where in the world?",
   sites: "Our sites", hazards: "Hazards", clocks: "World clocks", welcome: "Welcome",
 };
 

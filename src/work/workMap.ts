@@ -86,7 +86,7 @@ export function workMap(onOpen: (s: Station, line: Line) => void): HTMLElement {
     const view = h("div", { class: "wk-view" },
       carryOn(),
       h("h2", { class: "wk-q" }, "What's your field?"),
-      h("p", { class: "wk-sub" }, "Pick one to see its tools: for anyone, for the pros, and for the companies that serve them."),
+      h("p", { class: "wk-sub" }, "Pick one to see its tools."),
       h("div", { class: "wk-ask-wrap" }, h("span", { class: "wk-ask-icon", html: icons.search }), ask),
       results, groups);
     if (focusAsk) requestAnimationFrame(() => ask.focus());

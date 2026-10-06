@@ -107,7 +107,7 @@ let openProjectId: string | null = null;
 function start(ctx: WorkCtx) {
   const name = h("input", { class: "pro-url", placeholder: "Your company's name" }) as HTMLInputElement;
   ctx.show("Build Pro", ctx.home,
-    h("p", {}, "For builders and contractors running sites: every project's schedule with its critical path, the weather against the plan (pours, crane lifts, roofing, finishes, earthworks), the money as earned value, deliveries and where they come from, the neighbours in earshot, permits, inspections and open questions, and a report for the client."),
+    h("p", {}, "Every site you run: the schedule, the weather against it, the money, and a report for the client."),
     name,
     h("button", { class: "primary-btn", onclick: () => { save({ id: newId(), name: name.value.trim() || "My company", created: Date.now(), projects: [] }); openBuildPro(ctx); } }, "Start"),
     h("button", { class: "pill-btn", onclick: () => { const f = demoFirm(); save(f); openBuildPro(ctx); frame(ctx.app, f.name, f.projects, 8000); } }, "Or try a demo: a contractor with four sites around Austin"));

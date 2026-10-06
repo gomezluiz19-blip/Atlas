@@ -85,7 +85,7 @@ export function createPro(app: App, store: PlaceStore, scene: PlaceScene, showPl
     const url = h("input", { type: "url", placeholder: "https://… (JSON or CSV)", class: "pro-url" }) as HTMLInputElement;
     panel.replaceChildren(
       head(p, false),
-      h("p", { class: "mp-intro" }, "Connect your bookings to see, live, how full the building is: floor by floor in 3D, every room, and the next two weeks. Data stays in this browser; guest names are never read."),
+      h("p", { class: "mp-intro" }, "See how full the building is, floor by floor in 3D, live from your bookings. Guest names are never read."),
       h("div", { class: "pro-options" },
         h("button", { class: "pro-option", onclick: () => connect({ source: { kind: "demo", floors: floorsGuess, perFloor: 8 }, rooms: [] }) },
           h("strong", {}, "Try it with a demo feed"), h("span", {}, `A simulated ${floorsGuess}-floor hotel on your building, with live check-ins and housekeeping.`)),

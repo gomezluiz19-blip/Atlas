@@ -12,9 +12,9 @@ describe("rooms", () => {
       expect(r.scenes.length).toBeGreaterThan(0);
     }
   });
-  it("keeps Home's views, and gives teachers their tools", () => {
-    expect(roomOf("home").scenes).toEqual(["live", "places", "markets", "home"]);
-    expect(roomOf("home").tools).toEqual(expect.arrayContaining(["trip", "trips", "myplace", "scene:places", "scene:markets"]));
+  it("shows Terreno at work at home, and gives teachers their tools", () => {
+    expect(roomOf("home").scenes).toEqual(["live", "world", "places", "home"]);
+    expect(roomOf("home").tools).toEqual(expect.arrayContaining(["trip", "trips", "myplace", "scene:world", "scene:places"]));
     expect(roomOf("classroom").tools).toEqual(expect.arrayContaining(["lesson", "quiz", "pointer", "spotlight", "pen", "timer", "timemachine"]));
   });
   it("puts the room's tools first, then change-room and exit", () => {

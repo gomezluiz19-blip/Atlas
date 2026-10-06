@@ -65,7 +65,7 @@ async function drawWorld(app: App, g: SimState) {
 
 export function openSims(ctx: WorkCtx, back: () => void) {
   ctx.show("World Summit", back,
-    h("p", { class: "mp-intro" }, "A game of international relations for your class, played over several lessons. Each team leads a real country and chooses policies every turn: trade, aid, alliances, sanctions, investment, the environment. Events test them, and the globe shows who's allied, trading or at odds."),
+    h("p", { class: "mp-intro" }, "A world politics game for your class: each team leads a real country, and the globe shows who's allied, trading or at odds."),
     h("div", { class: "chips wrap" }, h("button", { class: "chip", onclick: () => void setup(ctx, back) }, "+ New game")),
     games.all().length ? h("section", { class: "group" }, h("h2", { class: "group-title" }, "Games"),
       h("div", { class: "list" }, ...games.all().map((g) =>

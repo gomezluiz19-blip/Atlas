@@ -6,6 +6,7 @@ import type { Globe } from "../globe/viewer";
 import { h } from "./dom";
 import { viaEdge } from "../data/http";
 import { icons } from "./icons";
+import { osmRef, type Category } from "../place/venue";
 import { decodePlusCode, formatCoordinates, parseLocation, recoverPlusCode } from "../data/locationParse";
 
 export interface Place {
@@ -117,6 +118,8 @@ export interface SearchResult extends Place {
   source: "coords" | "local" | "address" | "recent" | "site" | "command" | "thing";
   /** False when the name is only coordinates, so the app should look up a real place name. */
   named?: boolean;
+  /** What the map says it is (amenity / school), so its card can suit it (src/place/venue.ts). */
+  category?: Category;
 }
 
 /** Radius (m) to frame a result of a given OSM type. */
@@ -145,7 +148,7 @@ interface PhotonFeature {
   geometry: { coordinates: [number, number] };
   properties: {
     name?: string; housenumber?: string; street?: string; postcode?: string; city?: string; district?: string;
-    county?: string; state?: string; country?: string; osm_key?: string; osm_value?: string; type?: string;
+    county?: string; state?: string; country?: string; osm_key?: string; osm_value?: string; type?: string; osm_type?: string; osm_id?: number;
     extent?: [number, number, number, number];
   };
 }
@@ -168,7 +171,8 @@ async function photon(q: string, bias: { lat: number; lon: number } | null, sign
       const [w, n, e, s] = p.extent;
       radius = Math.max(radius / 2, Math.min(2_000_000, (Math.hypot(n - s, (e - w) * Math.cos((lat * Math.PI) / 180)) * 111_000) / 2));
     }
-    return { name, detail, lon, lat, radius, icon: iconForType(p.osm_key ?? "", p.osm_value ?? "", p.type), source: "address" as const };
+    const category: Category | undefined = p.osm_key ? { key: p.osm_key, value: p.osm_value ?? "", type: p.type, osm: osmRef(p.osm_type, p.osm_id) } : undefined;
+    return { name, detail, lon, lat, radius, icon: iconForType(p.osm_key ?? "", p.osm_value ?? "", p.type), source: "address" as const, category };
   });
 }
 
@@ -177,12 +181,13 @@ async function nominatim(q: string, signal: AbortSignal): Promise<SearchResult[]
   const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=6&q=${encodeURIComponent(q)}`;
   const res = await fetch(viaEdge(url), { signal, headers: { "Accept-Language": navigator.language } });
   if (!res.ok) throw new Error(`Search failed (HTTP ${res.status})`);
-  const rows = (await res.json()) as { display_name: string; lat: string; lon: string; boundingbox: string[]; type: string }[];
+  const rows = (await res.json()) as { display_name: string; lat: string; lon: string; boundingbox: string[]; type: string; category?: string; osm_type?: string; osm_id?: number }[];
   return rows.map((r) => {
     const [s, n, w, e] = r.boundingbox.map(Number);
     const radius = Math.max(250, Math.min(2_000_000, (Math.hypot(n - s, (e - w) * Math.cos((Number(r.lat) * Math.PI) / 180)) * 111_000) / 2));
     const [name, ...rest] = r.display_name.split(", ");
-    return { name, detail: rest.slice(-3).join(", "), lon: Number(r.lon), lat: Number(r.lat), radius, icon: "target" as const, source: "address" as const };
+    const category: Category | undefined = r.category ? { key: r.category, value: r.type, osm: osmRef(r.osm_type, r.osm_id) } : undefined;
+    return { name, detail: rest.slice(-3).join(", "), lon: Number(r.lon), lat: Number(r.lat), radius, icon: "target" as const, source: "address" as const, category };
   });
 }
 

@@ -5,6 +5,7 @@ import type { App, Place } from "../app";
 import { h } from "../ui/dom";
 import { icons } from "../ui/icons";
 import { identify } from "./identify";
+import { venueOfPlace } from "../place/venue";
 import { factLine, factsFor } from "./facts";
 import { FAMILY, lensOrder, lookOf } from "./glyphs";
 import { KIND_LABEL, type Lens, type LensHost, type Subject, type SubjectKind } from "./types";
@@ -110,7 +111,8 @@ export function createLenses(app: App, lenses: Lens[]) {
   const identifyPlace = async (p: Place | null) => {
     const my = ++job;
     close();
-    if (!p) { subject = null; strip.hidden = true; return; }
+    // No place, or a venue (a school, a shop, an address): the planet's views of the ground don't suit it.
+    if (!p || venueOfPlace(p)) { subject = null; strip.hidden = true; return; }
     strip.hidden = false;
     showAll = false;
     strip.replaceChildren(h("div", { class: "lens-kind" }, h("span", { class: "spinner small" }), h("span", {}, h("small", {}, "Working out what this is…"))));

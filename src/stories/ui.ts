@@ -74,7 +74,7 @@ export function openLibrary(ctx: WorkCtx, back: (() => void) | null = ctx.home) 
   const mineDecks = decks();
 
   ctx.show("Stories", back,
-    h("p", { class: "mp-intro" }, "Stories told on the globe: follow a river, a war, a migration. Play one, teach with it, or remix it into your own. Publish yours and others can build on it."),
+    h("p", { class: "mp-intro" }, "Stories told on the globe: a river, a war, a migration. Play one, remix it, or publish your own."),
     h("div", { class: "pro-actions" },
       h("button", { class: "primary-btn", onclick: () => newStory(ctx) }, "+ Make a story"),
       mineDecks.length ? h("button", { class: "pill-btn", onclick: () => openMine(ctx) }, `Your stories (${mineDecks.length})`) : ""),

@@ -100,6 +100,8 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid 
 
 #ui { position: fixed; inset: 0; pointer-events: none; }
 #ui > * { pointer-events: auto; }
+/* A status message never takes a tap meant for what's under it (#ui > * would otherwise win). */
+#ui > .toast { pointer-events: none; }
 
 .material {
   background: var(--material);
@@ -573,6 +575,8 @@ input[type="range"] { accent-color: var(--accent); }
   .topbar > .brand { order: 0; }
   .topbar > .topbar-actions { order: 1; margin-left: auto !important; gap: 6px; }
   .topbar > .search { order: 2; flex: 1 1 100%; z-index: 5; }
+  /* Below the bar, not over the search row. */
+  .toast { top: calc(var(--gutter) + var(--bar) + 8px + env(safe-area-inset-top, 0px)); }
   .topbar > .mode-bar { order: 3; }
 }
 
@@ -2289,6 +2293,23 @@ body.time-open .look-legend { bottom: calc(var(--gutter) + 146px + env(safe-area
 @media (prefers-reduced-motion: reduce) { .arrival { transition-duration: 0.01s; } }
 
 /* Page headline, live reading, share cards, surprise */
+/* A venue's card (src/place/venueCard.ts): what it is, getting there, details. */
+.vn-kind { margin: 0; font: 650 11px/1 var(--font); letter-spacing: .12em; text-transform: uppercase; color: var(--accent); }
+.vn-from { margin: 0 0 8px; }
+.vn-modes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.vn-mode { display: flex; flex-direction: column; gap: 3px; padding: 11px 12px; border-radius: 12px; background: var(--fill); }
+.vn-mode strong { font: 700 19px/1.1 var(--font-display); font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
+.vn-mode small { color: var(--secondary); font-size: 12px; }
+.vn-mode.best { background: color-mix(in srgb, var(--accent) 12%, transparent); box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--accent) 45%, transparent); }
+.vn-mode.best small::after { content: "Quickest"; display: block; margin-top: 2px; color: var(--accent); font-weight: 650; font-size: 11px; letter-spacing: .04em; text-transform: uppercase; }
+.vn-mode.est strong { opacity: .8; }
+.vn-pick { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 4px; }
+.vn-details { display: grid; grid-template-columns: auto 1fr; gap: 8px 14px; margin: 0; font-size: 14px; }
+.vn-details dt { color: var(--secondary); font-size: 12.5px; padding-top: 1px; }
+.vn-details dd { margin: 0; overflow-wrap: anywhere; }
+.vn-details a { color: var(--accent); text-decoration: none; }
+.vn-more-btn { width: 100%; margin: 6px 0 4px; padding: 11px; border: 0; border-radius: 12px; background: var(--fill); color: var(--label); font: 600 13.5px var(--font); cursor: pointer; }
+.vn-more-btn:hover { background: var(--fill-strong); }
 .pg-headline { margin: 0 0 2px; font: 600 17px/1.35 var(--font-display); letter-spacing: -0.01em; color: var(--label); opacity: 0; max-height: 0; transition: opacity 0.6s var(--ease), max-height 0.6s var(--ease); overflow: hidden; }
 .pg-headline.on { opacity: 1; max-height: 120px; }
 .pg-reading { display: flex; flex-direction: column; gap: 8px; margin: 12px 0; padding: 12px; border-radius: 12px; background: var(--fill); }
@@ -2542,7 +2563,7 @@ body.year-open .look-legend { display: none; }
 .now-actions { display: flex; gap: 6px; flex-wrap: wrap; }
 /* Menus and panels open over a craft's card. */
 .popover:not([hidden]) { z-index: 40; }
-.world-tile .pulse-dot { display: inline-block; vertical-align: middle; }
+.world-tile .pulse-dot { display: inline-block; vertical-align: middle; margin: -2px 7px 0 1px; }
 .world-lead { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .look-further .world-tile { order: -1; }
 .look-further .world-tile { background: linear-gradient(120deg, color-mix(in srgb, #b8496a 14%, transparent), color-mix(in srgb, #5160c2 12%, transparent)); }
@@ -3927,7 +3948,7 @@ body.tv-mode.presenting .tv-caption, body.tv-mode.presenting .tv-dots { opacity:
 .tv-pick-row.tv-focus { background: rgba(255, 255, 255, .95); color: #0b1320; outline-color: transparent !important; }
 
 /* Wall screens: a board of sites or hazards down the right, clocks, a welcome. */
-.tv-board { position: absolute; right: 4vw; top: 13vh; bottom: 13vh; width: min(30vw, 560px); display: flex; flex-direction: column; gap: .8vw; padding: 1.6vw; border-radius: 1.6vw; background: rgba(6, 12, 22, .66); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, .1); opacity: 0; transform: translateX(24px); transition: opacity .5s ease, transform .6s cubic-bezier(.2, .8, .2, 1); overflow: hidden; }
+.tv-board { position: absolute; right: 4vw; top: 13vh; max-height: 74vh; width: min(30vw, 560px); display: flex; flex-direction: column; gap: .8vw; padding: 1.6vw; border-radius: 1.6vw; background: rgba(6, 12, 22, .66); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, .1); opacity: 0; transform: translateX(24px); transition: opacity .5s ease, transform .6s cubic-bezier(.2, .8, .2, 1); overflow: hidden; }
 .tv-board.on { opacity: 1; transform: none; }
 .tv-board h3 { margin: 0; font: 700 clamp(13px, 1vw, 19px)/1 var(--font); letter-spacing: .14em; text-transform: uppercase; opacity: .7; }
 .tv-board-rows { display: flex; flex-direction: column; gap: .3vw; overflow: hidden; }
@@ -3935,6 +3956,16 @@ body.tv-mode.presenting .tv-caption, body.tv-mode.presenting .tv-dots { opacity:
 .tv-row.on { background: rgba(76, 154, 201, .18); box-shadow: inset .25vw 0 0 #4c9ac9; }
 .tv-row strong { display: block; font: 600 clamp(14px, 1.15vw, 22px)/1.2 var(--font); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .tv-row small { display: block; font: 400 clamp(11px, .85vw, 16px)/1.3 var(--font); opacity: .62; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* "A place, live": label left, the reading right (src/tv/showcase.ts). */
+.tv-read { grid-template-columns: 1fr auto; padding: .85vw .9vw; border-bottom: 1px solid rgba(255, 255, 255, .07); border-radius: 0; }
+.tv-read small { opacity: .55; letter-spacing: .06em; text-transform: uppercase; font-weight: 600; }
+.tv-read-value { font: 600 clamp(15px, 1.2vw, 23px)/1.2 var(--font); font-variant-numeric: tabular-nums; text-align: right; }
+.tv-read.none .tv-read-value { opacity: .4; }
+/* "Now on Earth": each item keyed by its colour. */
+.tv-now { grid-template-columns: 1fr; box-shadow: inset .22vw 0 0 var(--k); }
+.tv-now strong { white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.tv-now small { color: var(--k); opacity: 1; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.tv-now.on { background: color-mix(in srgb, var(--k) 18%, transparent); box-shadow: inset .32vw 0 0 var(--k); }
 .tv-row-time, .tv-row-wx { font: 500 clamp(14px, 1.1vw, 21px)/1 var(--font); font-variant-numeric: tabular-nums; opacity: .9; }
 .tv-clocks { position: absolute; right: 4vw; top: 13vh; width: min(34vw, 640px); display: grid; grid-template-columns: 1fr 1fr; gap: .8vw; opacity: 0; transform: translateX(24px); transition: opacity .5s ease, transform .6s cubic-bezier(.2, .8, .2, 1); }
 .tv-clocks.on { opacity: 1; transform: none; }
@@ -4000,3 +4031,25 @@ body.tv-mode.presenting .tv-caption, body.tv-mode.presenting .tv-dots { opacity:
 
 /* The tour speaks alone: an arrival's caption and its intro chip wait until it's over. */
 body:has(> .tour:not(.out)) .arrival, body:has(> .tour:not(.out)) .lmi-replay { opacity: 0 !important; pointer-events: none; }
+
+/* ---- Social work (src/pro/social/ui.ts) ---- */
+.sw-chip.on { background: color-mix(in srgb, var(--accent) 14%, transparent); color: var(--accent); box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--accent) 55%, transparent); }
+.sw-asks .sw-chip { font-size: 13.5px; padding: 7px 12px; }
+.sw-ways { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
+.sw-way { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; padding: 11px 12px; border: 0; border-radius: 12px; background: var(--fill); color: var(--label); text-align: left; cursor: pointer; font: inherit; box-shadow: inset 0 0 0 1px transparent; }
+.sw-way strong { font-size: 14px; } .sw-way small { color: var(--secondary); font-size: 12px; line-height: 1.35; }
+.sw-way.on { background: color-mix(in srgb, var(--accent) 10%, transparent); box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--accent) 55%, transparent); }
+.sw-picker { display: flex; flex-direction: column; gap: 8px; }
+.sw-lines { display: flex; flex-direction: column; gap: 6px; margin: 4px 0 10px; }
+.sw-line { display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; border-radius: 12px; background: var(--fill); color: var(--label); text-decoration: none; }
+.sw-line strong { font-size: 14px; } .sw-line small { color: var(--secondary); font-size: 12.5px; }
+.sw-line.urgent { background: color-mix(in srgb, var(--terra, #c4513a) 12%, transparent); box-shadow: inset .22rem 0 0 var(--terra, #c4513a); }
+.sw-counts { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 6px; margin: 4px 0 10px; }
+.sw-count { display: flex; flex-direction: column; gap: 1px; padding: 9px 10px; border-radius: 10px; background: color-mix(in srgb, var(--c) 10%, transparent); box-shadow: inset 0 2px 0 var(--c); }
+.sw-count strong { font: 700 19px/1.1 var(--font-display); font-variant-numeric: tabular-nums; }
+.sw-count span { font-size: 12px; font-weight: 600; } .sw-count small { color: var(--secondary); font-size: 11px; }
+.sw-sheet { margin: 4px 0 8px; padding: 12px; border-radius: 10px; background: var(--fill); font: 12.5px/1.5 var(--font-mono); white-space: pre-wrap; overflow-wrap: anywhere; max-height: 260px; overflow: auto; }
+.sw-go { width: 100%; margin: 10px 0 4px; }
+.sw-day-head { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.sw-day-head .po-field { display: flex; flex-direction: column; align-items: stretch; gap: 4px; min-width: 0; }
+.sw-day-head input { width: 100%; min-width: 0; box-sizing: border-box; }

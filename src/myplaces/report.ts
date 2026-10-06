@@ -71,7 +71,7 @@ export function placeReport(app: App, p: MyPlace): HTMLElement {
   const season = h("div", {}, row("Frost", "…"));
   const water = h("div", {}, row("Nearest river", "…"));
   const sowing = h("div", {});
-  const go = (action: string) => () => { app.select({ lon: p.lon, lat: p.lat, height: 0 }, { title: p.name, context: "My place" }); setTimeout(() => app.actions.get(action)?.run(), 300); };
+  const go = (action: string) => () => { app.select({ lon: p.lon, lat: p.lat, height: 0 }, { title: p.name, context: "My Place" }); setTimeout(() => app.actions.get(action)?.run(), 300); };
   const el = h("section", { class: "group report" },
     h("h2", { class: "group-title" }, "About this place"),
     h("div", { class: "report-rows" }, ground, rock, season, water),

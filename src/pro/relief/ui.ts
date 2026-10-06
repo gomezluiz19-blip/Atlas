@@ -86,7 +86,7 @@ export function openRelief(ctx: WorkCtx) {
 function start(ctx: WorkCtx) {
   const name = h("input", { class: "pro-url", placeholder: "Your operation's name" }) as HTMLInputElement;
   ctx.show("Relief Pipeline", ctx.home,
-    h("p", {}, "For humanitarian logisticians: your ports, hubs, warehouses and distribution points, and the roads, rivers and air links between them. See when each place runs out of each thing and the last day to send more, what the rains and incidents have cut, who can only be reached by air, what's on the way, and the fastest, cheapest or ground-only way to move the next load."),
+    h("p", {}, "Port to people: when each place runs out, what the rains have cut, and the best way to move the next load."),
     name,
     h("button", { class: "primary-btn", onclick: () => { save({ id: newId(), name: name.value.trim() || "My operation", created: Date.now(), hubs: [], legs: [], moves: [], incidents: [] }); openRelief(ctx); } }, "Start"),
     h("button", { class: "pill-btn", onclick: () => { const n = demoNetwork(); save(n); view = "pipeline"; openRelief(ctx); frame(ctx.app, n.name, n.hubs.filter((x) => x.kind !== "port"), 50_000); } }, "Or try a demo: Mombasa to South Sudan in the rains"));

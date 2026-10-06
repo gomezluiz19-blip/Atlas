@@ -236,7 +236,7 @@ export function openAsk(ctx: WorkCtx, question?: string, preset?: { title: strin
       if (state.area && !state.area.read.has(m.needs)) void answer(); else rescoreSoon();
     });
     understood.replaceChildren(
-      state.criteria.length ? h("div", { class: "ask-label" }, "Understood as") : h("p", { class: "muted small" }, "Say what matters: height, slope, which way it faces, warmth, rain, sun, frost, towns, airports, ports, rail, roads, rivers, the sea, floods, volcanoes, fault lines, income, internet, health."),
+      state.criteria.length ? h("div", { class: "ask-label" }, "Understood as") : h("p", { class: "muted small" }, "Say what matters, like height, warmth, rain, airports, rivers or flood risk."),
       ...rows, add);
     notes.replaceChildren(...state.notYet.map((n) => h("p", { class: "ask-note" }, n)));
     go.toggleAttribute("disabled", !state.criteria.length);

@@ -77,7 +77,9 @@ export function pageHead(app: App, place: Place, placesLike: (title: string) => 
       h("button", { class: "pg-btn", title: "Plan a trip here: the way there, the time change, the weather, stays and where to book", onclick: () => app.actions.get("travel:to")?.run() }, ...labelled("✈ Go here", 15)),
       // On a phone: walk, ride or drive there with Guide. With a TV paired from this phone: put it on the big screen.
       matchMedia("(pointer: coarse)").matches ? h("button", { class: "pg-btn", title: "Guide: turn-by-turn from where you are, and what you pass on the way", onclick: () => app.actions.get("wayfind:guide")?.run() }, ...labelled("🧭 Guide me", 15)) : null,
-      app.actions.get("tv:show")?.isOn?.() ? h("button", { class: "pg-btn", title: "Show this place on the TV your phone is driving", onclick: () => app.actions.get("tv:show")?.run() }, ...labelled("📺 Show on TV", 15)) : null,
+      app.actions.get("tv:show")?.isOn?.() ? h("button", { class: "pg-btn", title: "Show this place on the TV your phone is driving", onclick: () => app.actions.get("tv:show")?.run() }, ...labelled("📺 Show on TV", 15))
+        // On a computer with no TV paired yet: put this place on a TV, read live, with a phone as the remote.
+        : !matchMedia("(pointer: coarse)").matches ? h("button", { class: "pg-btn", title: "Put this place on a TV, read live, with your phone as the remote", onclick: () => app.actions.get("tv:cast")?.run() }, ...labelled("📺 On a TV", 15)) : null,
       h("button", { class: "pg-btn", title: "Find places with the same ground and climate", onclick: () => placesLike(place.name?.title ?? "here") }, ...labelled("✨ Places like this", 15)),
       h("button", { class: "pg-btn", title: "A place you love: it goes on your page (your Top 8, favourite restaurants, trails…)", onclick: () => app.actions.get("profile:add")?.run() }, ...labelled("♡ Add to my page", 15)),
       h("button", { class: "pg-btn", title: "A place you live, farm or run: My Place gives it a daily brief", onclick: () => app.actions.get("place:save")?.run() }, ...labelled("🏠 Add to My Place", 15))));

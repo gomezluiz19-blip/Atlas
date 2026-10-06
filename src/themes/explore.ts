@@ -21,6 +21,8 @@ import { siteBrowser } from "../ui/sites";
 import { SITES, type Site } from "../content/sites";
 import { action, asyncBlock, hero, note, section, stats } from "./common";
 import { acrossLayers, nearbyPages, pageHead, placesLike } from "../place/page";
+import { venueOfPlace } from "../place/venue";
+import { gettingThere, moreAboutArea, venueDetails, venueHead } from "../place/venueCard";
 import { throughTime } from "../time/placeTime";
 import { iconSvg } from "../ui/glyph";
 
@@ -90,7 +92,7 @@ export function exploreTheme(app: App, feeds: Feeds, overlays: Overlays, openSit
     const lead = h("small", { class: "world-lead" }, "The biggest stories, fires, storms and quakes going on");
     void import("../live/worldNow").then((m) => m.leadStory()).then((st) => { if (st) lead.textContent = st.text; }).catch(() => {});
     return h("div", { class: "look-further" },
-      h("button", { class: "look-tile surprise-tile world-tile", onclick: go("news:open") }, h("span", { class: "look-tile-icon", style: "--c:#b8496a", html: icons.globe }), h("span", {}, h("strong", {}, h("span", { class: "pulse-dot" }), " World now"), lead)),
+      h("button", { class: "look-tile surprise-tile world-tile", onclick: go("news:open") }, h("span", { class: "look-tile-icon", style: "--c:#b8496a", html: icons.globe }), h("span", {}, h("strong", {}, h("span", { class: "pulse-dot" }), "World now"), lead)),
       h("button", { class: "look-tile", onclick: go("work:ask") }, h("span", { class: "look-tile-icon", style: "--c:#ffb04a", html: icons.sparkle }), h("span", {}, h("strong", {}, "Ask the map"), h("small", {}, "Where fits many things at once"))),
       h("button", { class: "look-tile", onclick: go("rhythms:year") }, h("span", { class: "look-tile-icon", style: "--c:#5b9467", html: icons.sprout }), h("span", {}, h("strong", {}, "The year breathes"), h("small", {}, "The seasons sweep the planet"))),
       h("button", { class: "look-tile", onclick: () => app.setTheme("space") }, h("span", { class: "look-tile-icon", style: "--c:#5160c2", html: icons.saturn }), h("span", {}, h("strong", {}, "Space"), h("small", {}, "Satellites, the ISS, launches, planets"))),
@@ -183,7 +185,8 @@ export function exploreTheme(app: App, feeds: Feeds, overlays: Overlays, openSit
     update();
   };
 
-  const featureCard = (place: Place, body: HTMLElement) => {
+  /** A named feature's card. `rest`, when given, takes the area's deeper readings instead of the card (a venue's "More"). */
+  const featureCard = (place: Place, body: HTMLElement, rest?: (fill: (into: HTMLElement) => void) => void) => {
     const f = place.feature as FeatureData;
     if ("type" in f && f.type === "quake") return quakeCard(place, f.quake, body);
     const d = f as LabelData;
@@ -205,14 +208,14 @@ export function exploreTheme(app: App, feeds: Feeds, overlays: Overlays, openSit
     const lookup = n?.article ? summary(n.article) : summaryByName(d.source === "river" || w?.kind === "water" ? [name, `${name} River`, `${name} (river)`] : [name]);
     lookup
       .then((s) => {
-        if (!s) { text.replaceChildren(h("p", { class: "muted" }, n?.description ?? "No encyclopedia summary found.")); return; }
+        // No summary to read: say nothing rather than that nothing was found.
+        if (!s) { text.replaceChildren(...(n?.description ? [h("p", { class: "muted" }, n.description)] : [])); return; }
         if (!n?.image && s.thumbnail) img.append(h("img", { src: s.thumbnail, alt: s.title, loading: "lazy" }));
         text.replaceChildren(h("p", {}, s.extract), h("a", { class: "link-btn", href: s.url, target: "_blank", rel: "noopener" }, "Read more on Wikipedia"));
       })
-      .catch(() => text.replaceChildren(h("p", { class: "muted" }, n?.description ?? "Couldn't load a summary.")));
-    acrossLayers(app, place, body);
-    throughTime(app, place, body);
-    nearbyAndThemes(place, body, n?.id);
+      .catch(() => text.replaceChildren(...(n?.description ? [h("p", { class: "muted" }, n.description)] : [])));
+    const deeper = (into: HTMLElement) => { acrossLayers(app, place, into); throughTime(app, place, into); nearbyAndThemes(place, into, n?.id); };
+    if (rest) rest(deeper); else deeper(body);
   };
 
   const quakeCard = (place: Place, q: Quake, body: HTMLElement) => {
@@ -312,6 +315,16 @@ export function exploreTheme(app: App, feeds: Feeds, overlays: Overlays, openSit
     id: "here",
     label: "Here",
     render({ place, body }) {
+      // A venue (a school, a shop, an address): what it is, how long to get there and its details first;
+      // the area's deeper readings behind one button.
+      const venue = venueOfPlace(place);
+      if (venue) {
+        body.append(venueHead(app, place, venue), gettingThere(app, place));
+        const later = (fill: (into: HTMLElement) => void) => body.append(moreAboutArea(fill));
+        if ((place.feature as { source?: string } | undefined)?.source) featureCard(place, body, later);
+        else { venueDetails(app, place, body); later((into) => placeCard(place, into)); }
+        return;
+      }
       body.append(pageHead(app, place, () => void placesLike(app, place, (title, criteria) => app.actions.get("answers:preset")?.run(JSON.stringify({ title, criteria, exclude: [place.lon, place.lat] })))));
       const f = place.feature as { type?: string; source?: string } | undefined;
       // Other themes can attach their own features (e.g. a mine); only show the ones Explore knows.

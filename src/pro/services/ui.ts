@@ -161,7 +161,7 @@ function start(ctx: WorkCtx) {
   const def = SECTORS[chosen];
   const name = h("input", { class: "pro-url", placeholder: "Your company's name" }) as HTMLInputElement;
   ctx.show("Field Network", ctx.home,
-    h("p", {}, "For companies that sell to and service many sites: each customer site with its conditions filled in (altitude, climate and wet season, grid, ports and airports), your equipment there and when it needs service, your technicians and how long they really take to get there, jobs and who to send, parts, where a new base helps most, prospects scored, your pipeline, and the risks across it all."),
+    h("p", {}, "Every customer site with its conditions, your equipment there, and who to send when it needs service."),
     title("Your sector"),
     h("div", { class: "chips wrap" }, ...Object.values(SECTORS).map((x) => h("button", { class: "chip" + (x.id === chosen ? " on" : ""), onclick: () => { chosen = x.id; sector = x.id; start(ctx); } }, `${x.emoji} ${x.label}`))),
     h("p", { class: "muted small" }, `For ${def.who}. ${def.market.label}.`),
