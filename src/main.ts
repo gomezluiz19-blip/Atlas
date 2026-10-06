@@ -43,6 +43,7 @@ import { measureAt } from "./place/measure";
 import { yearName } from "./time/model";
 import { iconSvg } from "./ui/glyph";
 import { createLayersPanel } from "./ui/layers";
+import { venueOf } from "./place/venue";
 import { createSearch, flyToPlace, freeArea, geocode, type Command, type Place as SearchPlace, type SearchResult } from "./ui/search";
 import { createRobot } from "./ui/robotCard";
 import { createAiSettings } from "./ui/aiSettings";
@@ -157,7 +158,9 @@ const arriveAt = (ip: IntroPlace) => void arrive(app, { name: ip.name, kicker: i
 
 const pick = (p: SearchPlace | SearchResult) => {
   const named = !("named" in p && p.named === false) && !("source" in p && p.source === "coords");
-  app.select({ lon: p.lon, lat: p.lat, height: 0 }, named ? { title: p.name, context: p.detail ?? "" } : undefined);
+  // A venue (a school, a shop, an address) carries what the map says it is, so its card leads with what suits it.
+  const category = "category" in p && p.category && venueOf(p.category, p.name) ? p.category : undefined;
+  app.select({ lon: p.lon, lat: p.lat, height: 0 }, named ? { title: p.name, context: p.detail ?? "" } : undefined, category ? { venue: category } : undefined);
   if (named) withIntro(p.name, p.lon, p.lat, (ip) => ip && arriveAt(ip));
 };
 

@@ -100,6 +100,8 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid 
 
 #ui { position: fixed; inset: 0; pointer-events: none; }
 #ui > * { pointer-events: auto; }
+/* A status message never takes a tap meant for what's under it (#ui > * would otherwise win). */
+#ui > .toast { pointer-events: none; }
 
 .material {
   background: var(--material);
@@ -573,6 +575,8 @@ input[type="range"] { accent-color: var(--accent); }
   .topbar > .brand { order: 0; }
   .topbar > .topbar-actions { order: 1; margin-left: auto !important; gap: 6px; }
   .topbar > .search { order: 2; flex: 1 1 100%; z-index: 5; }
+  /* Below the bar, not over the search row. */
+  .toast { top: calc(var(--gutter) + var(--bar) + 8px + env(safe-area-inset-top, 0px)); }
   .topbar > .mode-bar { order: 3; }
 }
 
@@ -2289,6 +2293,23 @@ body.time-open .look-legend { bottom: calc(var(--gutter) + 146px + env(safe-area
 @media (prefers-reduced-motion: reduce) { .arrival { transition-duration: 0.01s; } }
 
 /* Page headline, live reading, share cards, surprise */
+/* A venue's card (src/place/venueCard.ts): what it is, getting there, details. */
+.vn-kind { margin: 0; font: 650 11px/1 var(--font); letter-spacing: .12em; text-transform: uppercase; color: var(--accent); }
+.vn-from { margin: 0 0 8px; }
+.vn-modes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.vn-mode { display: flex; flex-direction: column; gap: 3px; padding: 11px 12px; border-radius: 12px; background: var(--fill); }
+.vn-mode strong { font: 700 19px/1.1 var(--font-display); font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
+.vn-mode small { color: var(--secondary); font-size: 12px; }
+.vn-mode.best { background: color-mix(in srgb, var(--accent) 12%, transparent); box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--accent) 45%, transparent); }
+.vn-mode.best small::after { content: "Quickest"; display: block; margin-top: 2px; color: var(--accent); font-weight: 650; font-size: 11px; letter-spacing: .04em; text-transform: uppercase; }
+.vn-mode.est strong { opacity: .8; }
+.vn-pick { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 4px; }
+.vn-details { display: grid; grid-template-columns: auto 1fr; gap: 8px 14px; margin: 0; font-size: 14px; }
+.vn-details dt { color: var(--secondary); font-size: 12.5px; padding-top: 1px; }
+.vn-details dd { margin: 0; overflow-wrap: anywhere; }
+.vn-details a { color: var(--accent); text-decoration: none; }
+.vn-more-btn { width: 100%; margin: 6px 0 4px; padding: 11px; border: 0; border-radius: 12px; background: var(--fill); color: var(--label); font: 600 13.5px var(--font); cursor: pointer; }
+.vn-more-btn:hover { background: var(--fill-strong); }
 .pg-headline { margin: 0 0 2px; font: 600 17px/1.35 var(--font-display); letter-spacing: -0.01em; color: var(--label); opacity: 0; max-height: 0; transition: opacity 0.6s var(--ease), max-height 0.6s var(--ease); overflow: hidden; }
 .pg-headline.on { opacity: 1; max-height: 120px; }
 .pg-reading { display: flex; flex-direction: column; gap: 8px; margin: 12px 0; padding: 12px; border-radius: 12px; background: var(--fill); }
