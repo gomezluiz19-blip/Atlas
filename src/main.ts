@@ -43,7 +43,7 @@ import { measureAt } from "./place/measure";
 import { yearName } from "./time/model";
 import { iconSvg } from "./ui/glyph";
 import { createLayersPanel } from "./ui/layers";
-import { venueOf } from "./place/venue";
+import { venueOf, venueOfPlace } from "./place/venue";
 import { createSearch, flyToPlace, freeArea, geocode, type Command, type Place as SearchPlace, type SearchResult } from "./ui/search";
 import { createRobot } from "./ui/robotCard";
 import { createAiSettings } from "./ui/aiSettings";
@@ -857,6 +857,8 @@ for (const k of ["geology", "elevation", "slope", "contours"] as const)
 
 // Under every view of a place: where to go next, keeping what's on the map.
 app.connections = (themeId, subtabId) => {
+  // A venue's card ends with every theme, one tap each; these would repeat it.
+  if (themeId === "explore" && venueOfPlace(app.place)) return null;
   const links = LINKS[`${themeId}/${subtabId}`];
   if (!links?.length) return null;
   const rows = links.map((l) => {
