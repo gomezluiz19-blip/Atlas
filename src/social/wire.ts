@@ -17,6 +17,7 @@ import { createAccount, type AccountMenuItem } from "./account";
 import { ROLES, type Profile } from "./model";
 import { createProfiles } from "./page";
 import { me } from "./store";
+import { openFriend, setSignIn } from "./friends";
 
 export interface SocialDeps {
   lensList: Lens[];
@@ -105,6 +106,8 @@ export function wireSocial(app: App, deps: SocialDeps) {
   app.actions.set("profile:open", { label: "Open someone's page", run: (h) => { if (h) { deps.closePanels(); studio.close(); profiles.open(h); } } });
   app.actions.set("profile:me", { label: "My page", run: () => { const p = me(); if (p) { deps.closePanels(); profiles.open(p.handle); } else account.signIn(); } });
   app.actions.set("account:signin", { label: "Sign in", run: () => account.signIn() });
+  setSignIn((then) => account.signIn(() => then()));
+  app.actions.set("friend:open", { label: "Open someone's card", run: (h) => { if (h) openFriend(app, h); } });
   app.actions.set("note:new", { label: "Field note", run: () => openFieldNote(app, {
     signIn: (then) => account.signIn(() => then()),
     saved: (p) => { if (profiles.isOpen) profiles.open(p.handle); },

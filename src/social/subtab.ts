@@ -7,6 +7,8 @@ import { ROLES, SPOT_KINDS, type Profile } from "./model";
 import { allProfiles, isFollowing, me, profilesNear } from "./store";
 import { cloudOn } from "../cloud/client";
 import { directory } from "../cloud/sync";
+import { faceWithStatus, networkStrip, openFriend } from "./friends";
+import { statusNow } from "./presence";
 
 const fmtKm = (d: number) => (d < 1 ? "right here" : d < 10 ? `${d.toFixed(1)} km away` : `${Math.round(d)} km away`);
 
@@ -17,12 +19,15 @@ export function profilesSubtab(): Subtab {
       const open = (p: Profile) => app.actions.get("profile:open")?.run(p.handle);
       const mine = me();
       const near = profilesNear(place.lon, place.lat, 80);
-      const person = (p: Profile, line: string) => h("button", { class: "pf-person", onclick: () => open(p) },
-        avatarEl(p, 44),
+      const person = (p: Profile, line: string) => h("button", { class: "pf-person", onclick: () => (isFollowing(p.handle) ? openFriend(app, p.handle) : open(p)) },
+        faceWithStatus(p, 44),
         h("span", {}, h("strong", {}, p.name, isFollowing(p.handle) ? h("em", {}, "Following") : ""), h("small", {}, line)),
         h("span", { class: "chev", html: "&rsaquo;" }));
       const where = place.name?.title ?? "here";
-      const line = (p: Profile) => `${ROLES.find((r) => r.id === p.role)?.emoji ?? ""} ${p.home?.name ?? ROLES.find((r) => r.id === p.role)?.label ?? ""}`;
+      const line = (p: Profile) => {
+        const st = statusNow(p.status, new Date());
+        return st && !st.stale ? `${st.label}${st.line ? ` · ${st.line}` : ""}` : `${ROLES.find((r) => r.id === p.role)?.emoji ?? ""} ${p.home?.name ?? ROLES.find((r) => r.id === p.role)?.label ?? ""}`;
+      };
       const local = allProfiles().filter((p) => !near.some((n) => n.p.handle === p.handle));
       const everyone = h("div", { class: "pf-people" }, ...local.map((p) => person(p, line(p))));
       // With Terreno's servers: everyone who has published a page, newest first.
@@ -31,6 +36,7 @@ export function profilesSubtab(): Subtab {
         everyone.append(...ps.filter((p) => !have.has(p.handle)).map((p) => person(p, line(p))));
       }).catch(() => {});
       body.append(
+        networkStrip(app),
         mine
           ? h("button", { class: "pf-mine", onclick: () => open(mine) }, avatarEl(mine, 52), h("span", {}, h("small", {}, "Your page"), h("strong", {}, mine.name), h("small", {}, `${mine.spots.length} places · ${mine.posts.length} posts`)),
             h("span", { class: "pf-mine-add", role: "button", onclick: (e: Event) => { e.stopPropagation(); app.actions.get("profile:add")?.run(); } }, `♡ Add ${where}`))

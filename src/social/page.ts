@@ -17,7 +17,9 @@ import { icons } from "../ui/icons";
 import { flyToPlace, geocode } from "../ui/search";
 import { avatarEl } from "./account";
 import { footprint } from "./footprint";
-import { ROLES, SKINS, SPOT_KINDS, AVATAR_COLORS, TOP, byKind, countriesOf, dayText, profileFromJson, topSpots, type Post, type Profile, type Spot, type SpotKind } from "./model";
+import { ROLES, SKINS, SPOT_KINDS, AVATAR_COLORS, TOP, accentOf, byKind, countriesOf, dayText, profileFromJson, topSpots, type Post, type Profile, type Spot, type SpotKind } from "./model";
+import { clockThere, faceWithStatus, networkStrip, openFriend, reachEditor, statusEditor, statusLine } from "./friends";
+import { REACH, reachLink } from "./presence";
 import { findProfile, follow, isFollowing, isMe, me, remember, saveProfile, sign } from "./store";
 import { guideCards, guideEditor, playGuide, publishGuide } from "./guides";
 import { NOTE_KINDS, photoUrl } from "./notes";
@@ -55,7 +57,8 @@ const pinImage = (_emoji: string, color: string, big = false) => canvasUrl(`pf2|
 
 // ---- The page ---------------------------------------------------------------------------------------
 
-const SKIN_ACCENT: Record<string, string> = { night: "#8ea8ff", ocean: "#4cc3ff", "2006": "#5dffc8", forest: "#8fd16a", dawn: "#ff8a5c", desert: "#e8b878", paper: "#1b1d1a" };
+/** A page's accent pigment, by its skin id. */
+const SKIN_ACCENT: Record<string, string> = Object.fromEntries(SKINS.map((k) => [k.id, k.color]));
 const newId = () => Math.random().toString(36).slice(2, 10);
 
 function kindFromTags(t: Record<string, string>): SpotKind {
@@ -225,7 +228,7 @@ export function createProfiles(app: App, deps: {
     const own = isMe(p.handle);
     const role = ROLES.find((r) => r.id === p.role)!;
     el.dataset.skin = p.skin;
-    el.style.setProperty("--pf-accent", SKIN_ACCENT[p.skin] ?? p.avatar.color);
+    el.style.setProperty("--pf-accent", accentOf(p));
     el.classList.toggle("editing", editing);
     const first = p.name.split(" ")[0];
     const banner = p.banner ?? topSpots(p)[0] ?? p.spots[0] ?? p.home;
@@ -236,29 +239,42 @@ export function createProfiles(app: App, deps: {
       input.addEventListener("change", () => { (p as unknown as Record<string, string>)[key] = input.value.trim(); if (key === "name" && !p.name) p.name = "Me"; persist(); });
       return input;
     };
-    const stat = (n: number, label: string) => h("div", { class: "pf-stat" }, h("strong", {}, String(n).padStart(2, "0")), h("span", {}, label));
+    const stat = (n: number, label: string) => h("div", { class: "pf-stat" }, h("strong", {}, String(n)), h("span", {}, label));
     const following = isFollowing(p.handle);
 
+    // What's open under the header: your status or the ways to reach you, being set.
+    const slot = h("div", { class: "pf-slot" });
+    const openSlot = (make: (done: () => void) => HTMLElement) => { slot.replaceChildren(make(() => { slot.replaceChildren(); render(); })); };
+    const reach = p.reach ?? [];
     el.replaceChildren(
       h("header", { class: "pf-banner" },
-        footprint({ places: p.spots.map((x) => ({ lon: x.lon, lat: x.lat })), home: p.home ?? (banner ? { lon: banner.lon, lat: banner.lat } : undefined), accent: SKIN_ACCENT[p.skin] ?? p.avatar.color }),
+        footprint({ places: p.spots.map((x) => ({ lon: x.lon, lat: x.lat })), home: p.home ?? (banner ? { lon: banner.lon, lat: banner.lat } : undefined), accent: accentOf(p) }),
         h("div", { class: "pf-banner-glow" }),
+        h("span", { class: "pf-plate reg", "aria-hidden": "true" }),
+        p.home ? h("span", { class: "pf-coords" }, `${Math.abs(p.home.lat).toFixed(2)}° ${p.home.lat >= 0 ? "N" : "S"}  ${Math.abs(p.home.lon).toFixed(2)}° ${p.home.lon >= 0 ? "E" : "W"}`) : "",
         h("div", { class: "pf-top-actions" },
           h("button", { class: "pf-round", "aria-label": "Share this page", html: icons.share, onclick: () => void share(p) }),
           h("button", { class: "pf-round", "aria-label": "Close", html: icons.close, onclick: close }))),
       h("div", { class: "pf-id" },
-        h("div", { class: "pf-avatar" }, avatarEl(p, 96)),
+        h("div", { class: "pf-avatar" }, faceWithStatus(p, 80)),
         editing ? edit("name", false, "Your name") : h("h1", {}, p.name),
-        h("p", { class: "pf-meta" }, h("span", {}, `@${p.handle}`), h("span", { class: "pf-role" }, role.label), p.home ? h("span", {}, p.home.name) : ""),
-        editing ? edit("now", false, "What are you up to? (“Chasing the aurora in Tromsø”)") : p.now ? h("p", { class: "pf-now" }, p.now) : "",
+        h("p", { class: "pf-meta" }, h("span", { class: "pf-handle" }, `@${p.handle}`), h("span", { class: "pf-role" }, role.label), p.home ? h("span", {}, p.home.name) : ""),
+        statusLine(p, { long: !own }),
+        clockThere(p),
+        editing ? edit("now", false, "A line about you (“Chasing the aurora in Tromsø”)") : p.now ? h("p", { class: "pf-now" }, p.now) : "",
         h("div", { class: "pf-actions" },
-          own
-            ? h("button", { class: "pf-btn primary", onclick: () => { editing = !editing; render(); } }, editing ? "Done" : "Edit page")
-            : h("button", { class: `pf-btn ${following ? "" : "primary"}`, "aria-pressed": String(following), onclick: () => { follow(p.handle, !following); render(); app.toast(following ? `Unfollowed ${first}` : `Following ${first}. Their places show on your map when you look nearby.`, 3000); } }, following ? "Following" : "Follow"),
-          p.spots.length ? h("button", { class: "pf-btn", onclick: () => void tour(p) }, own ? "Play my world" : `Play ${first}'s world`) : "",
-          !own ? h("button", { class: "pf-btn", onclick: () => el.querySelector<HTMLElement>(".pf-sign textarea")?.focus() }, "Leave a note") : "")),
+          ...(own
+            ? [h("button", { class: "pf-btn primary", onclick: () => openSlot((done) => statusEditor(p, done)) }, p.status ? "Update status" : "Set status"),
+              h("button", { class: "pf-btn", onclick: () => { editing = !editing; render(); } }, editing ? "Done" : "Edit page"),
+              h("button", { class: "pf-btn", onclick: () => openSlot((done) => reachEditor(p, done)) }, reach.length ? "Ways to reach me" : "Add ways to reach me")]
+            : [h("button", { class: "pf-btn primary", onclick: () => openFriend(app, p.handle, { thread: true, signIn: (then) => deps.signIn(then) }) }, "Message"),
+              h("button", { class: "pf-btn", "aria-pressed": String(following), onclick: () => { follow(p.handle, !following); render(); app.toast(following ? `Unfollowed ${first}` : `Following ${first}. They're in your network now.`, 3000); } }, following ? "Following" : "Follow")]),
+          p.spots.length ? h("button", { class: "pf-btn", onclick: () => void tour(p) }, own ? "Play my world" : `Play ${first}'s world`) : ""),
+        !own && reach.length ? h("div", { class: "pf-reach" }, ...reach.map((r) => h("a", { class: "pf-reach-tile", href: reachLink(r), target: r.kind === "call" || r.kind === "text" || r.kind === "email" ? "_self" : "_blank", rel: "noopener" }, REACH[r.kind].verb))) : "",
+        slot),
       editing ? editor(p) : "",
       h("div", { class: "pf-stats" }, stat(p.spots.length, p.spots.length === 1 ? "place" : "places"), stat(countriesOf(p), countriesOf(p) === 1 ? "country" : "countries"), stat(p.posts.length, p.posts.length === 1 ? "post" : "posts"), stat(p.lenses.length, p.lenses.length === 1 ? "lens" : "lenses")),
+      own ? h("div", { class: "pf-card pf-net" }, networkStrip(app, { signIn: (then) => deps.signIn(then) })) : "",
       topEight(p, own, first),
       own && guideEdit !== undefined
         ? guideEditor(p, guideEdit, (g, removed) => {
@@ -395,16 +411,16 @@ export function createProfiles(app: App, deps: {
 
   // ---- Editing ----
   function editor(p: Profile): HTMLElement {
-    const skins = h("div", { class: "pf-skins", role: "radiogroup", "aria-label": "Page skin" }, ...SKINS.map((s) =>
-      h("button", { class: "pf-skin", "data-skin": s.id, role: "radio", "aria-checked": String(p.skin === s.id), onclick: () => { p.skin = s.id; persist(); render(); } }, h("i"), h("span", {}, s.label))));
+    const skins = h("div", { class: "pf-skins", role: "radiogroup", "aria-label": "Accent" }, ...SKINS.map((s) =>
+      h("button", { class: `pf-skin${p.skin === s.id ? " reg" : ""}`, style: `--c:${s.color}`, role: "radio", "aria-checked": String(p.skin === s.id), onclick: () => { p.skin = s.id; persist(); render(); } }, h("i"), h("span", {}, s.label))));
     const colours = h("div", { class: "si-colors" },
       ...AVATAR_COLORS.map((c) => h("button", { class: "si-color", style: `--c:${c}`, "aria-pressed": String(p.avatar.color === c), "aria-label": "Colour", onclick: () => { p.avatar.color = c; persist(); render(); } })));
     const role = h("select", { class: "pf-input", "aria-label": "Role", onchange: (e: Event) => { p.role = (e.target as HTMLSelectElement).value as Profile["role"]; persist(); render(); } },
       ...ROLES.map((r) => h("option", { value: r.id, selected: r.id === p.role }, `${r.emoji} ${r.label}`)));
     return h("section", { class: "pf-card pf-editor" },
       h("h2", {}, "Make it yours"),
-      h("h3", {}, "Look"), skins,
-      h("h3", {}, "Colour"), colours,
+      h("h3", {}, "Accent"), skins,
+      h("h3", {}, "Your tile"), colours,
       h("h3", {}, "I'm here as"), role,
       h("h3", {}, "Home"), homePicker(p),
       h("h3", {}, "Add places"), adder(p));

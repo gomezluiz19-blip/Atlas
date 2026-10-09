@@ -25,7 +25,7 @@ function home(): (Spot & { name: string }) | null {
 
 /** Weather and time zone per place, fetched once a session. */
 const wxCache = new Map<string, Promise<{ tz: string; temp: number; text: string } | null>>();
-function weatherAt(p: Spot) {
+export function weatherAt(p: Spot) {
   const key = `${p.lon.toFixed(2)},${p.lat.toFixed(2)}`;
   if (!wxCache.has(key)) wxCache.set(key, forecast(p.lon, p.lat).then((f) => ({ tz: f.timezone, temp: Math.round(f.current.temperature_2m), text: weatherText(f.current.weather_code).text })).catch(() => null));
   return wxCache.get(key)!;
@@ -176,8 +176,9 @@ function face(p: Person): HTMLCanvasElement {
   c = document.createElement("canvas");
   c.width = c.height = size;
   const g = c.getContext("2d")!;
-  g.beginPath(); g.arc(size / 2, size / 2, size / 2 - 2 * r, 0, Math.PI * 2);
-  g.fillStyle = colorOf(p); g.fill(); g.lineWidth = 3 * r; g.strokeStyle = "#fff"; g.stroke();
+  // A tessera, like every face in Terreno: a rounded square in their pigment, edged in white.
+  g.beginPath(); g.roundRect(2.5 * r, 2.5 * r, size - 5 * r, size - 5 * r, 8 * r);
+  g.fillStyle = colorOf(p); g.fill(); g.lineWidth = 2.5 * r; g.strokeStyle = "#fff"; g.stroke();
   g.fillStyle = "#fff"; g.font = `700 ${13 * r}px system-ui, sans-serif`; g.textAlign = "center"; g.textBaseline = "middle";
   g.fillText(initials(p.name), size / 2, size / 2 + r);
   faces.set(key, c);

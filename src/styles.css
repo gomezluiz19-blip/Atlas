@@ -4147,7 +4147,7 @@ button.vn-mode:hover { background: var(--fill-strong); }
 .ppl-row { display: flex; align-items: center; gap: 4px; }
 .ppl-main { flex: 1; min-width: 0; display: flex; align-items: center; gap: 11px; padding: 8px 6px; border: 0; border-radius: 12px; background: transparent; color: var(--label); font: inherit; text-align: left; cursor: pointer; }
 .ppl-main:hover { background: var(--fill); }
-.ppl-avatar { flex: none; display: grid; place-items: center; border-radius: 50%; background: var(--c); color: #fff; font-weight: 700; letter-spacing: .02em; box-shadow: 0 0 0 2px color-mix(in srgb, var(--c) 25%, transparent); }
+.ppl-avatar { flex: none; display: grid; place-items: center; border-radius: 28%; background: var(--c); color: #fff; font-weight: 700; letter-spacing: .02em; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.16); }
 .ppl-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
 .ppl-name { font-weight: 650; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ppl-name small { font-weight: 500; color: var(--secondary); }

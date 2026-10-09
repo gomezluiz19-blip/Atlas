@@ -16,6 +16,7 @@ import { iconFor, labelled } from "../ui/glyph";
 import { flyToPlace } from "../ui/search";
 import { profilesSubtab } from "../social/subtab";
 import { myPeopleBox } from "../people/mineUi";
+import { networkStrip } from "../social/friends";
 import { gatherPanel, viewArea } from "../people/gatherUi";
 
 const fmtPeople = (n: number) => (n >= 1e9 ? `${(n / 1e9).toFixed(1)} billion` : n >= 1e6 ? `${(n / 1e6).toFixed(n >= 1e7 ? 0 : 1)} million` : n >= 1e4 ? `${Math.round(n / 1e3).toLocaleString()},000` : Math.round(n).toLocaleString());
@@ -244,7 +245,7 @@ export function peopleTheme(app: App): Theme {
         : section("Where people gather", h("div", { class: "empty-hint compact" }, h("span", { class: "empty-icon", html: icons.people }),
           h("span", {}, h("strong", {}, "Zoom into a town"), h("span", {}, "See its restaurants, shops, parks and squares as a heat map of where people are through the day, with its centres of life."))),
           h("button", { class: "pill-btn", onclick: () => app.render() }, "Show it for the area in view"));
-      body.append(myPeopleBox(app), gatherBox, viewPicker(),
+      body.append(myPeopleBox(app), networkStrip(app), gatherBox, viewPicker(),
         h("div", { class: "empty-hint compact" }, h("span", { class: "empty-icon", html: icons.people }), h("span", {}, h("strong", {}, "Tap anywhere to meet its people"), h("span", {}, "Where they gather, how many live there, their homes, health and how connected they are."))));
     },
   };

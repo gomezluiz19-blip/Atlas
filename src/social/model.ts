@@ -1,8 +1,10 @@
 // Profiles: a page about you, made of places. Your Top 8 (the places you'd
 // show a friend first), the spots you love by kind (restaurants, cafés,
 // bars, trails, beaches…), a journal pinned to places, the lenses you've
-// made, and a guestbook. Pages wear a skin, like the personal pages of the
-// early web, and travel as links until Terreno's servers are switched on.
+// made, and a guestbook; plus what they're up to now and how to reach them.
+// Pages travel as links until Terreno's servers are switched on.
+import { reachFromJson, statusFromJson, type Reach, type Status } from "./presence";
+
 export type Role = "explorer" | "student" | "teacher" | "owner";
 export const ROLES: { id: Role; label: string; short?: string; emoji: string; about: string }[] = [
   { id: "explorer", label: "Explorer", emoji: "🧭", about: "I love maps, places and the planet" },
@@ -64,10 +66,14 @@ export interface GuideStop { spot: string; note: string; time?: string }
 export interface Guide { id: string; title: string; blurb: string; stops: GuideStop[]; updated: string }
 
 export type Skin = "dawn" | "ocean" | "forest" | "desert" | "night" | "paper" | "2006";
-export const SKINS: { id: Skin; label: string }[] = [
-  { id: "night", label: "Midnight" }, { id: "ocean", label: "Tide" }, { id: "2006", label: "Aurora" }, { id: "forest", label: "Moss" },
-  { id: "dawn", label: "Ember" }, { id: "desert", label: "Sand" }, { id: "paper", label: "Paper" },
+/** A page's accent: one of the brand's pigments (the ids are kept from when pages wore whole skins). */
+export const SKINS: { id: Skin; label: string; color: string }[] = [
+  { id: "night", label: "Ultramarine", color: "#5160c2" }, { id: "ocean", label: "Cerulean", color: "#4c9ac9" }, { id: "2006", label: "Sage", color: "#5b9467" },
+  { id: "forest", label: "Sap", color: "#8faa5a" }, { id: "dawn", label: "Terracotta", color: "#c4513a" }, { id: "desert", label: "Ochre", color: "#d19a2e" },
+  { id: "paper", label: "Umber", color: "#9a7552" },
 ];
+/** A page's accent pigment. */
+export const accentOf = (p: Pick<Profile, "skin" | "avatar">) => SKINS.find((s) => s.id === p.skin)?.color ?? p.avatar.color;
 export const AVATAR_EMOJI = ["🦉", "🦊", "🐢", "🐋", "🦅", "🌵", "🌋", "🏔️", "🌊", "🌙", "⭐", "🌻", "🍄", "🐝", "🦋", "🚲", "🛶", "🎒", "📷", "🎸"];
 export const AVATAR_COLORS = ["#3563d6", "#5b9467", "#d19a2e", "#b8496a", "#8b5fa8", "#4c9ac9", "#9a7552", "#5160c2"];
 
@@ -79,6 +85,10 @@ export interface Profile {
   bio: string;
   /** The one line at the top: what they're up to. */
   now?: string;
+  /** What they're up to right now, and when they said so. */
+  status?: Status;
+  /** The ways they're happy to be reached, shown on their page. */
+  reach?: Reach[];
   home?: { name: string; lon: number; lat: number };
   skin: Skin;
   /** The banner: the place seen from above. */
@@ -142,6 +152,7 @@ export function profileFromJson(v: unknown): Profile | null {
     handle, name: str(o.name, 60), role, skin,
     avatar: { emoji: str(av.emoji, 8) || "🧭", color: /^#[0-9a-f]{6}$/i.test(str(av.color)) ? str(av.color) : "#3563d6" },
     bio: str(o.bio, 1200), now: str(o.now, 140) || undefined,
+    status: statusFromJson(o.status), reach: reachFromJson(o.reach),
     home: home && Number.isFinite(num(home.lon)) ? { name: str(home.name, 120), lon: num(home.lon), lat: num(home.lat) } : undefined,
     banner: banner && Number.isFinite(num(banner.lon)) ? { lon: num(banner.lon), lat: num(banner.lat) } : undefined,
     top: (Array.isArray(o.top) ? o.top : []).map((x) => str(x, 40)).filter((id) => ids.has(id)).slice(0, TOP),
