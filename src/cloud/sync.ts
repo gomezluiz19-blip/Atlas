@@ -4,6 +4,7 @@
 // pages, lenses and guestbooks are fetched when you open them.
 import { lensFromJson, type LensDef } from "../lenses/custom";
 import { profileFromJson, type Profile, type Signature } from "../social/model";
+import type { Message } from "../social/presence";
 import { cloudOn, cloudUser, rest } from "./client";
 
 const enc = encodeURIComponent;
@@ -116,4 +117,25 @@ export function deletePrivate(kind: string, id: string) {
 export async function pullPrivate(kind: string): Promise<{ id: string; body: unknown }[]> {
   if (!live()) return [];
   return rest<{ id: string; body: unknown }[]>(`private_items?kind=eq.${enc(kind)}&select=id,body`);
+}
+
+// ---- Messages ----
+interface MessageRow { id: string; from_handle: string; to_handle: string; text: string; at: string; read_at: string | null }
+const fromRow = (r: MessageRow): Message => ({ id: r.id, from: r.from_handle, to: r.to_handle, text: r.text, at: r.at, via: "sent", read: !!r.read_at });
+/** Sends a message as the signed-in person; false when the servers aren't on or you aren't signed in to them. */
+export async function sendMessageRemote(m: Message): Promise<boolean> {
+  if (!live()) return false;
+  await rest("messages", { method: "POST", prefer: "return=minimal", body: JSON.stringify({ id: m.id, from_handle: m.from, to_handle: m.to, text: m.text }) });
+  return true;
+}
+/** Every message to or from a handle, oldest first (the servers only return the ones you may read). */
+export async function fetchMessagesRemote(handle: string): Promise<Message[]> {
+  if (!live()) return [];
+  const rows = await rest<MessageRow[]>(`messages?or=(from_handle.eq.${enc(handle)},to_handle.eq.${enc(handle)})&select=id,from_handle,to_handle,text,at,read_at&order=at.asc&limit=1000`);
+  return rows.map(fromRow);
+}
+/** Marks what someone sent you as read. */
+export async function markReadRemote(me: string, them: string) {
+  if (!live()) return;
+  await rest(`messages?to_handle=eq.${enc(me)}&from_handle=eq.${enc(them)}&read_at=is.null`, { method: "PATCH", prefer: "return=minimal", body: JSON.stringify({ read_at: new Date().toISOString() }) }).catch(() => {});
 }

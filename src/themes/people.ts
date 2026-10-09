@@ -15,6 +15,9 @@ import { asyncBlock, hero, note, section, stats } from "./common";
 import { iconFor, labelled } from "../ui/glyph";
 import { flyToPlace } from "../ui/search";
 import { profilesSubtab } from "../social/subtab";
+import { myPeopleBox } from "../people/mineUi";
+import { networkStrip } from "../social/friends";
+import { gatherPanel, viewArea } from "../people/gatherUi";
 
 const fmtPeople = (n: number) => (n >= 1e9 ? `${(n / 1e9).toFixed(1)} billion` : n >= 1e6 ? `${(n / 1e6).toFixed(n >= 1e7 ? 0 : 1)} million` : n >= 1e4 ? `${Math.round(n / 1e3).toLocaleString()},000` : Math.round(n).toLocaleString());
 const byId = (id: string) => VIEWS.find((v) => v.id === id)!;
@@ -70,8 +73,16 @@ export function peopleTheme(app: App): Theme {
     else { void showView(id); app.render(); }
   } });
 
+  // Where people gather around a chosen place: the heat through the day, centres of life, busiest spots.
+  const gather: Subtab = {
+    id: "gather", label: "Gather",
+    render({ app, place, body }) {
+      body.append(section("Where people gather", gatherPanel(app, place, 1.5)));
+    },
+  };
+
   const here: Subtab = {
-    id: "here", label: "Here",
+    id: "here", label: "Living",
     render({ app, place, body }) {
       asyncBlock(app, body, "Counting the people around here…", async () => {
         const [pts, figs] = await Promise.all([populationPoints(), countryFigures(place.lon, place.lat, ["density", "urban", "growth", "young", "old", "births"])]);
@@ -222,14 +233,20 @@ export function peopleTheme(app: App): Theme {
     label: "People",
     icon: icons.people,
     color: "#d19a2e",
-    intro: "Where people live, and how: homes, health, phones and more.",
-    subtabs: [here, profilesSubtab(), homes, health, connected, events],
+    intro: "Your people, where people gather and how busy it is, and how people live.",
+    subtabs: [gather, here, profilesSubtab(), homes, health, connected, events],
     enter() { if (current !== "pop") void showView(current); },
     leave() { job++; if (layer) { app.globe.viewer.imageryLayers.remove(layer, true); layer = null; } app.looks?.setLegend(null); },
     renderEmpty(_app, body) {
-      body.append(
-        h("div", { class: "empty-hint" }, h("span", { class: "empty-icon", html: icons.people }), h("span", {}, h("strong", {}, "Tap anywhere to meet its people"), h("span", {}, "How many live around it, their homes, health and how connected they are."))),
-        viewPicker());
+      // Where people gather in the area in view, once it's close enough to see streets.
+      const area = viewArea(app);
+      const gatherBox = area
+        ? section("Where people gather here", gatherPanel(app, area.at, area.radiusKm, "world"))
+        : section("Where people gather", h("div", { class: "empty-hint compact" }, h("span", { class: "empty-icon", html: icons.people }),
+          h("span", {}, h("strong", {}, "Zoom into a town"), h("span", {}, "See its restaurants, shops, parks and squares as a heat map of where people are through the day, with its centres of life."))),
+          h("button", { class: "pill-btn", onclick: () => app.render() }, "Show it for the area in view"));
+      body.append(myPeopleBox(app), networkStrip(app), gatherBox, viewPicker(),
+        h("div", { class: "empty-hint compact" }, h("span", { class: "empty-icon", html: icons.people }), h("span", {}, h("strong", {}, "Tap anywhere to meet its people"), h("span", {}, "Where they gather, how many live there, their homes, health and how connected they are."))));
     },
   };
 }

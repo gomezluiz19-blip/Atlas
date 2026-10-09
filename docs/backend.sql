@@ -89,6 +89,27 @@ create table if not exists private_items (
 alter table private_items enable row level security;
 create policy "only you" on private_items for all using (user_id = auth.uid()) with check (user_id = auth.uid());
 
+-- Messages between people: only the sender and the recipient can read them; you send only as yourself.
+create table if not exists messages (
+  id          text primary key,
+  from_user   uuid not null references auth.users on delete cascade default auth.uid(),
+  from_handle text not null,
+  to_handle   text not null references profiles (handle) on update cascade on delete cascade,
+  text        text not null check (char_length(text) between 1 and 2000),
+  at          timestamptz not null default now(),
+  read_at     timestamptz
+);
+create index if not exists messages_to on messages (to_handle, at desc);
+create index if not exists messages_from on messages (from_user, at desc);
+alter table messages enable row level security;
+create policy "read your conversations" on messages for select using (
+  from_user = auth.uid() or exists (select 1 from profiles p where p.handle = to_handle and p.user_id = auth.uid()));
+create policy "send as yourself" on messages for insert with check (
+  from_user = auth.uid() and exists (select 1 from profiles p where p.handle = from_handle and p.user_id = auth.uid()));
+create policy "mark read what was sent to you" on messages for update using (
+  exists (select 1 from profiles p where p.handle = to_handle and p.user_id = auth.uid()));
+create policy "delete what you sent" on messages for delete using (from_user = auth.uid());
+
 -- Browser push subscriptions, for alerts when Terreno is closed (see backend.md › Alerts).
 create table if not exists push_subscriptions (
   user_id  uuid not null references auth.users on delete cascade default auth.uid(),

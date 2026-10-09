@@ -32,6 +32,11 @@ What changes for people:
   page back on any device; a new one makes a page (handles are unique across Terreno).
 - **Your page** is published as you edit it (a second after each change) and shared as `#/u/handle`.
 - **Guestbooks, follows** go to the server, so the person whose page it is sees them.
+- **Messages** between people go through the `messages` table: only the sender and the recipient can
+  read a conversation, and people can only send as themselves. Without the servers (or to the example
+  people) a message stays on the device it was written on, and the conversation says so.
+- **Status** ("Free to talk", "Busy"…) and the ways someone chooses to be reached are part of their page,
+  so they publish with it.
 - **People › Profiles** lists everyone who has a page, newest first.
 - **Lenses** you keep are published; `#/lens/<id>` opens for anyone; Lens Studio's gallery shows
   lenses from everyone.

@@ -5,9 +5,13 @@ import type { Profile, Spot, SpotKind } from "./model";
 const s = (id: string, name: string, kind: SpotKind, lat: number, lon: number, where: string, country: string, note?: string): Spot =>
   ({ id, name, kind, lon, lat, where, country, note });
 
+/** A time a few minutes back, so the example statuses always read as fresh. */
+const minsAgo = (m: number) => new Date(Date.now() - m * 60_000).toISOString();
+
 export const DEMO_PROFILES: Profile[] = [
   {
     handle: "maya", name: "Maya Chen", role: "student", demo: true, skin: "2006",
+    status: { state: "free", text: "Counting shorebirds at the marsh", at: minsAgo(35) },
     avatar: { emoji: "🦉", color: "#8b5fa8" },
     now: "Counting shorebirds for my science fair project",
     bio: "Year 11 in Vancouver. I keep a list of every bird I've seen (212 so far). The Fraser River delta is the best place on Earth in October, fight me.\n\nI made the Birdwatching lens: tap any park or wetland and it tells you what's been seen there lately and whether the weather's any good for it.",
@@ -38,6 +42,7 @@ export const DEMO_PROFILES: Profile[] = [
   },
   {
     handle: "msokafor", name: "Ada Okafor", role: "teacher", demo: true, skin: "paper",
+    status: { state: "busy", text: "Marking field-trip reports", at: minsAgo(140) },
     avatar: { emoji: "🌋", color: "#d19a2e" },
     now: "Planning a field trip to the Seven Sisters chalk cliffs",
     bio: "Geography teacher in south London. I use Terreno to show my students that the ground under their feet has a story: chalk that was sea floor, a river that used to be somewhere else, a barrier that keeps the Thames out of their homes.\n\nMy lessons and quizzes are in Teach. Ask me about rocks. Actually, don't.",
@@ -71,6 +76,7 @@ export const DEMO_PROFILES: Profile[] = [
   },
   {
     handle: "samoutside", name: "Sam Rivera", role: "explorer", demo: true, skin: "desert",
+    status: { state: "out", text: "On Longs Peak, back by dark", at: minsAgo(190) },
     avatar: { emoji: "🏔️", color: "#b8496a" },
     now: "Twenty-nine of Colorado's 58 fourteeners done",
     bio: "Trail runner, map nerd, bad at sleeping in. Most weekends I'm somewhere above the treeline in Colorado. I use A day here to plan for the light: where the sun rises over a ridge, and when a valley goes dark.",
@@ -103,6 +109,7 @@ export const DEMO_PROFILES: Profile[] = [
   },
   {
     handle: "priya.eats", name: "Priya Nair", role: "explorer", demo: true, skin: "dawn",
+    status: { state: "travelling", text: "Porto to Lisbon by train", at: minsAgo(60) },
     avatar: { emoji: "🌻", color: "#d19a2e" },
     now: "Eating my way down the Portuguese coast",
     bio: "Food writer based in Lisbon. I think you understand a place best through what grows there and what people cook with it. My Top 8 are where I take friends on their first day in Lisbon.",
@@ -136,6 +143,7 @@ export const DEMO_PROFILES: Profile[] = [
   },
   {
     handle: "kenjiskies", name: "Kenji Watanabe", role: "explorer", demo: true, skin: "night",
+    status: { state: "quiet", text: "Asleep after an all-nighter", at: minsAgo(420) },
     avatar: { emoji: "🌙", color: "#5160c2" },
     now: "Waiting for a clear night. Tokyo, please.",
     bio: "Amateur astronomer from Tokyo. I've travelled to see the darkest skies on Earth, and I made the Stargazing lens so you can check any place for darkness, the moon and cloud before you go.",
@@ -160,6 +168,7 @@ export const DEMO_PROFILES: Profile[] = [
   },
   {
     handle: "lena.surf", name: "Lena Brandt", role: "owner", demo: true, skin: "ocean",
+    status: { state: "free", text: "Shop open till 6", at: minsAgo(20) },
     avatar: { emoji: "🌊", color: "#4c9ac9" },
     now: "Swell's up at Nazaré this week",
     bio: "I run a small surf school in Ericeira. My Place keeps my boards, bookings and the forecast in one place; my Surf check lens tells students whether tomorrow is a lesson day.",
