@@ -6,6 +6,7 @@ import { ANIMAL_GROUPS, gbifTiles, PLANT_GROUPS } from "../data/inaturalist";
 import { LifeTool, lifeState } from "../tools/life";
 import { icons } from "../ui/icons";
 import { tileLayer } from "./common";
+import { natureFront } from "../brief/ui";
 
 function lifeTheme(opts: { id: string; label: string; icon: string; color: string; intro: string; noun: string; groups: typeof PLANT_GROUPS; gbifKey: number }): Theme {
   const state = lifeState(opts.groups, opts.color, opts.noun);
@@ -61,6 +62,9 @@ export function natureTheme(plants: Theme, animals: Theme): Theme {
       { ...pZones, id: "zones", label: "Life zones" },
       { ...aRisk, id: "risk", label: "At risk" },
     ],
+    renderEmpty(app, body) {
+      body.append(natureFront(app));
+    },
     enter(app: App) {
       if (declined) return;
       if (!layers.length) for (const key of [6, 1]) layers.push(tileLayer(app.globe.viewer, gbifTiles(key), { maximumLevel: 14, credit: "Species records: GBIF.org", alpha: 0.6 }));

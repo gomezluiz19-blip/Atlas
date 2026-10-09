@@ -1,4 +1,5 @@
 // Countries: the nation a place belongs to: its people, economy and environment.
+import { countriesFront } from "../brief/ui";
 import type { ImageryLayer } from "cesium";
 import type { App, Place, Subtab, Theme } from "../app";
 import { countryAt, countryFacts, countryShapes, indicators, type CountryFacts, type CountryShape, type IndicatorKey, type Series } from "../data/countries";
@@ -146,8 +147,11 @@ export function countriesTheme(): Theme {
     label: "Countries",
     icon: icons.flag,
     color: "#b8496a",
-    intro: "The nation a place belongs to: who governs it, its people, economy and environment.",
+    intro: "The countries in your life, and any nation on Earth: who governs it, its people, its economy.",
     subtabs: [overview, politicsSubtab(), people, economy, environment],
+    renderEmpty(app, body) {
+      body.append(countriesFront(app));
+    },
     enter(app) {
       if (!borders) {
         void countryShapes().then((shapes) => {

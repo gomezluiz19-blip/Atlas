@@ -139,3 +139,9 @@ export async function hourlyHumid(lon: number, lat: number): Promise<{ time: str
 export function projection(lon: number, lat: number): Promise<{ daily: { time: string[]; temperature_2m_mean: (number | null)[] } }> {
   return getJson("Open-Meteo", `https://climate-api.open-meteo.com/v1/climate?${ll(lon, lat)}&start_date=1991-01-01&end_date=2060-12-31&models=EC_Earth3P_HR&daily=temperature_2m_mean`, undefined, 60_000);
 }
+
+export interface Outlook { daily: { time: string[]; weather_code: number[]; temperature_2m_max: number[]; temperature_2m_min: number[]; precipitation_sum: number[]; precipitation_probability_max: (number | null)[]; wind_gusts_10m_max: number[]; snowfall_sum: number[] }; timezone: string }
+/** Sixteen days ahead, day by day (local dates): enough to see the weather on a plan two weeks out. */
+export function outlook(lon: number, lat: number): Promise<Outlook> {
+  return getJson<Outlook>("Open-Meteo", `https://api.open-meteo.com/v1/forecast?${ll(lon, lat)}&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max,wind_gusts_10m_max,snowfall_sum&timezone=auto&forecast_days=16`, undefined, 20_000);
+}

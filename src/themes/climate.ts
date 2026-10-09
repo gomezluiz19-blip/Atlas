@@ -1,4 +1,5 @@
 // Climate: the weather now, the long-term climate, and how it has changed.
+import { climateFront } from "../brief/ui";
 import type { Subtab, Theme } from "../app";
 import { annualMeans, koppen, linearTrend, monthlyNormals, weatherText } from "../analysis/climate";
 import { anomalies, climateShift, decadeBars, decades, skyRing, skySentence, stripes } from "../climate/sky";
@@ -164,8 +165,11 @@ export function climateTheme(overlays: Overlays): Theme {
     label: "Climate",
     icon: icons.cloudSun,
     color: "#d19a2e",
-    intro: "Today's weather, the long-term climate, and how it's changing.",
+    intro: "The weather where you are and on the days you've planned, and how the climate is changing.",
     subtabs: [now, climate, change],
+    renderEmpty(app, body) {
+      body.append(climateFront(app));
+    },
     enter() {
       // Radar is most useful here, so switch it on the first time (it stays under the user's control after).
       if (firstVisit) void overlays.set("radar", true, "climate");
