@@ -18,3 +18,20 @@ export function rateText(v: number): string {
   if (v >= 1) return v.toFixed(2).replace(/\.?0+$/, "");
   return v.toPrecision(2);
 }
+
+/** Converts between currencies through their per-dollar rates (pure). */
+export function convert(amount: number, from: string, to: string, perUsd: Record<string, number>): number | null {
+  const a = perUsd[from], b = perUsd[to];
+  if (!a || !b || !Number.isFinite(amount)) return null;
+  return (amount / a) * b;
+}
+
+export const MAJORS = ["USD", "EUR", "GBP", "JPY", "CNY", "INR", "CAD", "AUD", "CHF", "MXN", "BRL", "KRW", "ZAR", "SGD", "HKD", "SEK", "NGN", "TRY"];
+
+/** The visitor's own currency, from their browser's region (pure given the locale). */
+export function homeCurrency(locale = navigator.language): string {
+  const region = (locale.split("-")[1] ?? "").toUpperCase();
+  const BY_REGION: Record<string, string> = { US: "USD", GB: "GBP", JP: "JPY", CN: "CNY", IN: "INR", CA: "CAD", AU: "AUD", CH: "CHF", MX: "MXN", BR: "BRL", KR: "KRW", ZA: "ZAR", SG: "SGD", HK: "HKD", SE: "SEK", NG: "NGN", TR: "TRY" };
+  const EURO = ["DE", "FR", "ES", "IT", "NL", "BE", "AT", "IE", "PT", "FI", "GR", "LU", "SK", "SI", "EE", "LV", "LT", "CY", "MT", "HR"];
+  return BY_REGION[region] ?? (EURO.includes(region) ? "EUR" : "USD");
+}

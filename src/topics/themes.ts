@@ -20,6 +20,7 @@ import { asyncBlock, hero, inlineChart, note, section, stats } from "../themes/c
 import { cuisines, hospitalsAround, kmBetween, sportsPlayed, streetAround, tally, within, type Spot, type Street, type Topic } from "./street";
 import { artistsNear, athletesOf, companiesNear, companiesOf, dishesOf, fashionOf, heritageOf, moneyBodies, universitiesOf, venuesNear, type Named } from "./wiki";
 import { rateText, usdRates } from "./rates";
+import { exchangeRates, marketsNow } from "./moneyBoard";
 
 // ---- Shared pieces -------------------------------------------------------
 
@@ -220,7 +221,13 @@ function moneyTheme(): Theme {
     ];
   });
 
-  return theme({ id: "money", label: "Money & trade", icon: icons.coin, color, intro: "Currency, rates and what an economy runs on; the companies based there, and where people shop.", subtabs: [money, companies, shopping] });
+  return theme({
+    id: "money", label: "Money & trade", tabLabel: "Money", icon: icons.coin, color, intro: "Markets open now, today's exchange rates, and what any country's economy runs on.", subtabs: [money, companies, shopping],
+    renderEmpty(app, body) {
+      body.append(marketsNow(app), exchangeRates(),
+        h("div", { class: "empty-hint compact" }, h("span", { class: "empty-icon", html: icons.coin }), h("span", {}, h("strong", {}, "Tap any country or town"), h("span", {}, "Its currency against the dollar, prices, borrowing costs, trade, its biggest companies and where people shop."))));
+    },
+  });
 }
 
 // ---- Sports ----------------------------------------------------------------

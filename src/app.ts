@@ -119,6 +119,8 @@ export interface Theme {
   renderEmpty?(app: App, body: HTMLElement): void;
   /** A topic: kept off the main bar, under "More". */
   more?: boolean;
+  /** A shorter name for the bar, when the label is long ("Money"). */
+  tabLabel?: string;
 }
 
 /** The place card: header, theme subtabs and content. */
@@ -166,6 +168,9 @@ export class App {
   subtab!: Subtab;
   private tabbar: HTMLElement;
   private tabButtons = new Map<string, HTMLButtonElement>();
+  /** The main bar's order, by theme id; themes not named here go under More. Space stands a little apart. */
+  barOrder: string[] = [];
+  barApart = new Set<string>();
   /** "More": the topics that aren't on the main bar, plus whatever main adds (your lenses). */
   private moreBtn: HTMLButtonElement | null = null;
   private moreMenu = h("div", { class: "more-menu", role: "menu", hidden: true });
@@ -272,12 +277,14 @@ export class App {
         return;
       }
       const n = Number(e.key);
-      const bar = this.themes.filter((t) => !t.more);
-      if (n >= 1 && n <= bar.length) this.setTheme(bar[n - 1].id);
+      const bar = [...this.tabButtons.entries()].sort(([, a], [, b]) => (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1)).map(([id]) => id);
+      if (n >= 1 && n <= bar.length) this.setTheme(bar[n - 1]);
     });
   }
 
   addTheme(theme: Theme) {
+    // With a bar order set, it decides what's on the bar and what goes under More.
+    if (this.barOrder.length) theme = { ...theme, more: !this.barOrder.includes(theme.id) };
     this.themes.push(theme);
     if (theme.more) { this.moreButton(); return; }
     const btn = h(
@@ -290,10 +297,14 @@ export class App {
         onclick: () => { this.sheet.el.classList.remove("collapsed"); this.setTheme(theme.id); },
       },
       h("span", { class: "tab-icon", html: theme.icon }),
-      h("span", { class: "tab-label" }, theme.label),
+      h("span", { class: "tab-label" }, theme.tabLabel ?? theme.label),
     );
+    if (this.barApart.has(theme.id)) btn.classList.add("tab-apart");
     this.tabButtons.set(theme.id, btn);
-    this.tabbar.insertBefore(btn, this.moreBtn);
+    // In bar order, whatever order the themes are added in.
+    const at = this.barOrder.indexOf(theme.id);
+    const before = at < 0 ? null : [...this.tabButtons].map(([id, b]) => ({ i: this.barOrder.indexOf(id), b })).filter((x) => x.i > at).sort((a, b) => a.i - b.i)[0]?.b;
+    this.tabbar.insertBefore(btn, before ?? this.moreBtn);
     if (!this.theme) this.setTheme(theme.id);
   }
 

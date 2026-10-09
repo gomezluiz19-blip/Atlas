@@ -24,7 +24,8 @@ import { climateTheme } from "./themes/climate";
 import { countriesTheme } from "./themes/countries";
 import { landTheme } from "./themes/land";
 import { mineralsTheme } from "./themes/minerals";
-import { animalsTheme, plantsTheme } from "./themes/life";
+import { animalsTheme, natureTheme, plantsTheme } from "./themes/life";
+import { peopleOnMap } from "./people/mineUi";
 import { waterTheme } from "./themes/water";
 import { formatElevation, formatLonLat, h } from "./ui/dom";
 import { icons } from "./ui/icons";
@@ -175,6 +176,9 @@ const openSite = (s: Site) => {
   withIntro(s.name, s.lon, s.lat, (ip) => ip && arriveAt(ip));
 };
 
+// The bar: Overview, then people, nature, climate, countries and money; Space a little apart; the rest under More.
+app.barOrder = ["explore", "people", "nature", "climate", "countries", "money", "space"];
+app.barApart.add("space");
 app.addTheme(exploreTheme(app, feeds, overlays, openSite));
 // Earth: the ground, the rocks and the minerals in them, in one place.
 {
@@ -189,8 +193,12 @@ app.addTheme(exploreTheme(app, feeds, overlays, openSite));
 }
 app.addTheme(waterTheme(app));
 app.addTheme(climateTheme(overlays));
-app.addTheme(plantsTheme());
-app.addTheme(animalsTheme());
+{
+  const plants = plantsTheme(), animals = animalsTheme();
+  app.addTheme(natureTheme(plants, animals));
+  app.addTheme(plants);
+  app.addTheme(animals);
+}
 app.addTheme(builtTheme(app, overlays, openSite));
 app.addTheme(peopleTheme(app));
 app.addTheme(countriesTheme());
@@ -1231,7 +1239,9 @@ app.onPlace = (p) => {
 const looks = new Looks(globe, $("ui"));
 looks.set(app.theme.id);
 app.looks = looks;
-app.onTheme = (id) => { looks.set(id); syncHash(); };
+const myPeople = peopleOnMap(app);
+app.onTheme = (id) => { looks.set(id); syncHash(); myPeople.sync(id); };
+myPeople.sync(app.theme.id);
 globe.viewer.camera.moveEnd.addEventListener(syncHash);
 
 // The card follows the map. After you move the map yourself (drag, scroll, pinch, the zoom buttons), if the

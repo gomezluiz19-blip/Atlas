@@ -40,3 +40,35 @@ export const plantsTheme = () =>
 
 export const animalsTheme = () =>
   lifeTheme({ id: "animals", label: "Animals", icon: icons.paw, color: "#c4513a", intro: "Birds, mammals, reptiles and more, and which are at risk.", noun: "animals", groups: ANIMAL_GROUPS, gbifKey: 1 });
+
+/**
+ * Nature: plants and animals on one tab. It shares the Plants and Animals themes' own views (they stay
+ * whole, under More), and shows where both have been recorded.
+ */
+export function natureTheme(plants: Theme, animals: Theme): Theme {
+  const [pSpecies, pZones] = plants.subtabs, [aSpecies, , aRisk] = animals.subtabs;
+  const layers: ImageryLayer[] = [];
+  let declined = false;
+  return {
+    id: "nature",
+    label: "Nature",
+    icon: icons.leaf,
+    color: "#3f8a57",
+    intro: "The plants and animals around any place, where they live, and what's at risk.",
+    subtabs: [
+      { ...pSpecies, id: "plants", label: "Plants" },
+      { ...aSpecies, id: "animals", label: "Animals" },
+      { ...pZones, id: "zones", label: "Life zones" },
+      { ...aRisk, id: "risk", label: "At risk" },
+    ],
+    enter(app: App) {
+      if (declined) return;
+      if (!layers.length) for (const key of [6, 1]) layers.push(tileLayer(app.globe.viewer, gbifTiles(key), { maximumLevel: 14, credit: "Species records: GBIF.org", alpha: 0.6 }));
+      app.canvas.put({
+        id: "nature:records", label: "Plant and animal records", color: "#3f8a57", theme: "nature", scope: "world", pinned: false,
+        show: (v) => layers.forEach((l) => (l.show = v)),
+        remove: () => { declined = true; },
+      });
+    },
+  };
+}

@@ -25,6 +25,16 @@ import { venueOfPlace } from "../place/venue";
 import { venueCard } from "../place/venueCard";
 import { throughTime } from "../time/placeTime";
 import { iconSvg } from "../ui/glyph";
+import { loadPeople } from "../people/mine";
+import { myPeopleBox } from "../people/mineUi";
+
+/** Whether a place is the home saved in My Place. */
+const isHome = (p: { lon: number; lat: number }) => {
+  try {
+    const all = JSON.parse(localStorage.getItem("atlas.myplaces.v1") ?? "[]") as { kind?: string; lon: number; lat: number }[];
+    return all.some((x) => x.kind === "home" && distanceKm(x.lon, x.lat, p.lon, p.lat) < 0.1);
+  } catch { return false; }
+};
 
 /** Whether this person has chosen a place before (then "how to start" hints step aside). */
 const tapped = () => { try { return localStorage.getItem("atlas.tapped") === "1"; } catch { return false; } };
@@ -121,11 +131,14 @@ export function exploreTheme(app: App, feeds: Feeds, overlays: Overlays, openSit
     const inView = h("div", { class: "in-view" });
     const storiesBox = h("div", { class: "stories-here" });
     const start = siteBrowser(SITES.explore, openSite, { color: "#3563d6" });
+    const mine = loadPeople().length > 0;
     body.append(
       welcome(app),
-      // How to start, until someone has: after their first tap it's just clutter.
+      // Your people first, once you have some: their time, their weather, how far.
+      mine ? myPeopleBox(app, { compact: true }) : "",
       tapped() ? "" : h("div", { class: "empty-hint compact" }, h("span", { class: "empty-icon", html: icons.compass }), h("span", {}, h("strong", {}, "Move the map to explore"), h("span", {}, "Labels appear as you zoom in. Tap a mountain, sea, river or city to look at it through a lens."))),
       lookFurther(app),
+      mine ? "" : h("button", { class: "ppl-nudge", onclick: () => app.setTheme("people") }, h("span", { class: "look-tile-icon", style: "--c:#d1495b", html: icons.people }), h("span", {}, h("strong", {}, "Add your people"), h("small", {}, "Family and friends on the map, with their time and weather"))),
       insightsBox,
       storiesBox,
       start,
@@ -325,6 +338,8 @@ export function exploreTheme(app: App, feeds: Feeds, overlays: Overlays, openSit
         else more((into) => placeCard(place, into, false));
         return;
       }
+      // Your home: your people come first, with their time and weather.
+      if (loadPeople().length && isHome(place)) body.append(myPeopleBox(app, { compact: true }));
       body.append(pageHead(app, place, () => void placesLike(app, place, (title, criteria) => app.actions.get("answers:preset")?.run(JSON.stringify({ title, criteria, exclude: [place.lon, place.lat] })))));
       const f = place.feature as { type?: string; source?: string } | undefined;
       // Other themes can attach their own features (e.g. a mine); only show the ones Explore knows.
