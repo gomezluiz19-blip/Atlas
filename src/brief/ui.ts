@@ -12,8 +12,8 @@ import { gatherAll } from "../plans/gather";
 import { colorOf, initials, loadPeople, timeThere, partOfDay } from "../people/mine";
 import { weatherAt } from "../people/mineUi";
 import { footprint } from "../social/footprint";
-import { faceWithStatus, openFriend } from "../social/friends";
-import { findProfile, following } from "../social/store";
+import { faceWithStatus, openFriend, statusEditor, statusLine } from "../social/friends";
+import { findProfile, following, me, onAccount } from "../social/store";
 import { h } from "../ui/dom";
 import { flyToPlace } from "../ui/search";
 import { aheadLede, aheadNotes, dayAt, hoursLede, peopleLede, peopleSummary, tempColor, TONES, type AheadNote, type DayWx, type Someone } from "./model";
@@ -43,6 +43,34 @@ export function lede(kicker: string, title: string, line = ""): HTMLElement {
 const plate = (...content: (Node | string)[]) => h("div", { class: "bf-plate" }, ...content, h("span", { class: "bf-reg reg", "aria-hidden": "true" }));
 
 const dayWord = (date: string, inDays: number) => inDays === 0 ? "Today" : inDays === 1 ? "Tomorrow" : new Date(`${date}T12:00:00`).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" });
+
+// ---- You ---------------------------------------------------------------------------------------------
+
+/** You, first: your tile and status, your page, and setting what you're up to. Or the way to make a page. */
+export function youCard(app: App): HTMLElement {
+  const box = h("section", { class: "bf-you" });
+  const draw = () => {
+    const p = me();
+    if (!p) {
+      box.replaceChildren(h("div", { class: "bf-you-cta" },
+        h("span", {}, h("strong", {}, "Your page on Terreno"), h("small", {}, "The places you love, what you're up to, and the people you keep up with.")),
+        h("button", { class: "primary-btn", onclick: () => app.actions.get("account:signin")?.run() }, "Make your page")));
+      return;
+    }
+    const slot = h("div", { class: "bf-you-slot" });
+    box.replaceChildren(
+      h("div", { class: "bf-you-row" },
+        h("button", { class: "bf-you-face", "aria-label": "Your page", onclick: () => app.actions.get("profile:me")?.run() }, faceWithStatus(p, 52)),
+        h("div", { class: "bf-you-text" }, h("strong", {}, p.name), statusLine(p) || h("p", { class: "fr-status none" }, "No status set")),
+        h("div", { class: "bf-you-acts" },
+          h("button", { class: "pill-btn", onclick: () => slot.replaceChildren(statusEditor(p, () => { slot.replaceChildren(); draw(); })) }, p.status ? "Update" : "Set status"),
+          h("button", { class: "pill-btn", onclick: () => app.actions.get("profile:me")?.run() }, "My page"))),
+      slot);
+  };
+  draw();
+  const off = onAccount(() => (box.isConnected ? draw() : off()));
+  return box;
+}
 
 // ---- People -----------------------------------------------------------------------------------------
 
