@@ -1240,7 +1240,8 @@ const looks = new Looks(globe, $("ui"));
 looks.set(app.theme.id);
 app.looks = looks;
 const myPeople = peopleOnMap(app);
-app.onTheme = (id) => { looks.set(id); syncHash(); myPeople.sync(id); };
+app.onTheme = (id) => { looks.set(id); syncHash(); myPeople.sync(id); document.body.dataset.theme = id; };
+document.body.dataset.theme = app.theme.id;
 myPeople.sync(app.theme.id);
 globe.viewer.camera.moveEnd.addEventListener(syncHash);
 
