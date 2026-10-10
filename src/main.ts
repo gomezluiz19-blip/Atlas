@@ -161,6 +161,8 @@ const pick = (p: SearchPlace | SearchResult) => {
   const named = !("named" in p && p.named === false) && !("source" in p && p.source === "coords");
   // A venue (a school, a shop, an address) carries what the map says it is, so its card leads with what suits it.
   const category = "category" in p && p.category && venueOf(p.category, p.name) ? p.category : undefined;
+  // A school, a shop, an address: its maps-style card lives in Overview, whichever tab you searched from.
+  if (category && app.theme.id !== "explore") app.setTheme("explore");
   app.select({ lon: p.lon, lat: p.lat, height: 0 }, named ? { title: p.name, context: p.detail ?? "" } : undefined, category ? { venue: category } : undefined);
   if (named) withIntro(p.name, p.lon, p.lat, (ip) => ip && arriveAt(ip));
 };
@@ -176,9 +178,8 @@ const openSite = (s: Site) => {
   withIntro(s.name, s.lon, s.lat, (ip) => ip && arriveAt(ip));
 };
 
-// The bar: Overview, then people, nature, climate, countries and money; Space a little apart; the rest under More.
-app.barOrder = ["explore", "people", "nature", "climate", "countries", "money", "space"];
-app.barApart.add("space");
+// The bar: three ways in (your people, the living world, the nations); everything else waits under More.
+app.barOrder = ["people", "nature", "countries"];
 app.addTheme(exploreTheme(app, feeds, overlays, openSite));
 // Earth: the ground, the rocks and the minerals in them, in one place.
 {
@@ -1315,17 +1316,15 @@ if (shared.camera) {
   });
 }
 if (pageLinked) { if (/^#\/p\//.test(location.hash)) placeHash(); else if (pageSlug) void openPlace(pageSlug); }
+// Terreno opens on People: you, your people and where they are. A link to a view or a place opens that instead.
 if (shared.theme) app.setTheme(shared.theme);
+else if (!pageLinked && !shared.place) app.setTheme("people");
 if (shared.place) app.select({ lon: shared.place.lon, lat: shared.place.lat, height: 0 });
 else if (!shared.camera && !pageLinked && myStore.all().length) {
-  // Start where people are: fly in to their own place.
+  // Start where people are: over their own part of the world, with the People page open.
   const saved = myStore.all();
   const home = saved.find((p) => p.kind === "home") ?? saved[0];
-  setTimeout(() => {
-    void flyToPlace(globe, { name: home.name, lon: home.lon, lat: home.lat, radius: 400 });
-    app.select({ lon: home.lon, lat: home.lat, height: 0 }, { title: home.name, context: home.address ?? "My Place" });
-    app.toast(`Welcome back to ${home.name}. My Place has today's brief and its dashboard.`, 6000);
-  }, 1200);
+  setTimeout(() => void flyToPlace(globe, { name: home.name, lon: home.lon, lat: home.lat, radius: 1_500_000 }), 1200);
 }
 
 // Offline: the app, bundled data and the map tiles you've seen keep working without a connection,

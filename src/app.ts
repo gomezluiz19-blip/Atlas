@@ -324,7 +324,7 @@ export class App {
   toggleMore(open = this.moreMenu.hidden) {
     if (open) {
       this.moreMenu.replaceChildren(
-        h("p", { class: "more-title" }, "More ways to see a place"),
+        h("p", { class: "more-title" }, "Everything else"),
         h("div", { class: "more-grid" }, ...this.themes.filter((t) => t.more).map((t) =>
           h("button", { class: "more-item", role: "menuitem", style: `--tab-color:${t.color}`, "aria-current": String(t === this.theme), onclick: () => { this.toggleMore(false); this.sheet.el.classList.remove("collapsed"); this.setTheme(t.id); } },
             h("span", { class: "more-icon", html: t.icon }),
