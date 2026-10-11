@@ -1,5 +1,4 @@
 import "./styles.css";
-import "./brand.css";
 import { installEmojiGuard } from "./ui/noEmoji";
 import { wordmarkHtml } from "./ui/brand";
 // Cesium loads its web workers and assets relative to this URL.

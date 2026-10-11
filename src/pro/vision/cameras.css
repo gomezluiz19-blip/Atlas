@@ -31,8 +31,6 @@
 .cam-moment small { font-size: 11px; font-weight: 700; color: var(--accent); font-variant-numeric: tabular-nums; }
 .cam-moment span { font-size: 12px; line-height: 1.25; color: var(--secondary); }
 .cam-tools .chip[aria-pressed="true"] { background: color-mix(in srgb, #d19a2e 22%, transparent); }
-.cam-help summary { cursor: pointer; font-size: 13px; color: var(--accent); }
-.cam-help ul { margin: 6px 0 0; padding-left: 18px; font-size: 13px; color: var(--secondary); display: flex; flex-direction: column; gap: 4px; }
 .cam-section { display: flex; flex-direction: column; gap: 8px; }
 .mp-sub-title { margin: 12px 0 4px; font-size: 12.5px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--secondary); }
 @media (max-width: 520px) { .cam-stats { grid-template-columns: repeat(2, 1fr); } }
