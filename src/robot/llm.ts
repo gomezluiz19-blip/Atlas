@@ -249,10 +249,13 @@ export async function testAi(c: AiConfig): Promise<string> {
   return r.content.map((b) => (b.type === "text" ? b.text : "")).join("").trim();
 }
 
-/** Asks Claude to fill in one tool's input (a structured answer), e.g. a lens recipe. */
-export async function askForTool(system: string, tool: Tool, request: string, signal?: AbortSignal): Promise<Record<string, unknown> | null> {
+/**
+ * Asks Claude to fill in one tool's input (a structured answer), e.g. a lens recipe. The request can be text, or
+ * content blocks (a picture of a chart, a PDF) with text.
+ */
+export async function askForTool(system: string, tool: Tool, request: string | unknown[], signal?: AbortSignal, maxTokens = 1500): Promise<Record<string, unknown> | null> {
   const c = loadAi();
-  const r = await call(c, { model: c.model, max_tokens: 1500, system, tools: [tool], tool_choice: { type: "tool", name: tool.name }, messages: [{ role: "user", content: request }] }, signal);
+  const r = await call(c, { model: c.model, max_tokens: maxTokens, system, tools: [tool], tool_choice: { type: "tool", name: tool.name }, messages: [{ role: "user", content: request }] }, signal);
   const use = r.content.find((b): b is Extract<Block, { type: "tool_use" }> => b.type === "tool_use");
   return use?.input ?? null;
 }

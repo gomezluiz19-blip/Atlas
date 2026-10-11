@@ -6,6 +6,9 @@ export const config = {
   mapboxToken: (import.meta.env.VITE_MAPBOX_TOKEN as string | undefined) || "",
   /** An Esri location-platform API key, for licensed commercial use of World Imagery. */
   esriKey: (import.meta.env.VITE_ESRI_KEY as string | undefined) || "",
+  /** The rendered map's ground and its labels, as tile URL templates ({z}/{x}/{y}; see globe/imagery.ts). */
+  renderedTiles: (import.meta.env.VITE_RENDERED_TILES as string | undefined) || "",
+  renderedLabels: (import.meta.env.VITE_RENDERED_LABELS as string | undefined) || "",
   googleMapsKey: (import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string | undefined) || "",
   cesiumIonToken: (import.meta.env.VITE_CESIUM_ION_TOKEN as string | undefined) || "",
   /** The shared story library (a Supabase project; see docs/stories-backend.md). */

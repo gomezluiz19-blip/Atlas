@@ -20,6 +20,10 @@ const SKIN = ["#f3cfb3", "#e0ac7e", "#b67a4c", "#7b4b2a", "#5a3620"];
 const CLAY: Record<string, string> = { house: "#f1e7da", detached: "#f1e7da", residential: "#efe6d8", apartments: "#ece4d6", commercial: "#e7eaf0", retail: "#efe3e0", office: "#e3e8ef", industrial: "#ddd8cf", warehouse: "#ddd8cf", church: "#ecdcc4", school: "#f2e2c2", hospital: "#eef0f2", yes: "#ebe6de" };
 const ROOF: Record<string, string> = { house: "#c98f6c", detached: "#c98f6c", residential: "#b99c86", apartments: "#a9a39c", commercial: "#9fb0c2", retail: "#c7a19a", office: "#93a7bd", industrial: "#a7a39b", warehouse: "#a7a39b", church: "#8f9aa3", school: "#c9ad7d", hospital: "#b8c4cc", yes: "#b5aca1" };
 const LEAVES = ["#4caf50", "#5cb85c", "#3f9e4d", "#6cc070", "#2e8b57"];
+/** On the rendered map every building is the same clay, as an architect's model: white by day, slate by night. */
+const MASSING = { day: { wall: "#f1eee8", roof: "#fbfaf7" }, night: { wall: "#3a424c", roof: "#4b5561" } };
+/** The rendered map's softer greens. */
+const LEAVES_SOFT = ["#9cbf86", "#a8c792", "#8fb47a", "#b3cf9e"];
 
 const pick = <T,>(a: T[]) => a[Math.floor(Math.random() * a.length)];
 const inst = (geometry: ConstructorParameters<typeof GeometryInstance>[0]["geometry"], color: string, modelMatrix?: Matrix4) =>
@@ -39,6 +43,7 @@ export function createCityLife(app: App) {
   const scratch = { m: new Matrix4(), p: new Cartesian3(), hpr: new HeadingPitchRoll() };
   const exag = () => app.globe.state.exaggeration;
   const real3d = () => app.globe.state.photorealistic;
+  const rendered = () => app.globe.state.base === "rendered";
 
   const status = (text: string) => {
     if (!on) return;
@@ -69,11 +74,12 @@ export function createCityLife(app: App) {
         const ring = b.ring[0][0] === b.ring[b.ring.length - 1][0] && b.ring[0][1] === b.ring[b.ring.length - 1][1] ? b.ring.slice(0, -1) : b.ring;
         if (ring.length < 3) return [];
         const g = hAt(s + j), hier = new PolygonHierarchy(Cartesian3.fromDegreesArray(ring.flat()));
-        const wall = CLAY[b.kind] ?? CLAY.yes;
+        const massing = rendered() ? MASSING[app.globe.dark ? "night" : "day"] : null;
+        const wall = massing?.wall ?? CLAY[b.kind] ?? CLAY.yes;
         return [
           inst(new PolygonGeometry({ polygonHierarchy: hier, height: g - 1.5, extrudedHeight: g + b.height, vertexFormat: PerInstanceColorAppearance.VERTEX_FORMAT }), wall),
-          // A roof in a slightly deeper tone, so the blocks read as buildings.
-          inst(new PolygonGeometry({ polygonHierarchy: hier, height: g + b.height, extrudedHeight: g + b.height + 0.5, vertexFormat: PerInstanceColorAppearance.VERTEX_FORMAT }), ROOF[b.kind] ?? ROOF.yes),
+          // A roof in its own tone (paler on the rendered map, deeper over the photo), so the blocks read as buildings.
+          inst(new PolygonGeometry({ polygonHierarchy: hier, height: g + b.height, extrudedHeight: g + b.height + 0.5, vertexFormat: PerInstanceColorAppearance.VERTEX_FORMAT }), massing?.roof ?? ROOF[b.kind] ?? ROOF.yes),
         ];
       });
       if (batch.length) statics.push(scene.primitives.add(new Primitive({ geometryInstances: batch, appearance: APPEARANCE(), shadows: 0 })));
@@ -85,12 +91,27 @@ export function createCityLife(app: App) {
       const at = (z: number, sc: number) => Matrix4.multiply(frame, Matrix4.multiplyByUniformScale(lift(0, 0, z * size), sc * size, new Matrix4()), new Matrix4());
       return [
         inst(new CylinderGeometry({ length: 2.6, topRadius: 0.2, bottomRadius: 0.28, vertexFormat: PerInstanceColorAppearance.VERTEX_FORMAT }), "#8b5a3c", at(1.3, 1)),
-        inst(new EllipsoidGeometry({ radii: new Cartesian3(2, 2, 2.4), vertexFormat: PerInstanceColorAppearance.VERTEX_FORMAT }), LEAVES[i % LEAVES.length], at(4, 1)),
+        inst(new EllipsoidGeometry({ radii: new Cartesian3(2, 2, 2.4), vertexFormat: PerInstanceColorAppearance.VERTEX_FORMAT }), (rendered() ? LEAVES_SOFT : LEAVES)[i % 4], at(4, 1)),
       ];
     });
     if (trees.length) statics.push(scene.primitives.add(new Primitive({ geometryInstances: trees, appearance: APPEARANCE() })));
     for (const p of statics) p.show = !real3d();
   };
+
+  /** The map changed style (rendered or photo, day or night): the same city in the new clay. */
+  let style = "";
+  const restyle = () => {
+    const now = `${app.globe.state.base}:${app.globe.dark}`;
+    if (now === style) return;
+    const was = style;
+    style = now;
+    if (!was || !city) return;
+    for (const p of statics) scene.primitives.remove(p);
+    statics = [];
+    void buildStatics(city);
+  };
+  app.globe.whenApplied(restyle);
+  restyle();
 
   // ---- Movers ----
   const carShape = (color: string) => [

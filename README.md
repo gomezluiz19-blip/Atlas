@@ -8,7 +8,9 @@ themes) and goes deep when you want it to: rock sections, watersheds, life zones
 
 ## How it works for you
 
-The map is the page. Terreno opens over where you are, with one bar along the bottom holding four things:
+The map is the page: a rendered map in warm paper whose buildings stand up in white clay as you come down over a
+town (slate at night; satellite is one tap away). Terreno opens over where you are, with one bar along the bottom
+holding four things:
 
 - **Search:** a place, an address, a year or a question ("flat land near an airport, warm in winter").
 - **Navigate:** where to, and the way there on foot, by bike or by car.

@@ -20,11 +20,19 @@ import { GBIF_DENSITY_TILES } from "../data/inaturalist";
 import { createAnalyticLayer, type AnalyticKind } from "./analyticLayers";
 import { initMotion } from "./motion";
 import { currentQuality } from "./quality";
-import { imagery } from "./imagery";
+import { imagery, renderedMap } from "./imagery";
 import { createTerrariumTerrain, terrainOptions } from "./terrain";
-import { blueMarble, finishGlobe, gradeLayer } from "./finish";
+import { blueMarble, finishGlobe, gradeLayer, HOUSE, RENDERED, RENDERED_NIGHT, type Grade } from "./finish";
 
-type BaseMap = "satellite" | "plain";
+/** Rendered: a drawn street map with clay buildings, the default (docs/design.md › The map). */
+export type BaseMap = "rendered" | "satellite" | "plain";
+const BASE_KEY = "atlas.base";
+const savedBase = (): BaseMap => {
+  try { const v = localStorage.getItem(BASE_KEY); if (v === "rendered" || v === "satellite" || v === "plain") return v; } catch { /* storage unavailable */ }
+  return "rendered";
+};
+/** Night by the device's setting: the rendered map goes to slate with the rest of the interface. */
+const darkQuery = typeof matchMedia === "function" ? matchMedia("(prefers-color-scheme: dark)") : null;
 export type OverlayKind = Exclude<AnalyticKind, "depth"> | "geology" | "species";
 
 interface LayerState {
@@ -40,6 +48,8 @@ interface LayerState {
 export class Globe {
   readonly viewer: Viewer;
   private satellite: ImageryLayer;
+  /** The rendered map's ground, by day and by night, and its names on top. */
+  private rendered: { day: ImageryLayer; night: ImageryLayer; dayLabels: ImageryLayer | null; nightLabels: ImageryLayer | null };
   /** Blue Marble, the far-field base (globe/finish.ts). */
   private far: ImageryLayer;
   private streetLayers: ImageryLayer[] = [];
@@ -49,9 +59,9 @@ export class Globe {
   private overlays = new Map<OverlayKind, ImageryLayer>();
   private photoreal: Cesium3DTileset | null = null;
   readonly state: LayerState = {
-    base: "satellite",
+    base: savedBase(),
     overlays: {
-      hillshade: { on: true, opacity: 0.55 },
+      hillshade: { on: true, opacity: 0.4 },
       elevation: { on: false, opacity: 0.6 },
       slope: { on: false, opacity: 0.7 },
       contours: { on: false, opacity: 0.9 },
@@ -64,8 +74,11 @@ export class Globe {
     streets: true,
   };
   readonly hasPhotoreal = Boolean(config.googleMapsKey);
-  /** Called after every apply() (e.g. to mirror layer state elsewhere). */
-  onApply?: () => void;
+  private applied: (() => void)[] = [];
+  /** Calls `fn` after every apply() (to mirror layer state elsewhere, or restyle with the map). */
+  whenApplied(fn: () => void) {
+    this.applied.push(fn);
+  }
   readonly hasIonTerrain = Boolean(config.cesiumIonToken);
 
   constructor(container: HTMLElement, creditContainer: HTMLElement) {
@@ -117,13 +130,24 @@ export class Globe {
     const esri = new UrlTemplateImageryProvider({ url: src.template, maximumLevel: src.maximumLevel, credit: src.credit });
     this.satellite = new ImageryLayer(esri);
     this.viewer.imageryLayers.add(this.satellite);
+    // The rendered map, over the satellite imagery and under Blue Marble (which still takes over from orbit).
+    const map = renderedMap();
+    const tiles = (url: string, show = true, minimumTerrainLevel?: number) =>
+      new ImageryLayer(new UrlTemplateImageryProvider({ url, subdomains: map.subdomains, maximumLevel: map.maximumLevel, credit: map.credit }), { show, minimumTerrainLevel });
+    // Its own names (muted, like the deck), once past the whole-planet view.
+    this.rendered = {
+      day: tiles(map.ground(false)), night: tiles(map.ground(true), false),
+      dayLabels: map.labels(false) ? tiles(map.labels(false), true, 3) : null, nightLabels: map.labels(true) ? tiles(map.labels(true), false, 3) : null,
+    };
+    this.viewer.imageryLayers.add(this.rendered.day);
+    this.viewer.imageryLayers.add(this.rendered.night);
     // From orbit: NASA's Blue Marble over the satellite imagery, fading out as the camera comes down.
     this.far = blueMarble(this.viewer);
     this.viewer.imageryLayers.add(this.far);
     // The house finish (globe/finish.ts): the grade on every base layer, sunlight from orbit, city lights at night.
     const nightLights = finishGlobe(this.viewer);
     this.addUnder(nightLights);
-    for (const l of this.baseLayers()) gradeLayer(l);
+    for (const l of this.baseLayers()) gradeLayer(l, this.gradeOf(l));
     this.watchImagery(esri);
     const geology = new ImageryLayer(
       new UrlTemplateImageryProvider({ url: GEOLOGIC_MAP_TILES, maximumLevel: 16, credit: "Geology: Macrostrat (CC-BY 4.0)" }),
@@ -157,6 +181,8 @@ export class Globe {
       this.streetLayers.push(l);
       this.viewer.imageryLayers.add(l);
     }
+    for (const l of [this.rendered.dayLabels, this.rendered.nightLabels]) if (l) this.viewer.imageryLayers.add(l);
+    darkQuery?.addEventListener("change", () => this.apply());
 
     if (this.hasIonTerrain) {
       CesiumTerrainProvider.fromIonAssetId(1, { requestVertexNormals: true }).then((t) => {
@@ -223,6 +249,18 @@ export class Globe {
     return out;
   }
 
+  /** The grade a base layer wears when no look asks otherwise: the rendered map its own, imagery the house grade. */
+  gradeOf(layer: ImageryLayer): Grade {
+    if (layer === this.rendered.day) return RENDERED;
+    if (layer === this.rendered.night) return RENDERED_NIGHT;
+    return HOUSE;
+  }
+
+  /** Whether the map is showing its night version. */
+  get dark(): boolean {
+    return !!darkQuery?.matches;
+  }
+
   /** Adds a layer just above the satellite imagery, under every overlay and label layer. */
   addUnder(layer: ImageryLayer) {
     const layers = this.viewer.imageryLayers;
@@ -231,11 +269,19 @@ export class Globe {
 
   /** Pushes `state` onto the scene. Call after mutating state. */
   apply() {
-    const s = this.state;
+    const s = this.state, rendered = s.base === "rendered", dark = this.dark;
+    try { localStorage.setItem(BASE_KEY, s.base); } catch { /* storage unavailable */ }
+    // The interface reads the map: labels go dark-on-light over the light rendered map.
+    document.body.classList.toggle("map-rendered", rendered && !dark);
     this.satellite.show = s.base === "satellite";
-    this.far.show = s.base === "satellite";
+    this.rendered.day.show = rendered && !dark;
+    this.rendered.night.show = rendered && dark;
+    this.far.show = s.base !== "plain";
     if (s.base !== "satellite") this.backup.show = false;
-    for (const l of this.streetLayers) l.show = s.streets;
+    // Esri's names are made for photographs; the rendered map brings its own.
+    for (const l of this.streetLayers) l.show = s.streets && s.base !== "rendered";
+    if (this.rendered.dayLabels) this.rendered.dayLabels.show = s.streets && rendered && !dark;
+    if (this.rendered.nightLabels) this.rendered.nightLabels.show = s.streets && rendered && dark;
     for (const [kind, layer] of this.overlays) {
       layer.show = s.overlays[kind].on;
       layer.alpha = s.overlays[kind].opacity;
@@ -246,7 +292,7 @@ export class Globe {
       if (!this.hasIonTerrain) this.viewer.terrainProvider = createTerrariumTerrain();
     }
     this.setPhotoreal(s.photorealistic);
-    this.onApply?.();
+    for (const fn of this.applied) fn();
   }
 
   private async setPhotoreal(on: boolean) {

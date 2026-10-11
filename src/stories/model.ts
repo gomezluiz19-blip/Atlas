@@ -160,9 +160,12 @@ async function pipe(bytes: Uint8Array, stream: CompressionStream | Decompression
   return new Uint8Array(await new Response(out).arrayBuffer());
 }
 
-/** Packs a story (without slide pictures, which the player redraws) into a URL-safe string. */
+/**
+ * Packs a story (without slide pictures, which the player redraws, or pictures of charts, too big for a link)
+ * into a URL-safe string.
+ */
 export async function packStory(s: Story): Promise<string> {
-  const lean = { ...s, id: s.id.startsWith("local:") ? "" : s.id, slides: s.slides.map((x) => ({ ...x, thumb: undefined })) };
+  const lean = { ...s, id: s.id.startsWith("local:") ? "" : s.id, slides: s.slides.map((x) => ({ ...x, thumb: undefined, visual: x.visual?.kind === "image" ? undefined : x.visual })) };
   const raw = new TextEncoder().encode(JSON.stringify(lean));
   if (typeof CompressionStream === "undefined") return "j" + b64url(raw);
   return "z" + b64url(await pipe(raw, new CompressionStream("deflate-raw")));

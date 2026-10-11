@@ -1,45 +1,55 @@
-/* Terreno: an instrument for reading the Earth. Quiet material around the globe, one action colour,
-   four mineral pigments that carry meaning, and registration marks for what's chosen. See docs/design.md. */
+/* Terreno: an instrument for reading the Earth, in the hand of the Terreno Mobile deck: a rendered map in warm
+   paper and clay (slate by night), soft rounded panels without outlines, Figtree, blue for where you are and what
+   to do, terracotta for people and links, and registration marks for what's chosen. See docs/design.md. */
 
 :root {
   /* Type: Axiforma (as "Terreno Sans", see src/ui/fonts.ts; Plus Jakarta Sans until the licensed files are in
      public/fonts), Heavy for the wordmark; Geist Mono only for figures, coordinates and readouts. */
-  --font: "Terreno Sans", "Plus Jakarta Sans", ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font: "Figtree", "Terreno Sans", "Plus Jakarta Sans", ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --font-display: var(--font);
-  --font-logo: var(--font);
+  /* The wordmark keeps Axiforma Heavy. */
+  --font-logo: "Terreno Sans", "Figtree", ui-sans-serif, sans-serif;
   --font-mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 
-  /* The pigments (from the brand board): cobalt, yellow ochre, green-grey, terracotta. */
-  --cobalt: #2f58c8;
-  --ochre: #c4922b;
-  --sage: #56705a;
-  --terra: #a9502f;
-  --umber: #6b5640;
+  /* The pigments (the Terreno Mobile deck): location blue, amber, park green, terracotta, earth. */
+  --cobalt: #2e7cf6;
+  --ochre: #b7741f;
+  --sage: #3e7a2e;
+  --terra: #c8553d;
+  --umber: #8c6a43;
+  --teal: #1f7a72;
 
-  /* Paper and ink. */
-  --paper: #f5f2eb;
-  --paper-2: #ebe6db;
-  --ink: #1b1d1a;
+  /* Paper and ink: the map's warm ground, the panels' off-white. */
+  --paper: #ece8e1;
+  --paper-2: #e9e6e0;
+  --ink: #1c1b19;
 
-  --material: rgba(247, 244, 237, 0.86);
-  --material-strong: rgba(250, 248, 243, 0.98);
-  --label: #1b1d1a;
-  --secondary: #5e625a;
-  --tertiary: #9a9c93;
-  --separator: rgba(27, 29, 26, 0.1);
-  --fill: rgba(60, 58, 45, 0.07);
-  --fill-strong: rgba(60, 58, 45, 0.13);
+  --material: rgba(249, 248, 246, 0.94);
+  --material-strong: rgba(251, 250, 248, 0.98);
+  --label: #1c1b19;
+  --secondary: #6b6760;
+  --tertiary: #a8a39b;
+  --separator: #e6e2db;
+  --fill: #e9e6e0;
+  --fill-strong: #e0dcd4;
+  /* Blue is for where you are and what to do; terracotta for people and links; near-black for the strong pill. */
   --accent: var(--cobalt);
-  --danger: #a9402a;
+  --link: var(--terra);
+  --pill: var(--ink);
+  --on-pill: #ffffff;
+  --danger: #e5484d;
   --warn: #9a6a12;
   --theme: var(--cobalt);
-  --shadow: 0 0 0 1px var(--hairline), 0 12px 32px -10px rgba(40, 34, 22, 0.24), 0 2px 6px -2px rgba(40, 34, 22, 0.08);
-  --shadow-soft: 0 1px 2px rgba(27, 29, 26, 0.06);
-  --radius: 12px;
-  --radius-s: 8px;
-  --hairline: rgba(27, 29, 26, 0.11);
+  /* Soft lifts, no outlines: things float over the map. */
+  --shadow: 0 2px 10px rgba(28, 27, 25, 0.14), 0 1px 2px rgba(28, 27, 25, 0.05);
+  --shadow-soft: 0 1px 2px rgba(28, 27, 25, 0.06);
+  --shadow-sheet: 0 -4px 24px rgba(28, 27, 25, 0.14);
+  --radius: 16px;
+  --radius-s: 12px;
+  --radius-sheet: 18px;
+  --hairline: rgba(28, 27, 25, 0.1);
   --accent-soft: color-mix(in srgb, var(--accent) 14%, transparent);
-  --r-control: 8px;
+  --r-control: 12px;
   --mono: var(--font-mono);
   --sheet-w: 384px;
   --gutter: 16px;
@@ -65,27 +75,32 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --cobalt: #7f9cf0;
-    --ochre: #dcae4c;
-    --sage: #94ad93;
-    --terra: #d9805d;
+    /* Night, as the deck's drive: slate panels, cool greys, the same blue a touch lighter. */
+    --cobalt: #4c8df8;
+    --ochre: #d9973f;
+    --sage: #4ade80;
+    --terra: #e07a62;
     --umber: #b39a7e;
-    --paper: #141613;
-    --paper-2: #1d201c;
-    --ink: #ece8de;
-    --material: rgba(22, 24, 21, 0.84);
-    --material-strong: rgba(28, 31, 27, 0.98);
-    --label: #ece8de;
-    --secondary: #a5a79c;
-    --tertiary: #6f7269;
-    --separator: rgba(236, 232, 222, 0.1);
-    --fill: rgba(236, 232, 222, 0.06);
-    --fill-strong: rgba(236, 232, 222, 0.12);
-    --danger: #e08a6f;
-    --warn: #dcae4c;
-    --hairline: rgba(236, 232, 222, 0.1);
-    --shadow: 0 0 0 1px var(--hairline), 0 16px 40px -10px rgba(0, 0, 0, 0.7), 0 2px 8px -2px rgba(0, 0, 0, 0.4);
+    --teal: #3fb3a8;
+    --paper: #151a20;
+    --paper-2: #1b2128;
+    --ink: #f4f6f8;
+    --material: rgba(16, 20, 24, 0.92);
+    --material-strong: rgba(22, 27, 33, 0.98);
+    --label: #f4f6f8;
+    --secondary: #a9b3be;
+    --tertiary: #5c6672;
+    --separator: rgba(244, 246, 248, 0.1);
+    --fill: rgba(244, 246, 248, 0.07);
+    --fill-strong: rgba(244, 246, 248, 0.13);
+    --pill: #f4f6f8;
+    --on-pill: #101418;
+    --danger: #e5484d;
+    --warn: #d9973f;
+    --hairline: rgba(244, 246, 248, 0.1);
+    --shadow: 0 8px 24px rgba(0, 0, 0, 0.4), 0 1px 3px rgba(0, 0, 0, 0.3);
     --shadow-soft: 0 1px 2px rgba(0, 0, 0, 0.35);
+    --shadow-sheet: 0 -6px 24px rgba(0, 0, 0, 0.45);
     color-scheme: dark;
   }
 }
@@ -597,7 +612,7 @@ input[type="range"] { accent-color: var(--accent); }
 .insight-text { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 .insight-title { font-weight: 600; }
 .insight-detail { color: var(--secondary); font-size: 13.5px; }
-.link-btn { align-self: flex-start; border: 0; background: none; padding: 4px 0 0; color: var(--accent); font-weight: 600; font-size: 13.5px; cursor: pointer; text-decoration: none; }
+.link-btn { align-self: flex-start; border: 0; background: none; padding: 4px 0 0; color: var(--link); font-weight: 600; font-size: 13.5px; cursor: pointer; text-decoration: none; }
 .link-btn:hover { text-decoration: underline; }
 
 .toggle-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
@@ -923,7 +938,7 @@ button.commodity-chip:hover { background: var(--fill-strong); }
 .pill-btn, .primary-btn { border: 0; border-radius: 999px; padding: 8px 14px; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
 .pill-btn { background: var(--fill); color: var(--label); }
 .pill-btn:hover { background: var(--fill-strong); }
-.primary-btn { background: var(--accent); color: #fff; align-self: flex-start; padding: 10px 22px; }
+.primary-btn { background: var(--accent); color: #fff; align-self: flex-start; padding: 11px 22px; border-radius: var(--r-control); font-weight: 700; }
 .mp-building { margin: 0; }
 .myplaces .group { margin-top: 6px; }
 .mp-results { display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px; }
@@ -1088,6 +1103,108 @@ body.presenting #ui > :not(#credits), body.clean #ui > :not(#credits) { display:
 .present-btn { width: 38px; height: 38px; border-radius: 50%; border: 0; background: transparent; color: #fff; font-size: 20px; cursor: pointer; }
 .present-btn:hover { background: rgba(255,255,255,0.15); }
 .present-count { font-size: 13.5px; font-weight: 600; min-width: 52px; text-align: center; font-variant-numeric: tabular-nums; }
+
+/* Work › Present: a slide's visual, drawn from someone's data (src/work/presentVisual.ts). Beside the globe on a
+   wide screen, above the card on a phone; hairlines, mono figures and the pigments, moving as it arrives. */
+.present-visual {
+  position: absolute; right: max(24px, env(safe-area-inset-right)); top: 0; bottom: 0; margin-block: auto; height: fit-content;
+  width: min(520px, 42vw); max-height: calc(100vh - 200px); overflow: auto; padding: 18px 22px 20px; border-radius: 20px;
+  background: rgba(12,16,24,0.74); color: #fff; backdrop-filter: blur(18px) saturate(1.4); -webkit-backdrop-filter: blur(18px) saturate(1.4);
+  box-shadow: 0 10px 40px rgba(0,0,0,0.35); animation: rise var(--t-arrive) var(--ease-settle) both;
+}
+.present-visual:has(.pv-points) { bottom: auto; margin-block: 0; top: max(24px, env(safe-area-inset-top)); width: min(340px, 36vw); }
+.present.teach .present-visual { width: min(640px, 46vw); }
+@media (max-width: 720px) {
+  .present-visual, .present-visual:has(.pv-points) { left: 12px; right: 12px; top: max(12px, env(safe-area-inset-top)); bottom: auto; margin-block: 0; width: auto; max-height: 44vh; padding: 14px 16px; }
+}
+
+.pv { --pv-hair: color-mix(in srgb, currentColor 16%, transparent); --pv-soft: color-mix(in srgb, currentColor 62%, transparent); display: flex; flex-direction: column; gap: 12px; }
+.pv-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.pv-title { margin: 0; font-size: 15px; font-weight: 650; letter-spacing: .01em; }
+.pv-sub { font-size: 12.5px; color: var(--pv-soft); font-family: var(--font-mono); }
+.pv-figure { font-family: var(--font-mono); font-weight: 500; font-size: clamp(44px, 7vw, 84px); line-height: 1; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+.pv-figure.small { font-size: 30px; }
+.pv-val { font-family: var(--font-mono); font-size: 13px; font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
+.pv-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13.5px; }
+
+/* Bars: ranked, growing from the left one after another. */
+.pv-rows { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: minmax(70px, 34%) 1fr auto; gap: 7px 10px; align-items: center; }
+.pv-rows li { display: contents; }
+.pv-track { height: 12px; background: linear-gradient(var(--pv-hair), var(--pv-hair)) 0 50% / 100% 1px no-repeat; }
+.pv-bar { display: block; height: 100%; width: var(--w); background: var(--ochre); border-radius: 0 3px 3px 0; transform-origin: left; animation: pv-grow var(--t-arrive) var(--ease-settle) both; animation-delay: calc(var(--i, 0) * var(--stagger) * 2); }
+.pv-bar.neg { background: var(--terra); }
+.pv-rows li:first-child .pv-bar { background: color-mix(in srgb, var(--ochre) 80%, #fff); }
+@keyframes pv-grow { from { transform: scaleX(0); } }
+.pv-rows li > * { animation: rise var(--t-move) var(--ease-settle) both; animation-delay: calc(var(--i, 0) * var(--stagger) * 2); }
+.pv-rows li > .pv-track { animation: none; }
+.pv-rows.plain { grid-template-columns: 12px 1fr auto; }
+.pv-key { width: 10px; height: 10px; border-radius: 2px; background: var(--c, var(--ochre)); }
+
+/* A line: the grid first, then the line draws itself left to right and the latest value lands. */
+.pv-now { display: flex; align-items: baseline; gap: 10px; }
+.pv-svg { width: 100%; height: auto; overflow: visible; }
+.pv-grid line { stroke: var(--pv-hair); stroke-width: 1; }
+.pv-grid text, .pv-x { fill: var(--pv-soft); font: 11px var(--font-mono); }
+.pv-line { fill: none; stroke: var(--ochre); stroke-width: 3; stroke-linejoin: round; stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: 0; animation: pv-draw calc(var(--t-arrive) * 2) var(--ease-lift) both; }
+.pv-area { fill: color-mix(in srgb, var(--ochre) 18%, transparent); animation: rise var(--t-arrive) var(--ease-settle) both; animation-delay: calc(var(--t-arrive) * 1.2); }
+.pv-dot { fill: var(--ochre); stroke: #fff; stroke-width: 2; transform-box: fill-box; transform-origin: center; animation: pv-land var(--t-move) var(--ease-settle) both; animation-delay: calc(var(--t-arrive) * 1.8); }
+@keyframes pv-draw { from { stroke-dashoffset: 1; } }
+@keyframes pv-land { from { transform: scale(0); } }
+@media (prefers-reduced-motion: reduce) { .pv-bar, .pv-line, .pv-dot { animation-name: rise; } }
+
+/* One figure: it counts up; the change since arrives after. */
+.pv-number { gap: 6px; }
+.pv-change { margin: 6px 0 0; font-size: 15px; font-weight: 600; animation: rise var(--t-move) var(--ease-settle) both; animation-delay: var(--t-arrive); }
+.pv-change.up { color: color-mix(in srgb, var(--sage) 55%, currentColor); }
+.pv-change.down { color: color-mix(in srgb, var(--terra) 70%, currentColor); }
+
+/* Shares: a hundred tesserae, filling tile by tile. */
+.pv-share-body { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px; align-items: center; }
+.pv.mini .pv-share-body, .present-visual .pv-share-body { grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); }
+@media (max-width: 720px) { .pv-share-body { grid-template-columns: 1fr; } .present-visual .pv-tiles { max-width: 220px; } }
+.pv-tiles { display: grid; grid-template-columns: repeat(10, 1fr); gap: 3px; max-width: 300px; }
+.pv-tile { aspect-ratio: 1; border-radius: 2px; background: var(--c); animation: wash var(--t-move) var(--ease-settle) both; animation-delay: calc(var(--i, 0) * 9ms); }
+.pv-legend { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 12px 1fr auto; gap: 6px 10px; align-items: center; }
+.pv-legend li { display: contents; }
+.pv-legend li > * { animation: rise var(--t-move) var(--ease-settle) both; animation-delay: calc(var(--i, 0) * var(--stagger) + var(--t-arrive)); }
+
+.pv-image { margin: 0; }
+.pv-image img { display: block; width: 100%; border-radius: 10px; background: #fff; animation: wash var(--t-arrive) var(--ease-settle) both; }
+.pv-image figcaption { margin-top: 8px; font-size: 13px; color: var(--pv-soft); }
+
+/* In the player, the card above says the title; the visual doesn't repeat it. */
+.pv.untitled .pv-head > .pv-title, .pv-number.untitled > .pv-title { display: none; }
+.pv.untitled .pv-head:not(:has(.pv-sub)) { display: none; }
+/* Read across a room: the rows larger in the player. */
+.present-visual .pv-label { font-size: 15px; }
+.present-visual .pv-val { font-size: 14.5px; }
+.present-visual .pv-track { height: 16px; }
+
+/* In the editor: small, on paper. */
+.pv.mini { padding: 12px; border-radius: 12px; box-shadow: inset 0 0 0 1px var(--hairline); gap: 8px; }
+.pv.mini .pv-figure { font-size: 40px; }
+.pv.mini .pv-figure.small { font-size: 20px; }
+.pv.mini .pv-tiles { max-width: 160px; gap: 2px; }
+.pv.mini .pv-rows { gap: 4px 8px; }
+.pv.mini .pv-label { font-size: 12.5px; }
+.pv.mini .pv-image img { max-height: 180px; object-fit: contain; }
+
+/* Add data. */
+.pi-drop { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 22px 16px; border-radius: var(--radius); text-align: center; cursor: pointer;
+  background: repeating-linear-gradient(90deg, var(--hairline) 0 6px, transparent 6px 12px) top / 100% 1px no-repeat, repeating-linear-gradient(90deg, var(--hairline) 0 6px, transparent 6px 12px) bottom / 100% 1px no-repeat,
+    repeating-linear-gradient(0deg, var(--hairline) 0 6px, transparent 6px 12px) left / 1px 100% no-repeat, repeating-linear-gradient(0deg, var(--hairline) 0 6px, transparent 6px 12px) right / 1px 100% no-repeat;
+  transition: background-color var(--t-quick) var(--ease-settle); }
+.pi-drop:hover, .pi-drop.over, .pi-drop:focus-visible { background-color: color-mix(in srgb, var(--accent) 7%, transparent); }
+.pi-drop strong { font-size: 14.5px; }
+.pi-paste { width: 100%; margin-top: 10px; font-family: var(--font-mono); font-size: 12.5px; }
+.pi-out { display: flex; flex-direction: column; gap: 12px; }
+.pi-sugg { display: flex; flex-direction: column; gap: 10px; padding-top: 12px; border-top: 1px solid var(--hairline); animation: rise var(--t-move) var(--ease-settle) both; }
+.pi-sugg-label { margin: 0; font-size: 14px; font-weight: 600; }
+.pi-find, .pi-sections { margin: 0; padding-left: 18px; font-size: 13px; line-height: 1.5; }
+.pi-find { list-style: none; padding: 0; font-family: var(--font-mono); font-size: 12px; }
+.present-visual-row { display: flex; align-items: center; gap: 8px; }
+.present-visual-tag { font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px; box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ochre) 60%, transparent); color: var(--label); }
+.present-visual-row .link-btn { margin: 0; }
 
 /* Work › Video */
 a.primary-btn { text-decoration: none; display: inline-flex; align-items: center; }
@@ -3655,8 +3772,8 @@ body.tv-mode .lens-panel { transform: scale(1.15); transform-origin: top right; 
 
 /* While the globe moves: no live backdrop blur (it's recomputed every frame over WebGL), slightly more opaque
    materials instead (near-opaque, so nothing behind a panel reads through it). See globe/motion.ts. */
-body.globe-moving { --material: rgba(247, 244, 237, 0.985); --material-strong: rgba(250, 248, 243, 0.995); }
-@media (prefers-color-scheme: dark) { body.globe-moving { --material: rgba(22, 24, 21, 0.985); --material-strong: rgba(28, 31, 27, 0.995); } }
+body.globe-moving { --material: rgba(249, 248, 246, 0.99); --material-strong: rgba(251, 250, 248, 0.995); }
+@media (prefers-color-scheme: dark) { body.globe-moving { --material: rgba(16, 20, 24, 0.99); --material-strong: rgba(22, 27, 33, 0.995); } }
 body.globe-moving * { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
 
 /* ---- Team, versions and backup (pro/kit/team.ts) ---- */
@@ -4576,3 +4693,181 @@ body.tv-mode { --t-quick: 210ms; --t-move: 480ms; --t-arrive: 900ms; --stagger: 
   @keyframes grow-up { from { opacity: 0; } }
   ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
 }
+
+/* ======================================================================================
+   The Terreno Mobile layer, last so it wins (docs/design.md, the deck "Terreno Mobile"). Soft rounded panels
+   that float over a rendered map with no outlines; white cards on warm paper; icons as filled pigment discs;
+   blue for where you are and what to do, terracotta for people and links, a near-black pill for the strong
+   choice; Figtree, heavier for headings. Night is the deck's drive: slate panels, cool greys.
+   ====================================================================================== */
+:root { --accent-strong: #1a66d9; --card: #ffffff; }
+@media (prefers-color-scheme: dark) { :root { --accent-strong: #2e7cf6; --card: rgba(244, 246, 248, 0.05); } }
+
+/* Surfaces: rounded, lifted, no hairline ring. */
+.sheet, .popover, .lens-panel, .work-panel, .vs-sheet { border-radius: var(--radius-sheet); box-shadow: var(--shadow); }
+.search-results { border-radius: var(--radius); box-shadow: var(--shadow); }
+.sheet-title, .work-title, .mp-head h2, .story-title, h1, h2 { font-weight: 800; letter-spacing: -0.02em; }
+h3 { font-weight: 700; }
+.group-title, .lens-sub, .jr-day-label, .pp-group-label, .studio-root h3, .wk-group-title, .search-heading, .studio-h, .vs-shelf h4 {
+  font: 700 15px/1.3 var(--font) !important; letter-spacing: -0.005em !important; text-transform: none; color: var(--label);
+}
+
+/* Cards: white on paper, a whisper of shadow. */
+.look-tile, .work-tool, .wk-tile, .empty-hint, .insight, .story-card, .vs-row, .po-kpi, .sc-sig-card, .team-card {
+  border-radius: var(--radius); background: var(--card); box-shadow: var(--shadow-soft);
+}
+.look-tile:hover, .work-tool:hover, .wk-tile:hover, .story-card:hover { background: var(--card); box-shadow: var(--shadow); }
+
+/* Icons: a filled disc in its pigment, the icon in white (the deck's favourites and pins). */
+.work-tool-icon, .look-tile-icon, .wk-glyph, .insight-icon, .empty-icon, .vs-row-glyph, .lens-title-glyph {
+  color: #fff !important; background: var(--c, var(--accent)) !important; box-shadow: none !important; border-radius: 50% !important;
+}
+.wk-glyph.lg { border-radius: 16px !important; }
+.lens-glyph { border-radius: 50%; color: #fff; background-color: var(--c); box-shadow: none; }
+.lens-tile:hover .lens-glyph, .lens-tile:focus-visible .lens-glyph { box-shadow: 0 2px 8px color-mix(in srgb, var(--c) 45%, transparent); }
+.lens-tile.on .lens-glyph { box-shadow: 0 0 0 3px var(--material-strong), 0 0 0 5px var(--c); }
+.lens-name { font: 600 12.5px/1.15 var(--font); }
+
+/* Controls. */
+.primary-btn { background: var(--accent-strong); color: #fff; border-radius: var(--r-control); font-weight: 700; box-shadow: none; }
+@media (prefers-color-scheme: dark) { .primary-btn, .holo-go { color: #fff !important; } }
+.pill-btn { border-radius: var(--r-control); background: var(--fill); box-shadow: none; font-weight: 600; }
+.pill-btn:hover { background: var(--fill-strong); }
+.chip { border-radius: 12px; font: 600 13px var(--font); background: var(--fill); box-shadow: none; }
+.chip:hover { background: var(--fill-strong); }
+.chip.on, .chip[aria-checked="true"], .chip[aria-pressed="true"] { background: var(--pill); color: var(--on-pill); box-shadow: none; }
+.link-btn { color: var(--link); font-weight: 600; }
+.icon-btn, .close-btn { border-radius: var(--r-control); }
+.segmented { border-radius: 10px; background: var(--fill); padding: 3px; }
+.segmented button { border-radius: 8px; font-weight: 600; }
+.segmented button[aria-selected="true"], .segmented button[aria-checked="true"], .segmented-mini-btn[aria-pressed="true"] {
+  background: var(--card); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); font-weight: 700;
+}
+@media (prefers-color-scheme: dark) { .segmented button[aria-checked="true"], .segmented button[aria-selected="true"] { background: rgba(244, 246, 248, 0.16); } }
+.card-actions .pill-btn, .pg-btn { border-radius: var(--r-control); background: var(--fill); box-shadow: none; font: 600 13px var(--font); }
+.card-actions .pill-btn .g, .pg-btn .g, .card-actions .pill-btn .gx, .pg-btn .gx { color: var(--accent); }
+.round-btn, .map-ctl, .map-zoom, .look-legend { border-radius: var(--r-control); box-shadow: var(--shadow); }
+.search input { border-radius: var(--r-control); font: 500 16px var(--font); }
+.pro-badge { border-radius: 6px; }
+
+/* The toast: the deck's dark pill. */
+.toast { border-radius: 24px; background: var(--pill); color: var(--on-pill); font: 600 14px var(--font); box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25); -webkit-backdrop-filter: none; backdrop-filter: none; }
+
+/* The dock: lifted, no outline. */
+.dock-row { border-radius: 22px; box-shadow: 0 6px 24px rgba(28, 27, 25, 0.16), 0 1px 3px rgba(28, 27, 25, 0.06); }
+.dock-btn::after { font-weight: 700; }
+
+/* The brand mark's chip and the avatar: rounder. */
+.brand { border-radius: var(--r-control); }
+
+/* Map labels on the light rendered map: ink with a white halo, like the deck's streets; pins as filled discs. */
+body.map-rendered .map-label { color: #3b3833; text-shadow: 0 0 3px #fff, 0 0 3px #fff, 0 0 1px #fff; }
+body.map-rendered .ml-text { text-shadow: 0 0 3px #fff, 0 0 3px #fff, 0 0 1px #fff !important; }
+body.map-rendered .k-water .ml-text, body.map-rendered .k-sea { color: #3a6f96; }
+body.map-rendered .k-range, body.map-rendered .k-desert, body.map-rendered .k-region { color: #7a746b; }
+.ml-glyph { width: 24px; height: 24px; border-radius: 50% !important; color: #fff; box-shadow: 0 0 0 2px #fff, 0 2px 6px rgba(0, 0, 0, 0.25); }
+.ml-glyph svg { width: 13px; height: 13px; }
+.ml-dot { border-radius: 50%; }
+
+/* ======================================================================================
+   Person first (src/ui/chrome.ts, src/ui/travelModes.ts): Terreno's name in a cyan band across the top; the map
+   under it as a big rounded bubble that opens to the whole screen; and every dock button opening on the person:
+   how you're going before where, what you're after before the field, what you came to Me for as tiles.
+   ====================================================================================== */
+:root { --cyan: #0a8ea0; --band-h: 56px; --band: calc(var(--band-h) + env(safe-area-inset-top, 0px)); --bubble: 8px; --bubble-r: 30px; }
+@media (prefers-color-scheme: dark) { :root { --cyan: #0b6f7e; } }
+@media (min-width: 900px) { :root { --band-h: 60px; --bubble: 12px; --bubble-r: 36px; } }
+/* Around the bubble, a light wash of the band's cyan, so the map reads as one round window. */
+html, body { background: color-mix(in srgb, var(--cyan) 16%, var(--paper)); }
+
+/* The band: the mark and the name, white on cyan. Away when the map is opened up, presenting, filming or on a TV. */
+.app-band {
+  position: fixed; z-index: 25; top: 0; left: 0; right: 0; height: var(--band); padding-top: env(safe-area-inset-top, 0px);
+  display: flex; align-items: center; justify-content: center; background: var(--cyan); color: #fff;
+  transition: transform var(--t-move) var(--ease-settle);
+}
+.app-band .brand { height: 44px; padding: 0 14px; background: transparent !important; box-shadow: none !important; -webkit-backdrop-filter: none; backdrop-filter: none; color: #fff; }
+.app-band .brand-word { display: inline !important; font-size: 15px; letter-spacing: 0.34em; color: #fff; }
+.app-band .brand-mark svg path:not([fill]) { stroke: #fff; }
+.app-band .brand-mark svg path[fill] { stroke: var(--cyan); }
+body.map-open .app-band, body.tv-mode .app-band, body.presenting .app-band, body.clean .app-band { transform: translateY(-100%); }
+
+/* The bubble: the globe clipped to a rounded window under the band; the interface lives inside it. */
+#globe, #ui { transition: clip-path var(--t-arrive) var(--ease-settle), inset var(--t-arrive) var(--ease-settle); }
+body:not(.map-open):not(.tv-mode):not(.presenting):not(.clean) #globe {
+  clip-path: inset(calc(var(--band) + var(--bubble)) var(--bubble) var(--bubble) var(--bubble) round var(--bubble-r));
+}
+body:not(.map-open):not(.tv-mode):not(.presenting):not(.clean) #ui { inset: calc(var(--band) + var(--bubble)) var(--bubble) var(--bubble) var(--bubble); }
+.map-expand {
+  position: absolute; z-index: 26; top: 12px; right: 12px; width: 44px; height: 44px; display: grid; place-items: center; border: 0; border-radius: 50%; cursor: pointer;
+  background: var(--material-strong); color: var(--label); box-shadow: var(--shadow);
+}
+body.map-open .map-expand { top: calc(12px + env(safe-area-inset-top, 0px)); }
+body.tv-mode .map-expand { display: none; }
+
+/* Navigate: how are you going? Big tiles first, the place after. */
+.nav-panel { width: min(520px, calc(100% - 2 * var(--gutter))); padding: 16px; border-radius: var(--radius-sheet); max-height: calc(100% - var(--dock) - 2 * var(--gutter)); }
+.nav-panel .nav-title { margin: 2px 2px 12px; font: 800 22px/1.15 var(--font); letter-spacing: -0.02em; text-transform: none; color: var(--label); }
+.nav-modes { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+.nav-mode {
+  position: relative; display: flex; flex-direction: column; align-items: flex-start; justify-content: space-between; gap: 14px; min-height: 112px; padding: 16px;
+  border: 0; border-radius: 20px; cursor: pointer; text-align: left; font: 800 19px/1.1 var(--font); letter-spacing: -0.01em;
+  background: color-mix(in srgb, var(--c, var(--fill-strong)) 12%, var(--card)); color: var(--label); box-shadow: var(--shadow-soft);
+  transition: transform var(--t-quick) var(--ease-settle), background var(--t-quick) var(--ease-settle);
+}
+.nav-mode:active { transform: scale(0.97); }
+.nav-mode-ico { display: grid; place-items: center; width: 56px; height: 56px; border-radius: 50%; background: var(--c, var(--fill-strong)); color: #fff; }
+.nav-mode-ico svg { width: 32px; height: 32px; }
+.nav-mode[aria-checked="true"] { background: var(--c); color: #fff; box-shadow: 0 6px 18px color-mix(in srgb, var(--c) 40%, transparent); }
+.nav-mode[aria-checked="true"] .nav-mode-ico { background: rgba(255, 255, 255, 0.22); }
+.nav-mode[aria-checked="true"]::after { content: ""; position: absolute; top: 14px; right: 14px; width: 12px; height: 12px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.3); }
+.nav-mode.more { grid-column: 1 / -1; flex-direction: row; align-items: center; justify-content: flex-start; min-height: 64px; padding: 10px 16px; font-size: 16px; --c: var(--secondary); background: var(--fill); box-shadow: none; }
+.nav-mode.more .nav-mode-ico { width: 40px; height: 40px; background: var(--card); color: var(--label); }
+.nav-mode.more .nav-mode-ico svg { width: 20px; height: 20px; }
+.nav-more { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; }
+.nav-more[hidden] { display: none; }
+.nav-mode-chip { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 12px 6px; border: 0; border-radius: 16px; background: var(--card); color: var(--label); font: 700 14px var(--font); cursor: pointer; box-shadow: var(--shadow-soft); }
+.nav-mode-chip .nav-mode-ico { width: 44px; height: 44px; }
+.nav-mode-chip .nav-mode-ico svg { width: 24px; height: 24px; }
+.nav-mode-chip[aria-checked="true"] { box-shadow: 0 0 0 2px var(--c); }
+.nav-where { margin-top: 14px; }
+.nav-input { height: 52px; border-radius: 14px; font: 500 17px var(--font); background: var(--fill); border: 0; padding: 0 16px; }
+.nav-sub { margin: 14px 2px 4px; font: 700 15px var(--font); letter-spacing: 0; text-transform: none; color: var(--label); }
+.nav-head { gap: 10px; margin-bottom: 10px; }
+.nav-head-ico { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; background: var(--c); color: #fff; flex: none; }
+.nav-head-ico svg { width: 24px; height: 24px; }
+.nav-head strong { font: 800 19px/1.15 var(--font); }
+.nav-handoff { margin: 4px 0 12px; padding: 14px; border-radius: 16px; background: color-mix(in srgb, var(--c) 12%, var(--card)); }
+.nav-handoff p { margin: 0 0 10px; font: 700 15px var(--font); }
+.nav-handoff-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.nav-handoff-row a { text-decoration: none; }
+@media (max-width: 560px) {
+  .nav-mode { min-height: 104px; padding: 14px; font-size: 18px; }
+  .nav-mode-ico { width: 50px; height: 50px; }
+  .nav-mode-ico svg { width: 28px; height: 28px; }
+}
+
+/* Search: what you're after, as tiles above the field. */
+.search-quick { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin-bottom: 8px; padding: 10px; border-radius: 20px; background: var(--material-strong); box-shadow: var(--shadow); }
+.quick-tile { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 6px 2px; border: 0; border-radius: 14px; background: transparent; color: var(--label); font: 700 13px var(--font); cursor: pointer; }
+.quick-tile:hover { background: var(--fill); }
+.quick-dot { display: grid; place-items: center; width: 52px; height: 52px; border-radius: 50%; background: var(--c); color: #fff; }
+.quick-dot svg { width: 26px; height: 26px; }
+body.search-open .dock-search:has(.search input:not(:placeholder-shown)) .search-quick { display: none; }
+/* Empty, the field offers the tiles; its own suggestions come once you type. */
+body.search-open .dock-search:has(.search input:placeholder-shown) .search-results { display: none; }
+@media (max-width: 560px) { .search-quick { grid-template-columns: repeat(3, 1fr); } }
+
+/* Me: what you came for, as tiles. */
+.popover.account-menu { width: min(360px, calc(100% - 2 * var(--gutter))); padding: 12px; }
+.am-tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 8px 0; }
+.am-tile { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; min-height: 92px; padding: 14px; border: 0; border-radius: 18px; cursor: pointer; text-align: left;
+  background: color-mix(in srgb, var(--c) 12%, var(--card)); color: var(--label); font: 800 16px/1.15 var(--font); box-shadow: var(--shadow-soft); }
+.am-tile-ico { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; background: var(--c); color: #fff; }
+.am-tile-ico svg { width: 22px; height: 22px; }
+
+/* ＋: the three ways in, bigger. */
+.plus-big { min-height: 108px; padding: 14px 12px; border-radius: 18px; }
+.plus-big .plus-ico { width: 48px; height: 48px; border-radius: 50%; }
+.plus-big .plus-ico svg { width: 26px; height: 26px; }
+.plus-big strong { font-size: 16px; font-weight: 800; }

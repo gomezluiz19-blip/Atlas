@@ -18,3 +18,23 @@ export function imagery(c: { imagery?: string; maptilerKey?: string; mapboxToken
 
 /** One tile's address (pure). */
 export const imageryTile = (z: number, x: number, y: number, i: Imagery = imagery()) => i.template.replace("{z}", String(z)).replace("{x}", String(x)).replace("{y}", String(y));
+
+/**
+ * The rendered map: a calm drawn street map (ground, parks, water, roads) with the names on their own layer,
+ * a day version and a night one, that the clay buildings stand on (docs/design.md › The map). CARTO's Voyager
+ * and Dark Matter from OpenStreetMap by default; any other raster style is a setting away (VITE_RENDERED_TILES
+ * and VITE_RENDERED_LABELS, with {dark} for "dark" or "light"), see docs/data-licensing.md.
+ */
+export interface RenderedMap { ground(dark: boolean): string; labels(dark: boolean): string; subdomains: string; maximumLevel: number; credit: string }
+
+export function renderedMap(c: { renderedTiles?: string; renderedLabels?: string } = config): RenderedMap {
+  const own = (t: string) => (dark: boolean) => t.replace("{dark}", dark ? "dark" : "light");
+  if (c.renderedTiles)
+    return { ground: own(c.renderedTiles), labels: own(c.renderedLabels || ""), subdomains: "abc", maximumLevel: 19, credit: "Map © OpenStreetMap contributors" };
+  const carto = (style: string) => `https://{s}.basemaps.cartocdn.com/rastertiles/${style}/{z}/{x}/{y}@2x.png`;
+  return {
+    ground: (dark) => carto(dark ? "dark_nolabels" : "voyager_nolabels"),
+    labels: (dark) => carto(dark ? "dark_only_labels" : "voyager_only_labels"),
+    subdomains: "abcd", maximumLevel: 19, credit: "Map © CARTO, © OpenStreetMap contributors",
+  };
+}

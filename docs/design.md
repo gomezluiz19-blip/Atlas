@@ -7,6 +7,11 @@ that carries them is `src/styles.css` (tokens at the top), `src/brand.css` (the 
 
 ## Where it comes from
 
+**The look follows the Terreno Mobile deck** (a design canvas in the team's projects: the map home, the drive, a
+profile and the circle feed). A rendered map in warm paper and white clay buildings, rounded panels that float over
+it without outlines, Figtree, blue for where you are and what to do, terracotta for people and links; at night the
+same map in slate. What follows puts that into rules.
+
 The brand board: four earth pigments (cobalt blue, yellow ochre, green-grey, brown), the name set wide under a
 horizon arc, the Earth as a **mosaic of tesserae**, and map tiles framed by **registration marks**, the crosshairs a
 printer uses to line up a plate. Terreno means terrain. A tessera is one tile of a mosaic. So the product is made of
@@ -14,14 +19,17 @@ tiles, and what you choose is framed like a plate on press.
 
 ## Principles
 
-1. **The Earth is the brightest thing on screen.** Panels are paper by day and basalt by night, a little translucent,
-   edged with a hairline. No glossy gradients, no candy colours, no glow. If the interface competes with the
-   globe, the interface is wrong.
-2. **One action colour.** Cobalt means "you can press this". Everything else is ink, paper and their greys.
-3. **Pigments mean things.** Cobalt and cerulean are water. Sage is land and growth. Ochre is attention and earth.
-   Terracotta is warning and the built world. Madder and umber fill out charts. A colour is never decoration.
-4. **Tiles, not bubbles.** An icon sits on a tessera: a square tile, lightly tinted in its pigment, with the icon
-   drawn as a line in that pigment. Never a filled circle of saturated colour.
+1. **The map is rendered, and it is the brightest thing on screen.** A drawn street map in warm paper with white clay
+   buildings, the way an architect's model or a good maps app reads, not a photograph by default (satellite is one
+   tap away in Map style). Panels are off-white by day and slate by night, lifted by a soft shadow, never outlined.
+   No glossy gradients, no candy colours, no glow.
+2. **Blue for where you are and what to do.** The location dot, routes and the main button are blue. Terracotta is
+   for people and links (avatars, "More", "See all"). The strongest choice is a near-black pill. Everything else
+   is ink, paper and their warm greys.
+3. **Pigments mean things.** Blue is you and water, green is parks and growth, amber is food and attention,
+   terracotta is people and places to eat, teal is getting around, earth is work. A colour is never decoration.
+4. **Discs, not outlines.** An icon sits on a filled disc in its pigment with the icon in white, like the deck's
+   favourites and map pins, ringed in white where it stands on the map.
 5. **Registration marks frame what's chosen.** The selected mode, theme or lens is framed by four corner ticks in
    the action colour (`.reg`). It's the brand's signature: precise, printed, unmistakably ours.
 6. **Fewer, better.** A surface offers what fits the moment, not everything Terreno can do. Lenses show at most
@@ -36,13 +44,19 @@ tiles, and what you choose is framed like a plate on press.
 
 | Token | Day | Night | Use |
 | --- | --- | --- | --- |
-| `--paper` | #f5f2eb | #141613 | Surfaces |
-| `--ink` / `--label` | #1b1d1a | #ece8de | Text |
-| `--secondary` | #5e625a | #a5a79c | Supporting text |
-| `--cobalt` (`--accent`) | #2f58c8 | #7f9cf0 | Action, focus, selection |
-| `--ochre` | #c4922b | #dcae4c | Attention, highlights |
-| `--sage` | #56705a | #94ad93 | Land, growth, all-clear |
-| `--terra` | #a9502f | #d9805d | Warnings, the built world |
+| `--paper` | #ece8e1 | #151a20 | The map's ground, page backgrounds |
+| `--material` | #f9f8f6 (94%) | #101418 (92%) | Panels, the dock, the place card |
+| `--card` | #ffffff | 5% white | Cards on a panel |
+| `--ink` / `--label` | #1c1b19 | #f4f6f8 | Text |
+| `--secondary` | #6b6760 | #a9b3be | Supporting text |
+| `--fill` | #e9e6e0 | 7% white | Search fields, chips, quiet buttons |
+| `--cobalt` (`--accent`) | #2e7cf6 | #4c8df8 | You, routes, the main action, focus |
+| `--terra` (`--link`) | #c8553d | #e07a62 | People, avatars, links |
+| `--pill` | #1c1b19 | #f4f6f8 | The strongest choice, toasts |
+| `--ochre` | #b7741f | #d9973f | Food, attention |
+| `--sage` | #3e7a2e | #4ade80 | Parks, growth, on time |
+| `--teal` | #1f7a72 | #3fb3a8 | Getting around |
+| `--danger` | #e5484d | #e5484d | Stop, end, delete |
 
 Data colours (map layers, charts) use the full pigment range, mid-toned to read on satellite imagery and on paper:
 cobalt #3563d6, cerulean #4c9ac9, ice #a3bfd4, sage #5b9467, sap #8faa5a, ochre #d19a2e, Naples #e1b843, terracotta #c4513a,
@@ -52,14 +66,14 @@ volcanoes and the plates, ice for glaciers, madder for reefs, sap for wetlands a
 
 ## Type
 
-- **Axiforma** for everything you read (Kastelov's geometric sans): 13–15 px for interface text, 700 for titles,
-  small capitals tracked 0.14 em for section labels. **Axiforma Heavy** for the wordmark, tracked wide (0.3 em).
+- **Figtree** for everything you read, as in the deck: 15 px for interface text, 600 for names, 700 for section
+  heads ("Favorites", "From your circle") in sentence case, 800 for titles. **Axiforma Heavy** stays the wordmark,
+  tracked wide (0.3 em).
 - **Geist Mono** only for figures: coordinates, distances, headings, counters, the remote's readouts.
 - Axiforma is licensed. Drop the licensed webfonts into `public/fonts/` as `Axiforma-Regular`, `-Medium`,
   `-SemiBold`, `-Bold` and `-Heavy` (`.woff2`, `.woff` or `.otf`) and the build serves them (`src/ui/fonts.ts`
-  writes the `@font-face` rules, under the family name "Terreno Sans"). A machine with Axiforma installed uses
-  its own copy. Until then everyone else sees **Plus Jakarta Sans**, the nearest open face (geometric, wide, a
-  two-storey a), at the same weights.
+  writes the `@font-face` rules, under the family name "Terreno Sans") for the wordmark. Figtree comes from Google
+  Fonts; Axiforma and then Plus Jakarta Sans stand in if it can't load.
 
 ## The mark
 
@@ -69,18 +83,33 @@ dome, no arc or marks) is for 32 px and below. `scripts/brand-icons.mjs` writes 
 
 ## Components
 
-- **Surfaces**: 14 px radius for panels, 12 for cards, 10 for buttons in the top bar, 8 for controls, 7 for chips.
-  One shadow: a hairline ring and a soft drop.
-- **Buttons**: primary is solid cobalt. Secondary is a hairline outline. Never a pill of saturated colour.
-- **Chips**: hairline, 7 px radius; on is a cobalt tint with cobalt text.
-- **Icon tiles**: `--c` sets the pigment; the brand layer tints and outlines the tile and draws the icon in it.
+- **Surfaces**: 18 px radius for sheets and panels, 16 for cards, 12 for controls, buttons and chips, 22 for the
+  dock. A soft lift (`--shadow`), no outline; cards sit white on the panel with a whisper of shadow.
+- **Buttons**: primary is solid blue, 12 px radius, bold. Secondary is a quiet fill. The strongest choice (Follow,
+  View on map) is the near-black pill; links are terracotta text.
+- **Chips**: a quiet fill, 12 px radius, 600; on is the near-black pill.
+- **Segmented**: a fill track; the chosen one is a white card with a small shadow.
+- **Icon discs**: `--c` sets the pigment; the disc is filled with it and the icon drawn in white.
+- **Toasts**: the near-black pill, centred, white text.
+- The Terreno Mobile layer at the end of `src/styles.css` carries these over every component.
 - **Motion**: one curve (`--ease`), 150–250 ms, nothing bouncy; `prefers-reduced-motion` turns it off.
+
+## The map
+
+The default is **rendered** (`src/globe/viewer.ts`, `src/globe/imagery.ts`): a drawn street map (CARTO's Voyager
+by day, Dark Matter by night, from OpenStreetMap) graded to the deck's warm paper or slate, with its own muted street
+and place names, and, as you come down over a town, the buildings themselves standing up in white clay (slate by
+night) with trees in the parks (`src/city/life.ts`). Over the satellite photo the same buildings keep their
+coloured roofs. Night follows the device's setting. Map style offers Rendered, Satellite and Plain, and remembers the
+choice. Another drawn style is a setting away (`VITE_RENDERED_TILES`, `VITE_RENDERED_LABELS`; see
+docs/data-licensing.md). Map names over the light map are ink with a white halo; pins are filled discs ringed in
+white.
 
 ## The globe
 
 `src/globe/finish.ts` sets the house look. From orbit the planet is NASA's Blue Marble with shaded relief and
 the sea floor: one cloud-free, colour-true mosaic in which the ocean ridges and trenches show through the blue. It
-hands over to the graded satellite imagery as you come down (gone by about 1,800 km up), so the Earth is crisp at
+hands over to the map (rendered or satellite) as you come down (gone by about 1,800 km up), so the Earth is crisp at
 every height. The real sun lights it: the terminator lies where dusk really is right now, the haze follows the sun,
 and the night side is night, carried by NASA's city lights; both the shading and the lights fade away below a
 few thousand kilometres, where an evenly lit map matters more. The first frame is composed on the sun: the
@@ -105,12 +134,24 @@ The model is `src/wayfind/model.ts` (pure, tested); the screens are `src/wayfind
 
 ## The frame
 
-The map is the page, opening over where you are (or your home), like any map you already trust. Around it,
-one bar and no more, the same on every screen:
+The map is the page, opening over where you are (or your home), like any map you already trust.
 
-- **The dock**, along the bottom, big and plain: **Search**, **Navigate** (where to, and the way there), **Me**
-  and **＋**, each a big icon with its word under it, ＋ in the one action colour. Search opens just above the dock,
-  its suggestions rising from it.
+- **The band**: Terreno's mark and name, white on a field of cyan, across the top. It opens About.
+- **The bubble**: under the band the map is a big rounded window, framed by a light wash of the band's cyan.
+  The button at its top right opens it to the whole screen (the band slides away) and back. Presenting, filming
+  and a TV always have the whole screen.
+- **Person first.** Each button in the dock opens on the person, then the place:
+  - **Navigate** asks *How are you going?* with big tiles that fill the panel: **Walk**, **Drive**, **Train**,
+    **Taxi**, and **More** (Bike, Fly, Guide me). Walking is the default and the last choice is remembered.
+    Below them, *Where to, walking?* and your places and people. A walk, a drive or a ride is routed on the
+    map; the train opens a transit planner (Google or Apple Maps) and a taxi a ride app (Uber, Lyft) with the
+    drop-off filled in, with the journey drawn here alongside. Fly opens the trip planner; Guide me starts
+    on-foot guidance (`src/ui/travelModes.ts`).
+  - **Search** shows what people look for as big tiles (Food, Coffee, Parks, Shops, Stay, Fuel) above the field;
+    a tap searches near the map. Its own suggestions come once you type.
+  - **Me** shows what you came for as tiles (My page, Field note, My Place, Watching), then the rest as rows.
+- **The dock**, along the bottom inside the bubble, big and plain: **Search**, **Navigate**, **Me** and **＋**, each
+  a big icon with its word under it, ＋ in the action colour.
 - **＋** opens Explore, Create and Work; then the **views** (People, Nature, Countries as tiles, the rest as
   chips), which work like map layers: choosing one changes the map and leaves its card as just a heading; choose
   it again, or tap the heading, to read it; then the tools (Pulse, Time, map style, Lenses, a TV, My Place).
@@ -134,6 +175,10 @@ Motion is how the simple insight arrives, not decoration. One curve, three durat
 - **The marks move.** Registration ticks draw in when something is chosen; hairlines draw left to right; figures
   in Geist Mono and in an insight's headline count up to their value; pigments wash in; the hours rise like a
   skyline; your people land on the globe one after another; heat and view layers fade up rather than appear.
+- **Data in the same hand.** What someone brings to a presentation is redrawn, never pasted as a picture of
+  someone else's chart: bars in ochre grow in rank order, a line draws itself and its latest value lands, one figure
+  counts up in Geist Mono, a share fills a grid of tesserae in the four pigments, places land on the globe one after
+  another. Hairlines for axes, no gridlines more than needed, plain words for the change ("Up 33% since 1960").
 - **Respectful.** With less motion asked for, everything is a 120 ms fade and nothing travels.
 
 ## Web, phone and TV

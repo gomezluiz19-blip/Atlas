@@ -759,9 +759,28 @@ if (tvLink) setTimeout(() => void import("./tv/tv").then((m) => {
   closePanels();
   m.enterTv(app, code?.toUpperCase(), lat && lon ? { name: name ? decodeURIComponent(name) : "Here", sub: "", lon: Number(lon), lat: Number(lat), radius: 6000 } : undefined);
 }), 2600);
-// About, and the mark top left that opens it.
+// About, and the band across the top that carries the mark and the name (it opens About).
 const about = createAbout(() => aiSettings.open());
-document.querySelector(".topbar")?.prepend(about.mark);
+{
+  // The map sits under the band as a big rounded bubble; one tap opens it to the whole screen and back.
+  const FULL = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>';
+  const SMALL = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg>';
+  const expand = document.createElement("button");
+  expand.className = "map-expand";
+  const paint = () => {
+    const open = document.body.classList.contains("map-open");
+    expand.innerHTML = open ? SMALL : FULL;
+    expand.setAttribute("aria-label", open ? "Back to the bubble" : "Open the map to the whole screen");
+    expand.setAttribute("aria-pressed", String(open));
+  };
+  expand.addEventListener("click", () => { document.body.classList.toggle("map-open"); paint(); app.globe.viewer.scene.requestRender(); });
+  paint();
+  const band = document.createElement("header");
+  band.className = "app-band";
+  band.append(about.mark);
+  document.body.insertBefore(band, $("ui"));
+  $("ui").append(expand);
+}
 $("ui").append(about.panel);
 
 // Status bar: cursor position.
@@ -810,8 +829,8 @@ const social = wireSocial(app, {
   openPlace: (slug) => openPlace(slug),
   closePanels: () => closePanels(),
   extras: () => [
-    { label: "My Place", icon: icons.home, run: () => openMode("place") },
-    { label: `Watching${social ? ` (${social.watch.count()})` : ""}`, icon: iconSvg("🔔", 18) ?? icons.sparkle, run: () => app.actions.get("watch:open")?.run() },
+    { label: "My Place", icon: icons.home, run: () => openMode("place"), big: "var(--cobalt)" },
+    { label: `Watching${social ? ` (${social.watch.count()})` : ""}`, icon: iconSvg("🔔", 18) ?? icons.sparkle, run: () => app.actions.get("watch:open")?.run(), big: "var(--ochre)" },
     { label: "Take the tour", icon: icons.compass, run: () => startTour(app) },
     { label: aiOn() ? "Terreno AI: connected" : "Connect Terreno AI", icon: icons.sparkle, run: () => aiSettings.open() },
     { label: "Send feedback", icon: icons.pencil, run: () => void import("./ui/feedback").then((m) => m.openFeedback(app)) },
