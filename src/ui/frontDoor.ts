@@ -4,7 +4,7 @@
 // ("plan a trip", "make a video"), a lens, a story. This file is the matching;
 // main.ts lists the things.
 
-export type ThingGroup = "Show on the map" | "Open" | "Stories";
+type ThingGroup = "Show on the map" | "Open" | "Stories";
 
 export interface Thing {
   title: string;

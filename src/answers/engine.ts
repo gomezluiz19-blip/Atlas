@@ -3,6 +3,8 @@
 // rivers, faults, country figures), scores each cell against the conditions,
 // and picks the best places, spread apart so they aren't all one hillside.
 import { MEASURES, combine, satisfy, type Criterion, type Needs } from "./criteria";
+import { kmAt as kmBetween } from "../util/geo";
+export { kmBetween };
 
 export interface Bbox { w: number; s: number; e: number; n: number }
 
@@ -35,10 +37,6 @@ export interface Area {
 }
 
 const rad = Math.PI / 180;
-export const kmBetween = (lon1: number, lat1: number, lon2: number, lat2: number) => {
-  const a = Math.sin(((lat2 - lat1) * rad) / 2) ** 2 + Math.cos(lat1 * rad) * Math.cos(lat2 * rad) * Math.sin(((lon2 - lon1) * rad) / 2) ** 2;
-  return 12_742 * Math.asin(Math.min(1, Math.sqrt(a)));
-};
 
 /** A grid over the box, about `target` cells across its longer side, square-ish on the ground. */
 export function makeGrid(box: Bbox, target = 28): Area {

@@ -1,3 +1,4 @@
+import { loadJson } from "../util/storage";
 // How hard the globe works, fitted to the device it's on. A new flagship phone
 // on fibre and a five-year-old tablet on a train shouldn't get the same globe:
 // the first can take sharp terrain, a big tile cache and full-density pixels;
@@ -10,7 +11,7 @@
 
 export type Tier = "low" | "mid" | "high";
 
-export interface Signals {
+interface Signals {
   /** GB, as navigator.deviceMemory reports it (rounded, capped at 8). */
   memory?: number;
   cores?: number;
@@ -80,7 +81,7 @@ export const stepDown = (t: Tier): Tier => ORDER[Math.max(0, ORDER.indexOf(t) - 
 
 const KEY = "atlas.quality";
 type Memory = { tier?: Tier; pinned?: boolean };
-const recall = (): Memory => { try { return JSON.parse(localStorage.getItem(KEY) ?? "{}") as Memory; } catch { return {}; } };
+const recall = () => loadJson<Memory>(KEY, {});
 const remember = (m: Memory) => { try { localStorage.setItem(KEY, JSON.stringify(m)); } catch { /* private mode */ } };
 
 /** What the browser says about this device, now. */

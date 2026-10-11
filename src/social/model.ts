@@ -62,7 +62,7 @@ export interface Post {
 export interface Signature { from: string; name: string; text: string; at: string }
 
 /** A guide: some of your places, in order, with what to do at each ("Lisbon in a day"). */
-export interface GuideStop { spot: string; note: string; time?: string }
+interface GuideStop { spot: string; note: string; time?: string }
 export interface Guide { id: string; title: string; blurb: string; stops: GuideStop[]; updated: string }
 
 export type Skin = "dawn" | "ocean" | "forest" | "desert" | "night" | "paper" | "2006";
@@ -74,7 +74,7 @@ export const SKINS: { id: Skin; label: string; color: string }[] = [
 ];
 /** A page's accent pigment. */
 export const accentOf = (p: Pick<Profile, "skin" | "avatar">) => SKINS.find((s) => s.id === p.skin)?.color ?? p.avatar.color;
-export const AVATAR_EMOJI = ["🦉", "🦊", "🐢", "🐋", "🦅", "🌵", "🌋", "🏔️", "🌊", "🌙", "⭐", "🌻", "🍄", "🐝", "🦋", "🚲", "🛶", "🎒", "📷", "🎸"];
+const AVATAR_EMOJI = ["🦉", "🦊", "🐢", "🐋", "🦅", "🌵", "🌋", "🏔️", "🌊", "🌙", "⭐", "🌻", "🍄", "🐝", "🦋", "🚲", "🛶", "🎒", "📷", "🎸"];
 export const AVATAR_COLORS = ["#3563d6", "#5b9467", "#d19a2e", "#b8496a", "#8b5fa8", "#4c9ac9", "#9a7552", "#5160c2"];
 
 export interface Profile {

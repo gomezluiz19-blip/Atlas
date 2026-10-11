@@ -12,15 +12,17 @@
 import type { App, Place, Subtab, Theme } from "../app";
 import { countryAt, countryFacts, indicators, type CountryFacts, type IndicatorKey, type Series } from "../data/countries";
 import { commonsThumb } from "../data/wikidata";
-import { h } from "../ui/dom";
+import { deferred, h } from "../ui/dom";
 import { icons } from "../ui/icons";
 import { flyToPlace } from "../ui/search";
 import { WorkLayer } from "../work/layer";
 import { asyncBlock, hero, inlineChart, note, section, stats } from "../themes/common";
 import { cuisines, hospitalsAround, kmBetween, sportsPlayed, streetAround, tally, within, type Spot, type Street, type Topic } from "./street";
-import { artistsNear, athletesOf, companiesNear, companiesOf, dishesOf, fashionOf, heritageOf, moneyBodies, universitiesOf, venuesNear, type Named } from "./wiki";
+import type { Named } from "./wiki";
 import { rateText, usdRates } from "./rates";
-import { exchangeRates, marketsNow } from "./moneyBoard";
+
+// Wikidata lookups and the markets board load with the first topic that needs them.
+const wiki = () => import("./wiki");
 
 // ---- Shared pieces -------------------------------------------------------
 
@@ -157,7 +159,7 @@ function moneyTheme(): Theme {
   const money = countryTab("money", "Money", async (_app, _place, c) => {
     const f = c.facts;
     const [code, cur] = Object.entries(f.currencies ?? {})[0] ?? [];
-    const [s, fx, bodies] = await Promise.all([indicators(c.iso3, MONEY_KEYS), soft(usdRates()), soft(moneyBodies(c.iso3))]);
+    const [s, fx, bodies] = await Promise.all([indicators(c.iso3, MONEY_KEYS), soft(usdRates()), soft((await wiki()).moneyBodies(c.iso3))]);
     const perUsd = code && fx?.rates[code];
     const perEur = code && fx?.rates.EUR && fx.rates[code] ? fx.rates[code] / fx.rates.EUR : null;
     const sectors = [["Farming", s.agriculture], ["Industry", s.industry], ["Services", s.services]] as const;
@@ -194,8 +196,8 @@ function moneyTheme(): Theme {
     render({ app, place, body }) {
       clearPins();
       asyncBlock(app, body, "Finding companies…", async () => {
-        const [near, c] = await Promise.all([soft(companiesNear(place.lon, place.lat)), countryOf(place)]);
-        const big = c ? await soft(companiesOf(c.iso3)) : null;
+        const [near, c] = await Promise.all([soft((await wiki()).companiesNear(place.lon, place.lat)), countryOf(place)]);
+        const big = c ? await soft((await wiki()).companiesOf(c.iso3)) : null;
         const inCountry = (big ?? []).filter((x) => !near?.some((n) => n.id === x.id));
         if (!near?.length && !inCountry.length) return [hero("—", "No well-known companies found", "Wikidata may not have reached here yet."), note(WIKI_NOTE)];
         return [
@@ -224,7 +226,7 @@ function moneyTheme(): Theme {
   return theme({
     id: "money", label: "Money & trade", tabLabel: "Money", icon: icons.coin, color, intro: "Markets open now, today's exchange rates, and what any country's economy runs on.", subtabs: [money, companies, shopping],
     renderEmpty(app, body) {
-      body.append(marketsNow(app), exchangeRates(),
+      body.append(deferred(() => import("./moneyBoard").then((m) => [m.marketsNow(app), m.exchangeRates()])),
         h("div", { class: "empty-hint compact" }, h("span", { class: "empty-icon", html: icons.coin }), h("span", {}, h("strong", {}, "Tap any country or town"), h("span", {}, "Its currency against the dollar, prices, borrowing costs, trade, its biggest companies and where people shop."))));
     },
   });
@@ -239,7 +241,7 @@ function sportsTheme(): Theme {
     render({ app, place, body }) {
       clearPins();
       asyncBlock(app, body, "Finding stadiums and pitches…", async () => {
-        const [venues, street] = await Promise.all([soft(venuesNear(place.lon, place.lat)), soft(streetAround(place.lon, place.lat))]);
+        const [venues, street] = await Promise.all([soft((await wiki()).venuesNear(place.lon, place.lat)), soft(streetAround(place.lon, place.lat))]);
         const mine = street?.spots.filter((s) => s.topic === "sports") ?? [];
         const played = sportsPlayed(mine);
         const count = (k: string) => mine.filter((s) => s.tags.leisure === k).length;
@@ -258,7 +260,7 @@ function sportsTheme(): Theme {
     },
   };
   const stars = countryTab("stars", "Stars", async (app, _p, c) => {
-    const list = await athletesOf(c.iso3);
+    const list = await (await wiki()).athletesOf(c.iso3);
     return [
       list.length ? section(`Sports stars of ${theCountry(c)}`, namedList(app, list, { emoji: "🏅" })) : hero("—", "No athletes found", "Wikidata may not list who competes for this country."),
       note(WIKI_NOTE),
@@ -316,7 +318,7 @@ function fashionTheme(): Theme {
     ];
   });
   const labels = countryTab("labels", "Labels", async (app, _p, c) => {
-    const { labels, designers } = await fashionOf(c.iso3);
+    const { labels, designers } = await (await wiki()).fashionOf(c.iso3);
     if (!labels.length && !designers.length) return [hero("—", `No fashion labels found for ${theCountry(c)}`, "Wikidata may not have them yet."), note(WIKI_NOTE)];
     return [
       labels.length ? section(`Labels from ${theCountry(c)}`, namedList(app, labels, { emoji: "🏷️" })) : "",
@@ -345,7 +347,7 @@ function foodTheme(): Theme {
     ];
   });
   const dishes = countryTab("dishes", "Dishes", async (app, _p, c) => {
-    const list = await dishesOf(c.iso3);
+    const list = await (await wiki()).dishesOf(c.iso3);
     return [
       list.length ? section(`Dishes from ${theCountry(c)}`, namedList(app, list, { emoji: "🍲", sub: (d) => d.about })) : hero("—", `No dishes found for ${theCountry(c)}`, "Wikidata may not list them yet."),
       note(WIKI_NOTE),
@@ -372,7 +374,7 @@ function artsTheme(): Theme {
     render({ app, place, body }) {
       clearPins();
       asyncBlock(app, body, "Finding musicians and artists…", async () => {
-        const { music, art } = await artistsNear(place.lon, place.lat);
+        const { music, art } = await (await wiki()).artistsNear(place.lon, place.lat);
         if (!music.length && !art.length) return [hero("—", "No well-known musicians or artists found nearby"), note(WIKI_NOTE)];
         return [
           music.length ? section("Musicians and bands from around here", namedList(app, music, { emoji: "🎵" })) : "",
@@ -402,7 +404,7 @@ function tourismTheme(): Theme {
     ];
   });
   const country = countryTab("country", "Country", async (app, _p, c) => {
-    const [s, sites] = await Promise.all([indicators(c.iso3, ["arrivals", "tourism", "tourismShare"]), soft(heritageOf(c.iso3))]);
+    const [s, sites] = await Promise.all([indicators(c.iso3, ["arrivals", "tourism", "tourismShare"]), soft((await wiki()).heritageOf(c.iso3))]);
     return [
       hero(s.arrivals.latest ? compact(s.arrivals.latest.value) : "—", `visitors from abroad a year in ${theCountry(c)}`, s.arrivals.latest ? String(s.arrivals.latest.year) : undefined),
       trend(s.arrivals, "Visitors", compact),
@@ -434,7 +436,7 @@ function educationTheme(): Theme {
     ];
   });
   const country = countryTab("country", "Country", async (app, _p, c) => {
-    const [s, unis] = await Promise.all([indicators(c.iso3, ["literacy", "secondary", "tertiary", "eduSpend", "pupilTeacher"]), soft(universitiesOf(c.iso3))]);
+    const [s, unis] = await Promise.all([indicators(c.iso3, ["literacy", "secondary", "tertiary", "eduSpend", "pupilTeacher"]), soft((await wiki()).universitiesOf(c.iso3))]);
     return [
       hero(s.literacy.latest ? pct(s.literacy.latest.value) : s.tertiary.latest ? pct(s.tertiary.latest.value) : "—", s.literacy.latest ? "of adults can read and write" : "go on to university or college", `In ${theCountry(c)}${s.literacy.latest ? `, ${s.literacy.latest.year}` : ""}`),
       stats(

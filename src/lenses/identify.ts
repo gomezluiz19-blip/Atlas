@@ -39,7 +39,7 @@ export function kindFromHint(kind?: string, text = ""): SubjectKind | null {
   return null;
 }
 
-export interface Probe { centre: number; max: number; min: number; ring: number; ringStd: number; flat: number; maxAt: [number, number]; minAt: [number, number] }
+interface Probe { centre: number; max: number; min: number; ring: number; ringStd: number; flat: number; maxAt: [number, number]; minAt: [number, number] }
 
 /** Summarises a square grid of elevations (row-major, odd size) around a point. */
 export function summarise(grid: Float32Array | number[], size: number, lonLat: (i: number, j: number) => [number, number]): Probe {

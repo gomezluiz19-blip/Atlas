@@ -27,7 +27,7 @@ export const companyTies = (id: string): Promise<Tied[]> => cached(`fin:ties:${i
 export const branchesNear = (lon: number, lat: number, m: number): Promise<Branch[]> => overpass(branchesQuery(lon, lat, m)).then(toBranches);
 export const brandNear = (qid: string, lon: number, lat: number, m: number): Promise<Branch[]> => overpass(brandQuery(qid, lon, lat, m)).then(toBranches);
 
-export interface Quote { price: number; change: number; changePct: number; high: number; low: number; open: number; prevClose: number; at: number }
+interface Quote { price: number; change: number; changePct: number; high: number; low: number; open: number; prevClose: number; at: number }
 
 /** A live quote, when a key is set (US tickers on the free plan). */
 export async function quote(ticker: string): Promise<Quote | null> {

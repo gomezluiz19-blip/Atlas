@@ -4,10 +4,10 @@
 // today, or projections (the future). Also the sums behind a place's own
 // history: how much warmer it has become, and who governed it.
 
-export type MomentKind = "borders" | "imagery" | "now" | "future";
+type MomentKind = "borders" | "imagery" | "now" | "future";
 export interface Moment { year: number; kind: MomentKind; label: string }
 
-export const FUTURE = [2030, 2050, 2070, 2100];
+const FUTURE = [2030, 2050, 2070, 2100];
 
 /** "500 BC", "AD 800", "1914". */
 export const yearName = (y: number) => (y < 0 ? `${(-y).toLocaleString()} BC` : y < 1000 ? `AD ${y}` : String(y));

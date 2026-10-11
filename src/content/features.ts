@@ -5,6 +5,7 @@
 // rivers, roughly the middle of the main stem).
 
 import { LANDFORMS } from "./landforms";
+import { kmAt as km } from "../util/geo";
 
 export type FeatureKind = "river" | "peak" | "volcano" | "crater" | "deep" | "forest" | "metro" | "lake" | "waterfall" | "canyon" | "desert"
   | "glacier" | "island" | "reef" | "cave" | "range" | "plateau" | "wetland" | "rift";
@@ -367,11 +368,6 @@ export const FEATURES: Feature[] = [
 ];
 
 const norm = (s: string) => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/^(the|mount|mt\.?|lake|river)\s+/g, "").replace(/\s+(river|trench|crater|forest|rainforest|volcano|metro|subway)$/g, "").replace(/[^a-z0-9]+/g, " ").trim();
-
-function km(lon1: number, lat1: number, lon2: number, lat2: number): number {
-  const r = Math.PI / 180, a = Math.sin(((lat2 - lat1) * r) / 2) ** 2 + Math.cos(lat1 * r) * Math.cos(lat2 * r) * Math.sin(((lon2 - lon1) * r) / 2) ** 2;
-  return 12742 * Math.asin(Math.sqrt(a));
-}
 
 /**
  * The feature that matches a name (and is plausibly the one meant, given where

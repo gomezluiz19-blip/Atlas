@@ -1,3 +1,4 @@
+import { kmBetween as km } from "../util/geo";
 // Every place gets a permanent address: "nile", "mount-everest",
 // "trinidad-flores-uruguay". Pure, so the app and the build (which writes a
 // page per place for search engines) agree on every one.
@@ -21,11 +22,6 @@ export function slugify(s: string): string {
   return s.normalize("NFKD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/&/g, " and ").replace(/['’]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 80);
 }
 
-const R = Math.PI / 180;
-const km = (a: PlaceEntry, b: PlaceEntry) => {
-  const x = Math.sin(((b.lat - a.lat) * R) / 2) ** 2 + Math.cos(a.lat * R) * Math.cos(b.lat * R) * Math.sin(((b.lon - a.lon) * R) / 2) ** 2;
-  return 12_742 * Math.asin(Math.min(1, Math.sqrt(x)));
-};
 
 const ORDER = { feature: 0, world: 1, detail: 2 } as const;
 
@@ -60,7 +56,7 @@ export const spotSlug = (lon: number, lat: number) => `@${lat.toFixed(5)},${lon.
 /** A Wikidata place: "eiffel-tower~q243". */
 export const wikidataSlug = (name: string, qid: string) => `${slugify(name) || "place"}~${qid.toLowerCase()}`;
 
-export type ParsedSlug = { kind: "named"; slug: string } | { kind: "spot"; lon: number; lat: number } | { kind: "wikidata"; qid: string };
+type ParsedSlug = { kind: "named"; slug: string } | { kind: "spot"; lon: number; lat: number } | { kind: "wikidata"; qid: string };
 
 export function parseSlug(s: string): ParsedSlug | null {
   const t = decodeURIComponent(s).trim();

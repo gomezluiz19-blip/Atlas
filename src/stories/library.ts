@@ -8,6 +8,7 @@ import { config } from "../config";
 import { FEATURED } from "../content/stories";
 import { newId } from "../work/store";
 import { search, storyFromJson, toCard, type Query, type Story, type StoryCard } from "./model";
+import { loadJson } from "../util/storage";
 
 export interface Library {
   /** "shared": one library for everyone; "device": featured + this device + links. */
@@ -19,7 +20,7 @@ export interface Library {
   count(id: string, what: "use" | "remix" | "like" | "report"): void;
 }
 
-const read = <T>(key: string, fallback: T): T => { try { return (JSON.parse(localStorage.getItem(key) ?? "null") as T) ?? fallback; } catch { return fallback; } };
+const read = loadJson;
 const write = (key: string, v: unknown) => { try { localStorage.setItem(key, JSON.stringify(v)); } catch { /* storage full or blocked */ } };
 
 const MINE = "atlas.stories.mine.v1";      // stories published from this device

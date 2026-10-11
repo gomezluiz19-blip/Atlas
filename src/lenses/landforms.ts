@@ -92,7 +92,7 @@ export function reliefStats(g: ArrayLike<number>, n: number, cell: number, lat: 
   };
 }
 
-export interface CraterShape { rim: number; floor: number; depth: number; diameter: number; ratio: number; type: "simple" | "complex" | "shallow"; profiles: number[][] }
+interface CraterShape { rim: number; floor: number; depth: number; diameter: number; ratio: number; type: "simple" | "complex" | "shallow"; profiles: number[][] }
 
 /**
  * Crater geometry from radial profiles out from the centre (each an array of

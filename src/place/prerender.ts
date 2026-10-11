@@ -20,7 +20,7 @@ const SCHEMA: Record<string, string> = {
 
 const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
-export interface PageData {
+interface PageData {
   slug: string;
   name: string;
   kind: string;

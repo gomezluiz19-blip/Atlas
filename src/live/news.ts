@@ -28,7 +28,7 @@ export interface Story {
 }
 
 export interface Reading extends Linked { views: number; rank: number }
-export interface OnThisDay { year: number; text: string; link?: Linked }
+interface OnThisDay { year: number; text: string; link?: Linked }
 export interface Headline { title: string; url: string; source: string; time: number; country?: string; image?: string }
 export type EventKind = "wildfires" | "severeStorms" | "volcanoes" | "floods" | "seaLakeIce" | "earthquakes" | "landslides" | "drought" | "dustHaze" | "tempExtremes" | "snow" | "other";
 export interface NaturalEvent { id: string; title: string; kind: EventKind; lon: number; lat: number; time: number; size?: string; url?: string }

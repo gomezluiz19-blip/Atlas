@@ -6,7 +6,7 @@
 import { BoundingSphere, Cartesian3, ComponentDatatype, Ellipsoid, Geometry, GeometryAttribute, GeometryAttributes, PerInstanceColorAppearance, PrimitiveType } from "cesium";
 
 /** Spacing of window bays along a facade, metres. */
-export const BAY = 3.2;
+const BAY = 3.2;
 
 /**
  * One floor of a building between two heights above the ellipsoid: four walls (or as many as the footprint

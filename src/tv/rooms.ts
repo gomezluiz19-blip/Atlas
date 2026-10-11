@@ -1,10 +1,12 @@
+import { kmBetween } from "../util/geo";
+export { kmBetween };
 // What a TV is for. A screen in a living room, a classroom, a site office, a lobby and a meeting room need
 // different things from the same Earth, so TV mode asks once ("What's this screen for?"), remembers the
 // answer, and gives each room its own playlist and its own tools, always in the same shape: what plays by
 // itself, and what the person with the remote can reach for. Names say who it's for, not what we called the
 // code. Everything here is pure (no DOM, no globe), so it can be tested and shared with the phone.
 
-export type RoomId = "home" | "classroom" | "ops" | "lobby" | "meeting";
+type RoomId = "home" | "classroom" | "ops" | "lobby" | "meeting";
 export type SceneId = "live" | "world" | "places" | "markets" | "home" | "wherein" | "sites" | "hazards" | "clocks" | "welcome";
 export interface Tool { id: string; icon: string; label: string; /** One line the phone shows under it. */ about?: string }
 export interface Room { id: RoomId; icon: string; label: string; who: string; about: string; scenes: SceneId[]; tools: string[] }
@@ -95,7 +97,7 @@ export const SCENE_LABELS: Record<SceneId, string> = {
 // ---- Sites from Pro workspaces --------------------------------------------------------------------------
 
 /** Where each tool keeps its workspaces on a device, and what to call it on the wall. */
-export const WORKSPACES: [key: string, tool: string][] = [
+const WORKSPACES: [key: string, tool: string][] = [
   ["atlas.pro.build.v1", "Build Pro"], ["atlas.pro.con.v1", "Construction"], ["atlas.pro.city.v1", "City Ops"],
   ["atlas.pro.edu.v1", "Schools"], ["atlas.pro.shipping.v1", "Freight"], ["atlas.pro.relief.v1", "Relief"],
   ["atlas.pro.mines.v1", "Mining"], ["atlas.pro.field.v1", "Field Ops"], ["atlas.pro.services.v1", "Field Network"],
@@ -162,12 +164,6 @@ export function frameSites(sites: { lon: number; lat: number }[]): { lon: number
 }
 
 // ---- Hazards near sites -------------------------------------------------------------------------------
-
-export function kmBetween(a: { lon: number; lat: number }, b: { lon: number; lat: number }): number {
-  const r = (d: number) => (d * Math.PI) / 180, dLat = r(b.lat - a.lat), dLon = r(b.lon - a.lon);
-  const h = Math.sin(dLat / 2) ** 2 + Math.cos(r(a.lat)) * Math.cos(r(b.lat)) * Math.sin(dLon / 2) ** 2;
-  return 2 * 6371 * Math.asin(Math.min(1, Math.sqrt(h)));
-}
 
 /** How far an earthquake of a magnitude is worth knowing about, km (pure): felt widely past 5, locally below. */
 export const quakeReachKm = (mag: number) => Math.round(Math.min(1500, 25 * 10 ** (0.35 * (mag - 2.5))));

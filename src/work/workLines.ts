@@ -63,7 +63,7 @@ export interface Station {
 }
 export interface Line { id: string; label: string; color: string; stations: Station[] }
 /** How a field is shown: its icon (a key of ui/icons), its group, what to call the work in a sentence, and a line about it. */
-export interface FieldLook { icon: string; family: Family; noun: string; blurb: string }
+interface FieldLook { icon: string; family: Family; noun: string; blurb: string }
 
 export const LINES: Line[] = [
   // Industries where people work around a place: the everyday look round first, then the pro's scout, then the companies that serve them.

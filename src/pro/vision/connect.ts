@@ -15,7 +15,7 @@
 export type Way = "share" | "app" | "bridge" | "rtsp" | "link" | "official" | "phone";
 export type Ready = "now" | "setup" | "soon";
 
-export interface WayInfo { id: Way; label: string; emoji: string; ready: Ready; short: string }
+interface WayInfo { id: Way; label: string; emoji: string; ready: Ready; short: string }
 export const WAYS: Record<Way, WayInfo> = {
   share: { id: "share", label: "Show its live view here", emoji: "🖥", ready: "now", short: "Open the camera's app or website on this computer and share that window into Terreno. Nothing is sent anywhere." },
   app: { id: "app", label: "Open its app", emoji: "📱", ready: "now", short: "Jump from the camera's spot on the map straight to its live view in the maker's app or website." },
@@ -26,7 +26,7 @@ export const WAYS: Record<Way, WayInfo> = {
   phone: { id: "phone", label: "Use an old phone", emoji: "♻️", ready: "soon", short: "Open Terreno on a spare phone, point it at the room, and pair it with this one. Coming with accounts." },
 };
 
-export interface Brand {
+interface Brand {
   id: string; name: string;
   /** The ways in, best first. */
   ways: Way[];
@@ -63,7 +63,7 @@ export const BRANDS: Brand[] = [
 export const brand = (id?: string) => BRANDS.find((b) => b.id === id);
 
 /** What a pasted link is, from its shape (pure). */
-export type LinkKind = "hls" | "mjpeg" | "snapshot" | "webrtc" | "rtsp" | "page" | "unknown";
+type LinkKind = "hls" | "mjpeg" | "snapshot" | "webrtc" | "rtsp" | "page" | "unknown";
 export function linkKind(url: string): LinkKind {
   const u = url.trim().toLowerCase();
   if (/^rtsps?:\/\//.test(u)) return "rtsp";

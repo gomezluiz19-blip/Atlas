@@ -1,3 +1,5 @@
+import { kmPair as gcKm } from "../../util/geo";
+export { gcKm };
 // Sea routes between any two ports: a graph of the waypoints ships actually
 // pass (straits, canals, capes and open-ocean turning points), shortest path
 // by great-circle distance. Chokepoints can be closed, and the route finds its
@@ -32,7 +34,7 @@ export const NODES: Record<string, [number, number, string]> = {
 };
 
 const E = (s: string) => s.split(" ").map((p) => p.split("-") as [string, string]);
-export const EDGES: [string, string][] = E(
+const EDGES: [string, string][] = E(
   "ENG-DOV DOV-NSEA NSEA-SKAG SKAG-DAN DAN-BALT BALT-GOF ENG-BISC BISC-GIB BISC-AZOR BISC-CANA ENG-NATL GIB-MEDW MEDW-SIC SIC-MEDE MEDE-AEG AEG-BOS BOS-BLK " +
   "MEDE-PSD PSD-SUEZ SUEZ-REDC REDC-BAB BAB-ADEN ADEN-ARAB ARAB-HORM HORM-GULF ARAB-LKA ADEN-SOMA SOMA-MOZ SOMA-MAUR MOZ-DUR MAUR-DUR DUR-CAPE LKA-MAUR " +
   "LKA-BOB LKA-MAL BOB-MAL MAL-SGP SGP-SCS SCS-HKG HKG-TWN TWN-ECS ECS-YEL ECS-KOR KOR-JPN ECS-JPN SCS-PHIL PHIL-ECS PHIL-JPN PHIL-CORAL " +
@@ -55,12 +57,6 @@ export const CHOKEPOINTS: Record<string, { label: string; edges: string[]; note:
 };
 
 const R = 6371;
-/** Great-circle kilometres (pure). */
-export function gcKm(a: LonLat, b: LonLat): number {
-  const toR = Math.PI / 180, dLat = (b[1] - a[1]) * toR, dLon = (b[0] - a[0]) * toR;
-  const s = Math.sin(dLat / 2) ** 2 + Math.cos(a[1] * toR) * Math.cos(b[1] * toR) * Math.sin(dLon / 2) ** 2;
-  return 2 * R * Math.asin(Math.min(1, Math.sqrt(s)));
-}
 export const NM = 1.852;
 
 export interface SeaRoute { km: number; pts: LonLat[]; via: string[]; chokepoints: string[] }

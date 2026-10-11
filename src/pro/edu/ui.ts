@@ -9,7 +9,7 @@ import { Massing, type MassBuilding } from "../../enterprise/massing";
 import { addDays, isoDay } from "../../enterprise/seed";
 import { FlowOverlay, type FlowLine } from "../../globe/flow";
 import { h } from "../../ui/dom";
-import { loadJson, saveJson } from "../../util/storage";
+import { loadJson, loadList, saveJson } from "../../util/storage";
 import { flyToPlace, geocode } from "../../ui/search";
 import type { WorkCtx } from "../../work/hub";
 import { WorkLayer, type WorkFeature } from "../../work/layer";
@@ -244,8 +244,7 @@ export function openEducation(ctx: WorkCtx, app: App) {
     }
 
     function learn(): (HTMLElement | string)[] {
-      const results = (() => { try { return JSON.parse(localStorage.getItem("atlas.work.results.v1") ?? "[]"); } catch { return []; } })();
-      const l = learning(s, Array.isArray(results) ? results : []);
+      const l = learning(s, loadList<{ title: string; score: number; total: number }>("atlas.work.results.v1"));
       const grp = h("select", { class: "pro-url", "aria-label": "Class" }, ...teachersOf().map((x) => h("option", { value: x.id }, `${x.subject} · ${x.name}`))) as HTMLSelectElement;
       const what = h("select", { class: "pro-url", "aria-label": "Lesson" }, ...["Continents and oceans", "Volcanoes and earthquakes", "Ancient civilisations", "Rivers and the water cycle"].map((t) => h("option", { value: t }, t))) as HTMLSelectElement;
       const due = h("input", { class: "pro-url", type: "date", value: addDays(today, 7), "aria-label": "Due" }) as HTMLInputElement;

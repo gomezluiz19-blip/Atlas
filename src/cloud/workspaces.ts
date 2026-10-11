@@ -7,7 +7,7 @@ import { cloudOn, cloudUser, rest } from "./client";
 
 export type Role = "owner" | "editor" | "viewer";
 export interface Workspace { id: string; name: string; kind: string; role: Role }
-export interface Doc { body: unknown; version: number; updated_at: string; updated_by: string | null }
+interface Doc { body: unknown; version: number; updated_at: string; updated_by: string | null }
 export interface Member { email: string; role: Role; user_id: string | null; added_at: string }
 export interface Version { version: number; updated_at: string; updated_by: string | null }
 /** How this device's copy of a tool is linked to a workspace. */

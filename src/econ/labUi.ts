@@ -10,10 +10,11 @@ import { bars, pctTag } from "./charts";
 import { COMPANIES } from "./companies";
 import { EconLayer, flyTilted } from "./globeViz";
 import { MARKETS, market } from "./markets";
-import { companyImpact, portfolioImpact, priceMoves } from "./model";
+import { companyImpact, portfolioImpact, priceMoves, type Holding } from "./model";
 import { COUNTRIES, countryName } from "./places";
 import { combine, LANES, SCENARIOS, type Shock } from "./scenarios";
 import { whatIfBar } from "./whatIf";
+import { loadList } from "../util/storage";
 
 let layer: EconLayer | null = null;
 
@@ -59,8 +60,8 @@ export function openLab(ctx: WorkCtx, app: App) {
       pins: (sh.lanes ?? []).map((l) => ({ lon: LANES[l][0], lat: LANES[l][1], color: "#c4513a", label: `${l} closed` })),
       columns: cols,
     }, `What if: ${names.join(" + ")}`);
-    const portfolio = (() => { try { return JSON.parse(localStorage.getItem("atlas.econ.portfolio.v1") ?? "[]"); } catch { return []; } })();
-    const pf = Array.isArray(portfolio) && portfolio.length ? portfolioImpact(portfolio, sh) : null;
+    const portfolio = loadList<Holding>("atlas.econ.portfolio.v1");
+    const pf = portfolio.length ? portfolioImpact(portfolio, sh) : null;
     out.replaceChildren(
       h("h3", { class: "group-title" }, "Prices"),
       moves.length ? bars(moves.slice(0, 8).map((x) => ({ label: x.m!.name, value: Math.abs(x.pct), note: `${x.pct > 0 ? "+" : "−"}${Math.abs(x.pct)}%`, color: x.pct > 0 ? "#c4513a" : "#5b9467" })), "#c4513a") : h("p", { class: "muted small" }, "No big price moves."),

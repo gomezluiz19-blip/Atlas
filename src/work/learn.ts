@@ -92,7 +92,7 @@ function daily(app: App, ctx: WorkCtx) {
 
 // ---- Flag Match ---------------------------------------------------------------------------------------
 
-export function flagMatch(app: App) {
+function flagMatch(app: App) {
   const ROUNDS = 8;
   const rounds = shuffle(FLAG_COUNTRIES).slice(0, ROUNDS);
   const s = stage(app);

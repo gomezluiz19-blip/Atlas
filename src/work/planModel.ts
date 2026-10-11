@@ -70,7 +70,7 @@ export function circle(centre: LonLat, radiusM: number, steps = 64): LonLat[] {
   });
 }
 
-export interface ZoneCount { count: number; total?: number }
+interface ZoneCount { count: number; total?: number }
 
 /** Counts points inside a zone, optionally summing a value (e.g. MW). */
 export function countInside<T extends { lon: number; lat: number }>(ring: LonLat[], items: T[], value?: (t: T) => number): ZoneCount {

@@ -169,7 +169,7 @@ export function recentre(c: SplatCloud, centre: [number, number, number]) {
  * quaternions, each quantized to bytes, all gzipped: about a tenth the size of a PLY. Version 2, no
  * view-dependent colour (degree 0). Returns the uncompressed packed bytes; `encodeSpz` gzips them.
  */
-export function packSpz(c: SplatCloud, antialiased = false): Uint8Array {
+function packSpz(c: SplatCloud, antialiased = false): Uint8Array {
   const n = c.count;
   let maxAbs = 1e-6;
   for (let i = 0; i < n * 3; i++) maxAbs = Math.max(maxAbs, Math.abs(c.positions[i]));

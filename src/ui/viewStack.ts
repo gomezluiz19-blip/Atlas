@@ -21,9 +21,8 @@ const HOLD_MS = 450;
 
 export function createViewStack(app: App, things: () => Thing[]): HTMLElement {
   const col = h("div", { class: "vs-col" });
-  const addBtn = h("button", { class: "vs-add", "aria-label": "Add a view to the map", title: "Add a view", "aria-expanded": "false", html: plus }) as HTMLButtonElement;
   const sheet = h("div", { class: "vs-sheet", role: "dialog", "aria-label": "Add a view", hidden: true });
-  const root = h("div", { class: "vs", role: "region", "aria-label": "Views on the map" }, col, addBtn, sheet);
+  const root = h("div", { class: "vs", role: "region", "aria-label": "Views on the map" }, col, sheet);
   const els = new Map<string, HTMLElement>();
   let openCard: HTMLElement | null = null;
 
@@ -161,11 +160,9 @@ export function createViewStack(app: App, things: () => Thing[]): HTMLElement {
   });
   function toggleSheet(open = sheet.hidden) {
     sheet.hidden = !open;
-    addBtn.setAttribute("aria-expanded", String(open));
     root.classList.toggle("adding", open);
     if (open) { ask.value = ""; shelf = null; fill(); requestAnimationFrame(() => ask.focus({ preventScroll: true })); }
   }
-  addBtn.addEventListener("click", () => toggleSheet());
   // A tap anywhere else puts the sheet and any open card away.
   document.addEventListener("pointerdown", (e) => {
     if (root.contains(e.target as Node)) return;
@@ -173,7 +170,7 @@ export function createViewStack(app: App, things: () => Thing[]): HTMLElement {
     if (!sheet.hidden) toggleSheet(false);
   });
   addEventListener("keydown", (e: KeyboardEvent) => { if (e.key === "Escape") { closeCard(); if (!sheet.hidden) toggleSheet(false); } });
-  // "Add a view" from elsewhere (the Layers popover).
+  // "Add a view" opens from ＋ and from the Layers popover.
   addEventListener("atlas:add-view", () => toggleSheet(true));
 
   app.canvas.subscribe(draw);
@@ -181,5 +178,4 @@ export function createViewStack(app: App, things: () => Thing[]): HTMLElement {
   return root;
 }
 
-const plus = `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>`;
 const eyeOff = `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/><path d="M4 20L20 4"/></svg>`;

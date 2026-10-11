@@ -8,9 +8,9 @@
 const g = (body: string) =>
   `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${body}</svg>`;
 
-export type LensFamily = "inside" | "time" | "follow" | "yours";
+type LensFamily = "inside" | "time" | "follow" | "yours";
 
-export interface LensLook { name: string; hint: string; family: LensFamily; glyph: string }
+interface LensLook { name: string; hint: string; family: LensFamily; glyph: string }
 
 export const FAMILY: Record<LensFamily, { label: string; color: string }> = {
   inside: { label: "Look inside", color: "#b86b3a" },

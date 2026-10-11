@@ -8,6 +8,7 @@ import { h } from "../ui/dom";
 import { flyToPlace } from "../ui/search";
 import { venueOf } from "../place/venue";
 import { busyAt, busyWord, centres, gatherFrom, gatherQuery, GROUPS, HEAT_STOPS, heatColor, heatGrid, KINDS, type GatherGroup, type GatherSpot } from "./gather";
+import { kmBetween } from "../util/geo";
 
 type Spot = { lon: number; lat: number };
 
@@ -21,11 +22,6 @@ const CLOCKS: { id: string; label: string; set?: (d: Date) => void }[] = [
 ];
 const hourText = (hr: number) => `${hr % 12 || 12}${hr < 12 ? "am" : "pm"}`;
 const distText = (km: number) => (km < 1 ? `${Math.round(km * 100) * 10} m` : `${km.toFixed(1)} km`);
-const kmBetween = (a: Spot, b: Spot) => {
-  const R = 6371, r = Math.PI / 180, dLat = (b.lat - a.lat) * r, dLon = (b.lon - a.lon) * r;
-  const x = Math.sin(dLat / 2) ** 2 + Math.cos(a.lat * r) * Math.cos(b.lat * r) * Math.sin(dLon / 2) ** 2;
-  return 2 * R * Math.asin(Math.min(1, Math.sqrt(x)));
-};
 
 /** The heat on the globe: one image over the area, replaced as the hour changes. */
 function heatLayer(app: App, id: string, scope: "place" | "world") {

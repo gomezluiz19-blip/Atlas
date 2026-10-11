@@ -14,7 +14,7 @@ type Model = { detect(el: HTMLVideoElement | HTMLImageElement | HTMLCanvasElemen
 
 let modelP: Promise<Model> | null = null;
 /** Loads the detector once, preferring the GPU. */
-export function loadDetector(): Promise<Model> {
+function loadDetector(): Promise<Model> {
   modelP ??= (async () => {
     const tf = await import("@tensorflow/tfjs-core");
     await Promise.all([import("@tensorflow/tfjs-backend-webgl"), import("@tensorflow/tfjs-backend-cpu"), import("@tensorflow/tfjs-converter")]);

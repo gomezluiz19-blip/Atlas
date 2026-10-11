@@ -8,13 +8,14 @@ import { h } from "./dom";
 import { icons } from "./icons";
 import { download } from "../work/store";
 import { recentProblems } from "./errors";
+import { loadList } from "../util/storage";
 
 const KEY = "atlas.feedback.v1";
 const URL_ = (import.meta.env?.VITE_FEEDBACK_URL as string | undefined) || "";
 const EMAIL = (import.meta.env?.VITE_FEEDBACK_EMAIL as string | undefined) || "";
 
 interface Note { at: string; mood: number; text: string; who?: string; contact?: string; where: string; problems?: { at: string; message: string }[] }
-const read = (): Note[] => { try { return JSON.parse(localStorage.getItem(KEY) ?? "[]") as Note[]; } catch { return []; } };
+const read = () => loadList<Note>(KEY);
 const write = (n: Note[]) => { try { localStorage.setItem(KEY, JSON.stringify(n.slice(0, 500))); } catch { /* full */ } };
 const FACES = ["😣", "😕", "🙂", "😀", "🤩"];
 

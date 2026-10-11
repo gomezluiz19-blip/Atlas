@@ -58,10 +58,10 @@ export function footprint(b: Pick<MassBuilding, "lon" | "lat" | "w" | "d" | "bea
 }
 
 /** What makes a building's geometry: if this is unchanged, only colours need updating (pure). */
-export const shapeKey = (b: MassBuilding) => `${b.id}|${b.lon.toFixed(6)}|${b.lat.toFixed(6)}|${b.w}|${b.d}|${b.bearing ?? 0}|${b.dx ?? 0}|${b.dy ?? 0}|${b.floors}|${b.floorH ?? 3.6}`;
+const shapeKey = (b: MassBuilding) => `${b.id}|${b.lon.toFixed(6)}|${b.lat.toFixed(6)}|${b.w}|${b.d}|${b.bearing ?? 0}|${b.dx ?? 0}|${b.dy ?? 0}|${b.floors}|${b.floorH ?? 3.6}`;
 
 /** A floor's fill and outline colour (pure): ghosts are faint, built floors nearly solid. */
-export function floorPaint(b: MassBuilding, i: number): { fill: [number, number, number, number]; line: [number, number, number, number] } {
+function floorPaint(b: MassBuilding, i: number): { fill: [number, number, number, number]; line: [number, number, number, number] } {
   const c = Color.fromCssColorString(b.floorColor(i)) ?? Color.GRAY;
   const ghost = i >= (b.ghostFrom ?? b.floors);
   const l = Color.lerp(c, Color.WHITE, 0.35, new Color());

@@ -138,7 +138,7 @@ export function openPlans(ctx: WorkCtx) {
   );
 }
 
-export function openPlan(ctx: WorkCtx, id: string) {
+function openPlan(ctx: WorkCtx, id: string) {
   const p = store.get(id);
   if (!p) return trips.get(id) ? openTrip(ctx, id) : openPlans(ctx);
   const cfg = PLAN_TYPES[p.type];

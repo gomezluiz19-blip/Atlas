@@ -46,7 +46,7 @@ export function readBaseball(teams: MlbTeam[], extra = new Map<number, { latitud
   });
 }
 
-export interface MlbGame { date: string; home: boolean; opponent: string; venue: string; venueId: number }
+interface MlbGame { date: string; home: boolean; opponent: string; venue: string; venueId: number }
 
 /** A club's games in a date range, from its point of view. */
 export async function baseballSchedule(team: LeagueTeam, start: string, end: string): Promise<MlbGame[]> {
@@ -181,7 +181,7 @@ export function moveRoutes(moves: Move[], teams: Map<string, { lon: number; lat:
 
 // ---- Calendars ------------------------------------------------------------------------------------
 
-export interface CalGame { date: string; summary: string; location?: string }
+interface CalGame { date: string; summary: string; location?: string }
 
 /** Games from an iCalendar file (most clubs publish one; pure). */
 export function parseIcs(text: string): CalGame[] {

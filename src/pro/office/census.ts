@@ -4,7 +4,7 @@ import { cached } from "../../data/diskCache";
 import { getJson } from "../../data/http";
 import { US_STATES } from "../../politics/model";
 
-export interface DistrictPeople {
+interface DistrictPeople {
   name: string; population: number; medianAge?: number; medianIncome?: number; medianHome?: number;
   veteransPct?: number; povertyPct?: number; foreignBornPct?: number; degreePct?: number; year: number;
 }

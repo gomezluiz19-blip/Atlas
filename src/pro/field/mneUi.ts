@@ -9,7 +9,7 @@ import { parseCsv } from "../office/model";
 import { fmt, issueQueue, kmText, today } from "../kit/ops";
 import { empty, field, input, lines, list, row, select, title } from "../kit/ui";
 import { downloadCsv, pickFile, printReport } from "../kit/report";
-import { gaps, needsTally, SERVICES, SITE_KINDS, type Programme, type Service } from "./model";
+import { gaps, needsTally, SERVICES, type Programme, type Service } from "./model";
 import {
   communitiesFromRows, FOUR_W_HEAD, fourW, gapMatrix, indicatorProgress, planSites, reached, SECTORS, stockCover, total, walkHours,
   type Activity, type Sector,
@@ -151,5 +151,4 @@ export function donorReport(p: Programme) {
   ], "Distances are straight lines; reach uses the programme's own thresholds. People reached are as reported by each organisation.");
 }
 
-export const siteKindLabel = (k: string) => SITE_KINDS[k as keyof typeof SITE_KINDS]?.label ?? k;
 export { kmText };

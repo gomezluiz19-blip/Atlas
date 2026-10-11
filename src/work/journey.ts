@@ -18,7 +18,7 @@ import { newId } from "./store";
 import { iconFor, labelled } from "../ui/glyph";
 import { animateLeg } from "./tripPlay";
 
-export interface JourneyHost {
+interface JourneyHost {
   ctx: WorkCtx;
   journey: Journey;
   /** Saves the journey and draws it again. */

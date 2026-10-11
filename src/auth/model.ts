@@ -27,9 +27,9 @@ export function cleanHandle(s: string): string {
   return s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9._]/g, "").replace(/\.{2,}/g, ".").replace(/^\.+/, "").slice(0, 24);
 }
 /** Names a handle can't take: Terreno's own pages and words people would mistake for us. */
-export const RESERVED = new Set(["terreno", "admin", "administrator", "support", "help", "about", "legal", "privacy", "terms", "settings", "account",
+const RESERVED = new Set(["terreno", "admin", "administrator", "support", "help", "about", "legal", "privacy", "terms", "settings", "account",
   "login", "signin", "signup", "join", "api", "app", "tv", "remote", "official", "staff", "team", "security", "root", "null", "undefined", "me", "you"]);
-export type HandleProblem = "short" | "reserved" | "edge" | null;
+type HandleProblem = "short" | "reserved" | "edge" | null;
 /** What's wrong with a handle, if anything (pure; whether it's taken is asked separately). */
 export function handleProblem(h: string): HandleProblem {
   if (h.length < 2) return "short";
@@ -48,7 +48,7 @@ export function codeDigits(s: string): string {
   return s.replace(/\D/g, "").slice(0, 6);
 }
 
-export interface OAuthReturn { access_token: string; refresh_token: string; expires_in: number }
+interface OAuthReturn { access_token: string; refresh_token: string; expires_in: number }
 /** The tokens an OAuth provider sends back in the address (#access_token=…), or the error it gave, or null. */
 export function parseOAuthReturn(hash: string): OAuthReturn | { error: string } | null {
   const p = new URLSearchParams(hash.replace(/^#/, ""));

@@ -12,14 +12,15 @@ import { newId } from "../work/store";
 import { isMine, library, liked, markLiked, remember } from "./library";
 import { creditLine, LEVELS, packStory, remixOf, storyFromDeck, TOPICS, type Query, type Story, type StoryCard, type StoryRef } from "./model";
 import { iconFor, labelled } from "../ui/glyph";
+import { loadJson } from "../util/storage";
 
 // ---- What a deck needs to be a story (kept beside the deck) ------------------------------------
 
-export interface DeckMeta { storyId?: string; summary: string; tags: string[]; level?: string; lineage: StoryRef[]; links: StoryRef[] }
+interface DeckMeta { storyId?: string; summary: string; tags: string[]; level?: string; lineage: StoryRef[]; links: StoryRef[] }
 const META = "atlas.stories.deckmeta.v1";
-const readMeta = (): Record<string, DeckMeta> => { try { return JSON.parse(localStorage.getItem(META) ?? "{}") ?? {}; } catch { return {}; } };
-export const deckMeta = (deckId: string): DeckMeta => readMeta()[deckId] ?? { summary: "", tags: [], lineage: [], links: [] };
-export const setDeckMeta = (deckId: string, m: DeckMeta) => { const all = readMeta(); all[deckId] = m; try { localStorage.setItem(META, JSON.stringify(all)); } catch { /* storage full */ } };
+const readMeta = () => loadJson<Record<string, DeckMeta>>(META, {});
+const deckMeta = (deckId: string): DeckMeta => readMeta()[deckId] ?? { summary: "", tags: [], lineage: [], links: [] };
+const setDeckMeta = (deckId: string, m: DeckMeta) => { const all = readMeta(); all[deckId] = m; try { localStorage.setItem(META, JSON.stringify(all)); } catch { /* storage full */ } };
 const authorName = () => { try { return localStorage.getItem("atlas.stories.author") ?? ""; } catch { return ""; } };
 const setAuthorName = (v: string) => { try { localStorage.setItem("atlas.stories.author", v); } catch { /* ignore */ } };
 

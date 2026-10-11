@@ -57,7 +57,7 @@ function kindOf(t: Record<string, string>): Kind | null {
 const RADIUS_KM = 10;
 
 /** Named water features around a place, nearest first. */
-export async function waterNearby(place: Place): Promise<WaterFeature[]> {
+async function waterNearby(place: Place): Promise<WaterFeature[]> {
   const at = `around:${RADIUS_KM * 1000},${place.lat.toFixed(5)},${place.lon.toFixed(5)}`;
   const els = await overpass(`[out:json][timeout:40];
 (

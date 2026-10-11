@@ -4,7 +4,7 @@
 import { h } from "../ui/dom";
 import { combine, scaled, SCENARIOS, type Scenario, type Shock } from "./scenarios";
 
-export interface WhatIfState { picked: Scenario[]; severity: number; shock: Shock | null }
+interface WhatIfState { picked: Scenario[]; severity: number; shock: Shock | null }
 
 export function whatIfBar(opts: { only?: (s: Scenario) => boolean; onChange: (st: WhatIfState) => void; title?: string; openLab?: () => void }): HTMLElement {
   const list = SCENARIOS.filter(opts.only ?? (() => true));

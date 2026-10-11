@@ -1,3 +1,4 @@
+import { kmBetween } from "../util/geo";
 // What a venue's card needs beyond what it is: whether it's open now, its street address, what's nearby by
 // kind, photos and videos taken around it, and links out for directions. Pure: no DOM, no network.
 
@@ -9,7 +10,7 @@ const DAY_IDS = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
 const toMin = (hhmm: string) => { const [hh, mm] = hhmm.split(":").map(Number); return hh * 60 + mm; };
 const clock = (m: number) => `${String(Math.floor(m / 60) % 24).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;
 
-export interface OpenState { open: boolean; /** "Closes 15:30", "Opens 08:00", "Opens Mon 08:00". */ next: string }
+interface OpenState { open: boolean; /** "Closes 15:30", "Opens 08:00", "Opens Mon 08:00". */ next: string }
 
 /** The days a rule covers ("Mo-Fr", "Sa,Su", "Mo-We,Fr"), as 0–6 with Sunday 0; null if it isn't a day list. */
 function daysOf(spec: string): number[] | null {
@@ -72,7 +73,7 @@ export function addressLine(a: Record<string, string> | null | undefined): strin
 
 // ---- Nearby ------------------------------------------------------------------------------------------
 
-export type NearbyId = "food" | "coffee" | "groceries" | "parks" | "transit" | "schools" | "health" | "fuel";
+type NearbyId = "food" | "coffee" | "groceries" | "parks" | "transit" | "schools" | "health" | "fuel";
 export interface NearbyKind { id: NearbyId; label: string; /** OpenStreetMap key=value|value… pairs. */ osm: string[] }
 
 export const NEARBY: NearbyKind[] = [
@@ -98,12 +99,6 @@ export function nearbyQuery(c: Spot, kind: NearbyKind, radiusM: number): string 
 interface El { type: "node" | "way" | "relation"; id: number; lat?: number; lon?: number; center?: { lat: number; lon: number }; tags?: Record<string, string> }
 
 export interface NearbyPlace extends Spot { name: string; key: string; value: string; osm: string; km: number; tags: Record<string, string> }
-
-const kmBetween = (a: Spot, b: Spot) => {
-  const R = 6371, r = Math.PI / 180, dLat = (b.lat - a.lat) * r, dLon = (b.lon - a.lon) * r;
-  const x = Math.sin(dLat / 2) ** 2 + Math.cos(a.lat * r) * Math.cos(b.lat * r) * Math.sin(dLon / 2) ** 2;
-  return 2 * R * Math.asin(Math.sqrt(x));
-};
 
 /** Named places from an Overpass answer, nearest first, without the venue itself or repeats (pure). */
 export function nearbyFrom(els: El[], kind: NearbyKind, from: Spot, selfName = ""): NearbyPlace[] {

@@ -1,10 +1,11 @@
+import { loadList } from "../util/storage";
 // Packages on the way to your place. Paste a tracking number, or a whole
 // shipping email, and Terreno finds the numbers, knows the carrier from the
 // number's pattern and links to its tracking page. Carriers don't share
 // tracking without their own API keys, so the status and date are yours to
 // set (or come in from the link); arrivals show in the dock and in My plans.
 
-export type Carrier = "UPS" | "FedEx" | "USPS" | "DHL" | "Amazon" | "Royal Mail" | "Canada Post" | "Post";
+type Carrier = "UPS" | "FedEx" | "USPS" | "DHL" | "Amazon" | "Royal Mail" | "Canada Post" | "Post";
 export type Status = "ordered" | "shipped" | "out" | "delivered" | "problem";
 export const STATUS: Record<Status, { label: string; color: string }> = {
   ordered: { label: "Ordered", color: "#8c8f87" },
@@ -80,7 +81,7 @@ export function findDate(text: string, today: string): string | undefined {
 }
 
 export const KEY = "atlas.myplace.packages.v1";
-export function readPackages(): Package[] { try { const v = JSON.parse(localStorage.getItem(KEY) ?? "[]"); return Array.isArray(v) ? v : []; } catch { return []; } }
+export const readPackages = () => loadList<Package>(KEY);
 export function writePackages(ps: Package[]) { try { localStorage.setItem(KEY, JSON.stringify(ps)); } catch { /* private mode */ } }
 
 /** What the dock says about packages (pure): how many are coming, and the next arrival. */

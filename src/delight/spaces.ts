@@ -10,7 +10,7 @@ export function closeSpace() { active?.close(); active = null; }
 /** Takes over a hologram made elsewhere (so opening the next one closes it). */
 export function adopt(h: Holo) { if (active !== h) closeSpace(); active = h; }
 
-export type OpenOptions = Omit<SpaceOptions, "onGlobe" | "onClose"> & { onGlobe?(): void; onClose?(): void };
+type OpenOptions = Omit<SpaceOptions, "onGlobe" | "onClose"> & { onGlobe?(): void; onClose?(): void };
 
 export async function openSpace(app: App, o: OpenOptions): Promise<Holo> {
   closeSpace();

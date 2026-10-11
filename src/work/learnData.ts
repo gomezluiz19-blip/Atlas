@@ -21,7 +21,7 @@ export const FLAG_COUNTRIES = CAPITALS.filter((c) => ISO[c.name]).map((c) => ({
   capital: c.name, iso: ISO[c.name], lon: c.lon, lat: c.lat,
 }));
 
-export interface FreeMuseum { name: string; city: string; lat: number; lon: number; deal: string; kind: string }
+interface FreeMuseum { name: string; city: string; lat: number; lon: number; deal: string; kind: string }
 
 /** Famous museums that are free, or free for young people and students. Prices change: check before going. */
 export const FREE_MUSEUMS: FreeMuseum[] = [

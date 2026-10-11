@@ -11,7 +11,7 @@ export interface VectorShape {
   bbox: [number, number, number, number];
 }
 
-export interface VectorStyle {
+interface VectorStyle {
   stroke: string;
   width: number;
   fill?: string;

@@ -51,13 +51,13 @@ export function hours48(lon: number, lat: number): Promise<Hours> {
   return getJson<Hours>("Open-Meteo", `https://api.open-meteo.com/v1/forecast?${ll(lon, lat)}&hourly=temperature_2m,precipitation_probability,precipitation,weather_code,wind_speed_10m,is_day,cloud_cover&forecast_hours=48&timezone=auto`, undefined, 20_000);
 }
 
-export interface Projection { daily: { time: string[]; temperature_2m_max: (number | null)[]; temperature_2m_min: (number | null)[] } }
+interface Projection { daily: { time: string[]; temperature_2m_max: (number | null)[]; temperature_2m_min: (number | null)[] } }
 /** Daily highs and lows from a climate model (CMIP6, EC-Earth3P-HR), 1991–2050. */
 export function projectedExtremes(lon: number, lat: number): Promise<Projection> {
   return getJson<Projection>("Open-Meteo", `https://climate-api.open-meteo.com/v1/climate?${ll(lon, lat)}&start_date=1991-01-01&end_date=2050-12-31&models=EC_Earth3P_HR&daily=temperature_2m_max,temperature_2m_min`, undefined, 60_000);
 }
 
-export interface AirNow { current: { us_aqi?: number; european_aqi?: number; pm2_5?: number; pm10?: number; uv_index?: number; ozone?: number } }
+interface AirNow { current: { us_aqi?: number; european_aqi?: number; pm2_5?: number; pm10?: number; uv_index?: number; ozone?: number } }
 /** Air quality and UV now (Open-Meteo's CAMS-based air-quality model). */
 export function airNow(lon: number, lat: number): Promise<AirNow> {
   return getJson<AirNow>("Open-Meteo", `https://air-quality-api.open-meteo.com/v1/air-quality?${ll(lon, lat)}&current=us_aqi,european_aqi,pm2_5,pm10,uv_index,ozone`, undefined, 15_000, true);
@@ -74,7 +74,7 @@ export function history(lon: number, lat: number): Promise<History> {
   );
 }
 
-export interface FarmDay { date: string; tmax: number | null; tmin: number | null; rain: number | null; et0: number | null }
+interface FarmDay { date: string; tmax: number | null; tmin: number | null; rain: number | null; et0: number | null }
 
 type DailyFarm = { daily: { time: string[]; temperature_2m_max: (number | null)[]; temperature_2m_min: (number | null)[]; precipitation_sum: (number | null)[]; et0_fao_evapotranspiration: (number | null)[] } };
 const FARM_VARS = "daily=temperature_2m_max,temperature_2m_min,precipitation_sum,et0_fao_evapotranspiration&timezone=auto";

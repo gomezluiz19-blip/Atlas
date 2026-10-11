@@ -14,6 +14,7 @@ import { h } from "../ui/dom";
 import { canvasUrl } from "../ui/canvasUrl";
 import { iconPin } from "../ui/glyph";
 import type { Lens, LensHost, Subject, SubjectKind } from "./types";
+import { kmAt as km } from "../util/geo";
 
 // ---- The recipe ----------------------------------------------------------------------------------
 
@@ -177,10 +178,6 @@ function addPin(ctx: Ctx, lon: number, lat: number, image: string, name?: string
     label: name ? { text: name, font: "600 11px 'Terreno Sans', 'Plus Jakarta Sans', system-ui, sans-serif", fillColor: Color.WHITE, outlineColor: Color.BLACK.withAlpha(0.7), outlineWidth: 3, style: LabelStyle.FILL_AND_OUTLINE, verticalOrigin: VerticalOrigin.TOP, pixelOffset: { x: 0, y: 14 } as never, heightReference: HeightReference.CLAMP_TO_GROUND, disableDepthTestDistance: Number.POSITIVE_INFINITY, distanceDisplayCondition: { near: 0, far: 30_000 } as never } : undefined,
   }));
 }
-const km = (lon1: number, lat1: number, lon2: number, lat2: number) => {
-  const r = Math.PI / 180, a = Math.sin(((lat2 - lat1) * r) / 2) ** 2 + Math.cos(lat1 * r) * Math.cos(lat2 * r) * Math.sin(((lon2 - lon1) * r) / 2) ** 2;
-  return 12742 * Math.asin(Math.sqrt(a));
-};
 const fmtKm = (d: number) => (d < 1 ? `${Math.round(d * 1000 / 10) * 10} m` : `${d.toFixed(d < 10 ? 1 : 0)} km`);
 const card = (title: string, emoji: string, ...kids: (Node | string)[]) => h("section", { class: "cl-block" }, h("h3", {}, h("span", {}, emoji), title), ...kids);
 const pending = (text: string) => h("p", { class: "cl-wait" }, h("span", { class: "spinner small" }), text);
@@ -377,7 +374,7 @@ export async function judgeLens(app: App, s: Subject, def: LensDef): Promise<Jud
   return v ? { ...v, at: Date.now() } : null;
 }
 
-export function renderLens(host: LensHost, s: Subject, def: LensDef, opts: { author?: HTMLElement; headless?: boolean } = {}): Promise<Omit<Judgement, "at"> | null> {
+function renderLens(host: LensHost, s: Subject, def: LensDef, opts: { author?: HTMLElement; headless?: boolean } = {}): Promise<Omit<Judgement, "at"> | null> {
   const ctx: Ctx = { app: host.app, s, def, pins: [], verdicts: [], paintVerdict: () => {}, headless: opts.headless };
   host.onClose(() => { ctx.closed = true; for (const e of ctx.pins) host.app.globe.viewer.entities.remove(e); host.app.globe.viewer.scene.requestRender(); });
   const verdict = h("div", { class: "cl-verdict wait", style: `--lc:${def.color}` }, h("span", { class: "spinner small" }), h("span", {}, `Reading ${s.name} for ${def.name.toLowerCase()}…`));

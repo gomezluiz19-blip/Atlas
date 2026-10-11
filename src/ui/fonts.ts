@@ -5,7 +5,7 @@
 // Pure, so the build (vite.config.ts) and the tests can both call it.
 
 /** The weights Terreno uses, and the file stem Kastelov ships each one as. */
-export const AXIFORMA_WEIGHTS: [weight: number, stem: string][] = [
+const AXIFORMA_WEIGHTS: [weight: number, stem: string][] = [
   [400, "Regular"], [500, "Medium"], [600, "SemiBold"], [700, "Bold"], [800, "Heavy"],
 ];
 /** The families the CSS names, our own so a fallback never borrows the wrong weight. */

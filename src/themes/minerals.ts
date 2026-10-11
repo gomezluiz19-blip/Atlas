@@ -19,7 +19,7 @@ import { icons } from "../ui/icons";
 import { flyToPlace } from "../ui/search";
 import { asyncBlock, note, section, stats } from "./common";
 
-export interface MineFeature { type: "mine"; mine: Mine }
+interface MineFeature { type: "mine"; mine: Mine }
 
 const dist = (k: number) => formatDistance(k * 1000);
 

@@ -6,7 +6,7 @@
 
 export type Group = "Ground" | "Climate" | "People" | "Getting there" | "Water" | "Hazards" | "Country";
 export type Needs = "terrain" | "climate" | "places" | "infra" | "water" | "hazards" | "country";
-export type Op = "lt" | "gt" | "dir";
+type Op = "lt" | "gt" | "dir";
 
 export interface Measure {
   key: string;

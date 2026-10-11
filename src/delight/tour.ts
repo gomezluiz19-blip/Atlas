@@ -55,7 +55,7 @@ let windOn = false;
 const STEPS: Step[] = [
   { title: "The whole Earth, live", text: "And your own corner of it. A one-minute look at what Terreno does, on the real planet." },
   { target: ".search", kicker: "Ask", title: "One box understands anything", text: "Type a place, an address, a year or a question. This one finds flat land near an airport that stays warm in winter.",
-    before: () => typeInSearch("flat land near an airport, warm in winter"), after: () => clearSearch() },
+    before: (app) => { run(app, "search:open"); return typeInSearch("flat land near an airport, warm in winter"); }, after: () => clearSearch() },
   { target: ".sheet", kicker: "Know", title: "Every place, every layer", text: "Ground, climate, water, people, hazards and history, on one page you can share. Here's Mount Fuji.",
     before: async (app) => { run(app, "place:open", "mount-fuji"); await wait(2600); } },
   { target: ".lens-strip", kicker: "See inside", title: "Cut a mountain open", text: "Lenses work on anything: cut down to the rock, lift out a 3D block, trace the rain, or watch a day's shadows pass.",
@@ -65,7 +65,7 @@ const STEPS: Step[] = [
   { kicker: "Live", title: "The planet, moving", text: "The wind, every plane in the sky, ships, storms, quakes and the aurora, all live.",
     before: async (app) => { run(app, "place:clear"); await fly(app, -30, 48, 6_500_000); run(app, "live:planes"); if (!windOn) { run(app, "wind:toggle"); windOn = true; } await wait(1800); },
     after: (app) => { app.actions.get("live:planes")?.stop?.(); if (windOn) { run(app, "wind:toggle"); windOn = false; } } },
-  { target: "#time-btn", kicker: "Rewind", title: "Any year", text: "Borders back to 1914, satellite views since 2000, and the climate to 2050. Here's Europe in 1914.",
+  { target: ".timebar:not([hidden])", kicker: "Rewind", title: "Any year", text: "Borders back to 1914, satellite views since 2000, and the climate to 2050. Here's Europe in 1914.",
     before: async (app) => { run(app, "time:go", "1914@15,50"); await wait(2400); }, after: (app) => run(app, "time:close") },
   { target: ".work-panel:not([hidden])", kicker: "Work", title: "Pick your field", text: "Builders, miners, chefs, shippers, aid workers and more: each field has tools for everyone, and for the people who do the work.",
     before: async (app) => { run(app, "mode:work"); await wait(1200); } },

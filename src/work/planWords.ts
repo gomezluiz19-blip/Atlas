@@ -21,7 +21,7 @@ const PHASE_WORDS: [RegExp, PhaseId][] = [
   [/\b(handover|hand over|snagging|commissioning|inspections?|completion)\b/i, "handover"],
 ];
 
-export interface PhasePlan { phases: Phase[]; understood: { id: PhaseId; days: number; overlap: number }[]; start: string }
+interface PhasePlan { phases: Phase[]; understood: { id: PhaseId; days: number; overlap: number }[]; start: string }
 
 /** A new schedule from words; phases not mentioned keep their current length. */
 export function schedulePhases(text: string, current: Phase[], today: string): PhasePlan | null {

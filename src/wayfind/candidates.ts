@@ -2,8 +2,9 @@
 // what you searched for lately, and anything you've planned for today or the next few days.
 import { gatherAll } from "../plans/gather";
 import type { Candidate } from "./model";
+import { loadList } from "../util/storage";
 
-const read = <T>(k: string): T[] => { try { const v = JSON.parse(localStorage.getItem(k) ?? "[]"); return Array.isArray(v) ? v : []; } catch { return []; } };
+const read = loadList;
 
 /** Plans dated from yesterday to `days` ahead, as candidates (pure given `today`). */
 export function soonPlans(plans: { id: string; title: string; date: string; lon: number; lat: number }[], today: string, days = 3): Candidate[] {

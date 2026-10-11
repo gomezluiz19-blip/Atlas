@@ -3,6 +3,7 @@
 // all dated relative to today so the daily brief has something to say.
 // Everything it adds is marked "demo-" and can be removed in one go.
 import type { PlaceStore } from "./store";
+import { loadJson } from "../util/storage";
 
 const LON = -1.556, LAT = 51.942;
 const iso = (days: number) => new Date(Date.now() + days * 86_400_000).toISOString().slice(0, 10);
@@ -11,7 +12,7 @@ const box = (dx: number, dy: number, w: number, hgt: number): [number, number][]
   const x0 = LON + dx * kx, y0 = LAT + dy * ky;
   return [[x0, y0], [x0 + w * kx, y0], [x0 + w * kx, y0 - hgt * ky], [x0, y0 - hgt * ky]];
 };
-const read = <T>(k: string, d: T): T => { try { return (JSON.parse(localStorage.getItem(k) ?? "null") as T) ?? d; } catch { return d; } };
+const read = loadJson;
 
 export function hasDemo(store: PlaceStore): boolean {
   return store.all().some((p) => p.id.startsWith("demo-"));

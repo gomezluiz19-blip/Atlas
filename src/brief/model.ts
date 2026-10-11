@@ -1,13 +1,8 @@
+import { kmBetween } from "../util/geo";
 // What each tab says first: a sentence worth reading, worked out from your own people, plans and places.
 // Pure: no DOM, no network.
 
 type Spot = { lon: number; lat: number };
-
-const kmBetween = (a: Spot, b: Spot) => {
-  const R = 6371, r = Math.PI / 180, dLat = (b.lat - a.lat) * r, dLon = (b.lon - a.lon) * r;
-  const x = Math.sin(dLat / 2) ** 2 + Math.cos(a.lat * r) * Math.cos(b.lat * r) * Math.sin(dLon / 2) ** 2;
-  return 2 * R * Math.asin(Math.min(1, Math.sqrt(x)));
-};
 
 // ---- People --------------------------------------------------------------------------------------
 
@@ -49,7 +44,7 @@ export function peopleLede(s: ReturnType<typeof peopleSummary>): { title: string
 
 export interface DayWx { date: string; code: number; max: number; min: number; rain: number; chance: number | null; gust: number; snow: number }
 
-export type Tone = "storm" | "snow" | "rain" | "hot" | "cold" | "wind" | "fine";
+type Tone = "storm" | "snow" | "rain" | "hot" | "cold" | "wind" | "fine";
 export const TONES: Record<Tone, { color: string; label: string }> = {
   storm: { color: "#5160c2", label: "Storms" }, snow: { color: "#a3bfd4", label: "Snow" }, rain: { color: "#4c9ac9", label: "Rain" },
   hot: { color: "#c4513a", label: "Heat" }, cold: { color: "#8c8f87", label: "Frost" }, wind: { color: "#9a7552", label: "Wind" }, fine: { color: "#5b9467", label: "Fine" },

@@ -52,7 +52,7 @@ export class Panel {
 }
 
 /** The bottom drawer: holds a chart, or any custom view (e.g. a geologic section). */
-export class Drawer {
+class Drawer {
   readonly el = h("section", { class: "drawer", hidden: true });
   readonly chart = new Chart();
   private title = h("h3", { class: "drawer-title" });
@@ -90,7 +90,7 @@ export class Drawer {
   }
 }
 
-export interface SubtabContext {
+interface SubtabContext {
   app: App;
   place: Place;
   /** Where the subtab renders. Replaced on every visit. */

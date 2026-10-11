@@ -4,10 +4,10 @@
 // where things happen. Works offline and on any device; the detector, when it
 // loads, adds what's moving (people, vehicles) on top.
 
-export const GRID_W = 48, GRID_H = 27;
+const GRID_W = 48, GRID_H = 27;
 const W = 160, H = 90;
 
-export interface MotionFrame {
+interface MotionFrame {
   /** Share of the picture that changed, 0..1. */
   activity: number;
   /** Changed cells on the GRID_W × GRID_H grid (row-major), 0..1 each. */

@@ -29,7 +29,7 @@ function ring(value: number): SVGElement {
   return svg;
 }
 
-export interface ProUi {
+interface ProUi {
   panel: HTMLElement;
   open(placeId: string): void;
   close(): void;

@@ -36,7 +36,7 @@ export interface Contact {
   stance: Record<string, Stance>;
   log: LogEntry[];
 }
-export interface OfficeSite extends Spot { id: string; kind: "capitol" | "district" | "mobile"; address?: string; hours?: string }
+interface OfficeSite extends Spot { id: string; kind: "capitol" | "district" | "mobile"; address?: string; hours?: string }
 export interface OfficeEvent { id: string; title: string; kind: "town hall" | "visit" | "meeting" | "press" | "fundraiser" | "other"; date: string; time?: string; place?: Spot; notes?: string; expected?: number }
 export interface Case { id: string; subject: string; agency: string; contact?: string; status: "open" | "waiting" | "closed"; opened: string; updated: string; notes?: string; release?: boolean; closed?: string; outcome?: string }
 export interface Bill {
@@ -61,7 +61,7 @@ export const blankOffice = (name = "My office"): Office => ({ id: newId(), name,
 
 // ---- The whip count ----------------------------------------------------------------------------------
 
-export interface Tally { counts: Record<Stance, number>; total: number; firm: number; likely: number; needed: number; short: number }
+interface Tally { counts: Record<Stance, number>; total: number; firm: number; likely: number; needed: number; short: number }
 
 /** Where a bill stands: firm and likely yes, against the votes needed (pure). */
 export function tally(stances: Stance[], needed: number): Tally {

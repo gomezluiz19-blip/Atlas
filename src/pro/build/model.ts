@@ -1,3 +1,5 @@
+import { kmBetween } from "../../util/geo";
+export { kmBetween };
 // Build Pro: a builder's or contractor's sites on the map. Each project has a
 // schedule of tasks with their dependencies (worked out with the critical
 // path method, on working days), the weather each task can't work in
@@ -49,7 +51,7 @@ export interface Task {
 }
 export interface Delivery { id: string; what: string; supplier: string; lon?: number; lat?: number; date: string; window?: string; trucks: number; crane?: boolean; status: "booked" | "confirmed" | "delivered" }
 export interface Permit { id: string; title: string; kind: "permit" | "inspection"; date: string; status: "pending" | "passed" | "failed" | "issued" }
-export interface Rfi { id: string; title: string; opened: string; status: "open" | "answered"; cost?: number; days?: number }
+interface Rfi { id: string; title: string; opened: string; status: "open" | "answered"; cost?: number; days?: number }
 export interface Project {
   id: string; name: string; client: string; kind: "residential" | "commercial" | "civil" | "industrial" | "education";
   lon: number; lat: number; address?: string;
@@ -91,7 +93,7 @@ export function workdaysBetween(a: string, b: string): number {
 
 // ---- The schedule (critical path) --------------------------------------------------------------------
 
-export interface Slot { task: Task; es: number; ef: number; ls: number; lf: number; float: number; critical: boolean; start: string; end: string }
+interface Slot { task: Task; es: number; ef: number; ls: number; lf: number; float: number; critical: boolean; start: string; end: string }
 export interface Schedule { slots: Slot[]; days: number; finish: string; cycle: boolean }
 
 /**
@@ -136,7 +138,7 @@ export function schedule(p: Project, from = p.start): Schedule {
 
 // ---- Weather against the plan ------------------------------------------------------------------------
 
-export interface Clash { slot: Slot; date: string; why: string; next?: string }
+interface Clash { slot: Slot; date: string; why: string; next?: string }
 /** Weather-sensitive work planned on days the forecast rules out, with the next good day (pure). */
 export function weatherClashes(p: Project, forecast: Day[], from: string): Clash[] {
   const s = schedule(p, from), out: Clash[] = [];
@@ -247,18 +249,12 @@ export function haulHours(p: { lon: number; lat: number }, s: { lon: number; lat
   return (kmBetween(p, s) * 1.35) / 50;
 }
 
-export function kmBetween(a: { lon: number; lat: number }, b: { lon: number; lat: number }) {
-  const r = Math.PI / 180, dLat = (b.lat - a.lat) * r, dLon = (b.lon - a.lon) * r;
-  const s = Math.sin(dLat / 2) ** 2 + Math.cos(a.lat * r) * Math.cos(b.lat * r) * Math.sin(dLon / 2) ** 2;
-  return 2 * 6371 * Math.asin(Math.min(1, Math.sqrt(s)));
-}
-
 export interface Receptor { name: string; kind: "school" | "hospital" | "care" | "worship" | "homes"; lon: number; lat: number; m: number }
 /** How loud work reaches a neighbour: a rough drop of 6 dB per doubling of distance from 85 dB at 10 m (pure). */
 export const noiseAt = (m: number, source = 85) => Math.round(source - 20 * Math.log10(Math.max(10, m) / 10));
 
 /** Permits and inspections due or overdue in the next `within` days (pure). */
-export const permitsDue = (p: Project, today: string, within = 14) => p.permits.filter((x) => x.status === "pending" && daysBetween(today, x.date) <= within).sort((a, b) => a.date.localeCompare(b.date));
+const permitsDue = (p: Project, today: string, within = 14) => p.permits.filter((x) => x.status === "pending" && daysBetween(today, x.date) <= within).sort((a, b) => a.date.localeCompare(b.date));
 
 /** Everything worth a look on a project, the worst first (pure). */
 export function projectFlags(p: Project, today: string, forecast: Day[] = []) {

@@ -23,7 +23,7 @@ export function supplyRisk(m: Market): { score: number; mining: number; processi
   return { score, mining, processing, stability: Math.round((1 - instability) * 100), label: score >= 65 ? "High" : score >= 45 ? "Elevated" : "Moderate" };
 }
 
-export interface PriceStats { first: number; last: number; change: number; peak: { year: number; value: number }; low: { year: number; value: number }; swing: number }
+interface PriceStats { first: number; last: number; change: number; peak: { year: number; value: number }; low: { year: number; value: number }; swing: number }
 /** Ten years of prices in a few numbers (pure). `swing`: typical year-on-year move, %. */
 export function priceStats(prices: number[]): PriceStats {
   const first = prices[0], last = prices[prices.length - 1];

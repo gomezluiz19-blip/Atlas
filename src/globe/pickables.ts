@@ -1,7 +1,7 @@
 // Lets globe entities (e.g. earthquake dots) carry a feature that opens a card when tapped.
 import type { Entity } from "cesium";
 
-export interface PickFeature {
+interface PickFeature {
   lon: number;
   lat: number;
   title: string;

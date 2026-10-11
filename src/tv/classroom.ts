@@ -15,7 +15,7 @@ import type { Question, Quiz } from "../work/quizModel";
 import { placeQuiz, stepYear } from "./rooms";
 
 /** A question as the room sees it: the prompt, any lettered options, and where to fly when it's revealed. */
-export interface HostQ { prompt: string; options: string[]; answer: number; answerText: string; place?: { lon: number; lat: number; name: string }; view?: SlideCamera; year?: number; explain?: string }
+interface HostQ { prompt: string; options: string[]; answer: number; answerText: string; place?: { lon: number; lat: number; name: string }; view?: SlideCamera; year?: number; explain?: string }
 
 /** Turns a saved quiz's questions into ones to host (pure). */
 export function hostable(q: Question): HostQ {

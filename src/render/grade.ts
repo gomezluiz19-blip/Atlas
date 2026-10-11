@@ -11,7 +11,7 @@ import type { App } from "../app";
 import { wake } from "../globe/motion";
 import { currentQuality } from "../globe/quality";
 
-export type GradeId = "natural" | "cinematic" | "golden" | "night" | "blueprint" | "thermal" | "tiltshift";
+type GradeId = "natural" | "cinematic" | "golden" | "night" | "blueprint" | "thermal" | "tiltshift";
 export const GRADES: { id: GradeId; label: string; about: string }[] = [
   { id: "natural", label: "Natural", about: "The globe as it is" },
   { id: "cinematic", label: "Cinematic", about: "Film tone curve, bloom, soft contact shadows, sun shadows, vignette and grain" },

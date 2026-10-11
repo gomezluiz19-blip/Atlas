@@ -25,7 +25,7 @@ const leagues = new Map<string, Promise<LeagueTeam[]>>();
 const ready = new Map<string, unknown>();
 const pending = new Set<string>();
 
-export const baseballAll = () => (baseball ??= baseballTeams().catch((e) => { baseball = null; throw e; }));
+const baseballAll = () => (baseball ??= baseballTeams().catch((e) => { baseball = null; throw e; }));
 const leagueOf = (id: string) => { let p = leagues.get(id); if (!p) { p = leagueTeams(id); leagues.set(id, p); p.catch(() => leagues.delete(id)); } return p; };
 
 /** The club's league rivals (baseball: same level and league), once loaded. */

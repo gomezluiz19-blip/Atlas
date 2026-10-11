@@ -5,6 +5,7 @@
 import ISO3 from "../content/iso3.json";
 import { cached } from "./diskCache";
 import { getJson } from "./http";
+import { kmPair as km } from "../util/geo";
 
 /** [lon, lat, population], largest first. */
 export type PopPoint = [number, number, number];
@@ -13,12 +14,6 @@ export function populationPoints(): Promise<PopPoint[]> {
   pop ??= fetch(`${import.meta.env.BASE_URL}data/population.json`).then((r) => r.json() as Promise<PopPoint[]>);
   return pop;
 }
-
-const km = (a: [number, number], b: [number, number]) => {
-  const r = Math.PI / 180, dLat = (b[1] - a[1]) * r, dLon = (b[0] - a[0]) * r;
-  const x = Math.sin(dLat / 2) ** 2 + Math.cos(a[1] * r) * Math.cos(b[1] * r) * Math.sin(dLon / 2) ** 2;
-  return 12_742 * Math.asin(Math.sqrt(x));
-};
 
 /** Towns and cities around a point: how many people live within a few distances, and the nearest big city. */
 export function peopleNear(points: PopPoint[], lon: number, lat: number) {

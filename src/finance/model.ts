@@ -84,12 +84,12 @@ export const tiesQuery = (q: string) => `SELECT ?tie ?x ?xLabel ?xDescription ?c
 type B = Record<string, { value: string } | undefined>;
 const val = (b: B, k: string) => b[k]?.value;
 const qidOf = (u?: string) => u?.split("/").pop() ?? "";
-export const pointOf = (wkt?: string): [number, number] | undefined => {
+const pointOf = (wkt?: string): [number, number] | undefined => {
   const m = wkt && /Point\(([-\d.eE]+) ([-\d.eE]+)\)/.exec(wkt);
   return m ? [Number(m[1]), Number(m[2])] : undefined;
 };
 
-export interface Listing { exchange: string; ticker?: string }
+interface Listing { exchange: string; ticker?: string }
 export interface Facts {
   id: string; name: string; about?: string; founded?: number; industries: string[]; ceo?: string;
   hq?: string; country?: string; lon?: number; lat?: number; website?: string; logo?: string;

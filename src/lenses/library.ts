@@ -3,6 +3,7 @@
 // links. "My lenses" (made or kept) join the lens strip for every place.
 import { deleteLensRemote, pushLens } from "../cloud/sync";
 import { lensFromJson, type LensDef } from "./custom";
+import { loadJson } from "../util/storage";
 
 export const DEMO_LENSES: LensDef[] = [
   { id: "birdwatching", name: "Birdwatching", icon: "🐦", color: "#30b0c7", author: "maya", radiusKm: 5, for: ["lake", "coast", "forest", "river", "land"],
@@ -74,13 +75,13 @@ export const DEMO_LENSES: LensDef[] = [
     ] },
 ];
 
-const read = <T>(key: string, fallback: T): T => { try { return (JSON.parse(localStorage.getItem(key) ?? "null") as T) ?? fallback; } catch { return fallback; } };
+const read = loadJson;
 const write = (key: string, v: unknown) => { try { localStorage.setItem(key, JSON.stringify(v)); } catch { /* storage full */ } };
 const MADE = "atlas.lenses.v1";
 const KEPT = "atlas.lenses.kept.v1";
 
 export const madeLenses = (): LensDef[] => read<unknown[]>(MADE, []).flatMap((x) => lensFromJson(x) ?? []);
-export const keptIds = (): string[] => read<string[]>(KEPT, []);
+const keptIds = (): string[] => read<string[]>(KEPT, []);
 /** Made here, or kept from someone else. */
 export const myLenses = (): LensDef[] => [...madeLenses(), ...keptIds().flatMap((id) => { const d = findLens(id); return d && !madeLenses().some((m) => m.id === id) ? [d] : []; })];
 export const isMade = (id: string) => madeLenses().some((d) => d.id === id);

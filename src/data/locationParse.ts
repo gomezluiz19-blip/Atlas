@@ -3,7 +3,7 @@
 // geo: URIs and Open Location Codes ("plus codes"). Anything else is treated
 // as an address or place name to geocode.
 
-export interface ParsedPoint {
+interface ParsedPoint {
   kind: "point";
   lat: number;
   lon: number;
@@ -14,7 +14,7 @@ export interface ParsedPoint {
   source: "coordinates" | "google" | "apple" | "osm" | "bing" | "geo" | "pluscode";
 }
 
-export interface ParsedQuery {
+interface ParsedQuery {
   kind: "query";
   text: string;
   /** Short plus code that needs a reference location (e.g. "9G8F+6X Zurich"). */
@@ -146,12 +146,12 @@ function parseGeoUri(s: string): Parsed | null {
 const OLC = "23456789CFGHJMPQRVWX";
 const PAIR_RES = [20, 1, 0.05, 0.0025, 0.000125];
 
-export function isFullPlusCode(code: string): boolean {
+function isFullPlusCode(code: string): boolean {
   const c = code.toUpperCase();
   return /^[23456789CFGHJMPQRVWX]{8}\+[23456789CFGHJMPQRVWX]{0,7}$/.test(c) || /^[23456789CFGHJMPQRVWX]{2,8}0*\+$/.test(c);
 }
 
-export function isShortPlusCode(code: string): boolean {
+function isShortPlusCode(code: string): boolean {
   return /^[23456789CFGHJMPQRVWX]{4,7}\+[23456789CFGHJMPQRVWX]{2,7}$/i.test(code) && code.indexOf("+") < 8;
 }
 
@@ -234,7 +234,7 @@ export function parseLocation(input: string): Parsed {
 
 // ---- Shareable links (URL hash) ----
 
-export interface ShareState {
+interface ShareState {
   place?: { lat: number; lon: number };
   theme?: string;
   camera?: { lat: number; lon: number; height: number; heading: number; pitch: number };

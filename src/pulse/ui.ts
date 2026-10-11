@@ -16,6 +16,7 @@ import { whatIf, type Desk } from "../pro/shipping/model";
 import { h } from "../ui/dom";
 import { flyToPlace } from "../ui/search";
 import { LAYERS, SPAN, fracAt, tAt, worldAt, type Layer, type World } from "./model";
+import { loadList } from "../util/storage";
 
 const DAY = 86_400_000;
 const sprites = new Map<string, HTMLCanvasElement>();
@@ -34,7 +35,7 @@ function glow(color: string, core = "#ffffff"): HTMLCanvasElement {
 }
 const C = (css: string, a = 1) => Color.fromCssColorString(css).withAlpha(a);
 const P = ([lon, lat]: LonLat, h = 0) => Cartesian3.fromDegrees(lon, lat, h);
-const read = <T>(key: string): T[] => { try { const v = JSON.parse(localStorage.getItem(key) ?? "[]"); return Array.isArray(v) ? v : []; } catch { return []; } };
+const read = loadList;
 const fmtDate = (t: number) => new Date(t).toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "long" });
 
 let open: { close(): void } | null = null;

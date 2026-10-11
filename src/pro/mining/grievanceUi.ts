@@ -164,5 +164,4 @@ export function boardReport(m: Mine, tailings?: { cls: string; par: number; part
   printReport(`${m.name}: board report`, `${[m.country, t].filter(Boolean).join(" · ")}`, sections, "Grievance stages and response times follow IFC Performance Standard 1 practice; consequence classes follow GISTM Annex 2 (population at risk).");
 }
 
-export const moodLegend = (m: Mine) => h("div", { class: "pol-legend" }, ...moodCounts(m.parties).filter((x) => x.n).map((x) => h("span", {}, h("i", { style: `background:${x.color}` }), `${x.label} ${x.n}`)));
 export { moodOf };

@@ -8,6 +8,8 @@ import type { Plan } from "../work/planModel";
 import type { FieldTrip } from "../work/tripModel";
 import { eta as shipEta, type Desk } from "../pro/shipping/model";
 import { itemOf } from "../pro/relief/model";
+import { loadList } from "../util/storage";
+import { homeOrFirst } from "../myplaces/saved";
 
 export interface Planned {
   id: string; title: string; sub: string; date: string; lon: number; lat: number;
@@ -16,7 +18,7 @@ export interface Planned {
   group?: string;
 }
 
-const read = <T>(key: string): T[] => { try { const v = JSON.parse(localStorage.getItem(key) ?? "[]"); return Array.isArray(v) ? v : []; } catch { return []; } };
+const read = loadList;
 const centre = (pts: [number, number][]) => [pts.reduce((s, p) => s + p[0], 0) / pts.length, pts.reduce((s, p) => s + p[1], 0) / pts.length] as [number, number];
 
 /** From saved journeys: each move's arrival and each stay, dated (pure). */
@@ -72,7 +74,7 @@ export function gatherAll(): Planned[] {
   for (const r of read<{ id: string; name: string; hubs: { id: string; name: string; lon: number; lat: number }[]; moves: { id: string; item: string; qty: number; to: string; arrives: string; status: string }[] }>("atlas.pro.relief.v1"))
     for (const m of (r.moves ?? []).filter((x) => x.status !== "delivered")) { const to = r.hubs.find((x) => x.id === m.to); if (to) out.push({ id: m.id, title: `${itemOf(m.item)?.name ?? m.item} reaches ${to.name}`, sub: `${r.name} · ${m.qty} ${itemOf(m.item)?.unit ?? ""}`, date: m.arrives, lon: to.lon, lat: to.lat, source: "Relief" }); }
   // Packages arrive at your first saved place.
-  const home = read<{ lon: number; lat: number; name: string; kind?: string }>("atlas.myplaces.v1").sort((a, b) => (a.kind === "home" ? -1 : 0) - (b.kind === "home" ? -1 : 0))[0];
+  const home = homeOrFirst();
   if (home) for (const p of read<{ id: string; label: string; carrier: string; status: string; eta?: string }>("atlas.myplace.packages.v1"))
     if (p.eta && p.status !== "delivered") out.push({ id: p.id, title: `${p.label} arrives`, sub: `${p.carrier} · ${home.name}`, date: p.eta, lon: home.lon, lat: home.lat, source: "Package" });
   return out.filter((x) => /^\d{4}-\d{2}-\d{2}$/.test(x.date) && Number.isFinite(x.lon) && Number.isFinite(x.lat)).sort((a, b) => a.date.localeCompare(b.date));
@@ -80,7 +82,7 @@ export function gatherAll(): Planned[] {
 
 // ---- One colour, darker is sooner --------------------------------------------------------------------
 
-export const HUE = 214;
+const HUE = 214;
 const dayMs = 86_400_000;
 export const daysUntil = (date: string, today: string) => Math.round((Date.parse(date) - Date.parse(today)) / dayMs);
 

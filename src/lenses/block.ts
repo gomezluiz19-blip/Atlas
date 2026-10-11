@@ -25,7 +25,7 @@ export interface BlockData {
 }
 
 /** Loads everything a block needs: heights, imagery, and the four cut faces. */
-export async function loadBlock(s: Subject, size: number, onStatus: (t: string) => void): Promise<BlockData> {
+async function loadBlock(s: Subject, size: number, onStatus: (t: string) => void): Promise<BlockData> {
   const c = s.centre ?? [s.lon, s.lat];
   const [, north] = offset(c[0], c[1], 0, size / 2), [, south] = offset(c[0], c[1], 180, size / 2);
   const [east] = offset(c[0], c[1], 90, size / 2), [west] = offset(c[0], c[1], 270, size / 2);
@@ -98,7 +98,7 @@ export const blockLens: Lens = {
 export const faceTexture = (sd: Section) => paintSection(sd, 1024, 512, "wall");
 
 /** Shaded relief with a colour for height: the top of the block when there's no imagery. */
-export function reliefCanvas(heights: Float32Array, n: number, size: number): HTMLCanvasElement {
+function reliefCanvas(heights: Float32Array, n: number, size: number): HTMLCanvasElement {
   const c = document.createElement("canvas");
   c.width = c.height = n;
   const g = c.getContext("2d")!;

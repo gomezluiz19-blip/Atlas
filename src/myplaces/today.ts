@@ -5,7 +5,7 @@ import type { SiteDay } from "../data/openmeteo";
 import { addDays, status, type BuildProject } from "../work/buildModel";
 import { dueList, speciesById, type Flock } from "../work/flockModel";
 
-export type Urgency = "now" | "soon" | "fyi";
+type Urgency = "now" | "soon" | "fyi";
 export interface TodayItem { icon: string; title: string; detail: string; urgency: Urgency; tool?: "flock" | "grow" | "build"; /** The animal, field or project it's about. */ ref?: string }
 
 export interface FieldLite { id?: string; name: string; crop: string; planted: string; pts?: [number, number][] }
@@ -13,7 +13,7 @@ export interface FieldLite { id?: string; name: string; crop: string; planted: s
 /** A field's season from the Grow model, when it could be worked out. */
 export interface FieldSeason { id?: string; name: string; stage: string; harvest?: [string, string]; irrigate7: number; m2: number; frost: boolean }
 
-export interface TodayInputs {
+interface TodayInputs {
   today: string;
   weather: SiteDay[] | null;
   flock: Flock | null;

@@ -8,7 +8,7 @@
 
 import { nearestYear, yearLabel } from "../data/history";
 
-export type PlanPlace =
+type PlanPlace =
   | { kind: "query"; text: string }
   | { kind: "here" };
 
@@ -177,7 +177,7 @@ const EMPIRES: Record<string, string> = {
 };
 
 /** "borders in 1914", "empires of 500 BC": the nearest year there's a map for. */
-export function historyYear(text: string): { year: number; match: string } | null {
+function historyYear(text: string): { year: number; match: string } | null {
   // A history word, an era (BC/AD), or "in 1914".
   const bare = /\b(?:in|during|around) (1\d{3}|20[01]\d)\b(?! [a-z]*\s*(street|st|avenue|ave|road|rd))/.exec(text);
   if (!HISTORY_WORDS.test(text) && !/\d\s*(bc|bce)\b|\b(ad|ce)\s*\d/.test(text) && !bare) return null;
@@ -239,7 +239,3 @@ export function plan(request: string): Plan {
   return { place, steps, unknown };
 }
 
-/** True when the input reads as a request rather than just a place name. */
-export function looksLikeRequest(p: Plan): boolean {
-  return p.steps.length > 0;
-}

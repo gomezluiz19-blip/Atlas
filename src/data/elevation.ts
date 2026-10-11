@@ -6,12 +6,12 @@
 import { fetchRetry } from "./http";
 import { TILE_SIZE, lonLatToPixel, worldSize } from "./mercator";
 
-export const TERRARIUM_URL =
+const TERRARIUM_URL =
   "https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png";
 /** Deepest zoom level the tile set publishes. */
 export const MAX_ELEVATION_ZOOM = 15;
 
-export type TileLoader = (z: number, x: number, y: number) => Promise<Float32Array>;
+type TileLoader = (z: number, x: number, y: number) => Promise<Float32Array>;
 
 /** A rectangular block of elevations in Web Mercator pixel space. */
 export interface ElevationGrid {
@@ -33,7 +33,7 @@ export function decodeTerrarium(rgba: Uint8ClampedArray | Uint8Array): Float32Ar
   return out;
 }
 
-export async function fetchTerrariumTile(z: number, x: number, y: number): Promise<Float32Array> {
+async function fetchTerrariumTile(z: number, x: number, y: number): Promise<Float32Array> {
   const url = TERRARIUM_URL.replace("{z}", String(z))
     .replace("{x}", String(x))
     .replace("{y}", String(y));

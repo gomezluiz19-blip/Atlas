@@ -24,7 +24,7 @@ const esc = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 const today = () => new Date().toISOString().slice(0, 10);
 
 /** Finds the field a sentence is about, by its name (longest name first). */
-export function findField(text: string, fields: FieldLite[]): FieldLite | undefined {
+function findField(text: string, fields: FieldLite[]): FieldLite | undefined {
   const t = text.toLowerCase();
   return [...fields].sort((a, b) => b.name.length - a.name.length).find((f) => f.name && new RegExp(`\\b${esc(f.name.toLowerCase())}\\b`).test(t));
 }

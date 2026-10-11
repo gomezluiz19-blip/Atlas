@@ -4,7 +4,7 @@
 import type { App } from "../app";
 import type { Plan, Step } from "./plan";
 
-export type StepStatus = "waiting" | "running" | "done" | "failed";
+type StepStatus = "waiting" | "running" | "done" | "failed";
 
 export interface RunStep {
   label: string;
@@ -95,6 +95,6 @@ export async function runPlan(app: App, plan: Plan, resolver: Resolver, onUpdate
   return true;
 }
 
-export function titleCase(s: string): string {
+function titleCase(s: string): string {
   return s.replace(/\b([a-z])/g, (m) => m.toUpperCase()).replace(/\b(Of|The|And|In|De|La|Du)\b/g, (w) => w.toLowerCase()).replace(/^./, (c) => c.toUpperCase());
 }

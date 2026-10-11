@@ -3,10 +3,12 @@
 import { parseSiteLog } from "../work/buildLog";
 import { parseLog } from "../work/flockLog";
 import { parseFieldLog } from "../work/growLog";
+import { loadJson } from "../util/storage";
 
-export interface LogPlan { tool: "Flock" | "Grow" | "Build"; summary: string; saves: string; run: () => Promise<string | null> }
+interface LogPlan { tool: "Flock" | "Grow" | "Build"; summary: string; saves: string; run: () => Promise<string | null> }
 
-const read = (key: string) => { try { return JSON.parse(localStorage.getItem(key) ?? "null"); } catch { return null; } };
+// Each store is read as whatever it holds; the parsers below check its shape.
+const read = (key: string): any => loadJson<unknown>(key, null);
 
 /** What a line would log, if anything (without saving it). */
 export function planLog(q: string): LogPlan | null {

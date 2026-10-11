@@ -2,7 +2,7 @@
 // Coordinates mark the heart of each place; migration routes are simplified
 // sketches of the usual path, not tracks.
 
-export interface WildPlace { name: string; lon: number; lat: number; emoji: string; what: string }
+interface WildPlace { name: string; lon: number; lat: number; emoji: string; what: string }
 export interface Migration { name: string; emoji: string; color: string; about: string; pts: [number, number][] }
 
 export const WILD_PLACES: WildPlace[] = [

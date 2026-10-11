@@ -11,14 +11,14 @@ export interface YearHours { time: string[]; ghi: number[]; wind: number[]; dir:
 
 /** A generic modern onshore turbine (kW at m/s), from manufacturers' published curves, rounded. */
 const CURVE: [number, number][] = [[3, 0], [4, 120], [5, 300], [6, 560], [7, 920], [8, 1380], [9, 1960], [10, 2600], [11, 3150], [12, 3500], [13, 3600], [25, 3600]];
-export const RATED_KW = 3600;
+const RATED_KW = 3600;
 export function turbineKw(v: number): number {
   if (v < 3 || v > 25) return 0;
   for (let i = 1; i < CURVE.length; i++) if (v <= CURVE[i][0]) { const [v0, p0] = CURVE[i - 1], [v1, p1] = CURVE[i]; return p0 + ((v - v0) / (v1 - v0)) * (p1 - p0); }
   return 0;
 }
 
-export interface SitePotential {
+interface SitePotential {
   solar: { kwhPerKwp: number; cf: number; monthly: number[]; tiltGain: number };
   wind: { mean: number; mwh: number; cf: number; monthly: number[]; rose: { dir: number; share: number; mean: number }[] };
 }

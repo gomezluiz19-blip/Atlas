@@ -112,7 +112,7 @@ const layersOn = (app: App) => [...app.actions].filter(([id, a]) => !id.startsWi
 
 // ---- Playing a deck ------------------------------------------------------------------
 
-export interface PlayOptions {
+interface PlayOptions {
   /** Advance by itself and circle each place. */
   tour?: boolean;
   start?: number;
@@ -279,13 +279,6 @@ export function openFile(ctx: WorkCtx) {
     }
   } }) as HTMLInputElement;
   fileIn.click();
-}
-
-/** Starts a story from one of the ready-made topics. */
-export function fromTemplate(ctx: WorkCtx, name: string, slides: Omit<Slide, "id">[]) {
-  const d: Deck = { id: newId(), name, created: Date.now(), slides: slides.map((x) => ({ ...x, id: newId() })) };
-  store.save(d);
-  openDeck(ctx, d.id);
 }
 
 export function openDeck(ctx: WorkCtx, id: string) {

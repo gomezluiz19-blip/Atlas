@@ -109,7 +109,7 @@ const strip = (e: string) => e.replace(/[\uFE0E\uFE0F]/g, "").trim();
 const lookup = (e: string): IconNode | undefined => BY_EMOJI[e.trim()] ?? BY_EMOJI[strip(e)] ?? BY_EMOJI[strip(e) + "\uFE0F"] ?? MORE[e.trim()] ?? MORE[strip(e)];
 
 /** Terreno's own mark for anything without a better icon: a single tessera, a small square tile. */
-export const TESSERA = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="SIZE" height="SIZE" aria-hidden="true"><rect x="6.5" y="6.5" width="11" height="11" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.75"/><rect x="10" y="10" width="4" height="4" rx="1" fill="currentColor" opacity=".55"/></svg>';
+const TESSERA = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="SIZE" height="SIZE" aria-hidden="true"><rect x="6.5" y="6.5" width="11" height="11" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.75"/><rect x="10" y="10" width="4" height="4" rx="1" fill="currentColor" opacity=".55"/></svg>';
 
 /** A country flag emoji as its two letters (pure): Terreno shows "FR", not a borrowed flag picture. */
 export function flagCode(e: string): string | null {

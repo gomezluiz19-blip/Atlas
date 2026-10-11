@@ -6,7 +6,7 @@ import { TAXON_ICONS } from "./taxonIcons";
 const g = (body: string) =>
   `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${body}</svg>`;
 
-export const GLYPHS: Partial<Record<PlaceKind, string>> = {
+const GLYPHS: Partial<Record<PlaceKind, string>> = {
   landmark: g('<path d="M12 3l2.6 5.6 6 .7-4.5 4.1 1.2 6L12 16.4 6.7 19.4l1.2-6L3.4 9.3l6-.7z"/>'),
   monument: g('<path d="M10 21V7l2-4 2 4v14M7 21h10"/>'),
   castle: g('<path d="M4 21V8h3v2h2V8h2v2h2V8h2v2h2V8h3v13zM10 21v-4a2 2 0 0 1 4 0v4"/>'),

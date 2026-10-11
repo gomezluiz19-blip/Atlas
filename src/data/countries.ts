@@ -81,7 +81,7 @@ export async function countryFacts(isoNumeric: string): Promise<CountryFacts> {
 }
 
 /** World Bank indicators shown in the Countries theme. */
-export const INDICATORS = {
+const INDICATORS = {
   population: "SP.POP.TOTL",
   gdp: "NY.GDP.MKTP.CD",
   gdpPerCapita: "NY.GDP.PCAP.CD",

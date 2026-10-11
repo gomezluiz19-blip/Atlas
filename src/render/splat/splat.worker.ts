@@ -17,7 +17,7 @@ async function fromSpz(bytes: Uint8Array): Promise<SplatCloud> {
   return c;
 }
 
-export async function processJob(job: SplatJob): Promise<SplatResult | SplatError> {
+async function processJob(job: SplatJob): Promise<SplatResult | SplatError> {
   try {
     const u8 = new Uint8Array(job.bytes);
     const kind = sniff(u8, job.name);

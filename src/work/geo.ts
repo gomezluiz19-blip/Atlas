@@ -53,7 +53,7 @@ export function along(pts: LonLat[], n: number): LonLat[] {
 }
 
 /** Do two segments cross? */
-export function segmentsCross(a: LonLat, b: LonLat, c: LonLat, d: LonLat): boolean {
+function segmentsCross(a: LonLat, b: LonLat, c: LonLat, d: LonLat): boolean {
   const o = (p: LonLat, q: LonLat, r: LonLat) => Math.sign((q[0] - p[0]) * (r[1] - p[1]) - (q[1] - p[1]) * (r[0] - p[0]));
   return o(a, b, c) !== o(a, b, d) && o(c, d, a) !== o(c, d, b) && o(a, b, c) !== 0 && o(c, d, a) !== 0;
 }

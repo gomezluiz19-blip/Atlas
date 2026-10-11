@@ -23,13 +23,10 @@ export function loadJson<T>(key: string, fallback: T, ok: (v: unknown) => boolea
     const raw = localStorage.getItem(key);
     if (raw === null) return fallback;
     const v = JSON.parse(raw);
-    return ok(v) ? (v as T) : fallback;
+    return v !== null && ok(v) ? (v as T) : fallback;
   } catch { return fallback; }
 }
 
-/** About how many bytes Terreno keeps in this browser (strings are stored as UTF-16). */
-export function storageUsed(prefix = "atlas."): number {
-  let n = 0;
-  try { for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i)!; if (k.startsWith(prefix)) n += (k.length + (localStorage.getItem(k)?.length ?? 0)) * 2; } } catch { /* blocked */ }
-  return n;
-}
+/** Reads a saved list: always an array, empty if it's missing or unreadable. */
+export const loadList = <T>(key: string): T[] => loadJson<T[]>(key, [], Array.isArray);
+

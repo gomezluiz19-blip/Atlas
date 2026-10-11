@@ -75,7 +75,7 @@ export function orbitPath(p: Planet, ms: number, steps = 180): [number, number, 
 const OBLIQUITY = 23.43928 * DEG;
 
 /** Ecliptic → equatorial (both J2000). */
-export function toEquatorial([x, y, z]: [number, number, number]): [number, number, number] {
+function toEquatorial([x, y, z]: [number, number, number]): [number, number, number] {
   return [x, y * Math.cos(OBLIQUITY) - z * Math.sin(OBLIQUITY), y * Math.sin(OBLIQUITY) + z * Math.cos(OBLIQUITY)];
 }
 

@@ -129,7 +129,7 @@ export function flowPath(heights: ArrayLike<number>, n: number, start: [number, 
 }
 
 /** Distance (km) from a point to a path, and how far along the path the nearest spot is (pure). */
-export function toPath(p: { lon: number; lat: number }, path: [number, number][]) {
+function toPath(p: { lon: number; lat: number }, path: [number, number][]) {
   let best = Infinity, along = 0, run = 0;
   const kx = 111.32 * Math.cos((p.lat * Math.PI) / 180), ky = 110.54;
   for (let k = 1; k < path.length; k++) {

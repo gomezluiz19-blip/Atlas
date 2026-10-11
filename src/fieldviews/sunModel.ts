@@ -34,7 +34,7 @@ export function sunHours(b: Block, f: Face, floor: number, lat: number, lon: num
   return Math.round((mins / 60) * 10) / 10;
 }
 
-export interface SunTable { face: Face; az: number; floors: number[] }
+interface SunTable { face: Face; az: number; floors: number[] }
 /** Every face and floor on a day (pure). */
 export const sunTable = (b: Block, lat: number, lon: number, day: number, n?: Partial<Record<Face, Neighbour>>): SunTable[] =>
   FACES.map((f) => ({ face: f, az: faceAz(b, f), floors: Array.from({ length: b.floors }, (_, i) => sunHours(b, f, i, lat, lon, day, n?.[f])) }));

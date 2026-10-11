@@ -8,18 +8,19 @@ import { customLens, type LensDef } from "../lenses/custom";
 import { findLens, myLenses, rememberLens } from "../lenses/library";
 import { cloudOn } from "../cloud/client";
 import { fetchLens } from "../cloud/sync";
-import { createLensStudio } from "../lenses/studio";
+import type { LensStudio } from "../lenses/studio";
 import type { Lens, Subject } from "../lenses/types";
 import { createWatch } from "../watch/watch";
 import { openFieldNote } from "./notes";
 import { flyToPlace } from "../ui/search";
 import { createAccount, type AccountMenuItem } from "./account";
 import { ROLES, type Profile } from "./model";
-import { createProfiles } from "./page";
+import type { ProfilePages } from "./page";
 import { me } from "./store";
 import { openFriend, setSignIn } from "./friends";
+import { later } from "../util/later";
 
-export interface SocialDeps {
+interface SocialDeps {
   lensList: Lens[];
   lenses: { refresh(): void; openWhenReady(id: string): Promise<boolean>; openOn(id: string, s: Subject): void };
   openPlace(slug: string): Promise<void> | void;
@@ -55,12 +56,18 @@ export function wireSocial(app: App, deps: SocialDeps) {
     void deps.lenses.openWhenReady(d.id).then((ok) => { if (!ok) app.toast("Tap a place on the globe, then choose the lens in its card.", 4500); });
   };
 
-  let profiles: ReturnType<typeof createProfiles>;
-  const studio = createLensStudio(app, {
+  // Profile pages and Lens Studio load the first time they're opened.
+  const studioMod = later(() => import("../lenses/studio").then((m) => m.createLensStudio(app, {
     tryLens,
     changed: () => syncLenses(),
     openProfile: (h) => profiles.open(h),
-  });
+  })));
+  const studio: LensStudio = {
+    open: (d) => void studioMod.get().then((s) => s.open(d)),
+    openPacked: async (packed) => (await studioMod.get()).openPacked(packed),
+    close: () => studioMod.now?.close(),
+    get isOpen() { return studioMod.now?.isOpen ?? false; },
+  };
 
   const account = createAccount({
     openProfile: (h, edit) => { deps.closePanels(); studio.close(); profiles.open(h, edit); },
@@ -81,7 +88,7 @@ export function wireSocial(app: App, deps: SocialDeps) {
     },
   });
 
-  profiles = createProfiles(app, {
+  const pagesMod = later(() => import("./page").then((m) => m.createProfiles(app, {
     openPlace: (s) => {
       if (s.slug && !s.slug.startsWith("@")) { void deps.openPlace(s.slug); return; }
       void flyToPlace(app.globe, { name: s.name, lon: s.lon, lat: s.lat, radius: 700 });
@@ -90,7 +97,15 @@ export function wireSocial(app: App, deps: SocialDeps) {
     openLens: (id) => { const d = findLens(id); if (d) tryLens(d); },
     lensInfo: (id) => { const d = findLens(id); return d ? { name: d.name, icon: d.icon, blurb: d.blurb } : null; },
     signIn: (then) => account.signIn(then ? () => then() : undefined),
-  });
+  })));
+  const profiles: ProfilePages = {
+    open: (handle, edit) => void pagesMod.get().then((p) => p.open(handle, edit)),
+    openPacked: async (packed) => (await pagesMod.get()).openPacked(packed),
+    close: () => pagesMod.now?.close(),
+    playGuide: (handle, id) => void pagesMod.get().then((p) => p.playGuide(handle, id)),
+    addSpot: (spot) => void pagesMod.get().then((p) => p.addSpot(spot)),
+    get isOpen() { return pagesMod.now?.isOpen ?? false; },
+  };
 
   // ---- Watches: lens verdicts that tell you when it's a good time ----
   const watch = createWatch(app, {

@@ -54,7 +54,7 @@ interface Envelope<T> {
   error?: { message: string };
 }
 
-export type MapScale = "large" | "medium" | "small" | "tiny";
+type MapScale = "large" | "medium" | "small" | "tiny";
 const SCALES: MapScale[] = ["large", "medium", "small", "tiny"];
 
 const round = (v: number) => v.toFixed(4);

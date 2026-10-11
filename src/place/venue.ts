@@ -7,7 +7,7 @@
 /** What the map says a search result is (OpenStreetMap's key and value, e.g. amenity / school). */
 export interface Category { key: string; value: string; type?: string; /** "N123", "W456" or "R789", to look up its details. */ osm?: string }
 
-export type VenueKind = "school" | "health" | "food" | "shop" | "lodging" | "culture" | "worship" | "transport" | "park" | "sport" | "service" | "office" | "address" | "street";
+type VenueKind = "school" | "health" | "food" | "shop" | "lodging" | "culture" | "worship" | "transport" | "park" | "sport" | "service" | "office" | "address" | "street";
 
 export interface Venue { kind: VenueKind; /** What to call it ("Elementary school", "Pharmacy"). */ label: string }
 

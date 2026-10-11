@@ -8,7 +8,7 @@
 // a big move in that material's price would move the company's profits. A
 // portfolio built from these shows the shape of your exposure, not a forecast.
 
-export type SiteRole = "HQ" | "Plant" | "Supplier" | "Mine" | "Fab" | "Partner" | "Field";
+type SiteRole = "HQ" | "Plant" | "Supplier" | "Mine" | "Fab" | "Partner" | "Field";
 export interface Site { name: string; code: string; lon: number; lat: number; role: SiteRole }
 export interface Company {
   id: string;

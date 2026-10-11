@@ -47,41 +47,15 @@
 .si-head { display: flex; flex-direction: column; gap: 6px; padding-right: 30px; }
 .si-head h2 { margin: 0; font-size: 26px; letter-spacing: -0.02em; line-height: 1.1; }
 .si-head p { margin: 0; color: var(--secondary); font-size: 14.5px; line-height: 1.4; }
-.si-mark { width: 44px; height: 44px; border-radius: 50%; margin-bottom: 6px; background: radial-gradient(circle at 35% 30%, #4c9ac9, #3563d6 60%, #0040a0); box-shadow: inset -6px -6px 12px rgba(0, 0, 0, 0.25), 0 6px 18px rgba(53, 99, 214, 0.35); position: relative; }
-.si-mark::after { content: ""; position: absolute; inset: 11px 8px; border-top: 2.5px solid rgba(255, 255, 255, 0.9); border-radius: 50%; transform: rotate(-12deg); }
 .si-close { position: absolute; top: 14px; right: 14px; }
-.si-block { display: flex; flex-direction: column; gap: 8px; }
-.si-block h3, .si-label { margin: 0; font-size: 12.5px; font-weight: 600; color: var(--secondary); text-transform: uppercase; letter-spacing: 0.04em; }
-.si-row { display: flex; gap: 8px; }
 .si-input { flex: 1; min-width: 0; padding: 12px 14px; border-radius: 12px; border: 0; background: var(--fill); color: var(--label); font: inherit; font-size: 16px; }
 .si-input:focus { outline: none; box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 35%, transparent); }
 textarea.si-input { resize: vertical; line-height: 1.4; }
 .si-err { margin: -6px 0 0; min-height: 0; color: #c4513a; font-size: 13px; }
 .si-err:empty { display: none; }
-.si-or { display: flex; align-items: center; gap: 10px; color: var(--secondary); font-size: 13px; }
-.si-or::before, .si-or::after { content: ""; flex: 1; height: 0.5px; background: var(--separator); }
-.si-people { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-.si-person { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 12px 6px 10px; border: 0; border-radius: 16px; background: var(--fill); color: var(--label); font: inherit; cursor: pointer; transition: transform 0.15s, background 0.15s; }
-.si-person:hover { background: var(--fill-strong); transform: translateY(-2px); }
-.si-person strong { font-size: 14px; }
-.si-person small { font-size: 11.5px; color: var(--secondary); margin-top: -4px; }
-.si-fine { margin: 0; font-size: 12px; color: var(--secondary); line-height: 1.45; }
-.si-who { display: flex; gap: 14px; align-items: center; }
-.si-who-fields { flex: 1; display: flex; flex-direction: column; gap: 8px; }
-.si-at { display: flex; align-items: center; gap: 2px; padding-left: 12px; border-radius: 12px; background: var(--fill); color: var(--secondary); }
-.si-at .si-input { background: transparent; padding-left: 2px; }
-.si-emojis { display: flex; flex-wrap: wrap; gap: 4px; }
-.si-emoji { width: 38px; height: 38px; border: 0; border-radius: 10px; background: var(--fill); font-size: 20px; cursor: pointer; }
-.si-emoji:hover, .si-emoji[aria-pressed="true"] { background: var(--fill-strong); box-shadow: inset 0 0 0 2px var(--accent); }
 .si-colors { display: flex; gap: 8px; }
 .si-color { width: 26px; height: 26px; border-radius: 50%; border: 0; background: var(--c); cursor: pointer; box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.4); }
 .si-color[aria-pressed="true"], .si-color:focus-visible { box-shadow: 0 0 0 2px var(--material-strong), 0 0 0 4px var(--c); }
-.si-roles { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-.si-role { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 12px; border: 0; border-radius: 14px; background: var(--fill); color: var(--label); font: inherit; text-align: left; cursor: pointer; }
-.si-role[aria-checked="true"] { background: color-mix(in srgb, var(--accent) 14%, transparent); box-shadow: inset 0 0 0 2px var(--accent); }
-.si-role-emoji { font-size: 22px; margin-bottom: 2px; }
-.si-role strong { font-size: 14.5px; }
-.si-role small { font-size: 12px; color: var(--secondary); line-height: 1.3; }
 .si-actions { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 
 /* ---------- Feedback ---------- */
@@ -199,13 +173,10 @@ textarea.si-input { resize: vertical; line-height: 1.4; }
   .pf-card { margin: 10px 12px; padding: 16px 14px; }
   .pf-stats { margin: 12px 12px 4px; }
   .pf-id h1 { font-size: 28px; }
-  .si-people { grid-template-columns: repeat(3, 1fr); }
   .signin { padding: 24px 18px 18px; border-radius: 24px; }
   .cl-hours { grid-template-columns: repeat(4, 1fr); }
   .pf-return { top: calc(var(--gutter) + var(--bar) + 6px + env(safe-area-inset-top, 0px)); }
 }
-
-.si-code { font-size: 30px; letter-spacing: 0.4em; text-align: center; font-variant-numeric: tabular-nums; }
 
 /* ---------- Watching ---------- */
 .cl-verdict .cl-watch { margin-left: auto; flex: none; padding: 7px 11px; border: 0; border-radius: 99px; background: var(--material-strong); color: var(--label); font: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); }
@@ -405,8 +376,6 @@ textarea.pf-input { resize: vertical; line-height: 1.45; }
 .pf-skin { display: flex; align-items: center; gap: 8px; padding: 7px 8px; border: 0; border-radius: 8px; background: transparent; box-shadow: inset 0 0 0 1px var(--hairline); color: var(--label); font: 500 12px var(--font); cursor: pointer; }
 .pf-skin i { flex: none; width: 14px; height: 14px; border-radius: 4px; background: var(--c); }
 .pf-skin[aria-checked="true"] { box-shadow: none; background-color: color-mix(in srgb, var(--c) 10%, transparent); --rc: var(--c); }
-.pf-faces, .si-emojis { display: grid; grid-template-columns: repeat(auto-fill, minmax(38px, 1fr)); gap: 4px; }
-.pf-faces .si-emoji, .si-emojis .si-emoji { width: 100%; }
 .pf-add { display: flex; flex-direction: column; gap: 8px; }
 .pf-add > .pf-btn { align-self: flex-start; text-align: left; }
 .pf-results, .pf-nearby { display: flex; flex-direction: column; gap: 2px; max-height: 300px; overflow: auto; }

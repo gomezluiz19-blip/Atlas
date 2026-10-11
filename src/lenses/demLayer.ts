@@ -6,7 +6,7 @@ import { MAX_ELEVATION_ZOOM, elevation } from "../data/elevation";
 import { TILE_SIZE, pixelToLonLat } from "../data/mercator";
 
 /** Returns [r, g, b, a] (0–255) for an elevation at a latitude, or null for clear. */
-export type DemPaint = (h: number, lat: number) => [number, number, number, number] | null;
+type DemPaint = (h: number, lat: number) => [number, number, number, number] | null;
 
 class DemProvider extends UrlTemplateImageryProvider {
   constructor(private paint: DemPaint, maxLevel: number, rectangle?: Rectangle) {

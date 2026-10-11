@@ -9,14 +9,14 @@
 import { getJson } from "../../data/http";
 import { overpass } from "../../data/overpass";
 import { powerPlants } from "../../data/infra";
-import { addDays, kmBetween, today } from "../kit/ops";
+import { addDays, today } from "../kit/ops";
 import { newId } from "../../work/store";
 import { MONTHS, type Conditions } from "./conditions";
 import { worldMines } from "./market";
 import type { Account, Asset, Company, Depot, Opportunity, Tech, Vertical } from "./network";
 
 export interface Prospect { id: string; name: string; lon: number; lat: number; country?: string; tags: string[]; detail?: string }
-export interface EquipType { every: number; perDay: number; life: number; power?: Asset["power"] }
+interface EquipType { every: number; perDay: number; life: number; power?: Asset["power"] }
 export interface Insight { label: string; value: string; lines: string[]; good: boolean }
 
 export interface SectorDef {
@@ -249,7 +249,7 @@ type SiteRow = [name: string, site: string, lon: number, lat: number, country: s
 type BaseRow = [name: string, lon: number, lat: number, kind: Depot["kind"]];
 
 /** A demo company from a few rows: equipment spread over the sites by a fixed pattern (pure). */
-export function makeDemo(v: Vertical, name: string, types: Record<string, EquipType>, sites: SiteRow[], bases: BaseRow[], people: [string, string][], mix: [string, number][], deals: [string, number, Opportunity["stage"], number][]): Company {
+function makeDemo(v: Vertical, name: string, types: Record<string, EquipType>, sites: SiteRow[], bases: BaseRow[], people: [string, string][], mix: [string, number][], deals: [string, number, Opportunity["stage"], number][]): Company {
   const t0 = today();
   const accounts: Account[] = sites.map(([n, site, lon, lat, country, kind, sla]) => ({ id: newId(), name: n, site, lon, lat, country, commodity: kind, stage: "production", slaHours: sla, contacts: [{ name: "Site manager (demo)", role: "Operations" }] }));
   const assets: Asset[] = [];
@@ -541,8 +541,6 @@ export async function prospectsInView(def: SectorDef, bbox: { w: number; s: numb
     return lat !== undefined && lon !== undefined && r ? [{ id: `${e.type}${e.id}`, name: r.name, lon, lat, tags: r.tags }] : [];
   });
 }
-
-export const nearKm = (a: { lon: number; lat: number }, b: { lon: number; lat: number }) => kmBetween(a, b);
 
 /** A sector's demo with the sector's focus filled in. */
 export function sectorDemo(v: Vertical, mining: () => Company): Company {

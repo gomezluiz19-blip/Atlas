@@ -87,7 +87,7 @@ export function skyRing(x: Hours["hourly"], size = 300): SVGSVGElement {
 
 // ---- Warming stripes -----------------------------------------------------------------------------
 
-export interface YearMean { year: number; mean: number }
+interface YearMean { year: number; mean: number }
 
 /** Each year against the 1961–1990 average, in °C (pure). */
 export function anomalies(years: YearMean[]): { year: number; d: number }[] {
@@ -127,7 +127,7 @@ export function climateShift(warming: number, lat: number): { km: number | null;
 
 // ---- Hot days and frosty nights, decade by decade -----------------------------------------------
 
-export interface Decade { decade: number; hot: number; frost: number }
+interface Decade { decade: number; hot: number; frost: number }
 
 /** Average days a year over `hot` °C and nights under 0 °C, per decade (pure). */
 export function decades(time: string[], tmax: (number | null)[], tmin: (number | null)[], hot = 30): Decade[] {

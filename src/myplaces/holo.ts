@@ -21,9 +21,9 @@ import { circle, clipConvex, distanceTo, emptyLand, landLine, landQuery, scatter
 import { overpass } from "../data/overpass";
 
 export interface DockItem { id: string; label: string; icon: string; color: string; badge?: string; alert?: boolean }
-export interface HoloLine { k: string; v: string }
+interface HoloLine { k: string; v: string }
 /** Something live at the place: a machine, a crane, a ship at anchor, a delivery due. */
-export interface Marker { lon: number; lat: number; color: string; label?: string; /** Metres above ground for the pin head. */ height?: number; pulse?: boolean; /** A ring on the ground, metres (a reach, a noise radius). */ ring?: number }
+interface Marker { lon: number; lat: number; color: string; label?: string; /** Metres above ground for the pin head. */ height?: number; pulse?: boolean; /** A ring on the ground, metres (a reach, a noise radius). */ ring?: number }
 export interface Chip { id: string; label: string; on?: boolean }
 export interface Holo {
   close(): void;
@@ -321,8 +321,10 @@ export function bootSpace(o: SpaceOptions): Holo {
   })();
   const ready = hsP.then((hs) => { if (!closed) buildGround(hs); });
   /** Your building: a quick look right where you are, before the wider survey. */
-  const near = SIZE <= 2400 ? fetchBuildings(o.lon, o.lat, 80) : Promise.resolve([] as Building[]);
-  const wide = SIZE <= 2400 ? fetchBuildings(o.lon, o.lat, Math.min(1200, SIZE / 2)) : Promise.resolve([] as Building[]);
+  // Both start now and are read once the ground is up, so they carry their own fallbacks: a failure that lands
+  // before then isn't left unhandled.
+  const near = SIZE <= 2400 ? fetchBuildings(o.lon, o.lat, 80).catch(() => [] as Building[]) : Promise.resolve([] as Building[]);
+  const wide = SIZE <= 2400 ? fetchBuildings(o.lon, o.lat, Math.min(1200, SIZE / 2)).catch(() => null) : Promise.resolve([] as Building[]);
   const placeOwn = (bs: Building[]) => {
     const own = o.own ? ownBuilding(bs, o.lon, o.lat) : null;
     if (own) setOwn(own, "mapped");

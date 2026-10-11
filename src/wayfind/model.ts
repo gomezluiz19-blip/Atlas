@@ -1,3 +1,5 @@
+import { kmBetween as km } from "../util/geo";
+export { km };
 // The wayfinder's arithmetic: which way you're going, how fast, what you're passing, what's ahead and where
 // you're probably headed. One model for every way of moving over the Earth in Terreno: your phone's GPS on
 // foot or in a car, the camera gliding over the globe on the web, the TV flying between places. Pure, so it
@@ -11,12 +13,6 @@ const R = 6371;
 const rad = (d: number) => (d * Math.PI) / 180;
 const deg = (r: number) => (r * 180) / Math.PI;
 
-/** Great-circle distance, km. */
-export function km(a: LL, b: LL): number {
-  const dLat = rad(b.lat - a.lat), dLon = rad(b.lon - a.lon);
-  const h = Math.sin(dLat / 2) ** 2 + Math.cos(rad(a.lat)) * Math.cos(rad(b.lat)) * Math.sin(dLon / 2) ** 2;
-  return 2 * R * Math.asin(Math.min(1, Math.sqrt(h)));
-}
 /** Initial bearing from a to b, degrees clockwise from north, 0–360. */
 export function bearing(a: LL, b: LL): number {
   const y = Math.sin(rad(b.lon - a.lon)) * Math.cos(rad(b.lat));
@@ -68,7 +64,7 @@ export function paceOf(kmh: number): Pace {
   return kmh < 1.2 ? "still" : kmh < 7 ? "walk" : kmh < 13 ? "run" : kmh < 28 ? "cycle" : kmh < 140 ? "drive" : kmh < 320 ? "rail" : "fly";
 }
 /** How far someone moving at that pace is plausibly headed, km. */
-export const PACE_REACH: Record<Pace, number> = { still: 2, walk: 6, run: 15, cycle: 35, drive: 450, rail: 900, fly: 16_000 };
+const PACE_REACH: Record<Pace, number> = { still: 2, walk: 6, run: 15, cycle: 35, drive: 450, rail: 900, fly: 16_000 };
 
 /** Something worth telling you about. `weight`: 3 a landmark the world knows, 2 notable, 1 local. */
 export interface Poi extends LL { id: string; name: string; kind: string; line: string; weight: number; where?: string }

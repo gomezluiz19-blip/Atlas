@@ -31,7 +31,7 @@ export function altitudeColor(m: number): string {
   }
   return `rgb(${ALT_STOPS[ALT_STOPS.length - 1][1].join(",")})`;
 }
-export const SHIP_COLORS: Record<string, string> = {
+const SHIP_COLORS: Record<string, string> = {
   Cargo: "#5b9467", Tanker: "#c4513a", Passenger: "#3563d6", Fishing: "#d19a2e", Tug: "#8b5fa8", Service: "#8b5fa8",
   "Sailing and pleasure": "#4c9ac9", Military: "#8c8f87", "High-speed craft": "#e1b843", Vessel: "#d1d1d6",
 };

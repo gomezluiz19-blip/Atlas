@@ -10,7 +10,7 @@ export interface Spot { name: string; detail?: string; lon: number; lat: number 
 
 export interface Visit { id: string; name: string; spot?: Spot; /** Day of the stay, from 0. */ day: number; time?: string; note?: string }
 
-export interface MoveStep { id: string; kind: "move"; mode: Mode; to: Spot; /** Leave at HH:MM (otherwise as soon as the last step ends). */ at?: string; note?: string }
+interface MoveStep { id: string; kind: "move"; mode: Mode; to: Spot; /** Leave at HH:MM (otherwise as soon as the last step ends). */ at?: string; note?: string }
 export interface StayStep { id: string; kind: "stay"; place: Spot; /** Nights, or hours for a short stop. */ nights?: number; hours?: number; visits: Visit[]; note?: string; /** What happens (an event's "Talks", "Lunch"). */ label?: string }
 export type Step = MoveStep | StayStep;
 
@@ -45,7 +45,7 @@ export function guessMode(km: number): Mode {
   return km > 700 ? "fly" : km > 12 ? "drive" : km > 1.5 ? "taxi" : "walk";
 }
 
-export function legEstimate(from: LonLat, to: LonLat, mode: Mode) {
+function legEstimate(from: LonLat, to: LonLat, mode: Mode) {
   const m = MODES[mode], straight = metres(from, to), route = straight * m.detour;
   return { straight, route, hours: straight < 1 ? 0 : route / 1000 / m.kmh + m.overheadH };
 }
@@ -137,7 +137,7 @@ const MODE_WORDS: [RegExp, Mode][] = [
   [/^(?:bike|cycle|cycling|bicycle)$/i, "bike"],
 ];
 const MODE_ALT = "fly|flight|flying|plane|air|train|rail|railway|metro|subway|tube|tram|drive|driving|car|rental car|hire car|road trip|taxi|cab|uber|grab|lyft|ride|transfer|shuttle|bus|coach|jeepney|ferry|boat|ship|cruise|sail|walk|walking|on foot|hike|bike|cycle|cycling|bicycle";
-export const modeOf = (w: string): Mode | null => MODE_WORDS.find(([re]) => re.test(w.trim()))?.[1] ?? null;
+const modeOf = (w: string): Mode | null => MODE_WORDS.find(([re]) => re.test(w.trim()))?.[1] ?? null;
 
 const clean = (q: string) => q.replace(/^(?:the|a|an)\s+/i, "").replace(/[.!]+$/, "").trim();
 const isHome = (q: string) => /^(?:home|back home|back|the start|where (?:i|we) started|(?:the )?school|base)$/i.test(q.trim());

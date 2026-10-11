@@ -88,7 +88,7 @@ const SPORT_NAMES: Record<string, string> = {
   equestrian: "Riding", skateboard: "Skating", multi: "Multi-sport", gaelic_games: "Gaelic games", australian_football: "Aussie rules", netball: "Netball",
   fitness: "Fitness", boxing: "Boxing", climbing: "Climbing", cycling: "Cycling", motor: "Motor sport", horse_racing: "Horse racing", shooting: "Shooting",
 };
-export const sportName = (s: string) => SPORT_NAMES[s] ?? tidy(s);
+const sportName = (s: string) => SPORT_NAMES[s] ?? tidy(s);
 
 /** Counts things by a label, most common first. */
 export function tally(labels: (string | undefined)[], top = 8): { label: string; n: number }[] {

@@ -15,7 +15,7 @@ import { icons } from "../ui/icons";
 import { rangeChart } from "../ui/rangeChart";
 import { drawArea, radiusChips, radiusForCamera } from "./area";
 
-export interface LifeState {
+interface LifeState {
   groups: TaxonGroup[];
   group: TaxonGroup;
   radius: number;

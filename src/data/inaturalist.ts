@@ -102,7 +102,7 @@ export function gbifTiles(taxonKey: number, style = "purpleYellow.point"): strin
   return `https://api.gbif.org/v2/map/occurrence/density/{z}/{x}/{y}@1x.png?style=${style}&srs=EPSG:3857&taxonKey=${taxonKey}`;
 }
 
-export interface PhotoSighting { id: number; lon: number; lat: number; photo: string; taxon: Taxon; by?: string }
+interface PhotoSighting { id: number; lon: number; lat: number; photo: string; taxon: Taxon; by?: string }
 
 /** Photographed sightings around a place, one per species, best liked first (for showing them where they were seen). */
 export async function photoSightings(a: Area, query: string, max = 24): Promise<PhotoSighting[]> {

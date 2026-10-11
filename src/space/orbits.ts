@@ -57,7 +57,7 @@ export function loadGroup(group: string): Promise<Sat[]> {
   return p;
 }
 
-export interface SatState { lon: number; lat: number; alt: number; /** km/s */ speed: number; eci: [number, number, number] }
+interface SatState { lon: number; lat: number; alt: number; /** km/s */ speed: number; eci: [number, number, number] }
 
 export function stateAt(s: Sat, ms: number): SatState | null {
   const date = new Date(ms);

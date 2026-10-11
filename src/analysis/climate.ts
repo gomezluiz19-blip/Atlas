@@ -1,7 +1,7 @@
 // Climate statistics from daily weather records: monthly normals, Köppen–Geiger
 // climate type (Peel, Finlayson & McMahon 2007) and long-term warming trend.
 
-export interface MonthlyNormals {
+interface MonthlyNormals {
   /** Mean temperature of each month, °C (Jan..Dec). */
   temp: number[];
   /** Mean total precipitation of each month, mm. */
@@ -61,7 +61,7 @@ export function linearTrend(xs: number[], ys: number[]): { slope: number; interc
   return { slope, intercept: my - slope * mx };
 }
 
-export interface Koppen {
+interface Koppen {
   code: string;
   name: string;
   description: string;
