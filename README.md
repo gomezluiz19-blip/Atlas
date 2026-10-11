@@ -108,7 +108,10 @@ hand off to each other (continue on your phone, open the TV's view here, show on
 
 ```
 src/
-  main.ts              wiring: globe, themes, search, map-style and about popovers, Connected links
+  main.ts              wiring: the globe, the views, the hubs behind ＋, and the actions everything else calls
+  shell/               the frame's parts: search box, About, the opening view, My Place as a hologram, the card
+                       that follows the map, Connected links, analysis layers on the canvas
+  util/                shared helpers: geo (distances), storage (saved JSON), later (load on first use)
   canvas.ts            the shared canvas: what's on the map, across themes and places
   robot/               the task robot: plan.ts turns a request into steps, run.ts carries them out
   tv/                  TV mode: rooms (what each screen is for), classroom (quiz, time machine), wall (sites,
@@ -141,7 +144,7 @@ src/
   content/sites.ts     curated places to start, per theme
   content/minerals.ts  commodities, landmark mines, mineral guide, rock → mineral links
   content/links.ts     how the themes connect: next questions and layers for every view
-  ui/                  chart, search, layers panel, taxon icons, label glyphs, DOM helpers
+  ui/                  the frame (chrome.ts: Search, Navigate, Me, ＋), chart, search, layers panel, glyphs, DOM helpers
 ```
 
 Every analysis reads the same elevation tiles that draw the 3D terrain, so what you see is what is measured.
