@@ -84,7 +84,7 @@ function kindFromWords(s: string): SpotKind {
   return rules.find(([re]) => re.test(t))?.[1] ?? "place";
 }
 
-export interface ProfilePages {
+interface ProfilePages {
   open(handle: string, edit?: boolean): void;
   /** Opens a profile carried whole in a link (#/u/~packed). */
   openPacked(packed: string): Promise<boolean>;

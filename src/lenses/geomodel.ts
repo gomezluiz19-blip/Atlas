@@ -12,7 +12,7 @@ import { fetchColumn, fetchMapUnit, formatAge, lithologySummary, type MapUnit } 
 import { haversine } from "../data/mercator";
 import { lithPattern, patternFor, type PatternKind } from "../ui/lithology";
 
-export interface GeoLayer { key: string; name: string; age: string; color: string; pattern: PatternKind; about: string }
+interface GeoLayer { key: string; name: string; age: string; color: string; pattern: PatternKind; about: string }
 
 export interface Section {
   points: [number, number][];
@@ -47,7 +47,7 @@ const mapLayer = (u: MapUnit): GeoLayer => ({
   color: u.color || "#a89f91", pattern: patternFor(u.lith), about: u.lith ?? u.descrip ?? "",
 });
 
-export interface SectionOptions { samples?: number; surfaceSamples?: number }
+interface SectionOptions { samples?: number; surfaceSamples?: number }
 
 /** Builds a section along a line of points. */
 export async function buildSection(points: [number, number][], opts: SectionOptions = {}): Promise<Section> {

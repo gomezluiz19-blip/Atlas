@@ -31,7 +31,7 @@ export function mailSummary(ctx: WorkCtx, o: Office, save: () => void, back: () 
     h("button", { class: "link-btn", onclick: () => mailScreen(ctx, o, save, back) }, "Open the mailbag"));
 }
 
-export function mailScreen(ctx: WorkCtx, o: Office, save: () => void, back: () => void) {
+function mailScreen(ctx: WorkCtx, o: Office, save: () => void, back: () => void) {
   const t = today(), ms = o.messages ?? [], s = mailStats(ms, t);
   const again = () => mailScreen(ctx, o, save, back);
   const most = Math.max(1, ...s.byWeek);

@@ -18,7 +18,7 @@ import { allLenses, deleteLens, findLens, isKept, isMade, keep, madeLenses, reme
 const COLORS = ["#30b0c7", "#3563d6", "#5160c2", "#8b5fa8", "#b8496a", "#d19a2e", "#5b9467", "#9a7552"];
 
 /** One line about what a block will show. */
-export function blockDetail(b: Block): string {
+function blockDetail(b: Block): string {
   switch (b.type) {
     case "species": return `${SPECIES_GROUPS[b.group]?.label ?? "Wildlife"}, last ${b.days ?? 30} days`;
     case "places": return `${b.title}: ${b.tags.join(", ")}`;
@@ -33,7 +33,7 @@ export function blockDetail(b: Block): string {
   }
 }
 
-export interface LensStudio {
+interface LensStudio {
   open(def?: LensDef): void;
   openPacked(packed: string): Promise<boolean>;
   close(): void;

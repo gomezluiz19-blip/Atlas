@@ -6,7 +6,7 @@ import { h } from "./dom";
 import { icons } from "./icons";
 import { flyToPlace, geocode } from "./search";
 
-export interface PlusItem { label: string; sub?: string; icon: string; color?: string; run: () => void }
+interface PlusItem { label: string; sub?: string; icon: string; color?: string; run: () => void }
 
 const NAV = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11.2 20 4l-7.2 16-2-6.8z"/></svg>';
 const PLUS = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>';

@@ -4,7 +4,7 @@
 // every size: the app's mark, the favicon, the home-screen icon and the share card (pure, so a build script
 // can call it too).
 
-export const PIGMENTS = { cobalt: "#2f58c8", ochre: "#c4922b", sage: "#56705a", terra: "#a9502f", ink: "#1b1d1a", paper: "#f5f2eb", cerulean: "#4c9ac9" } as const;
+const PIGMENTS = { cobalt: "#2f58c8", ochre: "#c4922b", sage: "#56705a", terra: "#a9502f", ink: "#1b1d1a", paper: "#f5f2eb", cerulean: "#4c9ac9" } as const;
 
 /** An annular sector (a mosaic tile in the dome), centre (cx, cy), radii r0..r1, angles a0..a1 in degrees (0 = east, 180 = west, counter-clockwise up). */
 export function tile(cx: number, cy: number, r0: number, r1: number, a0: number, a1: number): string {
@@ -23,7 +23,7 @@ export function domeTiles(cx: number, cy: number, r: number): { d: string; fill:
   return out;
 }
 
-export interface MarkOptions { size?: number; background?: string | null; ticks?: boolean; arc?: boolean; grout?: string; /** Small sizes: a bigger dome, no arc or marks. */ compact?: boolean }
+interface MarkOptions { size?: number; background?: string | null; ticks?: boolean; arc?: boolean; grout?: string; /** Small sizes: a bigger dome, no arc or marks. */ compact?: boolean }
 
 /** The mark as an SVG string (pure). */
 export function markSvg(o: MarkOptions = {}): string {

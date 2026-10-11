@@ -38,6 +38,6 @@ export function chime(kind: "arrive" | "open" | "surprise") {
   } catch { /* no audio */ }
 }
 
-export function haptic(ms = 8) {
+function haptic(ms = 8) {
   if (ms > 0 && matchMedia("(pointer: coarse)").matches) navigator.vibrate?.(ms);
 }

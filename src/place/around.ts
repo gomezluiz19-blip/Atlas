@@ -9,7 +9,7 @@ const DAY_IDS = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
 const toMin = (hhmm: string) => { const [hh, mm] = hhmm.split(":").map(Number); return hh * 60 + mm; };
 const clock = (m: number) => `${String(Math.floor(m / 60) % 24).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;
 
-export interface OpenState { open: boolean; /** "Closes 15:30", "Opens 08:00", "Opens Mon 08:00". */ next: string }
+interface OpenState { open: boolean; /** "Closes 15:30", "Opens 08:00", "Opens Mon 08:00". */ next: string }
 
 /** The days a rule covers ("Mo-Fr", "Sa,Su", "Mo-We,Fr"), as 0–6 with Sunday 0; null if it isn't a day list. */
 function daysOf(spec: string): number[] | null {
@@ -72,7 +72,7 @@ export function addressLine(a: Record<string, string> | null | undefined): strin
 
 // ---- Nearby ------------------------------------------------------------------------------------------
 
-export type NearbyId = "food" | "coffee" | "groceries" | "parks" | "transit" | "schools" | "health" | "fuel";
+type NearbyId = "food" | "coffee" | "groceries" | "parks" | "transit" | "schools" | "health" | "fuel";
 export interface NearbyKind { id: NearbyId; label: string; /** OpenStreetMap key=value|value… pairs. */ osm: string[] }
 
 export const NEARBY: NearbyKind[] = [

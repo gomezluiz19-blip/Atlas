@@ -40,7 +40,7 @@ export interface Track {
 }
 
 /** A counting line on the picture, from a to b; crossing it left-to-right is "in". */
-export interface CountLine { a: [number, number]; b: [number, number] }
+interface CountLine { a: [number, number]; b: [number, number] }
 
 const side = (l: CountLine, x: number, y: number) => Math.sign((l.b[0] - l.a[0]) * (y - l.a[1]) - (l.b[1] - l.a[1]) * (x - l.a[0]));
 

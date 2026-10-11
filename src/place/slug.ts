@@ -60,7 +60,7 @@ export const spotSlug = (lon: number, lat: number) => `@${lat.toFixed(5)},${lon.
 /** A Wikidata place: "eiffel-tower~q243". */
 export const wikidataSlug = (name: string, qid: string) => `${slugify(name) || "place"}~${qid.toLowerCase()}`;
 
-export type ParsedSlug = { kind: "named"; slug: string } | { kind: "spot"; lon: number; lat: number } | { kind: "wikidata"; qid: string };
+type ParsedSlug = { kind: "named"; slug: string } | { kind: "spot"; lon: number; lat: number } | { kind: "wikidata"; qid: string };
 
 export function parseSlug(s: string): ParsedSlug | null {
   const t = decodeURIComponent(s).trim();

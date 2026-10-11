@@ -27,7 +27,7 @@ export interface RoomUpdate {
   guests?: number;
 }
 
-export interface Snapshot {
+interface Snapshot {
   at: number;
   rooms: { room: Room; state: RoomState; guests: number }[];
 }
@@ -72,7 +72,7 @@ const COLUMNS: Record<"room" | "start" | "end" | "guests" | "status", RegExp> = 
   status: /^(status|state|estado|booking status)$/i,
 };
 
-export interface ColumnMap { room?: number; start: number; end: number; guests?: number; status?: number }
+interface ColumnMap { room?: number; start: number; end: number; guests?: number; status?: number }
 
 /** Finds the columns a reservations export uses (English or Spanish headers). */
 export function detectColumns(header: string[]): ColumnMap | null {

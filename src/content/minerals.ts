@@ -332,7 +332,7 @@ export const MINERALS: Record<string, Mineral> = {
   coal: { name: "Coal", formula: "mostly C", hardness: "1–2.5", looks: "Black, dull to shiny, lightweight", why: "A rock made of plant remains; fuel", ore: "coal" },
 };
 
-export interface RockProfile {
+interface RockProfile {
   label: string;
   /** Keys into MINERALS for the minerals that make up this rock. */
   minerals: string[];

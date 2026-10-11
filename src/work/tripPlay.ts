@@ -29,7 +29,7 @@ function badge(mode: Mode): string {
 const RING = `data:image/svg+xml;charset=utf-8,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64"><circle cx="32" cy="32" r="28" fill="none" stroke="#fff" stroke-width="3"/></svg>')}`;
 
 /** The leg as points with heights: a flight arcs up (higher for longer hops), ground travel stays low. */
-export function legPath(from: Spot, to: Spot, mode: Mode): { lon: number; lat: number; h: number }[] {
+function legPath(from: Spot, to: Spot, mode: Mode): { lon: number; lat: number; h: number }[] {
   const d = metres([from.lon, from.lat], [to.lon, to.lat]);
   const pts = (mode === "fly" || d > 300_000 ? arc([from.lon, from.lat], [to.lon, to.lat], 64).flat() : Array.from({ length: 33 }, (_, i) => [from.lon + ((to.lon - from.lon) * i) / 32, from.lat + ((to.lat - from.lat) * i) / 32] as [number, number]));
   const top = mode === "fly" ? Math.min(900_000, Math.max(8000, d * 0.12)) : 60;

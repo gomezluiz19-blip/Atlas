@@ -11,9 +11,9 @@ import { isoDate, money, type FieldMap, type Row } from "../../data/opendata";
 export const STAGES = ["site prep", "excavation", "foundation", "structure", "envelope", "interiors", "finishes", "closeout"] as const;
 export type Stage = (typeof STAGES)[number];
 /** Share of a typical schedule each stage takes (sums to 1). */
-export const STAGE_SHARE: Record<Stage, number> = { "site prep": 0.05, excavation: 0.08, foundation: 0.12, structure: 0.27, envelope: 0.18, interiors: 0.18, finishes: 0.08, closeout: 0.04 };
+const STAGE_SHARE: Record<Stage, number> = { "site prep": 0.05, excavation: 0.08, foundation: 0.12, structure: 0.27, envelope: 0.18, interiors: 0.18, finishes: 0.08, closeout: 0.04 };
 /** The trades working in each stage (union crafts' names). */
-export const STAGE_TRADES: Record<Stage, string[]> = {
+const STAGE_TRADES: Record<Stage, string[]> = {
   "site prep": ["Operating engineers", "Laborers"],
   excavation: ["Operating engineers", "Laborers"],
   foundation: ["Concrete / cement masons", "Carpenters (formwork)", "Ironworkers (rebar)", "Laborers"],
@@ -27,7 +27,7 @@ export const STAGE_COLOR: Record<Stage, string> = { "site prep": "#9a7552", exca
 
 export type Kind = "residential" | "mixed-use" | "commercial" | "institutional" | "industrial" | "civil";
 /** Share of a facade typically in masonry (brick, block, stone) for each kind of building: a rough planning figure. */
-export const MASONRY_SHARE: Record<Kind, number> = { residential: 0.55, "mixed-use": 0.45, commercial: 0.2, institutional: 0.6, industrial: 0.35, civil: 0.1 };
+const MASONRY_SHARE: Record<Kind, number> = { residential: 0.55, "mixed-use": 0.45, commercial: 0.2, institutional: 0.6, industrial: 0.35, civil: 0.1 };
 export type UnionStatus = "union" | "open shop" | "mixed" | "unknown";
 export type Signatory = "yes" | "no" | "unknown";
 export interface TradeOnSite { trade: string; contractor: string; signatory: Signatory; workers?: number }

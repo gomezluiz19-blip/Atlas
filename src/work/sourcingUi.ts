@@ -3,7 +3,6 @@
 // supply lines on the map with drops flowing in to the site, the nearest
 // sources in a list, and for food a season wheel of what grows here when.
 import { Cartesian2 } from "cesium";
-import type { App } from "../app";
 import { monthlyNormals } from "../analysis/climate";
 import { history } from "../data/openmeteo";
 import { overpass } from "../data/overpass";
@@ -136,4 +135,3 @@ function seasonBlock(site: { lon: number; lat: number }): HTMLElement {
   return box;
 }
 
-export const clearSourcing = (_app?: App) => map?.clear();

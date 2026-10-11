@@ -15,7 +15,7 @@ import {
   type Issue, type Mode, type Mood, type Move, type Party, type Per, type Site,
 } from "./ops";
 
-export type Catalog = Record<string, { label: string; emoji: string }>;
+type Catalog = Record<string, { label: string; emoji: string }>;
 
 /** A tool's own layer on the globe and its streams. */
 export class OpsMap {

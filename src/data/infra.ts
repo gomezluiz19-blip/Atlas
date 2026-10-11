@@ -15,7 +15,7 @@ export interface Port { name: string; lon: number; lat: number; rank: number }
 export interface Airport { name: string; iata: string; lon: number; lat: number; type: string; rank: number }
 export interface PowerPlant { name: string; lon: number; lat: number; fuel: string; mw: number; country: string; year: number }
 export interface Cable { id: string; name: string; color: string; lines: NetLine[] }
-export interface LandingPoint { id: string; name: string; lon: number; lat: number }
+interface LandingPoint { id: string; name: string; lon: number; lat: number }
 
 /** Decodes [attrs…, x0, y0, dx, dy, …] (thousandths of a degree) into a line. */
 export function decodeLine(row: (string | number)[], nAttrs: number): NetLine {
@@ -101,9 +101,9 @@ export async function landingPoints(): Promise<LandingPoint[]> {
   });
 }
 
-export interface CableDetail { name: string; length?: string; rfs?: string; owners?: string; landing_points?: { id: string; name: string; country?: string }[]; url?: string }
+interface CableDetail { name: string; length?: string; rfs?: string; owners?: string; landing_points?: { id: string; name: string; country?: string }[]; url?: string }
 export const cableDetail = (id: string) => getJson<CableDetail>("Submarine Cable Map", `${CABLE_API}/cable/${encodeURIComponent(id)}.json`);
-export interface LandingDetail { name: string; cables?: { id: string; name: string }[] }
+interface LandingDetail { name: string; cables?: { id: string; name: string }[] }
 export const landingDetail = (id: string) => getJson<LandingDetail>("Submarine Cable Map", `${CABLE_API}/landing-point/${encodeURIComponent(id)}.json`);
 
 // ---- Geometry helpers ------------------------------------------------------

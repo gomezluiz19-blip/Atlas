@@ -19,7 +19,7 @@ import { createProfiles } from "./page";
 import { me } from "./store";
 import { openFriend, setSignIn } from "./friends";
 
-export interface SocialDeps {
+interface SocialDeps {
   lensList: Lens[];
   lenses: { refresh(): void; openWhenReady(id: string): Promise<boolean>; openOn(id: string, s: Subject): void };
   openPlace(slug: string): Promise<void> | void;

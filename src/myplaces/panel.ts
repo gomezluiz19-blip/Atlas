@@ -45,7 +45,7 @@ function numberField(label: string, unit: string, value: number | undefined, onC
   return h("label", { class: "mp-field", title: hint }, h("span", {}, label), h("span", { class: "mp-input" }, input, h("span", { class: "mp-unit" }, unit)));
 }
 
-export interface MyPlacesUi {
+interface MyPlacesUi {
   button: HTMLButtonElement;
   panel: HTMLElement;
   open(id?: string): void;

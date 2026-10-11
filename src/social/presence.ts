@@ -26,7 +26,7 @@ export interface Status {
 }
 
 /** A status goes stale after a day: it's shown faded, as "last set". */
-export const STALE_MS = 24 * 3_600_000;
+const STALE_MS = 24 * 3_600_000;
 
 /** "Just now", "12 min ago", "3 h ago", "Yesterday", "4 days ago" (pure). */
 export function ago(iso: string, now: Date): string {
@@ -63,7 +63,7 @@ export function statusFromJson(v: unknown): Status | undefined {
 
 // ---- Ways to reach someone -----------------------------------------------------------------------
 
-export type ReachKind = "text" | "call" | "whatsapp" | "telegram" | "signal" | "email";
+type ReachKind = "text" | "call" | "whatsapp" | "telegram" | "signal" | "email";
 export interface Reach { kind: ReachKind; value: string }
 
 export const REACH: Record<ReachKind, { label: string; placeholder: string; verb: string }> = {

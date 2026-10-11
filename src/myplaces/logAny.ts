@@ -4,7 +4,7 @@ import { parseSiteLog } from "../work/buildLog";
 import { parseLog } from "../work/flockLog";
 import { parseFieldLog } from "../work/growLog";
 
-export interface LogPlan { tool: "Flock" | "Grow" | "Build"; summary: string; saves: string; run: () => Promise<string | null> }
+interface LogPlan { tool: "Flock" | "Grow" | "Build"; summary: string; saves: string; run: () => Promise<string | null> }
 
 const read = (key: string) => { try { return JSON.parse(localStorage.getItem(key) ?? "null"); } catch { return null; } };
 

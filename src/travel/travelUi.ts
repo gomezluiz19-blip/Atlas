@@ -84,7 +84,7 @@ function dayStrip(land: string, rise: string, set: string): HTMLElement {
     h("small", {}, `You land ${dusk ? "around " + (Math.abs(l - r) < Math.abs(l - s) ? "sunrise" : "sunset") : dark ? "in the dark" : "in daylight"} · sunrise ${rise.slice(11, 16)}, sunset ${set.slice(11, 16)}`));
 }
 
-export interface TravelPrefill { from?: Pt; depart?: string; back?: string; people?: number }
+interface TravelPrefill { from?: Pt; depart?: string; back?: string; people?: number }
 
 export function openTravel(ctx: WorkCtx, app: App, dest?: Pt, pre: TravelPrefill = {}) {
   map ??= new OpsMap(app, "travel", "#3563d6");
@@ -255,4 +255,3 @@ export function openTravel(ctx: WorkCtx, app: App, dest?: Pt, pre: TravelPrefill
   if (from && to) void go();
 }
 
-export const clearTravel = () => map?.clear();

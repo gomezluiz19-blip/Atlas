@@ -20,7 +20,7 @@ export interface TileView {
   touches(bbox: [number, number, number, number], padPx?: number): boolean;
 }
 
-export type TileDraw = (ctx: CanvasRenderingContext2D, t: TileView) => void;
+type TileDraw = (ctx: CanvasRenderingContext2D, t: TileView) => void;
 
 class CanvasTileProvider extends UrlTemplateImageryProvider {
   constructor(private draw: TileDraw, maximumLevel: number, credit?: string) {
@@ -72,7 +72,7 @@ export function tracePath(ctx: CanvasRenderingContext2D, t: TileView, xy: Float3
   }
 }
 
-export interface LineStyle { color: string; width: number; dash?: number[]; casing?: string }
+interface LineStyle { color: string; width: number; dash?: number[]; casing?: string }
 
 /**
  * Strokes lines grouped by style. `style` returns null to skip a line at this
@@ -108,7 +108,7 @@ export function drawLines(ctx: CanvasRenderingContext2D, t: TileView, lines: Net
   ctx.setLineDash([]);
 }
 
-export interface DotStyle { color: string; radius: number; stroke?: string; glyph?: "anchor" | "plane" | "pick" | "bolt" | "cable" }
+interface DotStyle { color: string; radius: number; stroke?: string; glyph?: "anchor" | "plane" | "pick" | "bolt" | "cable" }
 
 /** Draws round markers, largest first so small ones stay visible on top. */
 export function drawDots<T extends { lon: number; lat: number }>(ctx: CanvasRenderingContext2D, t: TileView, items: T[], style: (it: T, level: number) => DotStyle | null) {

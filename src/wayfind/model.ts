@@ -68,7 +68,7 @@ export function paceOf(kmh: number): Pace {
   return kmh < 1.2 ? "still" : kmh < 7 ? "walk" : kmh < 13 ? "run" : kmh < 28 ? "cycle" : kmh < 140 ? "drive" : kmh < 320 ? "rail" : "fly";
 }
 /** How far someone moving at that pace is plausibly headed, km. */
-export const PACE_REACH: Record<Pace, number> = { still: 2, walk: 6, run: 15, cycle: 35, drive: 450, rail: 900, fly: 16_000 };
+const PACE_REACH: Record<Pace, number> = { still: 2, walk: 6, run: 15, cycle: 35, drive: 450, rail: 900, fly: 16_000 };
 
 /** Something worth telling you about. `weight`: 3 a landmark the world knows, 2 notable, 1 local. */
 export interface Poi extends LL { id: string; name: string; kind: string; line: string; weight: number; where?: string }

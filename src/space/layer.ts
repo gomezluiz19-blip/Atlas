@@ -10,7 +10,7 @@ import { GROUPS, groundTrack, stateAt, type Sat } from "./orbits";
 import { ascent, countdown, inFlight, type Launch } from "./launches";
 
 const emojiCache = new Map<string, string>();
-export function emojiIcon(e: string, bg = "rgba(12,16,24,0.75)"): string {
+function emojiIcon(e: string, bg = "rgba(12,16,24,0.75)"): string {
   const k = e + bg;
   let url = emojiCache.get(k);
   if (!url) {

@@ -32,7 +32,7 @@ export type Stage = "booked" | "loaded" | "sailing" | "arrived" | "delivered";
 export const STAGES: { id: Stage; label: string }[] = [
   { id: "booked", label: "Booked" }, { id: "loaded", label: "Loaded at origin" }, { id: "sailing", label: "At sea" }, { id: "arrived", label: "Arrived, at the port" }, { id: "delivered", label: "Delivered" },
 ];
-export interface Milestone { at: string; text: string }
+interface Milestone { at: string; text: string }
 export interface Shipment {
   id: string; ref: string; customer: string; cargo: string;
   origin: Port; dest: Port; via?: Port;
@@ -69,7 +69,7 @@ const ms = (iso: string) => Date.parse(iso + "T12:00:00Z");
 export const daysBetween = (a: string, b: string) => Math.round((ms(b) - ms(a)) / DAY);
 
 /** Neopanamax locks take ships up to about 366 m and roughly 14,000–15,000 TEU; bigger ones can't use Panama. */
-export const PANAMA_MAX_TEU = 15_000;
+const PANAMA_MAX_TEU = 15_000;
 export const tooBigForPanama = (v?: Vessel) => !!v && (v.teu ?? 0) > PANAMA_MAX_TEU;
 
 // ---- The voyage --------------------------------------------------------------------------------------
@@ -90,7 +90,7 @@ export function voyage(s: Shipment, closed: string[] = [], v?: Vessel): SeaRoute
   return r;
 }
 
-export const TRANSHIP_DAYS = 3;
+const TRANSHIP_DAYS = 3;
 
 export interface Eta {
   route: SeaRoute | null;
@@ -152,9 +152,9 @@ export function demurrage(s: Shipment, today: string): { endsOn?: string; daysOv
 // ---- Carbon ------------------------------------------------------------------------------------------
 
 /** EU and EEA countries (the EU Emissions Trading System covers shipping to, from and within them). */
-export const EU_ETS = new Set(["Austria", "Belgium", "Bulgaria", "Croatia", "Cyprus", "Czechia", "Denmark", "Estonia", "Finland", "France", "Germany", "Greece", "Hungary", "Ireland", "Italy", "Latvia", "Lithuania", "Luxembourg", "Malta", "Netherlands", "Poland", "Portugal", "Romania", "Slovakia", "Slovenia", "Spain", "Sweden", "Iceland", "Norway"]);
+const EU_ETS = new Set(["Austria", "Belgium", "Bulgaria", "Croatia", "Cyprus", "Czechia", "Denmark", "Estonia", "Finland", "France", "Germany", "Greece", "Hungary", "Ireland", "Italy", "Latvia", "Lithuania", "Luxembourg", "Malta", "Netherlands", "Poland", "Portugal", "Romania", "Slovakia", "Slovenia", "Spain", "Sweden", "Iceland", "Norway"]);
 /** The share of emissions ships surrender allowances for, by year (phased in from 2024). */
-export const ETS_PHASE: Record<number, number> = { 2024: 0.4, 2025: 0.7 };
+const ETS_PHASE: Record<number, number> = { 2024: 0.4, 2025: 0.7 };
 export const etsPhase = (year: number) => (year < 2024 ? 0 : ETS_PHASE[year] ?? 1);
 
 /**
@@ -194,7 +194,7 @@ export const WARNING_AREAS: { id: string; label: string; box: [number, number, n
   { id: "singapore", label: "Singapore Strait", box: [103.3, 0.9, 104.6, 1.5], why: "Frequent petty theft from passing ships (usually no injuries)." },
 ];
 /** Countries under broad sanctions programmes (US, EU or UK): a prompt to screen, not legal advice. */
-export const SANCTIONED = ["Iran", "North Korea", "Cuba", "Syria", "Russia", "Belarus", "Venezuela"];
+const SANCTIONED = ["Iran", "North Korea", "Cuba", "Syria", "Russia", "Belarus", "Venezuela"];
 
 export interface Flag { level: 1 | 2 | 3; text: string }
 /** What to watch on a shipment (pure). */

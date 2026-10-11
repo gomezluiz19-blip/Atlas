@@ -7,7 +7,7 @@ export type Ring = [number, number][];
 interface GeomMember { type: string; role?: string; geometry?: { lat: number; lon: number }[] }
 
 /** Outer rings of a way or multipolygon relation (with `out geom`). */
-export function ringsOf(e: OsmElement & { members?: GeomMember[] }): Ring[] {
+function ringsOf(e: OsmElement & { members?: GeomMember[] }): Ring[] {
   if (e.type === "way" && e.geometry) return [e.geometry.map((p) => [p.lon, p.lat] as [number, number])];
   if (e.type === "relation" && e.members) {
     const outers = e.members.filter((m) => m.type === "way" && (m.role === "outer" || m.role === "") && m.geometry).map((m) => m.geometry!.map((p) => [p.lon, p.lat] as [number, number]));

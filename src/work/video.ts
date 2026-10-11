@@ -183,7 +183,7 @@ export class Recording {
 }
 
 /** The credits of the map layers on screen, as plain text. */
-export function mapCredits(app: App): string {
+function mapCredits(app: App): string {
   const out = new Set<string>();
   const layers = app.globe.viewer.imageryLayers;
   for (let i = 0; i < layers.length; i++) {

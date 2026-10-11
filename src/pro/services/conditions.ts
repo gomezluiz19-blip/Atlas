@@ -47,8 +47,8 @@ export function summarise(daysIn: { date: string; tmin: number | null; tmax: num
  * on their source. The EU's list of conflict-affected and high-risk areas is
  * wider and changes; this is the fixed legal floor.
  */
-export const COVERED_COUNTRIES = ["DR Congo", "Democratic Republic of the Congo", "Angola", "Burundi", "Central African Republic", "Republic of the Congo", "Rwanda", "South Sudan", "Tanzania", "Uganda", "Zambia"];
-export const THREE_TG = ["tin", "tantalum", "tungsten", "gold"];
+const COVERED_COUNTRIES = ["DR Congo", "Democratic Republic of the Congo", "Angola", "Burundi", "Central African Republic", "Republic of the Congo", "Rwanda", "South Sudan", "Tanzania", "Uganda", "Zambia"];
+const THREE_TG = ["tin", "tantalum", "tungsten", "gold"];
 export const conflictMinerals = (country?: string, commodity?: string) =>
   !!country && !!commodity && COVERED_COUNTRIES.some((c) => c.toLowerCase() === country.toLowerCase()) && THREE_TG.includes(commodity.toLowerCase());
 

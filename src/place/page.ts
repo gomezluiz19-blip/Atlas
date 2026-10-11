@@ -15,7 +15,7 @@ import { headline } from "./headline";
 import { nearestNamed, slugOfPlace } from "./places";
 
 /** A place's page link: the prerendered page for named places, else an app link. */
-export function pageLink(slug: string): string {
+function pageLink(slug: string): string {
   const base = `${location.origin}${location.pathname.replace(/[^/]*$/, "")}`;
   return import.meta.env.PROD && /^[a-z0-9-]+$/.test(slug) ? `${base}p/${slug}/` : `${base}#/p/${slug}`;
 }

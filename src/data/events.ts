@@ -24,7 +24,7 @@ export interface EventItem {
   source: "Ticketmaster" | "SeatGeek" | "Eventbrite";
 }
 
-export interface Festival { name: string; about?: string; when?: string; url?: string; lon: number; lat: number }
+interface Festival { name: string; about?: string; when?: string; url?: string; lon: number; lat: number }
 
 // Each service works with a key in the build (development) or through Terreno's edge, which holds the key.
 const hasTm = () => !!config.ticketmasterKey || edgeHas("ticketmaster");

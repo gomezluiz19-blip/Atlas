@@ -34,7 +34,7 @@ const navSvg = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stro
 
 function loadFound(): string[] { try { const v = JSON.parse(localStorage.getItem(FOUND) ?? "[]"); return Array.isArray(v) ? v.slice(-5000) : []; } catch { return []; } }
 
-export interface Wayfinder {
+interface Wayfinder {
   /** Fires when a card shows (the TV hands it to the remote). */
   onPassing?: (s: Sighting) => void;
   /** The arrow for the map controls. */

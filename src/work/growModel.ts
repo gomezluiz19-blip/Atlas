@@ -26,7 +26,7 @@ export interface Crop {
   color?: string;
 }
 
-export type CropGroup = "Grains" | "Pulses and oilseeds" | "Vegetables" | "Fruit" | "Fibre, sugar and roots" | "Grass and hay" | "Tree crops";
+type CropGroup = "Grains" | "Pulses and oilseeds" | "Vegetables" | "Fruit" | "Fibre, sugar and roots" | "Grass and hay" | "Tree crops";
 export const CROP_GROUPS: CropGroup[] = ["Grains", "Pulses and oilseeds", "Vegetables", "Fruit", "Fibre, sugar and roots", "Grass and hay", "Tree crops"];
 
 

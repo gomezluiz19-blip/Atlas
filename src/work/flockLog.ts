@@ -3,7 +3,7 @@
 // anything it can't read is left alone rather than guessed.
 import { SPECIES, type Animal, type Flock, type HealthEvent } from "./flockModel";
 
-export type LogAction =
+type LogAction =
   | { kind: "weight"; kg: number }
   | { kind: "birth"; young: number }
   | { kind: "health"; event: Omit<HealthEvent, "id"> }
@@ -33,7 +33,7 @@ const addDays = (n: number) => new Date(Date.now() + n * 86_400_000).toISOString
 const label = (a: Animal) => a.name || (a.tag ? `#${a.tag}` : "an animal");
 
 /** Which animals the sentence is about: names, tag numbers, or a whole species ("all the sheep"). */
-export function findAnimals(text: string, flock: Flock): Animal[] {
+function findAnimals(text: string, flock: Flock): Animal[] {
   const t = text.toLowerCase();
   const active = flock.animals.filter((a) => !/sold|deceased|released|adopted|discharged/i.test(a.status));
   const named = active.filter((a) => a.name && new RegExp(`\\b${a.name.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`).test(t));

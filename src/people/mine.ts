@@ -94,7 +94,7 @@ export function newPerson(p: Omit<Person, "id" | "added">, now = Date.now()): Pe
 
 // ---- The store (this device only) ----------------------------------------------------------------
 
-export const PEOPLE_KEY = "atlas.people.v1";
+const PEOPLE_KEY = "atlas.people.v1";
 const listeners = new Set<() => void>();
 
 export function loadPeople(): Person[] {
@@ -104,7 +104,7 @@ export function loadPeople(): Person[] {
   } catch { return []; }
 }
 
-export function savePeople(people: Person[]): void {
+function savePeople(people: Person[]): void {
   try { localStorage.setItem(PEOPLE_KEY, JSON.stringify(people)); } catch { /* storage full or blocked: keep what's on screen */ }
   listeners.forEach((fn) => fn());
 }

@@ -43,7 +43,7 @@ export function ortho(lon: number, lat: number, lon0: number, lat0: number): { x
   return { x: Math.cos(p) * Math.sin(l), y: Math.cos(p0) * Math.sin(p) - Math.sin(p0) * Math.cos(p) * Math.cos(l), front: cosc > 0 };
 }
 
-export interface FootprintOpts { places: { lon: number; lat: number }[]; home?: { lon: number; lat: number }; accent: string; height?: number }
+interface FootprintOpts { places: { lon: number; lat: number }[]; home?: { lon: number; lat: number }; accent: string; height?: number }
 
 /** The footprint as a live canvas; it stops drawing once it leaves the page. */
 export function footprint(o: FootprintOpts): HTMLCanvasElement {

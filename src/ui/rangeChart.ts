@@ -2,7 +2,7 @@
 // median, max). Used for species' elevation ranges ("life zones").
 import { niceTicks } from "./chart";
 
-export interface RangeItem {
+interface RangeItem {
   label: string;
   sublabel?: string;
   values: number[];

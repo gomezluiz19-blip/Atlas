@@ -10,7 +10,7 @@ import { cloudOn, cloudUser, rest } from "./client";
 const enc = encodeURIComponent;
 const LINK = "atlas.cloud.handle.v1";
 /** The handle of the page that belongs to the signed-in server account. */
-export const linkedHandle = (): string | null => { try { return localStorage.getItem(LINK); } catch { return null; } };
+const linkedHandle = (): string | null => { try { return localStorage.getItem(LINK); } catch { return null; } };
 export const linkHandle = (h: string | null) => { try { if (h) localStorage.setItem(LINK, h); else localStorage.removeItem(LINK); } catch { /* private mode */ } };
 export const live = () => cloudOn() && !!cloudUser();
 
@@ -73,10 +73,6 @@ export async function followRemote(handle: string, on: boolean) {
   if (on) await rest("follows", { method: "POST", prefer: "resolution=ignore-duplicates,return=minimal", body: JSON.stringify({ handle }) });
   else await rest(`follows?handle=eq.${enc(handle)}&follower=eq.${cloudUser()!.id}`, { method: "DELETE" });
 }
-export async function followerCount(handle: string): Promise<number> {
-  const rows = await rest<{ handle: string }[]>(`follows?handle=eq.${enc(handle)}&select=handle`);
-  return rows.length;
-}
 
 // ---- Lenses ----
 export async function pushLens(d: LensDef) {
@@ -98,11 +94,6 @@ export async function pushGuide(g: { id: string; stops: { lon: number; lat: numb
   if (!live()) return;
   const s = g.stops[0];
   await rest("guides?on_conflict=id", { method: "POST", prefer: "resolution=merge-duplicates,return=minimal", body: JSON.stringify({ id: g.id, body: g, lon: s?.lon ?? null, lat: s?.lat ?? null, updated_at: new Date().toISOString() }) });
-}
-export async function deleteGuideRemote(id: string) { if (live()) await rest(`guides?id=eq.${enc(id)}`, { method: "DELETE" }).catch(() => {}); }
-export async function fetchGuide(id: string): Promise<unknown | null> {
-  const [r] = await rest<{ body: unknown }[]>(`guides?id=eq.${enc(id)}&select=body`);
-  return r?.body ?? null;
 }
 
 // ---- Private things that follow you between devices ----

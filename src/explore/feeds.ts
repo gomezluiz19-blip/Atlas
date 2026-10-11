@@ -181,7 +181,7 @@ export class Feeds {
 
 const fold = (t: string) => t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 
-export interface LocalMatch {
+interface LocalMatch {
   name: string;
   detail: string;
   lon: number;
@@ -217,6 +217,3 @@ export function searchLocal(feeds: Feeds, q: string, limit = 5): LocalMatch[] {
     .slice(0, limit);
 }
 
-export function kindLabel(kind: keyof typeof KIND_INFO): string {
-  return KIND_INFO[kind].label;
-}

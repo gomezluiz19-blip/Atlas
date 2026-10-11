@@ -112,7 +112,7 @@ export interface Sight extends Pt { kind: string }
 export interface Stay extends Pt { kind: string; stars?: number; near: number; nearestMin: number; score: number }
 
 /** Minutes on foot over a straight distance (pure). */
-export const walkMin = (m: number) => (m / 1000) * 1.25 / 4.8 * 60;
+const walkMin = (m: number) => (m / 1000) * 1.25 / 4.8 * 60;
 
 /** Each stay scored by the sights within a 15-minute walk, and the nearest one (pure). */
 export function rankStays(stays: (Pt & { kind: string; stars?: number })[], sights: Pt[]): Stay[] {
@@ -156,7 +156,7 @@ export function splitStays(els: { lat?: number; lon?: number; center?: { lat: nu
 const yymmdd = (d: string) => d.slice(2).replace(/-/g, "");
 const q = encodeURIComponent;
 
-export interface BookLink { label: string; url: string; what: "flights" | "trains" | "stays" | "cars" | "route" }
+interface BookLink { label: string; url: string; what: "flights" | "trains" | "stays" | "cars" | "route" }
 
 /** Links that open each booking site already searched for this trip (pure). */
 export function bookingLinks(t: { from: Pt; to: Pt; fromIata?: string; toIata?: string; depart: string; back: string; people: number; ways: Way[] }): BookLink[] {

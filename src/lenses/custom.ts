@@ -377,7 +377,7 @@ export async function judgeLens(app: App, s: Subject, def: LensDef): Promise<Jud
   return v ? { ...v, at: Date.now() } : null;
 }
 
-export function renderLens(host: LensHost, s: Subject, def: LensDef, opts: { author?: HTMLElement; headless?: boolean } = {}): Promise<Omit<Judgement, "at"> | null> {
+function renderLens(host: LensHost, s: Subject, def: LensDef, opts: { author?: HTMLElement; headless?: boolean } = {}): Promise<Omit<Judgement, "at"> | null> {
   const ctx: Ctx = { app: host.app, s, def, pins: [], verdicts: [], paintVerdict: () => {}, headless: opts.headless };
   host.onClose(() => { ctx.closed = true; for (const e of ctx.pins) host.app.globe.viewer.entities.remove(e); host.app.globe.viewer.scene.requestRender(); });
   const verdict = h("div", { class: "cl-verdict wait", style: `--lc:${def.color}` }, h("span", { class: "spinner small" }), h("span", {}, `Reading ${s.name} for ${def.name.toLowerCase()}…`));

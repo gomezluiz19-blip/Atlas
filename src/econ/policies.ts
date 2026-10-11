@@ -7,7 +7,7 @@
 // Policies change often: dates and status are a starting point to check, not
 // advice. "proposed" means announced but not yet in force.
 
-export type PolicyStatus = "in force" | "phasing in" | "proposed";
+type PolicyStatus = "in force" | "phasing in" | "proposed";
 export interface Policy {
   id: string;
   title: string;

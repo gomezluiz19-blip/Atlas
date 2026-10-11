@@ -104,7 +104,7 @@ async function groundAt(app: App, lon: number, lat: number): Promise<number> {
 }
 
 /** A copy of a GLB with a matrix on its node (pure). */
-export function withNodeMatrix(glb: Uint8Array, m: number[]): Uint8Array {
+function withNodeMatrix(glb: Uint8Array, m: number[]): Uint8Array {
   const dv = new DataView(glb.buffer, glb.byteOffset, glb.byteLength);
   const jsonLen = dv.getUint32(12, true);
   const json = JSON.parse(new TextDecoder().decode(glb.subarray(20, 20 + jsonLen)));

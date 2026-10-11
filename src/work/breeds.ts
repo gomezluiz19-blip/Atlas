@@ -189,7 +189,7 @@ export const findBreed = (species: string, name?: string): Breed | undefined =>
   name ? breedsFor(species).find((b) => b.name.toLowerCase() === name.trim().toLowerCase()) : undefined;
 
 /** Common routine care, as one-tap entries: what, and when it's next due (days). */
-export interface CareItem { kind: "vaccination" | "treatment" | "checkup"; text: string; every: number }
+interface CareItem { kind: "vaccination" | "treatment" | "checkup"; text: string; every: number }
 
 export const CARE: Record<string, CareItem[]> = {
   cattle: [

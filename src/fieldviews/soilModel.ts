@@ -2,9 +2,9 @@
 // 4.0): its texture (sand, silt, clay), acidity, organic carbon, how much water
 // it holds for roots, how fast rain soaks in, and what it suits (pure).
 
-export const DEPTHS = ["0-5cm", "5-15cm", "15-30cm", "30-60cm", "60-100cm", "100-200cm"] as const;
+const DEPTHS = ["0-5cm", "5-15cm", "15-30cm", "30-60cm", "60-100cm", "100-200cm"] as const;
 export type Depth = (typeof DEPTHS)[number];
-export const DEPTH_CM: Record<Depth, [number, number]> = { "0-5cm": [0, 5], "5-15cm": [5, 15], "15-30cm": [15, 30], "30-60cm": [30, 60], "60-100cm": [60, 100], "100-200cm": [100, 200] };
+const DEPTH_CM: Record<Depth, [number, number]> = { "0-5cm": [0, 5], "5-15cm": [5, 15], "15-30cm": [15, 30], "30-60cm": [30, 60], "60-100cm": [60, 100], "100-200cm": [100, 200] };
 
 export interface Layer { depth: Depth; sand: number; silt: number; clay: number; ph: number; soc: number; /** Bulk density, g/cm³. */ bd?: number; nitrogen?: number }
 
@@ -47,7 +47,7 @@ const WATER: Record<string, [number, number]> = {
   Sand: [50, 120], "Loamy sand": [70, 60], "Sandy loam": [110, 25], Loam: [160, 13], "Silt loam": [200, 7], Silt: [200, 6],
   "Sandy clay loam": [130, 4], "Clay loam": [150, 2.3], "Silty clay loam": [170, 1.5], "Sandy clay": [110, 1.2], "Silty clay": [150, 0.9], Clay: [130, 0.6],
 };
-export const waterOf = (cls: string) => WATER[cls] ?? [140, 8];
+const waterOf = (cls: string) => WATER[cls] ?? [140, 8];
 
 export interface SoilRead {
   top: string;

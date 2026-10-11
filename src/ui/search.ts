@@ -18,7 +18,7 @@ export interface Place {
   radius: number;
 }
 
-export const FIELD_SITES: Place[] = [
+const FIELD_SITES: Place[] = [
   { name: "Grand Canyon", detail: "Arizona · river incision, stratigraphy", lon: -112.113, lat: 36.1, radius: 9000 },
   { name: "Yarlung Tsangpo Gorge", detail: "Tibet · one of Earth's deepest canyons", lon: 94.97, lat: 29.72, radius: 14000 },
   { name: "Mount St. Helens", detail: "Washington · 1980 lateral-blast crater", lon: -122.1944, lat: 46.1912, radius: 5000 },
@@ -91,22 +91,6 @@ export async function flyToPlace(globe: Globe, place: Place) {
     offset: new HeadingPitchRange(0, pitch, small ? height * 1.15 : height),
     duration: Math.min(2.2, Math.max(0.9, 0.5 + Math.log10(1 + distance / 1000) * 0.4)),
   });
-}
-
-export function fieldSiteButtons(globe: Globe, onPick?: (p: Place) => void): HTMLElement {
-  return h(
-    "div",
-    { class: "sites" },
-    ...FIELD_SITES.map((s) =>
-      h("button", { class: "site", onclick: () => { void flyToPlace(globe, s); onPick?.(s); } }, h("span", { class: "site-name" }, s.name), h("span", { class: "site-detail" }, s.detail ?? "")),
-    ),
-  );
-}
-
-/** "36.1, -112.1" or "36.1 -112.1" → lat/lon, else null. */
-export function parseCoordinates(q: string): { lat: number; lon: number } | null {
-  const p = parseLocation(q);
-  return p.kind === "point" ? { lat: p.lat, lon: p.lon } : null;
 }
 
 export interface SearchResult extends Place {
@@ -226,7 +210,7 @@ export interface Command {
   run(): void;
 }
 
-export interface SearchOptions {
+interface SearchOptions {
   /** Reads the input as a request (e.g. "storm drains in Chicago"); null if it isn't one. */
   command?: (q: string) => Command | null;
   /** Requests to suggest when the box is empty. */

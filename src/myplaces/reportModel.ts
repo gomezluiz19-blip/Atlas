@@ -15,7 +15,7 @@ const median = (xs: number[]) => {
 /** Day of year → "12 Apr". */
 export const dayLabel = (d: number) => new Date(Date.UTC(2021, 0, Math.round(d))).toLocaleDateString(undefined, { day: "numeric", month: "short", timeZone: "UTC" });
 
-export interface FrostSeason {
+interface FrostSeason {
   /** Median last spring frost and first autumn frost (day of year), null where frost is rare. */
   lastSpring: number | null;
   firstAutumn: number | null;

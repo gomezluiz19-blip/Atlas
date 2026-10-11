@@ -398,7 +398,7 @@ function throughEveryTheme(app: App): HTMLElement {
 }
 
 /** The area's deeper readings (ground, climate, history, news…), behind one button. */
-export function moreAboutArea(fill: (into: HTMLElement) => void): HTMLElement {
+function moreAboutArea(fill: (into: HTMLElement) => void): HTMLElement {
   const into = h("div", { class: "vn-more", hidden: true });
   const btn = h("button", { class: "vn-more-btn", onclick: () => { btn.remove(); into.hidden = false; fill(into); } }, "More about this area");
   return h("div", {}, btn, into);

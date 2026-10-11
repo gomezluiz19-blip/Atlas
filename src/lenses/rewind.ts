@@ -12,7 +12,7 @@ import type { Lens, LensHost, Subject } from "./types";
 interface Release { id: number; date: string; url: string }
 
 let releases: Promise<Release[]> | null = null;
-export function waybackReleases(): Promise<Release[]> {
+function waybackReleases(): Promise<Release[]> {
   releases ??= fetch("https://s3-us-west-2.amazonaws.com/config.maptiles.arcgis.com/waybackconfig.json")
     .then((r) => { if (!r.ok) throw new Error(`Wayback answered ${r.status}`); return r.json(); })
     .then((cfg: Record<string, { itemTitle: string; itemURL: string }>) => Object.entries(cfg).map(([id, v]) => ({

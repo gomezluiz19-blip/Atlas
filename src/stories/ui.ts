@@ -15,11 +15,11 @@ import { iconFor, labelled } from "../ui/glyph";
 
 // ---- What a deck needs to be a story (kept beside the deck) ------------------------------------
 
-export interface DeckMeta { storyId?: string; summary: string; tags: string[]; level?: string; lineage: StoryRef[]; links: StoryRef[] }
+interface DeckMeta { storyId?: string; summary: string; tags: string[]; level?: string; lineage: StoryRef[]; links: StoryRef[] }
 const META = "atlas.stories.deckmeta.v1";
 const readMeta = (): Record<string, DeckMeta> => { try { return JSON.parse(localStorage.getItem(META) ?? "{}") ?? {}; } catch { return {}; } };
-export const deckMeta = (deckId: string): DeckMeta => readMeta()[deckId] ?? { summary: "", tags: [], lineage: [], links: [] };
-export const setDeckMeta = (deckId: string, m: DeckMeta) => { const all = readMeta(); all[deckId] = m; try { localStorage.setItem(META, JSON.stringify(all)); } catch { /* storage full */ } };
+const deckMeta = (deckId: string): DeckMeta => readMeta()[deckId] ?? { summary: "", tags: [], lineage: [], links: [] };
+const setDeckMeta = (deckId: string, m: DeckMeta) => { const all = readMeta(); all[deckId] = m; try { localStorage.setItem(META, JSON.stringify(all)); } catch { /* storage full */ } };
 const authorName = () => { try { return localStorage.getItem("atlas.stories.author") ?? ""; } catch { return ""; } };
 const setAuthorName = (v: string) => { try { localStorage.setItem("atlas.stories.author", v); } catch { /* ignore */ } };
 

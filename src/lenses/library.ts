@@ -80,7 +80,7 @@ const MADE = "atlas.lenses.v1";
 const KEPT = "atlas.lenses.kept.v1";
 
 export const madeLenses = (): LensDef[] => read<unknown[]>(MADE, []).flatMap((x) => lensFromJson(x) ?? []);
-export const keptIds = (): string[] => read<string[]>(KEPT, []);
+const keptIds = (): string[] => read<string[]>(KEPT, []);
 /** Made here, or kept from someone else. */
 export const myLenses = (): LensDef[] => [...madeLenses(), ...keptIds().flatMap((id) => { const d = findLens(id); return d && !madeLenses().some((m) => m.id === id) ? [d] : []; })];
 export const isMade = (id: string) => madeLenses().some((d) => d.id === id);

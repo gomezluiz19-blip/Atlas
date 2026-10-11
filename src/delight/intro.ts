@@ -14,7 +14,7 @@ import { subsolar } from "../globe/finish";
 import { earthNow, type PulseLine } from "./pulse";
 
 
-export interface IntroOptions {
+interface IntroOptions {
   /** Where to settle the camera (the viewer's side of the planet); null leaves the camera alone. */
   home: { lon: number; lat: number } | null;
   /** Full titles (a first visit) or just the name. */

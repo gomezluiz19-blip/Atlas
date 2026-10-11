@@ -3,10 +3,10 @@
 // each station then clears at its own rate. Throughputs are planning rules of
 // thumb (people a minute through the gates and onto trains), to be replaced
 // with a venue's own figures.
-export type StationKind = "rail" | "subway" | "tram" | "bus";
+type StationKind = "rail" | "subway" | "tram" | "bus";
 export interface Station { id: string; name: string; kind: StationKind; lon: number; lat: number; km: number; closed?: boolean }
-export const THROUGHPUT: Record<StationKind, number> = { rail: 450, subway: 320, tram: 140, bus: 60 };
-export const WALK_M_PER_MIN = 75;
+const THROUGHPUT: Record<StationKind, number> = { rail: 450, subway: 320, tram: 140, bus: 60 };
+const WALK_M_PER_MIN = 75;
 
 export interface Split { s: Station; people: number; perMin: number; walk: number; clear: number }
 

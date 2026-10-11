@@ -45,7 +45,7 @@ export function chain(pieces: Pt[][], first: number): Pt[] {
 }
 
 /** Flies the camera along a path, looking ahead; returns a stop function. */
-export function flyAlong(host: LensHost, path: Pt[], seconds: number, height: number): () => void {
+function flyAlong(host: LensHost, path: Pt[], seconds: number, height: number): () => void {
   const viewer = host.app.globe.viewer;
   const step = Math.max(1, Math.floor(path.length / 400));
   const pts = path.filter((_, i) => i % step === 0);
@@ -142,7 +142,7 @@ async function rainPaths(host: LensHost, s: Subject, ds: CustomDataSource) {
 }
 
 /** The main surface currents, simplified (warm or cold). Schematic, not measured. */
-export const CURRENTS: { name: string; warm: boolean; pts: Pt[] }[] = [
+const CURRENTS: { name: string; warm: boolean; pts: Pt[] }[] = [
   { name: "Gulf Stream", warm: true, pts: [[-80, 25], [-80, 30], [-75, 35], [-65, 40], [-50, 42], [-40, 45]] },
   { name: "North Atlantic Drift", warm: true, pts: [[-40, 45], [-30, 50], [-20, 55], [-10, 58], [0, 62], [10, 68]] },
   { name: "Labrador Current", warm: false, pts: [[-60, 62], [-55, 55], [-52, 48], [-50, 43]] },

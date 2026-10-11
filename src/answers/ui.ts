@@ -16,7 +16,7 @@ import { MEASURES, describe, parseQuery, type Criterion, type Group, type Needs 
 import { kmBetween, makeGrid, needsOf, pickBest, scoreArea, type Area, type Bbox, type Cell } from "./engine";
 import { STEP_WORDS, gather } from "./layers";
 
-export const EXAMPLES = [
+const EXAMPLES = [
   "Flat, south-facing land under 800 m, near an airport, low flood risk",
   "Somewhere mild and sunny by the sea, far from volcanoes",
   "Quiet countryside within 60 km of a big city, near a railway",

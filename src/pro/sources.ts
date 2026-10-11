@@ -8,7 +8,7 @@
 // keys kept on a server; see docs/pro-connectors.md for the format to serve.
 import { parseTable, reservationsFromTable, type Reservation, type Room, type RoomState, type RoomUpdate } from "./model";
 
-export type SourceConfig =
+type SourceConfig =
   | { kind: "demo"; floors: number; perFloor: number }
   | { kind: "csv"; name: string; reservations: Reservation[] }
   | { kind: "url"; url: string; everySec: number };

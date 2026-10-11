@@ -24,10 +24,10 @@ import { imagery } from "./imagery";
 import { createTerrariumTerrain, terrainOptions } from "./terrain";
 import { blueMarble, finishGlobe, gradeLayer } from "./finish";
 
-export type BaseMap = "satellite" | "plain";
+type BaseMap = "satellite" | "plain";
 export type OverlayKind = Exclude<AnalyticKind, "depth"> | "geology" | "species";
 
-export interface LayerState {
+interface LayerState {
   base: BaseMap;
   overlays: Record<OverlayKind, { on: boolean; opacity: number }>;
   exaggeration: number;

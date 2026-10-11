@@ -27,7 +27,7 @@ export interface WorkTool {
   open(ctx: WorkCtx): void;
 }
 
-export interface HubOptions {
+interface HubOptions {
   /** The hub's name, shown on its home screen. */
   title?: string;
   intro?: string;

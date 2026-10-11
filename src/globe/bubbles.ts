@@ -4,7 +4,7 @@
 // hide behind the Earth's curve, and grow when you point at one.
 import { Cartesian2, Cartesian3, SceneTransforms, type Viewer } from "cesium";
 
-export interface Bubble { lon: number; lat: number; photo: string; name: string; color: string; onClick?: () => void }
+interface Bubble { lon: number; lat: number; photo: string; name: string; color: string; onClick?: () => void }
 
 export class Bubbles {
   private box = document.createElement("div");

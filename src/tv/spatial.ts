@@ -88,8 +88,6 @@ export function move(scope: HTMLElement, dir: Dir): boolean {
   return true;
 }
 
-export const focused = () => (current && current.isConnected ? current : null);
-
 /** Presses the screen's own Back, or its Close. */
 export function back(scope: HTMLElement): boolean {
   const btn = [...scope.querySelectorAll<HTMLElement>("button, [role=button]")].find((b) => visible(b) && /^‹\s*back$/i.test((b.textContent ?? "").trim()))

@@ -21,9 +21,9 @@ import { circle, clipConvex, distanceTo, emptyLand, landLine, landQuery, scatter
 import { overpass } from "../data/overpass";
 
 export interface DockItem { id: string; label: string; icon: string; color: string; badge?: string; alert?: boolean }
-export interface HoloLine { k: string; v: string }
+interface HoloLine { k: string; v: string }
 /** Something live at the place: a machine, a crane, a ship at anchor, a delivery due. */
-export interface Marker { lon: number; lat: number; color: string; label?: string; /** Metres above ground for the pin head. */ height?: number; pulse?: boolean; /** A ring on the ground, metres (a reach, a noise radius). */ ring?: number }
+interface Marker { lon: number; lat: number; color: string; label?: string; /** Metres above ground for the pin head. */ height?: number; pulse?: boolean; /** A ring on the ground, metres (a reach, a noise radius). */ ring?: number }
 export interface Chip { id: string; label: string; on?: boolean }
 export interface Holo {
   close(): void;

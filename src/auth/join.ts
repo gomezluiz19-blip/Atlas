@@ -21,7 +21,7 @@ import { anyIconHtml } from "../ui/glyph";
 import { geocode } from "../ui/search";
 import { HANDLE_WORDS, cleanHandle, codeDigits, emailSuggestion, friendlyError, handleProblem, inviteOk, nameFromEmail, resendIn, validEmail } from "./model";
 
-export interface JoinOptions {
+interface JoinOptions {
   /** Signed in: `fresh` when the account was just made. */
   done(p: Profile, fresh: boolean): void;
   /** Saves home as a My Place (name and point). */

@@ -82,7 +82,7 @@ export function gain(weights: Animal["weights"]): { last?: number; overall?: num
 
 export const dueDate = (species: string, bred: string) => addDays(bred, speciesById(species).gestation);
 
-export interface DueItem { animal: Animal; what: string; date: string; overdue: boolean; kind: "health" | "birth" }
+interface DueItem { animal: Animal; what: string; date: string; overdue: boolean; kind: "health" | "birth" }
 
 /** Everything coming up (or late): vaccinations, rechecks, births. */
 export function dueList(animals: Animal[], today: string, horizon = 30): DueItem[] {

@@ -12,7 +12,7 @@ import { hoursText, sunDay, sunDayStart } from "./sun";
 
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 /** What the planet is doing, month by month. */
-export const SEASON_NOTES = [
+const SEASON_NOTES = [
   "Southern summer. Polar night over the Arctic; the wet season greens the Amazon, southern Africa and northern Australia.",
   "Deep northern winter: snow over Canada, Russia and northern China, while summer rains keep southern Africa green.",
   "The March equinox: day and night nearly equal everywhere. Spring starts to green the northern mid-latitudes.",
@@ -28,7 +28,7 @@ export const SEASON_NOTES = [
 ];
 
 /** MODIS 8-day composites start on day 1, 9, 17… of the year. */
-export const compositeDays = () => Array.from({ length: 46 }, (_, k) => 1 + 8 * k);
+const compositeDays = () => Array.from({ length: 46 }, (_, k) => 1 + 8 * k);
 const dateOf = (year: number, doy: number) => new Date(Date.UTC(year, 0, doy)).toISOString().slice(0, 10);
 
 let open: { close(): void } | null = null;

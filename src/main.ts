@@ -62,7 +62,6 @@ import { createPro } from "./pro/panel";
 import { createWork, type WorkCtx, type WorkTool } from "./work/hub";
 import { workMap } from "./work/workMap";
 import type { Station } from "./work/workLines";
-import { createModeBar, type Mode } from "./ui/modes";
 import { briefFor, todayCard } from "./myplaces/todayUi";
 import { backupRow, keepStorage } from "./myplaces/backup";
 import { STORAGE_FULL } from "./util/storage";
@@ -475,7 +474,6 @@ async function bootMyPlace(id?: string) {
   });
   holo = h0;
   adopt(h0);
-  modes.set("place");
   // What's going on there now: the weather, the light, and the day's most pressing thing.
   void forecast(place.lon, place.lat).then((f) => {
     if (holo !== h0) return;
@@ -589,10 +587,11 @@ function closePanels(keep?: HTMLElement) {
 }
 /** Profile pages and Lens Studio step aside when another panel opens (set up once they exist). */
 let hideSocial = () => {};
+type Mode = "place" | "look" | "make" | "work";
 function openMode(m: Mode) {
   if (activeSpace() !== holo) holo = null;
   if (m !== "place") closeHolo();
-  if (m === "look") { closePanels(); modes.set("look"); return; }
+  if (m === "look") { closePanels(); return; }
   // My Place: boot the place as a model (or bring the puck back); with nothing saved, the first-run card.
   if (m === "place" && myStore.all().length) {
     if (holo?.el.classList.contains("mini")) { closePanels(); holo.restore(); return; }
@@ -610,7 +609,6 @@ function openMode(m: Mode) {
     if (far) void flyToPlace(globe, { name: main.name, lon: main.lon, lat: main.lat, radius: 1500 });
   }
 }
-const modes = createModeBar(openMode);
 app.actions.set("mode:place", { label: "My Place", run: () => openMode("place") });
 app.actions.set("mode:make", { label: "Create", run: () => openMode("make") });
 app.actions.set("mode:work", { label: "Work", run: () => openMode("work") });
@@ -623,23 +621,20 @@ app.actions.set("myplace:report", {
     setTimeout(() => myPlaces.panel.querySelector(".report")?.scrollIntoView({ behavior: "smooth", block: "start" }), 400);
   },
 });
-// The mode switch no longer sits in the top bar: Explore, Create and Work open from ＋ (My Place from Me).
 // Pulse: everything you have, alive on the planet, with time and what-ifs.
-const pulseBtn = h("button", { class: "round-btn pulse-btn", "aria-label": "Pulse: your world, live", title: "Pulse: your world, live", html: icons.activity, onclick: () => { closePanels(); closeHolo(); void import("./pulse/ui").then((m) => m.openPulse(app)); } });
-
-app.actions.set("pulse:open", { label: "Pulse: your world, live", run: () => pulseBtn.click() });
-// The switch follows whichever panel is showing.
-const syncMode = () => {
+const openPulse = () => { closePanels(); closeHolo(); void import("./pulse/ui").then((m) => m.openPulse(app)); };
+app.actions.set("pulse:open", { label: "Pulse: your world, live", run: openPulse });
+// The page follows whichever panel is showing.
+const syncPanels = () => {
   const shown = (el: HTMLElement) => !el.hidden;
   // Everything closed while your place was a puck: it comes back.
   if (holo && activeSpace() === holo && holo.el.classList.contains("mini") && ![placeHub.panel, myPlaces.panel].some(shown)) holo.restore();
-  modes.set([placeHub.panel, myPlaces.panel].some(shown) ? "place" : [workHub.panel, pro.panel].some(shown) ? "work" : shown(makeHub.panel) ? "make" : "look");
   // Phones have room for one panel: the place card steps aside while a mode panel is open.
   document.body.dataset.panel = [placeHub.panel, myPlaces.panel, pro.panel, makeHub.panel, workHub.panel, lookHub.panel, space.panel].some(shown) ? "open" : "";
   // Working in My Place or Make: the empty Explore card steps aside so the mode has the screen.
   document.body.dataset.work = [placeHub.panel, myPlaces.panel, pro.panel, makeHub.panel, workHub.panel].some(shown) ? "1" : "";
 };
-const watcher = new MutationObserver(syncMode);
+const watcher = new MutationObserver(syncPanels);
 for (const el of [placeHub.panel, myPlaces.panel, pro.panel, makeHub.panel, workHub.panel, lookHub.panel, space.panel]) watcher.observe(el, { attributes: true, attributeFilter: ["hidden"] });
 
 const HUB_OF: Record<string, { hub: typeof placeHub; open: (ctx: WorkCtx) => void }> = {};
@@ -687,7 +682,7 @@ app.actions.set("story:open", { label: "Open a story", run: (id) => { if (id) vo
 // A story someone shared: from the library (#story=…) or carried in the link (#s=…).
 const openStoryHash = () => {
   const hash = location.hash;
-  if (/^#(story|s)=/.test(hash)) void import("./stories/ui").then((m) => { closePanels(makeHub.panel); modes.set("make"); void m.openFromHash(makeHub.ctx, hash); });
+  if (/^#(story|s)=/.test(hash)) void import("./stories/ui").then((m) => { closePanels(makeHub.panel); void m.openFromHash(makeHub.ctx, hash); });
 };
 openStoryHash();
 // Pasting a story link into a tab that already has Terreno open.
@@ -951,8 +946,6 @@ app.actions.set("wayfind:guide", { label: "Guide me there", run: () => { const p
 // Everything on the map as bubbles at the edge of the globe; + adds a view without leaving it.
 $("ui").append(createViewStack(app, () => (things ??= buildThings(app, overlays, [...PLACE_TOOLS, ...MAKE_TOOLS, ...LOOK_TOOLS]))));
 
-// Map style popover.
-const layersBtn = $("layers-btn");
 // Live traffic: planes and ships moving on the globe.
 const traffic = createTraffic(app);
 // The living city: buildings, trees, and simulated cars and people on the real streets, once zoomed in.
@@ -987,7 +980,6 @@ followHash();
 addEventListener("hashchange", followHash);
 let layers = createLayersPanel(globe);
 $("ui").append(layers);
-layersBtn.innerHTML = icons.layers;
 const toggleLayers = (open = layers.hidden) => {
   if (open) {
     // Rebuilt on open so it matches the canvas (layers can be removed from the tray).
@@ -996,7 +988,6 @@ const toggleLayers = (open = layers.hidden) => {
     layers = fresh;
   }
   layers.hidden = !open;
-  layersBtn.setAttribute("aria-expanded", String(open));
 };
 
 // Analysis layers from the Layers popover (and elsewhere) live on the shared canvas too.
@@ -1031,15 +1022,13 @@ globe.onApply = () => {
     else if (!on && !resting.has(kind) && app.canvas.has(key)) app.canvas.drop(key);
   }
 };
-layersBtn.addEventListener("click", () => { const open = layers.hidden; for (const c of [placeHub.ctx, makeHub.ctx, lookHub.ctx]) c.close(); myPlaces.close(); pro.close(); space.close(); toggleLayers(open); });
+const openLayers = () => { const open = layers.hidden; for (const c of [placeHub.ctx, makeHub.ctx, lookHub.ctx]) c.close(); myPlaces.close(); pro.close(); space.close(); toggleLayers(open); };
 globe.viewer.scene.canvas.addEventListener("pointerdown", () => toggleLayers(false));
 addEventListener("atlas:add-view", () => toggleLayers(false));
 
 // Time: one slider from the ancient world to 2100 (borders of the time, the view from space, projections).
 const timeBar = new TimeBar(app);
 $("ui").append(timeBar.el);
-const timeBtn = h("button", { id: "time-btn", class: "round-btn", "aria-label": "Time: see the globe in another year", html: iconSvg("⏳", 20) ?? "" });
-timeBtn.addEventListener("click", () => (timeBar.el.hidden ? timeBar.open() : timeBar.close()));
 
 app.actions.set("time:open", { label: "Time travel", run: () => timeBar.open() });
 // "1914", or "1914@lon,lat" to light up whoever governed that place.
@@ -1070,15 +1059,11 @@ for (const [id, label, load] of [
   app.actions.set(id, { label, run: (arg) => { const hub = id === "econ:lab" ? makeHub : workHub; closePanels(hub.panel); hub.ctx.open(); load(arg); } });
 app.actions.set("tv:mode", { label: "TV mode", run: (code) => void import("./tv/tv").then((m) => { closePanels(); m.enterTv(app, code || undefined); }) });
 app.actions.set("tv:cast", { label: "Show Terreno on a TV", run: () => void import("./tv/tv").then((m) => m.openCast(app)) });
-{
-  const castBtn = h("button", { class: "round-btn cast-btn", "aria-label": "Show Terreno on a TV", title: "Show Terreno on a TV", html: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 16.5V6.8A1.8 1.8 0 0 1 4.8 5h14.4A1.8 1.8 0 0 1 21 6.8v10.4a1.8 1.8 0 0 1-1.8 1.8H14"/><path d="M3 19.5h.01M3 13a6.5 6.5 0 0 1 6.5 6.5M3 16a3.5 3.5 0 0 1 3.5 3.5"/></svg>', onclick: () => app.actions.get("tv:cast")?.run() });
-  void castBtn; // On a TV now opens from ＋.
-  if (tvLink) setTimeout(() => void import("./tv/tv").then((m) => {
-    const [, code, lat, lon, name] = tvLink;
-    closePanels();
-    m.enterTv(app, code?.toUpperCase(), lat && lon ? { name: name ? decodeURIComponent(name) : "Here", sub: "", lon: Number(lon), lat: Number(lat), radius: 6000 } : undefined);
-  }), 2600);
-}
+if (tvLink) setTimeout(() => void import("./tv/tv").then((m) => {
+  const [, code, lat, lon, name] = tvLink;
+  closePanels();
+  m.enterTv(app, code?.toUpperCase(), lat && lon ? { name: name ? decodeURIComponent(name) : "Here", sub: "", lon: Number(lon), lat: Number(lat), radius: 6000 } : undefined);
+}), 2600);
 const about = $("about-btn");
 // The mark and the name, top left: the brand's one place on screen; it opens About.
 document.querySelector(".topbar")?.prepend(h("button", { class: "brand", "aria-label": "About Terreno", html: wordmarkHtml(26), onclick: () => about.click() }));
@@ -1203,10 +1188,10 @@ $("ui").append(social.account.menu);
       { label: "Work", sub: "Tools for your field", icon: icons.briefcase, color: "#d19a2e", run: () => openMode("work") },
     ],
     tools: [
-      { label: "Pulse", sub: "Your world, live", icon: icons.activity, run: () => pulseBtn.click() },
-      { label: "Time", sub: "The globe in another year", icon: iconSvg("⏳", 20) ?? icons.clock, run: () => timeBtn.click() },
-      { label: "Map style and layers", sub: "Satellite, terrain, overlays", icon: icons.layers, run: () => layersBtn.click() },
-      { label: "Add a view", sub: "Keep a layer on the map", icon: icons.eye, run: () => document.querySelector<HTMLButtonElement>(".vs-add")?.click() },
+      { label: "Pulse", sub: "Your world, live", icon: icons.activity, run: openPulse },
+      { label: "Time", sub: "The globe in another year", icon: iconSvg("⏳", 20) ?? icons.clock, run: () => (timeBar.el.hidden ? timeBar.open() : timeBar.close()) },
+      { label: "Map style and layers", sub: "Satellite, terrain, overlays", icon: icons.layers, run: openLayers },
+      { label: "Add a view", sub: "Keep a layer on the map", icon: icons.eye, run: () => dispatchEvent(new Event("atlas:add-view")) },
       { label: "On a TV", sub: "Cast to a screen", icon: TV_ICON, run: () => app.actions.get("tv:cast")?.run() },
       { label: "My Place", sub: "Home, farm or business", icon: icons.home, run: () => openMode("place") },
     ],

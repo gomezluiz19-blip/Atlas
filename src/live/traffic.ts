@@ -70,7 +70,7 @@ export function pathAhead(t: Track, from: number, seconds: number, step = 15): {
 // ---- Planes ----------------------------------------------------------------
 
 /** Common aircraft by ICAO type designator. */
-export const AIRCRAFT: Record<string, string> = {
+const AIRCRAFT: Record<string, string> = {
   A19N: "Airbus A319neo", A20N: "Airbus A320neo", A21N: "Airbus A321neo", A318: "Airbus A318", A319: "Airbus A319", A320: "Airbus A320", A321: "Airbus A321",
   A332: "Airbus A330-200", A333: "Airbus A330-300", A339: "Airbus A330-900neo", A343: "Airbus A340-300", A359: "Airbus A350-900", A35K: "Airbus A350-1000", A388: "Airbus A380",
   B737: "Boeing 737-700", B738: "Boeing 737-800", B739: "Boeing 737-900", B37M: "Boeing 737 MAX 7", B38M: "Boeing 737 MAX 8", B39M: "Boeing 737 MAX 9", B3XM: "Boeing 737 MAX 10",
@@ -85,7 +85,7 @@ export const AIRCRAFT: Record<string, string> = {
 };
 
 /** Airlines by the ICAO prefix of their callsigns. */
-export const AIRLINES: Record<string, string> = {
+const AIRLINES: Record<string, string> = {
   AAL: "American Airlines", DAL: "Delta Air Lines", UAL: "United Airlines", SWA: "Southwest Airlines", JBU: "JetBlue", ASA: "Alaska Airlines", NKS: "Spirit Airlines", FFT: "Frontier Airlines",
   SKW: "SkyWest", RPA: "Republic Airways", ENY: "Envoy Air", ACA: "Air Canada", WJA: "WestJet", AMX: "Aeroméxico", VOI: "Volaris", AVA: "Avianca", LAN: "LATAM", CMP: "Copa Airlines",
   GLO: "Gol", AZU: "Azul", ARG: "Aerolíneas Argentinas", BAW: "British Airways", VIR: "Virgin Atlantic", EZY: "easyJet", RYR: "Ryanair", AFR: "Air France", KLM: "KLM",
@@ -96,7 +96,7 @@ export const AIRLINES: Record<string, string> = {
   CES: "China Eastern", CSN: "China Southern", HAL: "Hawaiian Airlines", FDX: "FedEx", UPS: "UPS Airlines", GTI: "Atlas Air", CLX: "Cargolux", DHK: "DHL", BOX: "AeroLogic",
 };
 
-export const planeGroup = (category?: string, type?: string, alt?: number | "ground"): string => {
+const planeGroup = (category?: string, type?: string, alt?: number | "ground"): string => {
   if (alt === "ground") return "On the ground";
   if (category === "A7" || /^(EC|R44|B06|AS|S76|H)/.test(type ?? "")) return "Helicopter";
   if (category === "A5" || category === "A4" || category === "A3") return "Airliner";
@@ -192,7 +192,7 @@ export function shipGroup(code?: number): string {
 }
 
 const NAV_STATUS = ["Under way", "At anchor", "Not under command", "Restricted manoeuvring", "Constrained by draught", "Moored", "Aground", "Fishing", "Sailing"];
-export const navStatus = (n?: number) => (n !== undefined && NAV_STATUS[n]) || undefined;
+const navStatus = (n?: number) => (n !== undefined && NAV_STATUS[n]) || undefined;
 
 interface DtFeature { mmsi: number; geometry: { coordinates: [number, number] }; properties: { sog: number; cog: number; heading: number; navStat: number; timestampExternal: number } }
 interface DtVessel { mmsi: number; name?: string; shipType?: number; destination?: string; callSign?: string; imo?: number; draught?: number }

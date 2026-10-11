@@ -209,5 +209,3 @@ export function openScout(ctx: WorkCtx, id: string) {
   void render();
 }
 
-/** Clears the scout layer (when leaving Work). */
-export const clearScout = () => map?.clear();

@@ -5,7 +5,7 @@ import { openNow } from "../place/around";
 
 type Spot = { lon: number; lat: number };
 
-export type GatherKind = "food" | "cafe" | "drink" | "grocery" | "shop" | "market" | "park" | "culture" | "community";
+type GatherKind = "food" | "cafe" | "drink" | "grocery" | "shop" | "market" | "park" | "culture" | "community";
 
 export const KINDS: Record<GatherKind, { label: string; color: string; group: GatherGroup }> = {
   food: { label: "Restaurants", color: "#e0457b", group: "eat" },

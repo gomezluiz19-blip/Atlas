@@ -20,7 +20,7 @@ export interface Account {
   contacts?: { name: string; role?: string; email?: string; phone?: string }[];
   notes?: string;
 }
-export type AssetStatus = "running" | "down" | "standby";
+type AssetStatus = "running" | "down" | "standby";
 export interface Asset {
   id: string; account: string; type: string; model: string; serial: string;
   installed: string;
@@ -93,7 +93,7 @@ export interface Trip { hours: number; km: number; how: string; via?: [Airport, 
 const ROAD = 1.35, DRIVE_KMH = 65, FLY_KMH = 650;
 
 /** The airport nearest a point (scheduled airports, bigger first among ties; pure). */
-export function nearestAirport(airports: Airport[], p: { lon: number; lat: number }) {
+function nearestAirport(airports: Airport[], p: { lon: number; lat: number }) {
   let best: Airport | null = null, bestKm = Infinity;
   for (const a of airports) { const d = kmBetween(a, p); if (d < bestKm) { bestKm = d; best = a; } }
   return best ? { a: best, km: bestKm } : null;

@@ -11,7 +11,7 @@ import { COUNTRIES } from "./places";
 
 export interface Column { code: string; value: number; color: string; label?: string; /** Slide sideways (km east) so two columns in one country stand side by side. */ offsetKm?: number }
 export interface Flow { from: string; to: string; weight: number; color: string }
-export interface Halo { code: string; strength: number; color: string; label?: string }
+interface Halo { code: string; strength: number; color: string; label?: string }
 export interface Pin { lon: number; lat: number; color: string; label: string }
 
 const KM_PER_UNIT = 38; // a share of 50% stands about 1,900 km tall

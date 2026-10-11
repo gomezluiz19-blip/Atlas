@@ -10,7 +10,7 @@
 
 export type Tier = "low" | "mid" | "high";
 
-export interface Signals {
+interface Signals {
   /** GB, as navigator.deviceMemory reports it (rounded, capped at 8). */
   memory?: number;
   cores?: number;

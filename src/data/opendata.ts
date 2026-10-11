@@ -4,7 +4,7 @@
 // works out how to query it, finds the location in each row, and guesses which columns are the date,
 // address, type, value, owner and contractor, for the person to confirm before importing.
 
-export type SourceKind = "socrata" | "arcgis" | "geojson" | "csv";
+type SourceKind = "socrata" | "arcgis" | "geojson" | "csv";
 export interface Source { kind: SourceKind; url: string; label: string }
 export interface Row { lon: number; lat: number; props: Record<string, string> }
 export type FieldRole = "name" | "address" | "date" | "type" | "value" | "owner" | "contractor" | "status" | "stories";

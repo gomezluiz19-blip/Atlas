@@ -1,7 +1,7 @@
 // A list of map layers with a colour swatch, a description and a switch.
 import { h } from "./dom";
 
-export interface LayerItem {
+interface LayerItem {
   id: string;
   label: string;
   about: string;

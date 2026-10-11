@@ -28,8 +28,8 @@ export function inUse(s: Station): boolean {
 export const recent = (): string[] => { const v = readJson(RECENT); return Array.isArray(v) ? v.filter((x): x is string => typeof x === "string") : []; };
 export function remember(id: string) { write(RECENT, [id, ...recent().filter((x) => x !== id)].slice(0, 5)); }
 /** The field you work in, if you've picked one. */
-export const myField = (): Line | undefined => { const id = readJson(FIELD); return LINES.find((l) => l.id === id); };
-export const setMyField = (id: string | null) => write(FIELD, id);
+const myField = (): Line | undefined => { const id = readJson(FIELD); return LINES.find((l) => l.id === id); };
+const setMyField = (id: string | null) => write(FIELD, id);
 
 const icon = (key: string) => (icons as Record<string, string>)[key] ?? icons.briefcase;
 const find = (id: string) => { for (const line of LINES) { const s = line.stations.find((x) => x.id === id); if (s) return { line, s }; } return null; };

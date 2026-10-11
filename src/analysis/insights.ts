@@ -4,7 +4,7 @@
 const RAD = Math.PI / 180;
 
 /** Geomagnetic north pole (IGRF dipole, epoch 2025). */
-export const MAGNETIC_POLE = { lat: 80.8, lon: -72.8 };
+const MAGNETIC_POLE = { lat: 80.8, lon: -72.8 };
 
 /** Latitude relative to Earth's magnetic dipole, degrees. Aurora tracks this, not geographic latitude. */
 export function magneticLatitude(lat: number, lon: number): number {
@@ -13,7 +13,7 @@ export function magneticLatitude(lat: number, lon: number): number {
   return Math.asin(Math.max(-1, Math.min(1, s))) / RAD;
 }
 
-export type AuroraZone = "oval" | "storms" | "rare" | "none";
+type AuroraZone = "oval" | "storms" | "rare" | "none";
 
 /** How often aurora are overhead or visible, from magnetic latitude. */
 export function auroraZone(mlat: number): AuroraZone {
@@ -25,7 +25,7 @@ export function auroraZone(mlat: number): AuroraZone {
 }
 
 /** Solar declination for a date, degrees (Cooper's approximation). */
-export function solarDeclination(date: Date): number {
+function solarDeclination(date: Date): number {
   const start = Date.UTC(date.getUTCFullYear(), 0, 0);
   const day = (date.getTime() - start) / 86_400_000;
   return 23.44 * Math.sin(((360 / 365) * (day + 284)) * RAD);

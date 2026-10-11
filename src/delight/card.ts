@@ -5,7 +5,7 @@ import type { App } from "../app";
 import { h } from "../ui/dom";
 import { chime } from "./sound";
 
-export interface CardText {
+interface CardText {
   kicker?: string;
   title: string;
   fact?: string;

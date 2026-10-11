@@ -8,7 +8,7 @@ export interface Step { text: string; km: number; at: number /* index into shape
 export interface Route { shape: LL[]; km: number; minutes: number; steps: Step[] }
 
 /** Valhalla's costing for a pace. */
-export const costingFor = (p: Pace) => (p === "walk" || p === "run" || p === "still" ? "pedestrian" : p === "cycle" ? "bicycle" : "auto");
+const costingFor = (p: Pace) => (p === "walk" || p === "run" || p === "still" ? "pedestrian" : p === "cycle" ? "bicycle" : "auto");
 
 /** The route request URL (pure). */
 export function routeUrl(from: LL, to: LL, costing: string, base = VALHALLA): string {

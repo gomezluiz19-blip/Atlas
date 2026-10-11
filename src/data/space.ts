@@ -3,7 +3,7 @@
 // planetary Kp index of geomagnetic activity.
 import { getJson } from "./http";
 
-export interface AuroraForecast {
+interface AuroraForecast {
   /** Probability of visible aurora overhead, percent, on a 1° grid: [lon 0..359][lat -90..90]. */
   grid: Uint8Array;
   forecastTime: string;

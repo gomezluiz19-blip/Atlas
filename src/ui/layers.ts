@@ -7,7 +7,6 @@ import { setQuality } from "../globe/motion";
 import { currentQuality, pinQuality, qualityFor, readSignals, type Tier } from "../globe/quality";
 import { h } from "./dom";
 
-
 function gradientBar(ramp: Ramp, labels: string[]): HTMLElement {
   return h(
     "div",
@@ -40,9 +39,6 @@ export function legendFor(kind: OverlayKind, globe: Globe): HTMLElement | null {
   }
   return null;
 }
-
-/** A live layer switch (planes, ships) shown first in the popover. */
-export interface LiveSwitch { label: string; about: string; on(): boolean; set(v: boolean): void; status?(): string }
 
 export function createLayersPanel(globe: Globe): HTMLElement {
   const s = globe.state;

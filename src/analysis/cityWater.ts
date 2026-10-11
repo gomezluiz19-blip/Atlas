@@ -87,7 +87,7 @@ export function toFeatures(els: OsmElement[]): CityWaterFeature[] {
   return out;
 }
 
-export interface CityWaterSummary {
+interface CityWaterSummary {
   /** Metres of open and buried channel by kind. */
   open: Record<"river" | "stream" | "canal" | "drain", number>;
   buried: number;

@@ -8,7 +8,7 @@ import { bestNextSite, gaps, type Community, type Programme, type Service } from
 export const SECTORS = ["WASH", "Health", "Education", "Food security", "Nutrition", "Protection", "Shelter", "Livelihoods"] as const;
 export type Sector = (typeof SECTORS)[number];
 /** The service each sector's needs map to, where there is one. */
-export const SECTOR_SERVICE: Partial<Record<Sector, Service>> = { WASH: "water", Health: "health", Education: "school", "Food security": "food" };
+const SECTOR_SERVICE: Partial<Record<Sector, Service>> = { WASH: "water", Health: "health", Education: "school", "Food security": "food" };
 
 export interface Reached { women: number; men: number; girls: number; boys: number }
 export interface Activity { id: string; org: string; sector: Sector; activity: string; community: string; start: string; end?: string; status: "planned" | "ongoing" | "done"; reached: Reached }

@@ -3,7 +3,7 @@
 // crops. Offsets are the usual rules of thumb in weeks from the average last
 // spring frost (negative = before), as seed packets and extension services give.
 
-export interface SowRule {
+interface SowRule {
   crop: string;
   emoji: string;
   /** Start indoors: weeks before (-) or after (+) the last frost, [from, to]. */
@@ -21,7 +21,7 @@ export interface SowRule {
   autumn?: { what: SowTask["what"]; w: [number, number]; note?: string }[];
 }
 
-export const SOWING: SowRule[] = [
+const SOWING: SowRule[] = [
   { crop: "Tomatoes", emoji: "🍅", indoors: [-8, -6], out: [1, 3], days: 70, tender: true },
   { crop: "Peppers and chillies", emoji: "🌶️", indoors: [-10, -8], out: [2, 4], days: 75, tender: true },
   { crop: "Aubergines", emoji: "🍆", indoors: [-10, -8], out: [2, 4], days: 80, tender: true },

@@ -49,7 +49,7 @@ export function peopleLede(s: ReturnType<typeof peopleSummary>): { title: string
 
 export interface DayWx { date: string; code: number; max: number; min: number; rain: number; chance: number | null; gust: number; snow: number }
 
-export type Tone = "storm" | "snow" | "rain" | "hot" | "cold" | "wind" | "fine";
+type Tone = "storm" | "snow" | "rain" | "hot" | "cold" | "wind" | "fine";
 export const TONES: Record<Tone, { color: string; label: string }> = {
   storm: { color: "#5160c2", label: "Storms" }, snow: { color: "#a3bfd4", label: "Snow" }, rain: { color: "#4c9ac9", label: "Rain" },
   hot: { color: "#c4513a", label: "Heat" }, cold: { color: "#8c8f87", label: "Frost" }, wind: { color: "#9a7552", label: "Wind" }, fine: { color: "#5b9467", label: "Fine" },

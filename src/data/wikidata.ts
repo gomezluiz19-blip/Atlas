@@ -25,7 +25,7 @@ interface Row {
 }
 
 /** Minimum Wikipedia editions for a place to be worth labelling at this view size. */
-export function sitelinkThreshold(spanDeg: number): number {
+function sitelinkThreshold(spanDeg: number): number {
   if (spanDeg < 0.06) return 2;
   if (spanDeg < 0.15) return 5;
   if (spanDeg < 0.4) return 10;
@@ -94,7 +94,7 @@ export async function notableById(qid: string): Promise<Notable | null> {
   return groupRows(body.results.bindings)[0] ?? null;
 }
 
-export function groupRows(rows: Row[]): Notable[] {
+function groupRows(rows: Row[]): Notable[] {
   const byId = new Map<string, Notable>();
   for (const r of rows) {
     const id = r.item.value.split("/").pop()!;

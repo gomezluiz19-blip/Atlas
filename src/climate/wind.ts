@@ -45,7 +45,7 @@ export function windAt(f: Field, lon: number, lat: number): [number, number] | n
   return [mix(f.u), mix(f.v)];
 }
 
-export interface Streamline { pts: [number, number][]; speed: number }
+interface Streamline { pts: [number, number][]; speed: number }
 
 /**
  * Streamlines through the field from evenly spread seeds (pure): each follows

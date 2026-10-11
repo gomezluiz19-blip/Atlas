@@ -172,7 +172,7 @@ export function metres(a: { lon: number; lat: number }, b: { lon: number; lat: n
 /** A walk: about seven minutes. */
 export const WALK = 600;
 
-export interface SiteScore {
+interface SiteScore {
   score: number;
   counts: Record<string, number>;
   /** The nearest place of the kind you'd open, metres. */

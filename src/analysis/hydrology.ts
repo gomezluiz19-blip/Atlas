@@ -7,7 +7,7 @@
 //    Mark 1984).
 // 3. Contributing (upstream) area is accumulated in topological order.
 
-export interface DemGrid {
+interface DemGrid {
   width: number;
   height: number;
   /** Row-major elevations, metres. */

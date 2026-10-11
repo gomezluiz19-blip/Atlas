@@ -19,7 +19,7 @@ import { whatIfBar } from "./whatIf";
 
 const KEY = "atlas.econ.portfolio.v1";
 const COLORS = ["#3563d6", "#d19a2e", "#5b9467", "#8b5fa8", "#b8496a", "#4c9ac9", "#e1b843", "#9a7552", "#5160c2", "#ff6482"];
-export const loadPortfolio = (): Holding[] => { try { const v = JSON.parse(localStorage.getItem(KEY) ?? "[]"); return Array.isArray(v) ? v.filter((x) => company(x?.id) && x.value > 0) : []; } catch { return []; } };
+const loadPortfolio = (): Holding[] => { try { const v = JSON.parse(localStorage.getItem(KEY) ?? "[]"); return Array.isArray(v) ? v.filter((x) => company(x?.id) && x.value > 0) : []; } catch { return []; } };
 const save = (hs: Holding[]) => { try { localStorage.setItem(KEY, JSON.stringify(hs)); } catch { /* private mode */ } };
 const usd = (v: number) => `$${Math.round(v).toLocaleString("en-US")}`;
 

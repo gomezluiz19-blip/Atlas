@@ -25,7 +25,7 @@ const kmBetween = (a: [number, number], b: [number, number]) => {
   return Math.hypot(x, y) * 6371;
 };
 
-export class WindLayer {
+class WindLayer {
   private flow: FlowOverlay | null = null;
   private on = false;
   private lastKey = "";

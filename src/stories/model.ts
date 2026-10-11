@@ -36,7 +36,7 @@ export type StoryCard = Omit<Story, "slides"> & { slideCount: number; cover?: st
 export const TOPICS = ["Rivers and water", "History", "Earth and rocks", "Climate", "Wildlife", "Cities", "Countries", "Space", "Exploration"] as const;
 export const LEVELS = ["Ages 5–7", "Ages 8–11", "Ages 11–14", "Ages 14–18", "University", "Everyone"] as const;
 
-export function bboxOf(slides: Slide[]): [number, number, number, number] {
+function bboxOf(slides: Slide[]): [number, number, number, number] {
   if (!slides.length) return [0, 0, 0, 0];
   let w = 180, s = 90, e = -180, n = -90;
   for (const sl of slides) {
@@ -53,7 +53,7 @@ export const toCard = (s: Story): StoryCard => {
   return { ...rest, slideCount: slides.length, cover: slides.find((x) => x.thumb)?.thumb };
 };
 
-export const refOf = (s: Pick<Story, "id" | "title" | "author">): StoryRef => ({ id: s.id, title: s.title, author: s.author.name });
+const refOf = (s: Pick<Story, "id" | "title" | "author">): StoryRef => ({ id: s.id, title: s.title, author: s.author.name });
 
 /** A story from a deck the user made. */
 export function storyFromDeck(d: Deck, meta: Partial<Story>, now = Date.now()): Story {

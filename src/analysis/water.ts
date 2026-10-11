@@ -6,7 +6,7 @@ import { snapToStream, touchesEdge, traceDownstream, watershedMask, type FlowMod
 
 const WINDOW = 768; // analysis window edge, cells
 
-export interface FlowPoint {
+interface FlowPoint {
   lon: number;
   lat: number;
   /** DEM elevation, metres. */
@@ -15,7 +15,7 @@ export interface FlowPoint {
   ponded: boolean;
 }
 
-export type FlowEnd = "sea" | "limit" | "flat";
+type FlowEnd = "sea" | "limit" | "flat";
 
 export interface FlowTrace {
   points: FlowPoint[];

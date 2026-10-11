@@ -15,7 +15,7 @@ interface Bound { title: () => string; get: () => unknown; set: (body: unknown) 
 
 const links = () => loadJson<Record<string, Link>>(LINKS, {});
 const putLink = (key: string, l: Link | null) => { const all = links(); if (l) all[key] = l; else delete all[key]; saveJson(LINKS, all); };
-export const linkOf = (key: string): Link | null => links()[key] ?? null;
+const linkOf = (key: string): Link | null => links()[key] ?? null;
 
 /** "2 min ago" (pure). */
 export function ago(iso: string, now = Date.now()): string {

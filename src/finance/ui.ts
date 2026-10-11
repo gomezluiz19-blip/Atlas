@@ -366,4 +366,3 @@ export function openCoverage(ctx: WorkCtx, app: App) {
   if (c) go({ lon: c.lon, lat: c.lat, name: app.place?.name?.title ?? "the middle of the map" });
 }
 
-export const clearFinance = () => map?.clear();

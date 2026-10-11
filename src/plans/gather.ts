@@ -80,7 +80,7 @@ export function gatherAll(): Planned[] {
 
 // ---- One colour, darker is sooner --------------------------------------------------------------------
 
-export const HUE = 214;
+const HUE = 214;
 const dayMs = 86_400_000;
 export const daysUntil = (date: string, today: string) => Math.round((Date.parse(date) - Date.parse(today)) / dayMs);
 

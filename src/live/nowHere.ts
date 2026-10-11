@@ -34,7 +34,7 @@ export const kmApart = (a: { lon: number; lat: number }, b: { lon: number; lat: 
   return 2 * 6371 * Math.asin(Math.min(1, Math.sqrt(x)));
 };
 /** US AQI in words. */
-export function airWords(aqi?: number): string {
+function airWords(aqi?: number): string {
   if (aqi === undefined || !Number.isFinite(aqi)) return "unknown";
   return aqi <= 50 ? "good" : aqi <= 100 ? "moderate" : aqi <= 150 ? "unhealthy for sensitive groups" : aqi <= 200 ? "unhealthy" : aqi <= 300 ? "very unhealthy" : "hazardous";
 }

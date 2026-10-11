@@ -9,7 +9,7 @@ import { notableById, type Notable } from "../data/wikidata";
 import { detailLabels, worldLabels, type WorldLabel } from "../data/worldData";
 import { assignSlugs, parseSlug, slugify, spotSlug, wikidataSlug, type PlaceEntry } from "./slug";
 
-export const FEATURE_KIND: Record<FeatureKind, PlaceKind> = {
+const FEATURE_KIND: Record<FeatureKind, PlaceKind> = {
   river: "water", lake: "water", deep: "water", waterfall: "waterfall", peak: "peak", volcano: "volcano",
   crater: "nature", forest: "nature", canyon: "nature", desert: "desert", metro: "transport",
   glacier: "glacier", island: "island", reef: "water", cave: "nature", range: "range", plateau: "region", wetland: "water", rift: "nature",
@@ -19,7 +19,7 @@ interface Index { bySlug: Map<string, PlaceEntry>; slugOf: Map<PlaceEntry, strin
 let index: Promise<Index> | null = null;
 
 /** Every named place and its address (loaded once). */
-export function placeIndex(): Promise<Index> {
+function placeIndex(): Promise<Index> {
   index ??= (async () => {
     const [world, detail] = await Promise.all([worldLabels(), detailLabels().catch(() => [] as WorldLabel[])]);
     const entries: PlaceEntry[] = [

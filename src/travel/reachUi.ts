@@ -195,4 +195,3 @@ export function openReach(ctx: WorkCtx, app: App, start?: Spot) {
   void draw();
 }
 
-export const clearReach = () => layer?.set([]);

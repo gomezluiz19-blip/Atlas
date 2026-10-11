@@ -2,7 +2,7 @@
 import { Cartesian3, Color, type CustomDataSource } from "cesium";
 import { h } from "../ui/dom";
 
-export const RADII_KM = [1, 2, 5, 10, 20, 50];
+const RADII_KM = [1, 2, 5, 10, 20, 50];
 
 /** A sensible survey radius for the current camera height. */
 export function radiusForCamera(heightM: number, max = 50): number {

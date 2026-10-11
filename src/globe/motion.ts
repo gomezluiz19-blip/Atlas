@@ -51,7 +51,7 @@ export function everyFrame(scene: Scene, fn: () => void, active: Pred): () => vo
   return add(fn as (...a: never[]) => void);
 }
 
-export interface MotionStats { mode: "full" | "idle"; fps: number; scale: number; transient: number; why: string; tier: string }
+interface MotionStats { mode: "full" | "idle"; fps: number; scale: number; transient: number; why: string; tier: string }
 export const stats: MotionStats = { mode: "full", fps: 0, scale: 1, transient: 0, why: "", tier: "" };
 
 let q: Quality = currentQuality();

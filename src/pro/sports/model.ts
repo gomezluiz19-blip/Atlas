@@ -8,7 +8,7 @@ import type { Log, Mood, Party, Site } from "../kit/ops";
 
 export interface Venue { name: string; lon: number; lat: number }
 export interface Fixture { id: string; date: string; time?: string; opponent: string; home: boolean; venue: Venue; comp?: string; result?: string; crowd?: number }
-export interface FanGroup { id: string; name: string; lon: number; lat: number; members: number }
+interface FanGroup { id: string; name: string; lon: number; lat: number; members: number }
 export type TargetStatus = "watch" | "shortlist" | "bid" | "signed" | "passed";
 export const TARGET_STATUS: Record<TargetStatus, { label: string; color: string }> = {
   watch: { label: "Watching", color: "#8c8f87" }, shortlist: { label: "Shortlist", color: "#3563d6" }, bid: { label: "Bid in", color: "#d19a2e" },
@@ -44,7 +44,7 @@ export const modeFor = (km: number): Mode => (km < 500 ? "truck" : "air");
 const modeLabel = (m: Mode) => (m === "truck" ? "Coach" : MODES[m].label);
 
 export interface Leg { from: Venue; to: Venue; km: number; hours: number; mode: Mode; how: string; co2t: number; fixture?: Fixture }
-export interface Turnaround { a: Fixture; b: Fixture; days: number; km: number }
+interface Turnaround { a: Fixture; b: Fixture; days: number; km: number }
 
 const road = (a: Venue, b: Venue, party: number, fixture?: Fixture): Leg => {
   const straight = kmBetween(a, b), mode = modeFor(straight), m = MODES[mode];

@@ -221,7 +221,7 @@ export function areaOf(name: string, detail = ""): string {
 // ---- A visit day -------------------------------------------------------------------------------------
 
 export interface Stop { client: Client; arrive: string; leave: string; driveMin: number }
-export interface DayPlan { stops: Stop[]; back: string; driveMin: number; visitMin: number; km: number }
+interface DayPlan { stops: Stop[]; back: string; driveMin: number; visitMin: number; km: number }
 
 const clock = (min: number) => `${String(Math.floor(min / 60) % 24).padStart(2, "0")}:${String(Math.round(min % 60)).padStart(2, "0")}`;
 const minutesOf = (hhmm: string) => { const [hh, mm] = hhmm.split(":").map(Number); return (hh || 0) * 60 + (mm || 0); };

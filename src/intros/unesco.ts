@@ -28,7 +28,7 @@ const km = (a: { lon: number; lat: number }, b: { lon: number; lat: number }) =>
   Math.hypot((a.lon - b.lon) * 111.32 * Math.cos(((a.lat + b.lat) / 2) * Math.PI / 180), (a.lat - b.lat) * 110.54);
 
 /** Intros that belong to a listing whose name or point doesn't give it away (intro id → UNESCO ids). */
-export const CLAIMS: Record<string, number[]> = {
+const CLAIMS: Record<string, number[]> = {
   karnak: [87], "luxor-temple": [87], "valley-of-the-kings": [87], "mohenjo-daro": [138], kakadu: [147], "cradle-mountain": [181], bamiyan: [208],
   "amber-fort": [247], "park-guell": [320], "sagrada-familia": [320], "pueblo-bonito": [353], "hadrians-wall": [430], sukhothai: [574],
   "prague-castle": [616], "charles-bridge": [616], hue: [678], "great-blue-hole": [764], pingyao: [812], chambord: [933], "hoi-an": [948],

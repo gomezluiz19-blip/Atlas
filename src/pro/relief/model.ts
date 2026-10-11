@@ -113,8 +113,8 @@ export function legDays(n: Network, leg: Leg, month: number): number {
   const speed = m.kmh * (wet ? 0.5 : 1) * (leg.status === "slow" ? 0.6 : 1);
   return (leg.km * m.detour) / (speed * m.hoursPerDay) + m.handlingDays + (leg.delayDays ?? 0);
 }
-export const legUsdPerT = (leg: Leg) => leg.km * MODES[leg.mode].detour * (leg.usdPerTkm ?? MODES[leg.mode].usdPerTkm);
-export const legCo2PerT = (leg: Leg) => (leg.km * MODES[leg.mode].detour * MODES[leg.mode].gCo2PerTkm) / 1e6;
+const legUsdPerT = (leg: Leg) => leg.km * MODES[leg.mode].detour * (leg.usdPerTkm ?? MODES[leg.mode].usdPerTkm);
+const legCo2PerT = (leg: Leg) => (leg.km * MODES[leg.mode].detour * MODES[leg.mode].gCo2PerTkm) / 1e6;
 
 export interface Path { legs: Leg[]; hubs: string[]; days: number; usdPerT: number; co2PerT: number; modes: Mode[] }
 
@@ -144,7 +144,7 @@ export function bestPath(n: Network, from: string, to: string, month: number, op
 }
 
 /** Tonnes a path can carry a day: its narrowest leg (pure). */
-export const pathThroughput = (p: Path) => Math.min(...p.legs.map((l) => (l.perDay ?? (l.mode === "air" ? 1 : 10)) * (l.tonnesEach ?? (l.mode === "air" ? 12 : l.mode === "river" ? 300 : 20))));
+const pathThroughput = (p: Path) => Math.min(...p.legs.map((l) => (l.perDay ?? (l.mode === "air" ? 1 : 10)) * (l.tonnesEach ?? (l.mode === "air" ? 12 : l.mode === "river" ? 300 : 20))));
 
 // ---- Running out -------------------------------------------------------------------------------------
 
@@ -158,9 +158,9 @@ export function dailyUse(h: Hub, item: Item): number {
 }
 
 /** Units on the way to a place that arrive by a date (pure). */
-export const inbound = (n: Network, hub: string, item: string, by?: string) => n.moves.filter((m) => m.to === hub && m.item === item && m.status !== "delivered" && (!by || m.arrives <= by)).reduce((s, m) => s + m.qty, 0);
+const inbound = (n: Network, hub: string, item: string, by?: string) => n.moves.filter((m) => m.to === hub && m.item === item && m.status !== "delivered" && (!by || m.arrives <= by)).reduce((s, m) => s + m.qty, 0);
 
-export interface Break {
+interface Break {
   hub: Hub; item: Item; perDay: number; stock: number; coming: number;
   /** Days until it runs out, counting what's on the way. */
   cover: number; runsOut: string;

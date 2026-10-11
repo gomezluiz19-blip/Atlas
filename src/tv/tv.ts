@@ -37,14 +37,11 @@ import { clocksScene, hazardsScene, sitesScene, welcomeScene, type Welcome } fro
 const SCENE_MS = 26_000, HOLD_MS = 60_000, LONG_HOLD = 20 * 60_000;
 const ROOM_KEY = "atlas.tv.room", WELCOME_KEY = "atlas.tv.welcome";
 
-
 let active: { exit(): void } | null = null;
-export const inTv = () => !!active;
 
 const read = (k: string) => { try { return localStorage.getItem(k); } catch { return null; } };
 const write = (k: string, v: string) => { try { localStorage.setItem(k, v); } catch { /* storage off */ } };
 const list = <T>(k: string): T[] => { try { const v = JSON.parse(read(k) ?? "[]"); return Array.isArray(v) ? v : []; } catch { return []; } };
-
 
 export function enterTv(app: App, given?: string, start?: ShowPlace) {
   if (active) return active;

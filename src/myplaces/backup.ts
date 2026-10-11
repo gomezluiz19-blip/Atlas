@@ -26,7 +26,7 @@ export function readBackup(text: string): Backup {
   return b;
 }
 
-export function restoreBackup(b: Backup) {
+function restoreBackup(b: Backup) {
   for (const [k, v] of Object.entries(b.data)) localStorage.setItem(k, v);
 }
 

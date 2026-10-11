@@ -12,7 +12,7 @@ export type Role = "principal" | "assistant principal" | "teacher" | "aide" | "c
 export interface Absence { date: string; reason: "sick" | "personal" | "training" | "family"; coveredBy?: string }
 export interface Observation { date: string; by: string; rating: 1 | 2 | 3 | 4; note: string }
 export interface Staff { id: string; name: string; role: Role; school: string; subject?: string; room?: string; cert?: { name: string; expires: string }; absences: Absence[]; observations: Observation[] }
-export interface WorkOrder { id: string; room: string; what: string; opened: string; priority: "urgent" | "high" | "normal"; status: "open" | "in progress" | "done" }
+interface WorkOrder { id: string; room: string; what: string; opened: string; priority: "urgent" | "high" | "normal"; status: "open" | "in progress" | "done" }
 export interface Incident { id: string; date: string; kind: "safety" | "behavior" | "medical" | "facility" | "visitor"; text: string; status: "open" | "closed" }
 export type DrillKind = "fire" | "lockdown" | "evacuation" | "shelter";
 export interface Drill { kind: DrillKind; date: string }
@@ -33,7 +33,7 @@ export interface School {
 export interface District { id: string; name: string; demo?: boolean; schools: School[]; staff: Staff[] }
 
 /** How often each drill is required: days between drills (a common state pattern: fire monthly, lockdown twice a year). */
-export const DRILL_EVERY: Record<DrillKind, number> = { fire: 30, lockdown: 120, evacuation: 180, shelter: 180 };
+const DRILL_EVERY: Record<DrillKind, number> = { fire: 30, lockdown: 120, evacuation: 180, shelter: 180 };
 export const DRILL_LABEL: Record<DrillKind, string> = { fire: "Fire drill", lockdown: "Lockdown drill", evacuation: "Evacuation drill", shelter: "Shelter-in-place drill" };
 
 const DAY = 86_400_000;

@@ -4,7 +4,7 @@
 // tracking without their own API keys, so the status and date are yours to
 // set (or come in from the link); arrivals show in the dock and in My plans.
 
-export type Carrier = "UPS" | "FedEx" | "USPS" | "DHL" | "Amazon" | "Royal Mail" | "Canada Post" | "Post";
+type Carrier = "UPS" | "FedEx" | "USPS" | "DHL" | "Amazon" | "Royal Mail" | "Canada Post" | "Post";
 export type Status = "ordered" | "shipped" | "out" | "delivered" | "problem";
 export const STATUS: Record<Status, { label: string; color: string }> = {
   ordered: { label: "Ordered", color: "#8c8f87" },

@@ -41,7 +41,7 @@ export function kmBetween(a: { lon: number; lat: number }, b: { lon: number; lat
   return 2 * 6371 * Math.asin(Math.min(1, Math.sqrt(x)));
 }
 
-export interface FlowFacts { km: number; hours: number; perYear: number; tonnesPerYear?: number; tkm?: number; co2t?: number }
+interface FlowFacts { km: number; hours: number; perYear: number; tonnesPerYear?: number; tkm?: number; co2t?: number }
 
 /** One flow's distance on the way, time door to door, yearly volume and carbon (pure). */
 export function flowFacts(f: Flow, from: NetNode, to: NetNode): FlowFacts {
