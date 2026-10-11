@@ -1,5 +1,6 @@
 node_modules/
 dist/
+dist-mcp/
 public/cesium/
 .env
 .env.local
