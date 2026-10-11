@@ -1,3 +1,5 @@
+import { kmBetween } from "../util/geo";
+export { kmBetween };
 // What a TV is for. A screen in a living room, a classroom, a site office, a lobby and a meeting room need
 // different things from the same Earth, so TV mode asks once ("What's this screen for?"), remembers the
 // answer, and gives each room its own playlist and its own tools, always in the same shape: what plays by
@@ -162,12 +164,6 @@ export function frameSites(sites: { lon: number; lat: number }[]): { lon: number
 }
 
 // ---- Hazards near sites -------------------------------------------------------------------------------
-
-export function kmBetween(a: { lon: number; lat: number }, b: { lon: number; lat: number }): number {
-  const r = (d: number) => (d * Math.PI) / 180, dLat = r(b.lat - a.lat), dLon = r(b.lon - a.lon);
-  const h = Math.sin(dLat / 2) ** 2 + Math.cos(r(a.lat)) * Math.cos(r(b.lat)) * Math.sin(dLon / 2) ** 2;
-  return 2 * 6371 * Math.asin(Math.min(1, Math.sqrt(h)));
-}
 
 /** How far an earthquake of a magnitude is worth knowing about, km (pure): felt widely past 5, locally below. */
 export const quakeReachKm = (mag: number) => Math.round(Math.min(1500, 25 * 10 ** (0.35 * (mag - 2.5))));

@@ -18,6 +18,7 @@ import { allSites, clockText } from "./rooms";
 import { formatHash } from "../data/locationParse";
 import { installEmojiGuard } from "../ui/noEmoji";
 import { markSvg } from "../ui/brand";
+import { loadList } from "../util/storage";
 
 const $ = <K extends keyof HTMLElementTagNameMap>(tag: K, attrs: Record<string, string> = {}, ...kids: (Node | string)[]) => {
   const e = document.createElement(tag);
@@ -386,7 +387,7 @@ function start(code: string) {
     else if (t.id === "trip") tripSheet();
     else cmd({ t: "tool", tool: t.id });
   }
-  const mine = <T>(k: string): T[] => { try { const v = JSON.parse(localStorage.getItem(k) ?? "[]"); return Array.isArray(v) ? v : []; } catch { return []; } };
+  const mine = loadList;
 
   /** A sheet of choices sliding up over the remote. */
   function sheet(titleText: string, note: string, rows: { label: string; sub?: string; icon?: string; go(): void }[]) {

@@ -27,14 +27,10 @@ import { throughTime } from "../time/placeTime";
 import { iconSvg } from "../ui/glyph";
 import { loadPeople } from "../people/mine";
 import { myPeopleBox } from "../people/mineUi";
+import { savedHome } from "../myplaces/saved";
 
 /** Whether a place is the home saved in My Place. */
-const isHome = (p: { lon: number; lat: number }) => {
-  try {
-    const all = JSON.parse(localStorage.getItem("atlas.myplaces.v1") ?? "[]") as { kind?: string; lon: number; lat: number }[];
-    return all.some((x) => x.kind === "home" && distanceKm(x.lon, x.lat, p.lon, p.lat) < 0.1);
-  } catch { return false; }
-};
+const isHome = (p: { lon: number; lat: number }) => { const h = savedHome(); return !!h && distanceKm(h.lon, h.lat, p.lon, p.lat) < 0.1; };
 
 /** Whether this person has chosen a place before (then "how to start" hints step aside). */
 const tapped = () => { try { return localStorage.getItem("atlas.tapped") === "1"; } catch { return false; } };

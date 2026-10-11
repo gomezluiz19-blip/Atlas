@@ -20,6 +20,7 @@ import {
   type CommonsResponse, type Media, type NearbyKind, type NearbyPlace, type TravelMode,
 } from "./around";
 import { detailsFrom, hoursText, venueOf, type Category, type Venue } from "./venue";
+import { savedSpots } from "../myplaces/saved";
 
 type Spot = { lon: number; lat: number };
 
@@ -29,7 +30,7 @@ const distText = (km: number) => (km < 1 ? `${Math.round(km * 1000 / 10) * 10} m
 
 /** The saved home, if there is one (a pure read of the stored list). */
 function saved(): { kind?: string; name: string; lon: number; lat: number }[] {
-  try { return JSON.parse(localStorage.getItem("atlas.myplaces.v1") ?? "[]"); } catch { return []; }
+  return savedSpots();
 }
 function savedHome(): (Spot & { name: string }) | null {
   const home = saved().find((p) => p.kind === "home") ?? null;

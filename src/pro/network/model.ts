@@ -2,6 +2,8 @@
 // moves between them (goods, people, money, data), how much and how. Pure
 // functions for distance, time on the way and carbon, per flow and in total.
 import { newId } from "../../work/store";
+import { kmBetween } from "../../util/geo";
+export { kmBetween };
 
 export type NodeKind = "hq" | "store" | "warehouse" | "factory" | "office" | "farm" | "supplier" | "customer" | "partner" | "port";
 export type FlowKind = "goods" | "people" | "money" | "data";
@@ -33,13 +35,6 @@ export const MODES: Record<Mode, { label: string; detour: number; kmh: number; h
   digital: { label: "Digital", detour: 0, kmh: 0, handling: 0, goodsCO2: 0, peopleCO2: 0 },
 };
 const PER_YEAR: Record<Per, number> = { day: 365, week: 52, month: 12, year: 1 };
-
-/** Great-circle kilometres. */
-export function kmBetween(a: { lon: number; lat: number }, b: { lon: number; lat: number }): number {
-  const r = Math.PI / 180, dLat = (b.lat - a.lat) * r, dLon = (b.lon - a.lon) * r;
-  const x = Math.sin(dLat / 2) ** 2 + Math.cos(a.lat * r) * Math.cos(b.lat * r) * Math.sin(dLon / 2) ** 2;
-  return 2 * 6371 * Math.asin(Math.min(1, Math.sqrt(x)));
-}
 
 interface FlowFacts { km: number; hours: number; perYear: number; tonnesPerYear?: number; tkm?: number; co2t?: number }
 

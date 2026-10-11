@@ -1,3 +1,5 @@
+import { kmBetween } from "../util/geo";
+export { kmBetween };
 // My people: family and the others you keep close, each pinned where they live. Kept on this device only;
 // nothing here tracks anyone. Pure apart from the small store at the bottom.
 
@@ -39,13 +41,6 @@ export function colorOf(p: Pick<Person, "id" | "circle">): string {
   for (const ch of p.id) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
   const hues = p.circle === "family" ? FAMILY_HUES : OTHER_HUES;
   return hues[h % hues.length];
-}
-
-/** Great-circle distance in km (pure). */
-export function kmBetween(a: { lon: number; lat: number }, b: { lon: number; lat: number }): number {
-  const R = 6371, r = Math.PI / 180, dLat = (b.lat - a.lat) * r, dLon = (b.lon - a.lon) * r;
-  const x = Math.sin(dLat / 2) ** 2 + Math.cos(a.lat * r) * Math.cos(b.lat * r) * Math.sin(dLon / 2) ** 2;
-  return 2 * R * Math.asin(Math.min(1, Math.sqrt(x)));
 }
 
 /** "Here", "3.2 km", "240 km", "5,800 km" (pure). */

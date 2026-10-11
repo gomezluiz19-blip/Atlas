@@ -23,7 +23,10 @@ export function loadJson<T>(key: string, fallback: T, ok: (v: unknown) => boolea
     const raw = localStorage.getItem(key);
     if (raw === null) return fallback;
     const v = JSON.parse(raw);
-    return ok(v) ? (v as T) : fallback;
+    return v !== null && ok(v) ? (v as T) : fallback;
   } catch { return fallback; }
 }
+
+/** Reads a saved list: always an array, empty if it's missing or unreadable. */
+export const loadList = <T>(key: string): T[] => loadJson<T[]>(key, [], Array.isArray);
 

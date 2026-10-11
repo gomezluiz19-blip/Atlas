@@ -12,6 +12,7 @@ import { flyToPlace } from "../ui/search";
 import type { WorkCtx } from "./hub";
 import type { WorkFeature } from "./layer";
 import { bands, inSeason, mainDirection, PRODUCE, sourceSet, sourcesQuery, toSources, type Source, type SourceSet } from "./sourcing";
+import { savedSpots } from "../myplaces/saved";
 
 const NS = "http://www.w3.org/2000/svg";
 const svgEl = <T extends keyof SVGElementTagNameMap>(t: T, a: Record<string, string | number> = {}) => { const e = document.createElementNS(NS, t); for (const [k, v] of Object.entries(a)) e.setAttribute(k, String(v)); return e; };
@@ -106,7 +107,7 @@ export function openSourcing(ctx: WorkCtx, setId: string) {
     }).catch(() => { status.textContent = "Couldn't reach OpenStreetMap just now. Try again in a moment."; });
   };
   const centre = () => { const c = app.globe.viewer.canvas, p = app.globe.pick(new Cartesian2(c.clientWidth / 2, c.clientHeight / 2)); return p ? { lon: p.lon, lat: p.lat, name: "the middle of the map" } : null; };
-  const mine = (() => { try { return (JSON.parse(localStorage.getItem("atlas.myplaces.v1") ?? "[]") as { name: string; lon: number; lat: number }[]).slice(0, 6); } catch { return []; } })();
+  const mine = savedSpots().slice(0, 6);
   ctx.show(set.label, ctx.home,
     h("p", { class: "sc-lede" }, set.who, "."),
     h("div", { class: "row-btns" },

@@ -5,6 +5,8 @@ import { gettingThere } from "../place/venueCard";
 import { h } from "./dom";
 import { icons } from "./icons";
 import { flyToPlace, geocode } from "./search";
+import { savedSpots } from "../myplaces/saved";
+import { loadList } from "../util/storage";
 
 interface PlusItem { label: string; sub?: string; icon: string; color?: string; run: () => void }
 
@@ -45,12 +47,9 @@ export function createChrome(app: App, opts: {
 
   const saved = (): { name: string; sub: string; lon: number; lat: number }[] => {
     const out: { name: string; sub: string; lon: number; lat: number }[] = [];
-    try {
-      for (const p of JSON.parse(localStorage.getItem("atlas.myplaces.v1") ?? "[]") as { kind?: string; name: string; lon: number; lat: number }[])
-        if (Number.isFinite(p.lon)) out.push({ name: p.name, sub: p.kind === "home" ? "Home" : "My Place", lon: p.lon, lat: p.lat });
-      for (const p of JSON.parse(localStorage.getItem("atlas.people.v1") ?? "[]") as { name: string; where: string; lon: number; lat: number }[])
-        if (Number.isFinite(p.lon)) out.push({ name: p.name, sub: p.where.split(",")[0], lon: p.lon, lat: p.lat });
-    } catch { /* private mode */ }
+    for (const p of savedSpots()) out.push({ name: p.name, sub: p.kind === "home" ? "Home" : "My Place", lon: p.lon, lat: p.lat });
+    for (const p of loadList<{ name: string; where: string; lon: number; lat: number }>("atlas.people.v1"))
+      if (Number.isFinite(p.lon)) out.push({ name: p.name, sub: p.where.split(",")[0], lon: p.lon, lat: p.lat });
     return out.slice(0, 8);
   };
 

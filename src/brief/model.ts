@@ -1,13 +1,8 @@
+import { kmBetween } from "../util/geo";
 // What each tab says first: a sentence worth reading, worked out from your own people, plans and places.
 // Pure: no DOM, no network.
 
 type Spot = { lon: number; lat: number };
-
-const kmBetween = (a: Spot, b: Spot) => {
-  const R = 6371, r = Math.PI / 180, dLat = (b.lat - a.lat) * r, dLon = (b.lon - a.lon) * r;
-  const x = Math.sin(dLat / 2) ** 2 + Math.cos(a.lat * r) * Math.cos(b.lat * r) * Math.sin(dLon / 2) ** 2;
-  return 2 * R * Math.asin(Math.min(1, Math.sqrt(x)));
-};
 
 // ---- People --------------------------------------------------------------------------------------
 

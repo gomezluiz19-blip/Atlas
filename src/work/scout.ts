@@ -16,13 +16,14 @@ import { flyToPlace } from "../ui/search";
 import type { WorkCtx } from "./hub";
 import type { WorkFeature } from "./layer";
 import { industry, kindsOf, metres, nearestFirst, query, scoreSite, toPois, WALK, type Find, type Industry, type Poi } from "./scoutModel";
+import { loadList } from "../util/storage";
 
 const KEY = "atlas.work.scout.v1";
 /** Where a line has a made-and-grown-nearby view, the consumer's way into it. */
 const MADE: Record<string, string> = { food: "🌾 What grows around here", fashion: "🧵 What's made around here", architecture: "🪨 Local stone, timber and brick", art: "🏺 Makers around here" };
 interface Candidate { id: string; name: string; lon: number; lat: number }
 interface Saved { industry: string; as?: string; sites: Candidate[] }
-const readAll = (): Saved[] => { try { const v = JSON.parse(localStorage.getItem(KEY) ?? "[]"); return Array.isArray(v) ? v : []; } catch { return []; } };
+const readAll = () => loadList<Saved>(KEY);
 const saved = (id: string): Saved => readAll().find((s) => s.industry === id) ?? { industry: id, sites: [] };
 const keep = (s: Saved) => { try { localStorage.setItem(KEY, JSON.stringify([...readAll().filter((x) => x.industry !== s.industry), s])); } catch { /* private mode */ } };
 

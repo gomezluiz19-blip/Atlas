@@ -33,6 +33,7 @@ import { allSites, joiner, menuFor, mergeSites, ROOMS, roomOf, SCENE_LABELS, TOO
 import { activeScope, back as spatialBack, clearFocus, ensureFocus, move } from "./spatial";
 import { placeScene, SHOW_PLACES, worldScene, type ShowPlace } from "./showcase";
 import { clocksScene, hazardsScene, sitesScene, welcomeScene, type Welcome } from "./wall";
+import { savedHome } from "../myplaces/saved";
 
 const SCENE_MS = 26_000, HOLD_MS = 60_000, LONG_HOLD = 20 * 60_000;
 const ROOM_KEY = "atlas.tv.room", WELCOME_KEY = "atlas.tv.welcome";
@@ -214,7 +215,7 @@ export function enterTv(app: App, given?: string, start?: ShowPlace) {
   /** Your people in a sentence, as the People view says it on the web. */
   const sayPeople = () => {
     const people = list<Someone>("atlas.people.v1").filter((p) => Number.isFinite(p.lon));
-    const home = list<{ kind?: string; lon: number; lat: number }>("atlas.myplaces.v1").find((p) => p.kind === "home") ?? null;
+    const home = savedHome();
     const l = peopleLede(peopleSummary(people, home, new Date()));
     say(l.title, l.line);
   };

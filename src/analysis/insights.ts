@@ -1,3 +1,5 @@
+import { kmAt as distanceKm } from "../util/geo";
+export { distanceKm };
 // Location facts computed from first principles: geomagnetic latitude (for
 // aurora), daylight and the sun's position, and distance to plate boundaries.
 
@@ -54,12 +56,6 @@ export function skyState(altitude: number): "day" | "twilight" | "dark" {
   if (altitude > -0.833) return "day";
   if (altitude > -12) return "twilight";
   return "dark";
-}
-
-/** Great-circle distance in km (spherical Earth). */
-export function distanceKm(lon1: number, lat1: number, lon2: number, lat2: number): number {
-  const a = Math.sin(((lat2 - lat1) * RAD) / 2) ** 2 + Math.cos(lat1 * RAD) * Math.cos(lat2 * RAD) * Math.sin(((lon2 - lon1) * RAD) / 2) ** 2;
-  return 2 * 6371 * Math.asin(Math.min(1, Math.sqrt(a)));
 }
 
 /** Nearest point on a set of polylines (flat [lon, lat, …] arrays) and its distance, km. */

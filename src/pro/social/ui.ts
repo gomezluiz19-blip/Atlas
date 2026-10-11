@@ -13,6 +13,8 @@ import {
   referralsFor, safeLabel, toResources, visits, WORK_MODES, type Client, type Contact, type Focus, type HelpWay, type Named, type NeedId, type Practice,
   type Priority, type Resource, type Spot, type WorkMode,
 } from "./model";
+import { loadList } from "../../util/storage";
+import { savedSpots } from "../../myplaces/saved";
 
 const KEY = "atlas.pro.social.v1";
 let map: OpsMap | null = null;
@@ -33,7 +35,7 @@ const whereIAm = () => new Promise<Named>((ok, no) => navigator.geolocation.getC
 
 /** Choose a place: where you are, the chosen place, your places, a tap on the map, or an address. */
 function placePicker(ctx: WorkCtx, app: App, go: (p: Named) => void, prompt = "Or type an address or town"): HTMLElement {
-  const mine = (() => { try { return (JSON.parse(localStorage.getItem("atlas.myplaces.v1") ?? "[]") as Named[]).slice(0, 3); } catch { return []; } })();
+  const mine = savedSpots().slice(0, 3);
   const box = h("input", { class: "pro-url", placeholder: prompt }) as HTMLInputElement;
   const find = async () => {
     const q = box.value.trim(); if (!q) return;
@@ -137,7 +139,7 @@ function detail(ctx: WorkCtx, app: App, r: Resource, back: () => void, extra?: H
 
 // ---- Social Work Pro: the worksite -----------------------------------------------------------------------
 
-const load = (): Practice[] => { try { const v = JSON.parse(localStorage.getItem(KEY) ?? "[]"); return Array.isArray(v) ? v : []; } catch { return []; } };
+const load = () => loadList<Practice>(KEY);
 const store = (ps: Practice[]) => { try { localStorage.setItem(KEY, JSON.stringify(ps)); } catch { /* storage full: the kit warns */ } };
 const saveOne = (p: Practice) => store([p, ...load().filter((x) => x.id !== p.id)]);
 

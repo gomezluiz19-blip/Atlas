@@ -8,6 +8,8 @@
 //     the gaps (clients far from what they need).
 // Pure: no DOM, no network.
 import { estimateMinutes } from "../../travel/reach";
+import { kmBetween as kmApart } from "../../util/geo";
+export { kmApart };
 
 export interface Spot { lon: number; lat: number }
 export interface Named extends Spot { name: string }
@@ -78,13 +80,6 @@ export function toResources(els: { type: string; id: number; lat?: number; lon?:
   }
   return out;
 }
-
-/** Straight-line km (pure). */
-export const kmApart = (a: Spot, b: Spot) => {
-  const r = Math.PI / 180, dLat = (b.lat - a.lat) * r, dLon = (b.lon - a.lon) * r;
-  const x = Math.sin(dLat / 2) ** 2 + Math.cos(a.lat * r) * Math.cos(b.lat * r) * Math.sin(dLon / 2) ** 2;
-  return 2 * 6371 * Math.asin(Math.min(1, Math.sqrt(x)));
-};
 
 /** Resources nearest first, the asked-for needs ahead of the rest (pure). */
 export function nearestFirst(rs: Resource[], from: Spot, asked: NeedId[] = []): (Resource & { km: number })[] {

@@ -17,17 +17,15 @@ import { findProfile, following, me, onAccount } from "../social/store";
 import { h } from "../ui/dom";
 import { flyToPlace } from "../ui/search";
 import { aheadLede, aheadNotes, dayAt, hoursLede, peopleLede, peopleSummary, tempColor, TONES, type AheadNote, type DayWx, type Someone } from "./model";
+import { homeOrFirst } from "../myplaces/saved";
 
 type Spot = { lon: number; lat: number };
 type Named = Spot & { name: string };
 
 /** Where "here" is for you: your saved home, else your first saved place, else the middle of the map. */
 export function anchor(app: App): Named | null {
-  try {
-    const all = JSON.parse(localStorage.getItem("atlas.myplaces.v1") ?? "[]") as { kind?: string; name: string; lon: number; lat: number }[];
-    const p = all.find((x) => x.kind === "home") ?? all[0];
-    if (p && Number.isFinite(p.lon)) return { name: p.name, lon: p.lon, lat: p.lat };
-  } catch { /* private mode */ }
+  const p = homeOrFirst();
+  if (p) return { name: p.name, lon: p.lon, lat: p.lat };
   const cv = app.globe.viewer.canvas;
   if (app.globe.viewer.camera.positionCartographic.height > 3_000_000) return null;
   const c = app.globe.pick(new Cartesian2(cv.clientWidth / 2, cv.clientHeight / 2));

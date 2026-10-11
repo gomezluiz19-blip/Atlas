@@ -22,6 +22,7 @@ import {
   addDays, arrival, bookingLinks, datesBetween, flightHours, forecastReaches, jetLag, km, nightsBetween, pickAirports, rankStays, shiftText,
   splitStays, stayLink, staysQuery, sweetSpot, WAYS, waysThere, weatherLine, wxEmoji, type Pt, type Stay, type WayEstimate,
 } from "./trip";
+import { homeOrFirst } from "../myplaces/saved";
 
 const NS = "http://www.w3.org/2000/svg";
 const svgEl = <T extends keyof SVGElementTagNameMap>(t: T, a: Record<string, string | number> = {}) => { const e = document.createElementNS(NS, t); for (const [k, v] of Object.entries(a)) e.setAttribute(k, String(v)); return e; };
@@ -89,7 +90,7 @@ interface TravelPrefill { from?: Pt; depart?: string; back?: string; people?: nu
 export function openTravel(ctx: WorkCtx, app: App, dest?: Pt, pre: TravelPrefill = {}) {
   map ??= new OpsMap(app, "travel", "#3563d6");
   const today = new Date().toISOString().slice(0, 10);
-  const home = (() => { try { const all = JSON.parse(localStorage.getItem("atlas.myplaces.v1") ?? "[]") as (Pt & { kind?: string })[]; return all.find((p) => p.kind === "home") ?? all[0] ?? null; } catch { return null; } })();
+  const home = homeOrFirst();
   let from: Pt | null = home ? { name: home.name, lon: home.lon, lat: home.lat } : null;
   let to: Pt | null = dest ?? null;
   let depart = addDays(today, 14), back = addDays(today, 19), time = "09:00", people = 2;

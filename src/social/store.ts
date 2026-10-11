@@ -6,6 +6,7 @@ import { DEMO_PROFILES } from "./demo";
 import { cloudSignOut } from "../cloud/client";
 import { followRemote, linkHandle, pushProfile, signRemote } from "../cloud/sync";
 import { profileFromJson, type Profile, type Signature } from "./model";
+import { loadJson } from "../util/storage";
 
 const ACCOUNT = "atlas.account.v1";
 const MINE = "atlas.profiles.v1";
@@ -13,7 +14,7 @@ const SEEN = "atlas.profiles.seen.v1";
 const FOLLOWS = "atlas.follows.v1";
 const SIGNED = "atlas.guestbook.v1";
 
-const read = <T>(key: string, fallback: T): T => { try { return (JSON.parse(localStorage.getItem(key) ?? "null") as T) ?? fallback; } catch { return fallback; } };
+const read = loadJson;
 const write = (key: string, v: unknown) => { try { localStorage.setItem(key, JSON.stringify(v)); } catch { /* storage full or blocked */ } };
 
 export interface Account { handle: string; email?: string; since: string }

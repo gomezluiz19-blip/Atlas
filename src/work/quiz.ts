@@ -16,6 +16,8 @@ import { borders, captureView, flyToView, showYear } from "./present";
 import { overhead } from "./presentModel";
 import { gradebook, mark, markAll, pack, unpack, validQuiz, type Answer, type Question, type QuestionView, type Quiz, type Result } from "./quizModel";
 import { ListStore, download, newId } from "./store";
+import { kmPair as distanceKm } from "../util/geo";
+export { distanceKm };
 
 const quizzes = new ListStore<Quiz>("atlas.work.quizzes.v1");
 const results = new ListStore<Result & { id: string }>("atlas.work.results.v1");
@@ -321,12 +323,6 @@ function host(app: App, q: Quiz) {
   addEventListener("keydown", onKey);
   void show();
 }
-
-export const distanceKm = (a: [number, number], b: [number, number]) => {
-  const R = 6371, rad = Math.PI / 180, dLat = (b[1] - a[1]) * rad, dLon = (b[0] - a[0]) * rad;
-  const x = Math.sin(dLat / 2) ** 2 + Math.cos(a[1] * rad) * Math.cos(b[1] * rad) * Math.sin(dLon / 2) ** 2;
-  return 2 * R * Math.asin(Math.sqrt(x));
-};
 
 /** A burst of confetti (skipped for reduced motion). */
 export function confetti(host: HTMLElement) {

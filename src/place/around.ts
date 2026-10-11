@@ -1,3 +1,4 @@
+import { kmBetween } from "../util/geo";
 // What a venue's card needs beyond what it is: whether it's open now, its street address, what's nearby by
 // kind, photos and videos taken around it, and links out for directions. Pure: no DOM, no network.
 
@@ -98,12 +99,6 @@ export function nearbyQuery(c: Spot, kind: NearbyKind, radiusM: number): string 
 interface El { type: "node" | "way" | "relation"; id: number; lat?: number; lon?: number; center?: { lat: number; lon: number }; tags?: Record<string, string> }
 
 export interface NearbyPlace extends Spot { name: string; key: string; value: string; osm: string; km: number; tags: Record<string, string> }
-
-const kmBetween = (a: Spot, b: Spot) => {
-  const R = 6371, r = Math.PI / 180, dLat = (b.lat - a.lat) * r, dLon = (b.lon - a.lon) * r;
-  const x = Math.sin(dLat / 2) ** 2 + Math.cos(a.lat * r) * Math.cos(b.lat * r) * Math.sin(dLon / 2) ** 2;
-  return 2 * R * Math.asin(Math.sqrt(x));
-};
 
 /** Named places from an Overpass answer, nearest first, without the venue itself or repeats (pure). */
 export function nearbyFrom(els: El[], kind: NearbyKind, from: Spot, selfName = ""): NearbyPlace[] {

@@ -2,6 +2,8 @@
 // railways, roads, shipping lanes, ports, airports and power plants. Undersea
 // cables load live from TeleGeography's Submarine Cable Map.
 import { getJson } from "./http";
+import { kmAt as km } from "../util/geo";
+export { km };
 
 export interface NetLine {
   /** Leading attributes, as stored (e.g. [scalerank, electric]). */
@@ -108,14 +110,7 @@ export const landingDetail = (id: string) => getJson<LandingDetail>("Submarine C
 
 // ---- Geometry helpers ------------------------------------------------------
 
-const R = 6371;
 const rad = Math.PI / 180;
-
-/** Great-circle distance in km. */
-export function km(lon1: number, lat1: number, lon2: number, lat2: number): number {
-  const a = Math.sin(((lat2 - lat1) * rad) / 2) ** 2 + Math.cos(lat1 * rad) * Math.cos(lat2 * rad) * Math.sin(((lon2 - lon1) * rad) / 2) ** 2;
-  return 2 * R * Math.asin(Math.min(1, Math.sqrt(a)));
-}
 
 /** Items sorted by distance from a point, within `maxKm`. */
 export function nearby<T extends { lon: number; lat: number }>(items: T[], lon: number, lat: number, maxKm: number, limit = Infinity): (T & { km: number })[] {

@@ -2,6 +2,7 @@
 // each kind of place usually is at a given hour, and the centres of life they cluster into. Busyness is an
 // estimate from typical daily patterns and each place's opening hours, not a live count. Pure: no DOM, no network.
 import { openNow } from "../place/around";
+import { kmBetween } from "../util/geo";
 
 type Spot = { lon: number; lat: number };
 
@@ -122,12 +123,6 @@ export function gatherFrom(els: El[]): { spots: GatherSpot[]; names: PlaceName[]
   }
   return { spots, names };
 }
-
-const kmBetween = (a: Spot, b: Spot) => {
-  const R = 6371, r = Math.PI / 180, dLat = (b.lat - a.lat) * r, dLon = (b.lon - a.lon) * r;
-  const x = Math.sin(dLat / 2) ** 2 + Math.cos(a.lat * r) * Math.cos(b.lat * r) * Math.sin(dLon / 2) ** 2;
-  return 2 * R * Math.asin(Math.min(1, Math.sqrt(x)));
-};
 
 export interface Centre extends Spot { name: string; count: number; mix: [GatherKind, number][]; peak: { weekday: number; weekend: number } }
 

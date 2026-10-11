@@ -17,6 +17,7 @@ import {
   areaKm2, bestMode, compareLine, countNeeds, dirWord, estimateMinutes, estimateRings, fmtMin, isochroneUrl, matrixUrl, NEEDS, needsQuery, needsScore,
   parseIsochrone, parseMatrix, REACH_IDS, REACH_MODES, reachRose, type IsoResponse, type MatrixResponse, type ReachMode, type Ring,
 } from "./reach";
+import { savedSpots } from "../myplaces/saved";
 
 const NS = "http://www.w3.org/2000/svg";
 const svgEl = <T extends keyof SVGElementTagNameMap>(t: T, a: Record<string, string | number> = {}) => { const e = document.createElementNS(NS, t); for (const [k, v] of Object.entries(a)) e.setAttribute(k, String(v)); return e; };
@@ -85,7 +86,7 @@ export function openReach(ctx: WorkCtx, app: App, start?: Spot) {
   const status = h("p", { class: "muted small" });
   const body = h("div", {});
 
-  const mine = (): Spot[] => { try { return (JSON.parse(localStorage.getItem("atlas.myplaces.v1") ?? "[]") as Spot[]).slice(0, 12); } catch { return []; } };
+  const mine = () => savedSpots().slice(0, 12);
   const centre = (): Spot | null => { const cv = app.globe.viewer.canvas, p = app.globe.pick(new Cartesian2(cv.clientWidth / 2, cv.clientHeight / 2)); return p ? { name: "the middle of the map", lon: p.lon, lat: p.lat } : null; };
 
   const modeSeg = h("div", { class: "segmented", role: "radiogroup", "aria-label": "How you travel" },

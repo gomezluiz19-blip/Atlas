@@ -1,3 +1,4 @@
+import { loadList } from "../util/storage";
 // Packages on the way to your place. Paste a tracking number, or a whole
 // shipping email, and Terreno finds the numbers, knows the carrier from the
 // number's pattern and links to its tracking page. Carriers don't share
@@ -80,7 +81,7 @@ export function findDate(text: string, today: string): string | undefined {
 }
 
 export const KEY = "atlas.myplace.packages.v1";
-export function readPackages(): Package[] { try { const v = JSON.parse(localStorage.getItem(KEY) ?? "[]"); return Array.isArray(v) ? v : []; } catch { return []; } }
+export const readPackages = () => loadList<Package>(KEY);
 export function writePackages(ps: Package[]) { try { localStorage.setItem(KEY, JSON.stringify(ps)); } catch { /* private mode */ } }
 
 /** What the dock says about packages (pure): how many are coming, and the next arrival. */

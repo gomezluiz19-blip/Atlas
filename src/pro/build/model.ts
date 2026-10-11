@@ -1,3 +1,5 @@
+import { kmBetween } from "../../util/geo";
+export { kmBetween };
 // Build Pro: a builder's or contractor's sites on the map. Each project has a
 // schedule of tasks with their dependencies (worked out with the critical
 // path method, on working days), the weather each task can't work in
@@ -245,12 +247,6 @@ export function deliveryClashes(p: Project, forecast: Day[] = []) {
 /** Road time from a supplier, estimated: 1.35× the straight line at 50 km/h (pure). */
 export function haulHours(p: { lon: number; lat: number }, s: { lon: number; lat: number }) {
   return (kmBetween(p, s) * 1.35) / 50;
-}
-
-export function kmBetween(a: { lon: number; lat: number }, b: { lon: number; lat: number }) {
-  const r = Math.PI / 180, dLat = (b.lat - a.lat) * r, dLon = (b.lon - a.lon) * r;
-  const s = Math.sin(dLat / 2) ** 2 + Math.cos(a.lat * r) * Math.cos(b.lat * r) * Math.sin(dLon / 2) ** 2;
-  return 2 * 6371 * Math.asin(Math.min(1, Math.sqrt(s)));
 }
 
 export interface Receptor { name: string; kind: "school" | "hospital" | "care" | "worship" | "homes"; lon: number; lat: number; m: number }

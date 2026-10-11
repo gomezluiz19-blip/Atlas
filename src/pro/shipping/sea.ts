@@ -1,3 +1,5 @@
+import { kmPair as gcKm } from "../../util/geo";
+export { gcKm };
 // Sea routes between any two ports: a graph of the waypoints ships actually
 // pass (straits, canals, capes and open-ocean turning points), shortest path
 // by great-circle distance. Chokepoints can be closed, and the route finds its
@@ -55,12 +57,6 @@ export const CHOKEPOINTS: Record<string, { label: string; edges: string[]; note:
 };
 
 const R = 6371;
-/** Great-circle kilometres (pure). */
-export function gcKm(a: LonLat, b: LonLat): number {
-  const toR = Math.PI / 180, dLat = (b[1] - a[1]) * toR, dLon = (b[0] - a[0]) * toR;
-  const s = Math.sin(dLat / 2) ** 2 + Math.cos(a[1] * toR) * Math.cos(b[1] * toR) * Math.sin(dLon / 2) ** 2;
-  return 2 * R * Math.asin(Math.min(1, Math.sqrt(s)));
-}
 export const NM = 1.852;
 
 export interface SeaRoute { km: number; pts: LonLat[]; via: string[]; chokepoints: string[] }

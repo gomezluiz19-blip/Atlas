@@ -10,10 +10,11 @@
 import { h } from "../ui/dom";
 import { icons } from "../ui/icons";
 import { FAMILIES, LINES, lookOf, rank, TIERS, tierOf, type Line, type Station } from "./workLines";
+import { loadJson } from "../util/storage";
 
 const RECENT = "atlas.work.recent.v1";
 const FIELD = "atlas.work.field.v1";
-const readJson = (k: string): unknown => { try { return JSON.parse(localStorage.getItem(k) ?? "null"); } catch { return null; } };
+const readJson = (k: string): unknown => loadJson<unknown>(k, null);
 const write = (k: string, v: unknown) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* private mode */ } };
 
 /** Is there saved work behind this station (for a Field Network sector, a company in that sector)? */

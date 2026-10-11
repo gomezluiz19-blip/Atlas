@@ -10,6 +10,8 @@ import { weatherText } from "../analysis/climate";
 import { sunPosition } from "../delight/sun";
 import { naturalEvents, newsAbout, EVENT_LOOK, type EventKind } from "./news";
 import { planesAround, type Track } from "./traffic";
+import { kmBetween as kmApart } from "../util/geo";
+export { kmApart };
 
 export interface NowHere {
   place: { name?: string; lon: number; lat: number };
@@ -28,11 +30,6 @@ export interface NowHere {
 }
 
 const COMPASS = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
-export const kmApart = (a: { lon: number; lat: number }, b: { lon: number; lat: number }) => {
-  const r = Math.PI / 180, dLat = (b.lat - a.lat) * r, dLon = (b.lon - a.lon) * r;
-  const x = Math.sin(dLat / 2) ** 2 + Math.cos(a.lat * r) * Math.cos(b.lat * r) * Math.sin(dLon / 2) ** 2;
-  return 2 * 6371 * Math.asin(Math.min(1, Math.sqrt(x)));
-};
 /** US AQI in words. */
 function airWords(aqi?: number): string {
   if (aqi === undefined || !Number.isFinite(aqi)) return "unknown";

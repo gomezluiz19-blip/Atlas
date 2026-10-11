@@ -1,3 +1,5 @@
+import { kmBetween as km } from "../util/geo";
+export { km };
 // The wayfinder's arithmetic: which way you're going, how fast, what you're passing, what's ahead and where
 // you're probably headed. One model for every way of moving over the Earth in Terreno: your phone's GPS on
 // foot or in a car, the camera gliding over the globe on the web, the TV flying between places. Pure, so it
@@ -11,12 +13,6 @@ const R = 6371;
 const rad = (d: number) => (d * Math.PI) / 180;
 const deg = (r: number) => (r * 180) / Math.PI;
 
-/** Great-circle distance, km. */
-export function km(a: LL, b: LL): number {
-  const dLat = rad(b.lat - a.lat), dLon = rad(b.lon - a.lon);
-  const h = Math.sin(dLat / 2) ** 2 + Math.cos(rad(a.lat)) * Math.cos(rad(b.lat)) * Math.sin(dLon / 2) ** 2;
-  return 2 * R * Math.asin(Math.min(1, Math.sqrt(h)));
-}
 /** Initial bearing from a to b, degrees clockwise from north, 0–360. */
 export function bearing(a: LL, b: LL): number {
   const y = Math.sin(rad(b.lon - a.lon)) * Math.cos(rad(b.lat));

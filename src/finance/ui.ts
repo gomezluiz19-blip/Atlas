@@ -21,6 +21,8 @@ import {
   companyLinks, EXCHANGES, gaps, growth, margin, money, METRICS, session, sessionUtc, shares, TIES, until,
   type Branch, type Facts, type Figures, type Metric, type Tie, type Tied,
 } from "./model";
+import { loadList } from "../util/storage";
+import { savedSpots } from "../myplaces/saved";
 
 const NS = "http://www.w3.org/2000/svg";
 const svgEl = <T extends keyof SVGElementTagNameMap>(t: T, a: Record<string, string | number> = {}) => { const e = document.createElementNS(NS, t); for (const [k, v] of Object.entries(a)) e.setAttribute(k, String(v)); return e; };
@@ -39,7 +41,7 @@ const opsMap = (app: App) => (map ??= new OpsMap(app, "finance", "#2a78d6"));
 
 const WATCH = "atlas.fin.watch.v1";
 interface Watched { id: string; name: string; ticker?: string; country?: string; lon?: number; lat?: number }
-const watched = (): Watched[] => { try { return JSON.parse(localStorage.getItem(WATCH) ?? "[]") as Watched[]; } catch { return []; } };
+const watched = () => loadList<Watched>(WATCH);
 const setWatched = (w: Watched[]) => { try { localStorage.setItem(WATCH, JSON.stringify(w)); } catch { /* private mode */ } };
 
 // ---- Company explorer -----------------------------------------------------------------------------
@@ -273,7 +275,7 @@ export function openWatchlist(ctx: WorkCtx, app: App) {
 // ---- Banks near you, and branch coverage ------------------------------------------------------------
 
 function pickSpot(ctx: WorkCtx, app: App, run: (p: { lon: number; lat: number; name: string }) => void): HTMLElement {
-  const mine = (() => { try { return (JSON.parse(localStorage.getItem("atlas.myplaces.v1") ?? "[]") as { name: string; lon: number; lat: number }[]).slice(0, 4); } catch { return []; } })();
+  const mine = savedSpots().slice(0, 4);
   return h("div", { class: "row-btns" },
     app.place ? h("button", { class: "chip", onclick: () => run({ lon: app.place!.lon, lat: app.place!.lat, name: app.place!.name?.title ?? "the chosen place" }) }, "◎ The chosen place") : "",
     h("button", { class: "chip", onclick: () => { const c = centre(app); if (c) run({ ...c, name: "the middle of the map" }); } }, "Middle of the map"),

@@ -7,6 +7,7 @@
 import { gatherAll, shade } from "../plans/gather";
 import { eta, VESSEL_TYPES, type Desk } from "../pro/shipping/model";
 import { along, interp, type LonLat } from "../pro/shipping/sea";
+import { loadList } from "../util/storage";
 
 export type Layer = "places" | "plans" | "freight" | "relief" | "sites" | "network";
 export const LAYERS: Record<Layer, { label: string; color: string }> = {
@@ -25,7 +26,7 @@ export interface World { t: number; anchors: Anchor[]; lanes: Lane[]; movers: Mo
 
 const DAY = 86_400_000;
 const isoDay = (ms: number) => new Date(ms).toISOString().slice(0, 10);
-const read = <T>(key: string): T[] => { try { const v = JSON.parse(localStorage.getItem(key) ?? "[]"); return Array.isArray(v) ? v : []; } catch { return []; } };
+const read = loadList;
 
 /** A great-circle arc between two points, for drawing (pure). */
 export function arcPts(a: LonLat, b: LonLat, n = 48): LonLat[] { return Array.from({ length: n + 1 }, (_, i) => interp(a, b, i / n)); }

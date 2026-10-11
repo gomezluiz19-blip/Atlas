@@ -21,6 +21,7 @@ import { myCandidates } from "./candidates";
 import { aheadOf, bearing, compassPoint, distanceText, etaText, guessDestination, km, motionOf, offset, paceOf, passingNow, ribbonX, scaleFor, sideText, turnFrom, type Candidate, type Fix, type Guess, type LL, type Pace, type Poi, type Sighting } from "./model";
 import { allPois, basePois, nearbyWiki } from "./pois";
 import { fetchRoute, progress, type Route } from "./route";
+import { loadList } from "../util/storage";
 
 const FOUND = "atlas.wayfind.found";
 const FOV = 160;
@@ -32,7 +33,7 @@ const colorOf = (p: Poi) => KIND_COLOR[p.kind] ?? "#b8496a";
 const PACE_WORD: Record<Pace, string> = { still: "Standing", walk: "Walking", run: "Running", cycle: "Cycling", drive: "Driving", rail: "By train", fly: "Flying" };
 const navSvg = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 2.8 19.5 21 12 16.8 4.5 21z"/></svg>';
 
-function loadFound(): string[] { try { const v = JSON.parse(localStorage.getItem(FOUND) ?? "[]"); return Array.isArray(v) ? v.slice(-5000) : []; } catch { return []; } }
+const loadFound = () => loadList<string>(FOUND).slice(-5000);
 
 interface Wayfinder {
   /** Fires when a card shows (the TV hands it to the remote). */

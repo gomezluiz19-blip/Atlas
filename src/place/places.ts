@@ -8,6 +8,7 @@ import { FEATURES, type FeatureKind } from "../content/features";
 import { notableById, type Notable } from "../data/wikidata";
 import { detailLabels, worldLabels, type WorldLabel } from "../data/worldData";
 import { assignSlugs, parseSlug, slugify, spotSlug, wikidataSlug, type PlaceEntry } from "./slug";
+import { kmAt as km } from "../util/geo";
 
 const FEATURE_KIND: Record<FeatureKind, PlaceKind> = {
   river: "water", lake: "water", deep: "water", waterfall: "waterfall", peak: "peak", volcano: "volcano",
@@ -88,11 +89,6 @@ export async function resolvePlace(slug: string): Promise<Resolved | null> {
   return e ? fromEntry(ix, p.slug, e) : null;
 }
 
-const R = Math.PI / 180;
-const km = (lon1: number, lat1: number, lon2: number, lat2: number) => {
-  const x = Math.sin(((lat2 - lat1) * R) / 2) ** 2 + Math.cos(lat1 * R) * Math.cos(lat2 * R) * Math.sin(((lon2 - lon1) * R) / 2) ** 2;
-  return 12_742 * Math.asin(Math.min(1, Math.sqrt(x)));
-};
 
 /** A known place by name near a point (within `maxKm`), with its address. */
 export async function findNamed(name: string, lon: number, lat: number, maxKm = 30): Promise<Resolved | null> {

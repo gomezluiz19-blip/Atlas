@@ -11,17 +11,12 @@ import {
   addPerson, colorOf, farText, grouped, initials, kmBetween, loadPeople, newPerson, onPeople, partOfDay, RELATIONS, removePerson, timeThere, updatePerson,
   type Circle, type Person,
 } from "./mine";
+import { savedHome } from "../myplaces/saved";
 
 type Spot = { lon: number; lat: number };
 
 /** The saved home in My Place, if any: distances are measured from there. */
-function home(): (Spot & { name: string }) | null {
-  try {
-    const all = JSON.parse(localStorage.getItem("atlas.myplaces.v1") ?? "[]") as { kind?: string; name: string; lon: number; lat: number }[];
-    const h0 = all.find((p) => p.kind === "home");
-    return h0 && Number.isFinite(h0.lon) ? h0 : null;
-  } catch { return null; }
-}
+const home = savedHome;
 
 /** Weather and time zone per place, fetched once a session. */
 const wxCache = new Map<string, Promise<{ tz: string; temp: number; text: string } | null>>();

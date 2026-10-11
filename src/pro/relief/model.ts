@@ -1,3 +1,5 @@
+import { kmBetween } from "../../util/geo";
+export { kmBetween };
 // Relief Pipeline: a humanitarian supply chain on the map. Relief goods come
 // in at a port, move through hubs and field warehouses to the points where
 // they're handed out, along roads, rivers and air links that the rainy
@@ -73,12 +75,6 @@ export const isoDay = (ms: number) => new Date(ms).toISOString().slice(0, 10);
 const ms = (iso: string) => Date.parse(iso + "T12:00:00Z");
 export const addDays = (iso: string, n: number) => isoDay(ms(iso) + n * DAY);
 export const daysBetween = (a: string, b: string) => Math.round((ms(b) - ms(a)) / DAY);
-
-export function kmBetween(a: { lon: number; lat: number }, b: { lon: number; lat: number }) {
-  const r = Math.PI / 180, dLat = (b.lat - a.lat) * r, dLon = (b.lon - a.lon) * r;
-  const s = Math.sin(dLat / 2) ** 2 + Math.cos(a.lat * r) * Math.cos(b.lat * r) * Math.sin(dLon / 2) ** 2;
-  return 2 * 6371 * Math.asin(Math.min(1, Math.sqrt(s)));
-}
 
 // ---- Moving goods ------------------------------------------------------------------------------------
 
