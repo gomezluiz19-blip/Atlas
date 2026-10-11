@@ -144,9 +144,9 @@ class Sheet {
       this.body,
     );
     this.grip.addEventListener("click", () => this.el.classList.toggle("collapsed"));
-    // On a phone the Earth leads: the card starts as just its heading (choosing a place opens it), and
+    // The map leads, on every screen: the card starts as just its heading (choosing a place opens it), and
     // tapping that heading opens it too.
-    if (typeof matchMedia === "function" && matchMedia("(max-width: 820px)").matches) this.el.classList.add("collapsed");
+    this.el.classList.add("collapsed");
     this.el.querySelector(".sheet-head")?.addEventListener("click", (e) => {
       if (this.el.classList.contains("collapsed") && !(e.target as HTMLElement).closest("button")) this.el.classList.remove("collapsed");
     });
@@ -294,7 +294,8 @@ export class App {
         role: "tab",
         "aria-selected": "false",
         style: `--tab-color:${theme.color}`,
-        onclick: () => { this.sheet.el.classList.remove("collapsed"); this.setTheme(theme.id); },
+        // A view is like a map layer: switching keeps the card as it is; tapping the one you're on opens or folds it.
+        onclick: () => { if (this.theme?.id === theme.id) this.sheet.el.classList.toggle("collapsed"); else this.setTheme(theme.id); },
       },
       h("span", { class: "tab-icon", html: theme.icon }),
       h("span", { class: "tab-label" }, theme.tabLabel ?? theme.label),
@@ -441,6 +442,8 @@ export class App {
     if (this.pin) this.globe.viewer.entities.remove(this.pin);
     this.pin = null;
     this.drawer.hide();
+    // Back to the map: the card folds to its heading.
+    this.sheet.el.classList.add("collapsed");
     this.render();
     this.onPlace?.(null);
   }

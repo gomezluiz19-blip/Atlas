@@ -28,6 +28,7 @@ import { validQuiz, type Quiz } from "../work/quizModel";
 import { fromQuiz, hostQuiz, starterQuiz, timeMachine, whereIn, type QuizHost } from "./classroom";
 import { hostDirect, listen, newCode, remoteUrl, send, type Cmd } from "./link";
 import { antiBurn, Countdown, Ink, stayAwake, type InkMode } from "./overlays";
+import { peopleLede, peopleSummary, type Someone } from "../brief/model";
 import { allSites, joiner, menuFor, mergeSites, ROOMS, roomOf, SCENE_LABELS, TOOLS, type Room, type SceneId, type WallSite } from "./rooms";
 import { activeScope, back as spatialBack, clearFocus, ensureFocus, move } from "./spatial";
 import { placeScene, SHOW_PLACES, worldScene, type ShowPlace } from "./showcase";
@@ -102,8 +103,8 @@ export function enterTv(app: App, given?: string, start?: ShowPlace) {
     roomChip.textContent = `${room.icon} ${room.label}`;
     dots.replaceChildren(...playlist().map((id) => h("span", { "data-id": id }, SCENE_LABELS[id])));
     menuRows = menuFor(room); focus = { r: 0, c: 0 };
-    menuEl.replaceChildren(...menuRows.map((row, r) => h("div", { class: "tv-menu-row" },
-      h("span", { class: "tv-menu-label" }, r === 0 ? `${room.icon} ${room.label}` : ""),
+    menuEl.replaceChildren(...menuRows.map((row, r) => h("div", { class: "tv-menu-row" + (r === 2 ? " tv-menu-more" : "") },
+      h("span", { class: "tv-menu-label" }, r === 1 ? "Views" : r === 2 ? `${room.icon} ${room.label}` : ""),
       ...row.map((m) => h("div", { class: "tv-tile", "data-id": m.id }, h("span", { class: "tv-tile-icon" }, m.icon), h("span", {}, m.label))))));
   }
 
@@ -189,9 +190,15 @@ export function enterTv(app: App, given?: string, start?: ShowPlace) {
     quizzes: list<Quiz>("atlas.work.quizzes.v1").map((q) => ({ id: q.id, name: q.title })),
   });
 
-  let menuOpen = false, focus = { r: 0, c: 0 }, menuTimer = 0, menuRows = menuFor(room);
+  // The room's own tools wait behind ＋, as Explore, Create and Work do on the web.
+  let menuOpen = false, plusOpen = false, focus = { r: 0, c: 0 }, menuTimer = 0, menuRows = menuFor(room);
+  const shownRows = () => (plusOpen ? menuRows.length : Math.min(2, menuRows.length));
   const drawMenu = () => {
+    if (!menuOpen) plusOpen = false;
+    if (focus.r >= shownRows()) focus = { r: 0, c: 0 };
     menuEl.classList.toggle("on", menuOpen);
+    menuEl.classList.toggle("more", plusOpen);
+    menuEl.querySelectorAll(".tv-menu-row").forEach((row, r) => row.querySelectorAll(".tv-tile").forEach((t) => t.classList.toggle("current", r === 1 && (t as HTMLElement).dataset.id === `view:${app.theme?.id}`)));
     menuEl.querySelectorAll(".tv-menu-row").forEach((row, r) => row.querySelectorAll(".tv-tile").forEach((t, c) => t.classList.toggle("focus", r === focus.r && c === focus.c)));
     menuEl.querySelectorAll<HTMLElement>(".tv-tile.focus")[0]?.scrollIntoView({ inline: "center", block: "nearest", behavior: "smooth" });
     clearTimeout(menuTimer);
@@ -206,10 +213,18 @@ export function enterTv(app: App, given?: string, start?: ShowPlace) {
     document.querySelectorAll<HTMLElement>(".work-panel:not([hidden]) button[aria-label='Close']").forEach((b) => b.click());
     clearFocus();
   };
+  let searchHint = "Type on your phone…";
+  /** Your people in a sentence, as the People view says it on the web. */
+  const sayPeople = () => {
+    const people = list<Someone>("atlas.people.v1").filter((p) => Number.isFinite(p.lon));
+    const home = list<{ kind?: string; lon: number; lat: number }>("atlas.myplaces.v1").find((p) => p.kind === "home") ?? null;
+    const l = peopleLede(peopleSummary(people, home, new Date()));
+    say(l.title, l.line);
+  };
   let searchOpen = false, query = "", hits: { name: string; detail: string; lon: number; lat: number; radius: number }[] = [], pickAt = 0;
   const drawSearch = () => {
     searchEl.classList.toggle("on", searchOpen);
-    searchText.textContent = query || "Type on your phone…";
+    searchText.textContent = query || searchHint;
     searchText.classList.toggle("empty", !query);
     searchList.replaceChildren(...hits.map((x, i) => h("div", { class: "tv-hit" + (i === pickAt ? " focus" : "") }, h("strong", {}, x.name), h("small", {}, x.detail))));
     if (searchOpen) send(code, "state", { t: "suggest", q: query, items: hits.map((x) => x.name), focus: pickAt });
@@ -349,8 +364,17 @@ export function enterTv(app: App, given?: string, start?: ShowPlace) {
   });
 
   function activate(id: string, arg?: string) {
+    if (id === "plus") { menuOpen = true; plusOpen = !plusOpen; focus = { r: plusOpen ? 2 : 0, c: 0 }; drawMenu(); return; }
     menuOpen = false; drawMenu();
-    if (id === "search") { openSearch(true); return; }
+    if (id === "search") { searchHint = "Type on your phone…"; openSearch(true); return; }
+    if (id === "goto") { searchHint = "Where to? Type on your phone…"; openSearch(true); return; }
+    if (id === "me") { app.setTheme("people"); sayPeople(); return; }
+    if (id.startsWith("view:")) {
+      const v = id.slice(5);
+      app.setTheme(v);
+      if (v === "people") sayPeople(); else say(app.theme?.label ?? v, v === "nature" ? "The plants and animals around any place" : "Every country: who governs, its people and its money");
+      return;
+    }
     if (id === "trip") { send(code, "state", { t: "form", kind: "trip" }); say("Plan a trip", "Fill it in on your phone: where, when and who"); return; }
     if (id === "trips") { showTrips(); return; }
     if (id === "room") { chooseRoom(); return; }
@@ -505,7 +529,7 @@ export function enterTv(app: App, given?: string, start?: ShowPlace) {
         if (menuOpen) {
           if (c.dir === "left" || c.dir === "right") { const row = menuRows[focus.r]; focus.c = (focus.c + (c.dir === "right" ? 1 : -1) + row.length) % row.length; }
           else if (c.dir === "up") focus = { r: Math.max(0, focus.r - 1), c: 0 };
-          else if (focus.r < menuRows.length - 1) focus = { r: focus.r + 1, c: 0 };
+          else if (focus.r < shownRows() - 1) focus = { r: focus.r + 1, c: 0 };
           else menuOpen = false;
           drawMenu(); return;
         }
