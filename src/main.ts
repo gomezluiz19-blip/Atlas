@@ -77,7 +77,6 @@ import { later } from "./util/later";
 import { watchMotion } from "./ui/motion";
 import { seamlessDeploys, warmUp } from "./ui/warm";
 watchForProblems();
-import { myLenses } from "./lenses/library";
 import { topicThemes } from "./topics/themes";
 import { openWorldNow } from "./live/worldNow";
 import { createCityLife } from "./city/life";
@@ -799,16 +798,6 @@ const syncHash = () => {
 const lenses = createLenses(app, LENSES);
 app.actions.set("lens:close", { label: "Close the lens", run: () => lenses.close() });
 app.actions.set("place:clear", { label: "Close the place", run: () => app.clearPlace() });
-// "More" also holds the lenses you've made or kept, one tap from any place.
-app.moreExtras = () => {
-  const mine = myLenses();
-  return [
-    h("p", { class: "more-title" }, "Your lenses"),
-    h("div", { class: "chips wrap more-lenses" },
-      ...mine.map((d) => h("button", { class: "chip", title: d.blurb, onclick: () => { app.toggleMore(false); app.actions.get("lens:custom")?.run(d.id); } }, `${d.icon} ${d.name}`)),
-      h("button", { class: "chip", onclick: () => { app.toggleMore(false); app.actions.get("lens:studio")?.run(); } }, mine.length ? "✨ Make another" : "✨ Make a lens")),
-  ];
-};
 app.sheet.el.querySelector(".share-menu")!.after(lenses.strip);
 $("ui").append(lenses.panel);
 app.onName = (p) => lenses.rename(p);
@@ -830,9 +819,8 @@ const social = wireSocial(app, {
     about.soundRow,
   ],
 });
-$("about-btn").replaceWith(social.account.button);
 $("ui").append(social.account.menu);
-// The frame: Search, Navigate, Me and ＋, top right. Everything else waits behind ＋.
+// The frame: the dock along the bottom (Search, Navigate, Me, ＋). Everything else waits behind ＋.
 {
   const TV_ICON = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 16.5V6.8A1.8 1.8 0 0 1 4.8 5h14.4A1.8 1.8 0 0 1 21 6.8v10.4a1.8 1.8 0 0 1-1.8 1.8H14"/><path d="M3 19.5h.01M3 13a6.5 6.5 0 0 1 6.5 6.5M3 16a3.5 3.5 0 0 1 3.5 3.5"/></svg>';
   const chrome = createChrome(app, {
@@ -850,10 +838,11 @@ $("ui").append(social.account.menu);
       { label: "Add a view", sub: "Keep a layer on the map", icon: icons.eye, run: () => dispatchEvent(new Event("atlas:add-view")) },
       { label: "On a TV", sub: "Cast to a screen", icon: TV_ICON, run: () => app.actions.get("tv:cast")?.run() },
       { label: "My Place", sub: "Home, farm or business", icon: icons.home, run: () => openMode("place") },
+      { label: "Lenses", sub: "Yours, and making one", icon: icons.sparkle, run: () => app.actions.get("lens:studio")?.run() },
     ],
   });
-  document.querySelector(".topbar-actions")!.append(chrome.cluster);
-  $("ui").append(chrome.plusMenu, chrome.navPanel);
+  // The dock: big, at the bottom, the one place to start from.
+  $("ui").append(chrome.dock, chrome.plusMenu, chrome.navPanel);
   app.actions.set("nav:open", { label: "Navigate", run: () => chrome.openNavigate() });
   app.actions.set("search:open", { label: "Search", run: () => chrome.openSearch(true) });
 }

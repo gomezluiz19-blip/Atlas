@@ -80,7 +80,7 @@ export function wireSocial(app: App, deps: SocialDeps) {
       syncLenses();
       if (fresh) {
         // The Earth first: home if it was just set (main flies there), your page a tap away in the account menu.
-        app.toast(`Welcome to Terreno, ${p.name.split(" ")[0]}. Your page is in the account menu, top right: add the places you love.`, 6500);
+        app.toast(`Welcome to Terreno, ${p.name.split(" ")[0]}. Your page is under Me: add the places you love.`, 6500);
       } else {
         profiles.open(p.handle);
         app.toast(`You're ${p.name} now${role ? `, ${role.label.toLowerCase()}` : ""}. ${p.demo ? "Everything here is yours to try; switch back from the account menu." : ""}`.trim(), 5000);

@@ -1,6 +1,7 @@
-// The frame around the map, kept to four buttons: Search, Navigate, Me, and a small ＋ that opens everything
-// else (Explore, Create, Work, then the tools: Pulse, Time, map style, a TV, views). The map is the page.
-import type { App, Place } from "../app";
+// The frame around the map: one dock at the bottom, big and plain, with four buttons: Search, Navigate, Me and
+// ＋. ＋ holds everything else: Explore, Create and Work; then the views (People, Nature, Countries, and more),
+// switched like map layers; then the tools. The map is the page.
+import type { App, Place, Theme } from "../app";
 import { gettingThere } from "../place/venueCard";
 import { h } from "./dom";
 import { icons } from "./icons";
@@ -11,8 +12,8 @@ import { loadList } from "../util/storage";
 
 interface PlusItem { label: string; sub?: string; icon: string; color?: string; run: () => void }
 
-const NAV = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11.2 20 4l-7.2 16-2-6.8z"/></svg>';
-const PLUS = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>';
+const NAV = '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11.2 20 4l-7.2 16-2-6.8z"/></svg>';
+const PLUS = '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>';
 
 export function createChrome(app: App, opts: {
   search: HTMLElement;
@@ -26,16 +27,12 @@ export function createChrome(app: App, opts: {
   const input = () => opts.search.querySelector("input") as HTMLInputElement | null;
   const openSearch = (open = !document.body.classList.contains("search-open")) => {
     close();
-    const was = document.body.classList.contains("search-open");
-    const apply = () => {
-      document.body.classList.toggle("search-open", open);
-      searchBtn.setAttribute("aria-expanded", String(open));
-    };
-    // The icon opens out into the field.
-    if (open && !was) morphBetween(searchBtn, () => opts.search, "search", apply); else apply();
-    if (open) setTimeout(() => input()?.focus(), 30);
+    // At once, not as a morph: the first keystroke must land in the field. It rises out of the dock (CSS).
+    document.body.classList.toggle("search-open", open);
+    searchBtn.setAttribute("aria-expanded", String(open));
+    if (open) input()?.focus({ preventScroll: true });
   };
-  const searchBtn = h("button", { class: "round-btn chrome-btn", "aria-label": "Search", title: "Search (/)", "aria-expanded": "false", html: icons.search, onclick: () => openSearch() }) as HTMLButtonElement;
+  const searchBtn = h("button", { class: "dock-btn", "data-label": "Search", "aria-label": "Search", title: "Search (/)", "aria-expanded": "false", html: icons.search, onclick: () => openSearch() }) as HTMLButtonElement;
   opts.search.addEventListener("focusout", () => setTimeout(() => { if (!opts.search.contains(document.activeElement) && !input()?.value) openSearch(false); }, 150));
   window.addEventListener("keydown", (e: KeyboardEvent) => {
     const t = e.target as HTMLElement;
@@ -45,7 +42,7 @@ export function createChrome(app: App, opts: {
 
   // ---- Navigate: where to, and the way there ----
   const navPanel = h("div", { class: "popover nav-panel", role: "dialog", "aria-label": "Navigate", hidden: true });
-  const navBtn = h("button", { class: "round-btn chrome-btn", "aria-label": "Navigate", title: "Navigate", "aria-expanded": "false", html: NAV, onclick: () => {
+  const navBtn = h("button", { class: "dock-btn", "data-label": "Navigate", "aria-label": "Navigate", title: "Navigate", "aria-expanded": "false", html: NAV, onclick: () => {
     const open = navPanel.hidden;
     close(); openSearch(false);
     if (open) morphBetween(navBtn, () => navPanel, "nav", () => { drawNav(); navPanel.hidden = false; navBtn.setAttribute("aria-expanded", "true"); setTimeout(() => navPanel.querySelector("input")?.focus(), 30); });
@@ -99,13 +96,26 @@ export function createChrome(app: App, opts: {
   const plusMenu = h("div", { class: "popover plus-menu", role: "menu", hidden: true });
   const item = (x: PlusItem, big = false) => h("button", { class: big ? "plus-big" : "plus-item", role: "menuitem", style: x.color ? `--c:${x.color}` : "", onclick: () => { close(); x.run(); } },
     h("span", { class: "plus-ico", html: x.icon }), h("span", {}, h("strong", {}, x.label), x.sub ? h("small", {}, x.sub) : ""));
-  const plusBtn = h("button", { class: "round-btn chrome-btn chrome-plus", "aria-label": "More: Explore, Create, Work and tools", title: "Explore, Create, Work", "aria-expanded": "false", html: PLUS, onclick: () => {
+  /** A view, as a tile (the main three) or a chip (the rest); the one you're on is marked. */
+  const view = (t: Theme, big: boolean) => h("button", {
+    class: big ? "plus-view" : "plus-chip", role: "menuitemradio", "aria-checked": String(app.theme?.id === t.id), style: `--c:${t.color}`,
+    onclick: () => { close(); if (app.theme?.id !== t.id) app.setTheme(t.id); else app.sheet.el.classList.remove("collapsed"); },
+  }, h("span", { class: "plus-ico", html: t.icon }), h("span", {}, big ? t.label : t.tabLabel ?? t.label));
+  const views = () => {
+    const { main, more } = app.views();
+    return [
+      h("p", { class: "plus-head" }, "Views"),
+      h("div", { class: "plus-views" }, ...main.map((t) => view(t, true))),
+      h("div", { class: "plus-chips" }, ...more.map((t) => view(t, false))),
+    ];
+  };
+  const plusBtn = h("button", { class: "dock-btn dock-plus", "data-label": "More", "aria-label": "More: Explore, Create, Work, the views and tools", title: "Explore, Create, Work, views", "aria-expanded": "false", html: PLUS, onclick: () => {
     const open = plusMenu.hidden;
     close(); openSearch(false);
     if (!open) return;
-    // ＋ grows into its menu: the three ways in, then the tools.
+    // ＋ grows into its menu: the three ways in, then the views, then the tools.
     morphBetween(plusBtn, () => plusMenu, "plus", () => {
-      plusMenu.replaceChildren(h("div", { class: "plus-row" }, ...opts.primary.map((x) => item(x, true))), h("div", { class: "plus-tools" }, ...opts.tools.map((x) => item(x))));
+      plusMenu.replaceChildren(h("div", { class: "plus-row" }, ...opts.primary.map((x) => item(x, true))), ...views(), h("div", { class: "plus-tools" }, ...opts.tools.map((x) => item(x))));
       plusMenu.hidden = false; plusBtn.setAttribute("aria-expanded", "true");
     });
   } }) as HTMLButtonElement;
@@ -116,7 +126,12 @@ export function createChrome(app: App, opts: {
     if (!navPanel.hidden && !navPanel.contains(t) && !navBtn.contains(t) && !(t as HTMLElement).closest?.(".search-results")) { navPanel.hidden = true; navBtn.setAttribute("aria-expanded", "false"); }
   });
 
-  opts.me.classList.add("chrome-btn");
-  const cluster = h("div", { class: "chrome" }, searchBtn, navBtn, opts.me, plusBtn);
-  return { cluster, plusMenu, navPanel, openSearch, openNavigate: () => navBtn.click() };
+  // The account button redraws itself on sign-in, so its label is an attribute the dock's CSS shows.
+  opts.me.classList.add("dock-btn");
+  opts.me.dataset.label = "Me";
+  // Search opens just above the dock, its suggestions rising from it.
+  const dock = h("nav", { class: "dock", "aria-label": "Terreno" },
+    h("div", { class: "dock-search" }, opts.search),
+    h("div", { class: "dock-row" }, searchBtn, navBtn, opts.me, plusBtn));
+  return { dock, plusMenu, navPanel, openSearch, openNavigate: () => navBtn.click() };
 }

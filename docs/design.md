@@ -106,12 +106,14 @@ The model is `src/wayfind/model.ts` (pure, tested); the screens are `src/wayfind
 ## The frame
 
 The map is the page, opening over where you are (or your home), like any map you already trust. Around it,
-four things and no more, the same on every screen:
+one bar and no more, the same on every screen:
 
-- **Search**, **Navigate** (where to, and the way there), **Me**, and a small **＋**.
-- **＋** opens Explore, Create and Work, then the tools (Pulse, Time, map style, a view, a TV, My Place).
-- **The views** along the bottom (People, Nature, Countries, and More) work like map layers: tapping one
-  changes the map and leaves its card as just a heading; tap the view again, or the heading, to read it.
+- **The dock**, along the bottom, big and plain: **Search**, **Navigate** (where to, and the way there), **Me**
+  and **＋**, each a big icon with its word under it, ＋ in the one action colour. Search opens just above the dock,
+  its suggestions rising from it.
+- **＋** opens Explore, Create and Work; then the **views** (People, Nature, Countries as tiles, the rest as
+  chips), which work like map layers: choosing one changes the map and leaves its card as just a heading; choose
+  it again, or tap the heading, to read it; then the tools (Pulse, Time, map style, Lenses, a TV, My Place).
 
 On a TV the menu is the same frame: Search, Go to, Me, ＋ in the first row, the views in the second, and the
 room's own tools only once ＋ is opened.
@@ -127,7 +129,7 @@ Motion is how the simple insight arrives, not decoration. One curve, three durat
 - **The map leads.** The camera arrives first, timed by how far it travels; the card settles behind it; what the
   card says arrives top to bottom.
 - **Morph, don't pop.** A view's chip grows into the card; ＋ grows into its menu; Navigate grows into its panel;
-  Search opens out of its icon. These are View Transitions on the named pieces only, so the globe keeps moving
+  Search rises from the dock. The morphs are View Transitions on the named pieces only, so the globe keeps moving
   underneath.
 - **The marks move.** Registration ticks draw in when something is chosen; hairlines draw left to right; figures
   in Geist Mono and in an insight's headline count up to their value; pigments wash in; the hours rise like a

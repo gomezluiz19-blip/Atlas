@@ -8,17 +8,17 @@ themes) and goes deep when you want it to: rock sections, watersheds, life zones
 
 ## How it works for you
 
-The map is the page. Terreno opens over where you are, and around the map there are four things:
+The map is the page. Terreno opens over where you are, with one bar along the bottom holding four things:
 
 - **Search:** a place, an address, a year or a question ("flat land near an airport, warm in winter").
 - **Navigate:** where to, and the way there on foot, by bike or by car.
 - **Me:** your account, your page, your people and My Place.
 - **＋:** **Explore** (the world now, games, space), **Create** (trips, stories, videos, lessons) and **Work**
-  (tools for your field), then Pulse, Time, map style and layers, and Terreno on a TV.
+  (tools for your field), then the views, then Pulse, Time, map style and layers, and Terreno on a TV.
 
-Along the bottom are the views, which work like map layers: **People**, **Nature** and **Countries**, with the
-rest (Earth, Water, Climate, Built, Space, Money and the other topics) under **More**. Tapping a view changes the
-map, and its card waits as a heading until you open it. On a TV the menu is the same frame, driven from a phone.
+The views work like map layers: **People**, **Nature** and **Countries** first, then Earth, Water, Climate, Built,
+Space, Money and the other topics, all under **＋**. Choosing a view changes the map, and its card waits as a
+heading until you open it. On a TV the menu is the same frame, driven from a phone.
 
 Everything each part does, tool by tool, is in [docs/features.md](docs/features.md).
 
@@ -126,7 +126,7 @@ src/
   myplaces/            My Place: store (saved in the browser), scene (3D buildings, devices), estimates (solar, rain), panel
   pro/                 Terreno Pro: model (bookings → rooms, floors, forecast), sources (demo, CSV, live link), panel,
                        vision/ (on-device camera analytics: detection, tracking, line counts, map positions)
-  app.ts               place selection, place card, theme tab bar and subtabs, hosting tools inside subtabs
+  app.ts               place selection, place card, themes (views) and subtabs, hosting tools inside subtabs
   themes/              one file per theme (explore, land and minerals (Earth), water, climate, life, built, countries); space/theme.ts
   globe/looks.ts       each theme's view of the planet; explore/featureLayers.ts its one-tap layers
   explore/             view tracking, label feeds and the "worth knowing" insights engine
