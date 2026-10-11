@@ -12,6 +12,7 @@ import {
   type Circle, type Person,
 } from "./mine";
 import { savedHome } from "../myplaces/saved";
+import { dropIn } from "../ui/motion";
 
 type Spot = { lon: number; lat: number };
 
@@ -195,16 +196,17 @@ export function peopleOnMap(app: App): { sync(themeId: string): void } {
     ds.show = (theme === "explore" || theme === "people") && people.length > 0;
     if (!ds.show) { viewer.scene.requestRender(); return; }
     const from = home();
-    for (const p of people) {
+    // Your people land one after another.
+    people.forEach((p, i) => {
       ds.entities.add({
         position: Cartesian3.fromDegrees(p.lon, p.lat),
-        billboard: { image: face(p), width: 34, height: 34, heightReference: HeightReference.CLAMP_TO_GROUND, disableDepthTestDistance: Number.POSITIVE_INFINITY },
+        billboard: { image: face(p), scale: dropIn(viewer, i), width: 34, height: 34, heightReference: HeightReference.CLAMP_TO_GROUND, disableDepthTestDistance: Number.POSITIVE_INFINITY },
         label: { text: p.name.split(" ")[0], font: "600 12px system-ui, sans-serif", fillColor: Color.WHITE, outlineColor: Color.fromCssColorString("#1b1d1a"), outlineWidth: 3, style: LabelStyle.FILL_AND_OUTLINE, verticalOrigin: VerticalOrigin.TOP, pixelOffset: new Cartesian2(0, 20), heightReference: HeightReference.CLAMP_TO_GROUND, disableDepthTestDistance: Number.POSITIVE_INFINITY },
       });
       if (from && kmBetween(from, p) > 1) ds.entities.add({
         polyline: { positions: Cartesian3.fromDegreesArray([from.lon, from.lat, p.lon, p.lat]), arcType: ArcType.GEODESIC, width: 5, material: new PolylineGlowMaterialProperty({ glowPower: 0.25, color: Color.fromCssColorString(colorOf(p)).withAlpha(0.85) }) },
       });
-    }
+    });
     viewer.scene.requestRender();
   };
   onPeople(draw);

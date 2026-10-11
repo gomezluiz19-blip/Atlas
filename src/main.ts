@@ -74,6 +74,7 @@ import { sitesFor, type Site } from "./content/sites";
 import { wireSocial } from "./social/wire";
 import { watchForProblems } from "./ui/errors";
 import { later } from "./util/later";
+import { watchMotion } from "./ui/motion";
 import { seamlessDeploys, warmUp } from "./ui/warm";
 watchForProblems();
 import { myLenses } from "./lenses/library";
@@ -113,6 +114,8 @@ globe.onNotice = (m) => app.toast(m, 6000);
 // A thin bar along the top while terrain and imagery tiles are streaming in.
 const loadingBar = h("div", { class: "tile-progress", role: "progressbar", "aria-label": "Loading map tiles", hidden: true });
 $("ui").append(loadingBar);
+// Figures count up and sets arrive in order wherever they appear (src/ui/motion.ts).
+watchMotion($("ui"));
 let loadingTimer = 0;
 globe.viewer.scene.globe.tileLoadProgressEvent.addEventListener((queued: number) => {
   clearTimeout(loadingTimer);

@@ -9,6 +9,7 @@ import { Chart, type ChartData, type ChartOptions } from "./ui/chart";
 import { formatDms } from "./data/locationParse";
 import { formatLonLat, h } from "./ui/dom";
 import { icons } from "./ui/icons";
+import { morphBetween, stagger } from "./ui/motion";
 
 export interface GeoPoint {
   lon: number;
@@ -295,7 +296,11 @@ export class App {
         "aria-selected": "false",
         style: `--tab-color:${theme.color}`,
         // A view is like a map layer: switching keeps the card as it is; tapping the one you're on opens or folds it.
-        onclick: () => { if (this.theme?.id === theme.id) this.sheet.el.classList.toggle("collapsed"); else this.setTheme(theme.id); },
+        // Another view: its chip grows into the card. The view you're on: the card opens or folds.
+        onclick: (e: Event) => {
+          if (this.theme?.id === theme.id) this.sheet.el.classList.toggle("collapsed");
+          else morphBetween(e.currentTarget as HTMLElement, () => this.sheet.el, "view", () => this.setTheme(theme.id));
+        },
       },
       h("span", { class: "tab-icon", html: theme.icon }),
       h("span", { class: "tab-label" }, theme.tabLabel ?? theme.label),
@@ -542,6 +547,7 @@ export class App {
         const host = content.firstElementChild?.classList.contains("empty") ? content.firstElementChild : content;
         host.insertBefore(chips, host.children[1] ?? null);
       }
+      stagger(content);
       return;
     }
     if (this.place.feature && theme.id !== "explore" && this.themes.some((t) => t.id === "explore")) {
@@ -551,6 +557,7 @@ export class App {
     this.subtab.render({ app: this, place: this.place, body: content });
     const links = this.connections?.(theme.id, this.subtab.id);
     if (links) content.append(links);
+    stagger(content);
   }
 
   /** True while `token` is still the latest render (for async subtab content). */
