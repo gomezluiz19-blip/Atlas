@@ -17,6 +17,13 @@ export function h<K extends keyof HTMLElementTagNameMap>(
   return el;
 }
 
+/** A placeholder that becomes what `load` builds, for parts of a screen whose code loads on first use. */
+export function deferred(load: () => Promise<Node | Node[]>, onFail?: () => void): HTMLElement {
+  const slot = h("div", { class: "deferred" });
+  void load().then((n) => slot.replaceWith(...(Array.isArray(n) ? n : [n]))).catch(() => { slot.remove(); onFail?.(); });
+  return slot;
+}
+
 export function formatDistance(m: number): string {
   if (Math.abs(m) >= 10_000) return `${(m / 1000).toFixed(1)} km`;
   if (Math.abs(m) >= 1000) return `${(m / 1000).toFixed(2)} km`;

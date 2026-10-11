@@ -8,7 +8,6 @@ import { wordmarkHtml } from "./ui/brand";
 import { BoundingSphere, Cartesian2, Cartesian3, HeadingPitchRange, Math as CesiumMath, SceneTransforms } from "cesium";
 import { createMapControls, homeRegion } from "./globe/controls";
 import { installWayfinder } from "./wayfind/ui";
-import { qrSvg } from "./ui/qr";
 import { Looks } from "./globe/looks";
 import { featureChips } from "./explore/featureLayers";
 import { App, type Theme } from "./app";
@@ -28,7 +27,7 @@ import { animalsTheme, natureTheme, plantsTheme } from "./themes/life";
 import { peopleOnMap } from "./people/mineUi";
 import { createChrome } from "./ui/chrome";
 import { waterTheme } from "./themes/water";
-import { formatElevation, formatLonLat, h } from "./ui/dom";
+import { deferred, formatElevation, formatLonLat, h } from "./ui/dom";
 import { icons } from "./ui/icons";
 import { describe as describeCriterion, looksLikeSearch, parseQuery, type Criterion } from "./answers/criteria";
 import { resolvePlace, searchPlaces, slugOfPlace, warmPlaces } from "./place/places";
@@ -58,9 +57,7 @@ import { forecast } from "./data/openmeteo";
 import { activeSpace, adopt, closeSpace, openSpace } from "./delight/spaces";
 import { PlaceScene } from "./myplaces/scene";
 import { createMyPlaces } from "./myplaces/panel";
-import { createPro } from "./pro/panel";
 import { createWork, type WorkCtx, type WorkTool } from "./work/hub";
-import { workMap } from "./work/workMap";
 import type { Station } from "./work/workLines";
 import { briefFor, todayCard } from "./myplaces/todayUi";
 import { backupRow, keepStorage } from "./myplaces/backup";
@@ -68,14 +65,11 @@ import { STORAGE_FULL } from "./util/storage";
 import { hasDemo, loadDemo, removeDemo } from "./myplaces/demo";
 import { planLog } from "./myplaces/logAny";
 import { describeDrafts, parseSteps } from "./work/journeyModel";
-import { createSpace } from "./space/panel";
 import { spaceTheme } from "./space/theme";
 import { peopleTheme } from "./themes/people";
 import { createLenses } from "./lenses/bar";
 import { LENSES } from "./lenses";
-import { borders, openPresent, showYear } from "./work/present";
 import { YEARS, yearLabel } from "./data/history";
-import { ndviAction, openGrow } from "./work/grow";
 import { loadPassport, savePassport, stamp } from "./work/passport";
 import { countryAt } from "./data/countries";
 import { plan } from "./robot/plan";
@@ -87,13 +81,13 @@ import { MINES } from "./content/minerals";
 import { LINKS } from "./content/links";
 import { wireSocial } from "./social/wire";
 import { watchForProblems } from "./ui/errors";
+import { later } from "./util/later";
 import { seamlessDeploys, warmUp } from "./ui/warm";
 watchForProblems();
 import { allProfiles, searchProfiles } from "./social/store";
 import { allLenses, myLenses } from "./lenses/library";
 import { topicThemes } from "./topics/themes";
 import { openWorldNow } from "./live/worldNow";
-import { createTraffic } from "./live/tracks";
 import { createCityLife } from "./city/life";
 
 // Terreno's own icons, never a phone's emoji (src/ui/noEmoji.ts).
@@ -116,6 +110,10 @@ const openFlock = lazy(() => import("./work/flock").then((m) => m.openFlock));
 const openTeach = lazy(() => import("./work/teach").then((m) => m.openTeach));
 const openLearn = lazy(() => import("./work/learn").then((m) => m.openLearn));
 const openAsk = lazy(() => import("./answers/ui").then((m) => (ctx: WorkCtx) => m.openAsk(ctx)));
+const openGrow = lazy(() => import("./work/grow").then((m) => m.openGrow));
+const openPresent = lazy(() => import("./work/present").then((m) => m.openPresent));
+const grow = later(() => import("./work/grow"));
+const present = later(() => import("./work/present"));
 
 const globe = new Globe($("globe"), $("credits"));
 const app = new App(globe, $("ui"));
@@ -405,7 +403,8 @@ const openStation = (st: Station) => {
 const workHub = createWork(app, [], {
   title: "Work",
   intro: "",
-  top: () => [workMap(openStation)],
+  // The line map loads with Work, the first time it opens.
+  top: () => [deferred(() => import("./work/workMap").then((m) => m.workMap(openStation)), () => app.toast("Couldn't load Work. Check the connection and try again.", 5000))],
 });
 const lookHub = createWork(app, LOOK_TOOLS, {
   title: "Explore more",
@@ -419,7 +418,12 @@ const myPlaces = createMyPlaces(app, myStore, myScene, {
 });
 $("ui").append(myPlaces.panel);
 // Terreno Pro: live operations (bookings from a CRM or booking system) for a saved building.
-const pro = createPro(app, myStore, myScene, (id) => { myPlaces.open(id); myPlaces.close(); });
+// Live occupancy, loaded the first time it opens.
+const proPanel = later(() => import("./pro/panel").then((m) => m.createPro(app, myStore, myScene, (id) => { myPlaces.open(id); myPlaces.close(); })), (p) => {
+  $("ui").append(p.panel);
+  watcher.observe(p.panel, { attributes: true, attributeFilter: ["hidden"] });
+});
+const pro = { open: (id: string) => void proPanel.get().then((p) => p.open(id)), close: () => proPanel.now?.close() };
 
 // ---- My Place, booted: your place as a hologram, with a dock of what you do there -------------------
 // The live hologram (your place, or any other place or site) is kept by spaces.ts, one at a time.
@@ -559,19 +563,26 @@ app.actions.set("space:boot", { label: "See it as a hologram", run: () => {
   closePanels();
   void openSpace(app, { name: p.name?.title ?? "This spot", kicker: [p.name?.context, `${p.lat.toFixed(4)}, ${p.lon.toFixed(4)}`].filter(Boolean).join(" · "), lon: p.lon, lat: p.lat, size, own: true, tint: "violet" });
 } });
-$("ui").append(pro.panel);
-// Space: satellites, the ISS, launches and the solar system.
-const space = createSpace(app);
+// Space: satellites, the ISS, launches and the solar system, loaded the first time it opens.
+const spacePanel = later(() => import("./space/panel").then((m) => m.createSpace(app)), (s) => {
+  $("ui").append(s.panel);
+  watcher.observe(s.panel, { attributes: true, attributeFilter: ["hidden"] });
+  s.button.addEventListener("space:opened", () => closePanels(s.panel));
+});
+const space = {
+  open: () => void spacePanel.get().then((s) => s.open()),
+  close: () => spacePanel.now?.close(),
+  toSolar: () => void spacePanel.get().then((s) => s.toSolar()),
+};
 app.addTheme(spaceTheme(space));
 // Topics (Money & trade, Sports, Fashion, Food, Arts & music) live under "More" on the theme bar.
 for (const t of topicThemes()) app.addTheme(t);
-$("ui").append(space.panel, placeHub.panel, makeHub.panel, workHub.panel, lookHub.panel);
-space.button.addEventListener("space:opened", () => closePanels(space.panel));
+$("ui").append(placeHub.panel, makeHub.panel, workHub.panel, lookHub.panel);
 for (const hub of [placeHub, makeHub, workHub, lookHub]) hub.button.addEventListener("work:opened", () => closePanels(hub.panel));
 app.actions.set("space:open", { label: "Space", run: () => space.open() });
 app.actions.set("news:open", { label: "World now: the news", run: () => { lookHub.ctx.open(); openWorldNow(lookHub.ctx); } });
 app.actions.set("space:solar", { label: "Solar system", run: () => space.toSolar() });
-app.actions.set("work:ndvi", ndviAction(app));
+app.actions.set("work:ndvi", { label: "Plant health (NDVI)", run: () => void grow.get().then((m) => m.ndviAction(app).run()), isOn: () => grow.now?.ndviAction(app).isOn() ?? false });
 
 /** Closes every mode panel except one. */
 function closePanels(keep?: HTMLElement) {
@@ -580,8 +591,8 @@ function closePanels(keep?: HTMLElement) {
   if (keep !== workHub.panel) workHub.ctx.close();
   if (keep !== lookHub.panel) lookHub.ctx.close();
   if (keep !== myPlaces.panel) myPlaces.close();
-  if (keep !== pro.panel) pro.close();
-  if (keep !== space.panel) space.close();
+  if (keep !== proPanel.now?.panel) pro.close();
+  if (keep !== spacePanel.now?.panel) space.close();
   toggleLayers(false);
   hideSocial();
 }
@@ -618,7 +629,7 @@ app.actions.set("myplace:report", {
     const p = savedPlaceHere();
     if (!p) { openMode("place"); app.toast("Save your place first: the report and sowing calendar come from its own weather.", 6000); return; }
     myPlaces.open(p.id);
-    setTimeout(() => myPlaces.panel.querySelector(".report")?.scrollIntoView({ behavior: "smooth", block: "start" }), 400);
+    setTimeout(() => myPlaces.panel.querySelector(".report, .deferred")?.scrollIntoView({ behavior: "smooth", block: "start" }), 400);
   },
 });
 // Pulse: everything you have, alive on the planet, with time and what-ifs.
@@ -630,12 +641,12 @@ const syncPanels = () => {
   // Everything closed while your place was a puck: it comes back.
   if (holo && activeSpace() === holo && holo.el.classList.contains("mini") && ![placeHub.panel, myPlaces.panel].some(shown)) holo.restore();
   // Phones have room for one panel: the place card steps aside while a mode panel is open.
-  document.body.dataset.panel = [placeHub.panel, myPlaces.panel, pro.panel, makeHub.panel, workHub.panel, lookHub.panel, space.panel].some(shown) ? "open" : "";
+  document.body.dataset.panel = [placeHub.panel, myPlaces.panel, proPanel.now?.panel, makeHub.panel, workHub.panel, lookHub.panel, spacePanel.now?.panel].some((el) => el && shown(el)) ? "open" : "";
   // Working in My Place or Make: the empty Explore card steps aside so the mode has the screen.
-  document.body.dataset.work = [placeHub.panel, myPlaces.panel, pro.panel, makeHub.panel, workHub.panel].some(shown) ? "1" : "";
+  document.body.dataset.work = [placeHub.panel, myPlaces.panel, proPanel.now?.panel, makeHub.panel, workHub.panel].some((el) => el && shown(el)) ? "1" : "";
 };
 const watcher = new MutationObserver(syncPanels);
-for (const el of [placeHub.panel, myPlaces.panel, pro.panel, makeHub.panel, workHub.panel, lookHub.panel, space.panel]) watcher.observe(el, { attributes: true, attributeFilter: ["hidden"] });
+for (const el of [placeHub.panel, myPlaces.panel, makeHub.panel, workHub.panel, lookHub.panel]) watcher.observe(el, { attributes: true, attributeFilter: ["hidden"] });
 
 const HUB_OF: Record<string, { hub: typeof placeHub; open: (ctx: WorkCtx) => void }> = {};
 for (const [hub, tools] of [[placeHub, PLACE_TOOLS], [makeHub, MAKE_TOOLS], [workHub, WORK_TOOLS], [lookHub, LOOK_TOOLS]] as const)
@@ -688,7 +699,7 @@ openStoryHash();
 // Pasting a story link into a tab that already has Terreno open.
 addEventListener("hashchange", openStoryHash);
 for (const y of YEARS)
-  app.actions.set(`work:borders:${y}`, { label: `Borders in ${yearLabel(y)}`, run: () => void showYear(app, y).catch(() => app.toast("Couldn't load the historical borders. Check the connection.", 5000)), isOn: () => borders(app).year === y });
+  app.actions.set(`work:borders:${y}`, { label: `Borders in ${yearLabel(y)}`, run: () => void present.get().then((m) => m.showYear(app, y)).catch(() => app.toast("Couldn't load the historical borders. Check the connection.", 5000)), isOn: () => present.now?.borders(app).year === y });
 
 app.actions.set("pro:occupancy", {
   label: "Live occupancy",
@@ -720,7 +731,7 @@ const robot = createRobot(app, {
     return globe.pick(new Cartesian2(c.clientWidth / 2, c.clientHeight / 2));
   },
 }, {
-  showBorders: async (y) => { await showYear(app, y); },
+  showBorders: async (y) => { await (await present.get()).showYear(app, y); },
   openTool: (t) => {
     if (t === "space") space.open();
     else if (t === "myplace") openMode("place");
@@ -929,7 +940,7 @@ app.actions.set("tv:show", { label: "Show on the TV", isOn: () => !!pairedTv(), 
   void import("./tv/link").then((m) => { m.send(code, "cmd", { t: "goto", lon: p.lon, lat: p.lat, title: p.name?.title ?? "A place on Earth", sub: p.name?.context }); app.toast("On the TV now.", 2500); });
 } });
 // Web to phone: the view you're looking at, as a code your phone's camera opens (and Guide can take you there).
-app.actions.set("handoff:phone", { label: "Continue on your phone", run: () => {
+app.actions.set("handoff:phone", { label: "Continue on your phone", run: () => void import("./ui/qr").then(({ qrSvg }) => {
   document.querySelector(".handoff")?.remove();
   const link = app.shareLink?.() ?? location.href;
   const close = () => box.remove();
@@ -939,15 +950,15 @@ app.actions.set("handoff:phone", { label: "Continue on your phone", run: () => {
       h("button", { class: "pill-btn", onclick: close }, "Done")));
   $("ui").append(box);
   addEventListener("keydown", (e: KeyboardEvent) => { if (e.key === "Escape") close(); }, { once: true });
-} });
+}) });
 app.actions.set("wayfind:guide", { label: "Guide me there", run: () => { const p = app.place; if (p) wayfinder.guideTo({ id: `place:${p.lon},${p.lat}`, name: p.name?.title ?? "there", lon: p.lon, lat: p.lat, why: "poi", weight: 1 }); } });
 
 // Everything on the map, from every theme.
 // Everything on the map as bubbles at the edge of the globe; + adds a view without leaving it.
 $("ui").append(createViewStack(app, () => (things ??= buildThings(app, overlays, [...PLACE_TOOLS, ...MAKE_TOOLS, ...LOOK_TOOLS]))));
 
-// Live traffic: planes and ships moving on the globe.
-const traffic = createTraffic(app);
+// Live traffic: planes and ships moving on the globe, loaded the first time either is switched on.
+const traffic = later(() => import("./live/tracks").then((m) => m.createTraffic(app)));
 // The living city: buildings, trees, and simulated cars and people on the real streets, once zoomed in.
 const cityLife = createCityLife(app);
 app.actions.set("city:life", { label: "Living city (3D, simulated movement)", run: () => cityLife.set(true), isOn: () => cityLife.isOn(), stop: () => cityLife.set(false) });
@@ -970,11 +981,11 @@ app.actions.set("city:life", { label: "Living city (3D, simulated movement)", ru
   });
 }
 for (const kind of ["plane", "ship"] as const)
-  app.actions.set(`live:${kind}s`, { label: kind === "plane" ? "Live planes" : "Live ships", run: () => traffic.set(kind, true), isOn: () => traffic.isOn(kind), stop: () => traffic.set(kind, false) });
+  app.actions.set(`live:${kind}s`, { label: kind === "plane" ? "Live planes" : "Live ships", run: () => void traffic.get().then((t) => t.set(kind, true)), isOn: () => traffic.now?.isOn(kind) ?? false, stop: () => traffic.now?.set(kind, false) });
 // A shared flight or ship (#follow=p:a1b2c3@lon,lat): open Terreno following it.
 const followHash = () => {
   const m = /^#follow=([ps]:[\w-]+)@(-?[\d.]+),(-?[\d.]+)/.exec(location.hash);
-  if (m) setTimeout(() => traffic.openShared(m[1], Number(m[2]), Number(m[3])), 2500);
+  if (m) setTimeout(() => void traffic.get().then((t) => t.openShared(m[1], Number(m[2]), Number(m[3]))), 2500);
 };
 followHash();
 addEventListener("hashchange", followHash);
@@ -1352,12 +1363,12 @@ else if (!shared.camera && !pageLinked) {
 // and a new deploy takes over without breaking an open tab (ui/warm.ts, public/sw.js).
 if (import.meta.env.PROD) seamlessDeploys();
 // What people open next, fetched while the browser is idle.
-warmUp(globe, [() => import("./intros/intro"), () => loadWorldHeritage(), () => import("./answers/ui")]);
+warmUp(globe, [() => import("./intros/intro"), () => loadWorldHeritage(), () => import("./answers/ui"), () => import("./work/workMap")]);
 
 // Handy for debugging from the browser console during development, and for automated test runs against a
 // real build (?qa). Nothing secret is on it: it's the same app the page already runs.
 if (import.meta.env.DEV || new URLSearchParams(location.search).has("qa")) {
-  Object.assign(window, { atlas: { app, globe, labels, overlays, feeds, traffic, cityLife, cart: (lon: number, lat: number, h: number) => Cartesian3.fromDegrees(lon, lat, h) } });
+  Object.assign(window, { atlas: { app, globe, labels, overlays, feeds, get traffic() { return traffic.now; }, cityLife, cart: (lon: number, lat: number, h: number) => Cartesian3.fromDegrees(lon, lat, h) } });
 }
 // The whole Cesium namespace only in development: in a build it would defeat tree-shaking and ship all of it.
 if (import.meta.env.DEV) void import("cesium").then((Cesium) => Object.assign(window, { Cesium }));

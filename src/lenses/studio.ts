@@ -33,7 +33,7 @@ function blockDetail(b: Block): string {
   }
 }
 
-interface LensStudio {
+export interface LensStudio {
   open(def?: LensDef): void;
   openPacked(packed: string): Promise<boolean>;
   close(): void;
