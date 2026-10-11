@@ -14,7 +14,7 @@ export function globeLayersOnCanvas(app: App) {
   ];
   // Hidden for now from the stack of views: off on the globe, but still listed.
   const resting = new Set<OverlayKind>();
-  globe.onApply = () => {
+  globe.whenApplied(() => {
     for (const { kind, label, color } of GLOBE_LAYERS) {
       const key = `globe:${kind}`, on = globe.state.overlays[kind].on;
       if (on && !app.canvas.has(key))
@@ -35,5 +35,5 @@ export function globeLayersOnCanvas(app: App) {
       else if (on && resting.has(kind)) { resting.delete(kind); app.canvas.setOff(key, false); }
       else if (!on && !resting.has(kind) && app.canvas.has(key)) app.canvas.drop(key);
     }
-  };
+  });
 }

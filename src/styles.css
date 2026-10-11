@@ -1,45 +1,55 @@
-/* Terreno: an instrument for reading the Earth. Quiet material around the globe, one action colour,
-   four mineral pigments that carry meaning, and registration marks for what's chosen. See docs/design.md. */
+/* Terreno: an instrument for reading the Earth, in the hand of the Terreno Mobile deck: a rendered map in warm
+   paper and clay (slate by night), soft rounded panels without outlines, Figtree, blue for where you are and what
+   to do, terracotta for people and links, and registration marks for what's chosen. See docs/design.md. */
 
 :root {
   /* Type: Axiforma (as "Terreno Sans", see src/ui/fonts.ts; Plus Jakarta Sans until the licensed files are in
      public/fonts), Heavy for the wordmark; Geist Mono only for figures, coordinates and readouts. */
-  --font: "Terreno Sans", "Plus Jakarta Sans", ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font: "Figtree", "Terreno Sans", "Plus Jakarta Sans", ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --font-display: var(--font);
-  --font-logo: var(--font);
+  /* The wordmark keeps Axiforma Heavy. */
+  --font-logo: "Terreno Sans", "Figtree", ui-sans-serif, sans-serif;
   --font-mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 
-  /* The pigments (from the brand board): cobalt, yellow ochre, green-grey, terracotta. */
-  --cobalt: #2f58c8;
-  --ochre: #c4922b;
-  --sage: #56705a;
-  --terra: #a9502f;
-  --umber: #6b5640;
+  /* The pigments (the Terreno Mobile deck): location blue, amber, park green, terracotta, earth. */
+  --cobalt: #2e7cf6;
+  --ochre: #b7741f;
+  --sage: #3e7a2e;
+  --terra: #c8553d;
+  --umber: #8c6a43;
+  --teal: #1f7a72;
 
-  /* Paper and ink. */
-  --paper: #f5f2eb;
-  --paper-2: #ebe6db;
-  --ink: #1b1d1a;
+  /* Paper and ink: the map's warm ground, the panels' off-white. */
+  --paper: #ece8e1;
+  --paper-2: #e9e6e0;
+  --ink: #1c1b19;
 
-  --material: rgba(247, 244, 237, 0.86);
-  --material-strong: rgba(250, 248, 243, 0.98);
-  --label: #1b1d1a;
-  --secondary: #5e625a;
-  --tertiary: #9a9c93;
-  --separator: rgba(27, 29, 26, 0.1);
-  --fill: rgba(60, 58, 45, 0.07);
-  --fill-strong: rgba(60, 58, 45, 0.13);
+  --material: rgba(249, 248, 246, 0.94);
+  --material-strong: rgba(251, 250, 248, 0.98);
+  --label: #1c1b19;
+  --secondary: #6b6760;
+  --tertiary: #a8a39b;
+  --separator: #e6e2db;
+  --fill: #e9e6e0;
+  --fill-strong: #e0dcd4;
+  /* Blue is for where you are and what to do; terracotta for people and links; near-black for the strong pill. */
   --accent: var(--cobalt);
-  --danger: #a9402a;
+  --link: var(--terra);
+  --pill: var(--ink);
+  --on-pill: #ffffff;
+  --danger: #e5484d;
   --warn: #9a6a12;
   --theme: var(--cobalt);
-  --shadow: 0 0 0 1px var(--hairline), 0 12px 32px -10px rgba(40, 34, 22, 0.24), 0 2px 6px -2px rgba(40, 34, 22, 0.08);
-  --shadow-soft: 0 1px 2px rgba(27, 29, 26, 0.06);
-  --radius: 12px;
-  --radius-s: 8px;
-  --hairline: rgba(27, 29, 26, 0.11);
+  /* Soft lifts, no outlines: things float over the map. */
+  --shadow: 0 2px 10px rgba(28, 27, 25, 0.14), 0 1px 2px rgba(28, 27, 25, 0.05);
+  --shadow-soft: 0 1px 2px rgba(28, 27, 25, 0.06);
+  --shadow-sheet: 0 -4px 24px rgba(28, 27, 25, 0.14);
+  --radius: 16px;
+  --radius-s: 12px;
+  --radius-sheet: 18px;
+  --hairline: rgba(28, 27, 25, 0.1);
   --accent-soft: color-mix(in srgb, var(--accent) 14%, transparent);
-  --r-control: 8px;
+  --r-control: 12px;
   --mono: var(--font-mono);
   --sheet-w: 384px;
   --gutter: 16px;
@@ -65,27 +75,32 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --cobalt: #7f9cf0;
-    --ochre: #dcae4c;
-    --sage: #94ad93;
-    --terra: #d9805d;
+    /* Night, as the deck's drive: slate panels, cool greys, the same blue a touch lighter. */
+    --cobalt: #4c8df8;
+    --ochre: #d9973f;
+    --sage: #4ade80;
+    --terra: #e07a62;
     --umber: #b39a7e;
-    --paper: #141613;
-    --paper-2: #1d201c;
-    --ink: #ece8de;
-    --material: rgba(22, 24, 21, 0.84);
-    --material-strong: rgba(28, 31, 27, 0.98);
-    --label: #ece8de;
-    --secondary: #a5a79c;
-    --tertiary: #6f7269;
-    --separator: rgba(236, 232, 222, 0.1);
-    --fill: rgba(236, 232, 222, 0.06);
-    --fill-strong: rgba(236, 232, 222, 0.12);
-    --danger: #e08a6f;
-    --warn: #dcae4c;
-    --hairline: rgba(236, 232, 222, 0.1);
-    --shadow: 0 0 0 1px var(--hairline), 0 16px 40px -10px rgba(0, 0, 0, 0.7), 0 2px 8px -2px rgba(0, 0, 0, 0.4);
+    --teal: #3fb3a8;
+    --paper: #151a20;
+    --paper-2: #1b2128;
+    --ink: #f4f6f8;
+    --material: rgba(16, 20, 24, 0.92);
+    --material-strong: rgba(22, 27, 33, 0.98);
+    --label: #f4f6f8;
+    --secondary: #a9b3be;
+    --tertiary: #5c6672;
+    --separator: rgba(244, 246, 248, 0.1);
+    --fill: rgba(244, 246, 248, 0.07);
+    --fill-strong: rgba(244, 246, 248, 0.13);
+    --pill: #f4f6f8;
+    --on-pill: #101418;
+    --danger: #e5484d;
+    --warn: #d9973f;
+    --hairline: rgba(244, 246, 248, 0.1);
+    --shadow: 0 8px 24px rgba(0, 0, 0, 0.4), 0 1px 3px rgba(0, 0, 0, 0.3);
     --shadow-soft: 0 1px 2px rgba(0, 0, 0, 0.35);
+    --shadow-sheet: 0 -6px 24px rgba(0, 0, 0, 0.45);
     color-scheme: dark;
   }
 }
@@ -597,7 +612,7 @@ input[type="range"] { accent-color: var(--accent); }
 .insight-text { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 .insight-title { font-weight: 600; }
 .insight-detail { color: var(--secondary); font-size: 13.5px; }
-.link-btn { align-self: flex-start; border: 0; background: none; padding: 4px 0 0; color: var(--accent); font-weight: 600; font-size: 13.5px; cursor: pointer; text-decoration: none; }
+.link-btn { align-self: flex-start; border: 0; background: none; padding: 4px 0 0; color: var(--link); font-weight: 600; font-size: 13.5px; cursor: pointer; text-decoration: none; }
 .link-btn:hover { text-decoration: underline; }
 
 .toggle-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
@@ -923,7 +938,7 @@ button.commodity-chip:hover { background: var(--fill-strong); }
 .pill-btn, .primary-btn { border: 0; border-radius: 999px; padding: 8px 14px; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
 .pill-btn { background: var(--fill); color: var(--label); }
 .pill-btn:hover { background: var(--fill-strong); }
-.primary-btn { background: var(--accent); color: #fff; align-self: flex-start; padding: 10px 22px; }
+.primary-btn { background: var(--accent); color: #fff; align-self: flex-start; padding: 11px 22px; border-radius: var(--r-control); font-weight: 700; }
 .mp-building { margin: 0; }
 .myplaces .group { margin-top: 6px; }
 .mp-results { display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px; }
@@ -3757,8 +3772,8 @@ body.tv-mode .lens-panel { transform: scale(1.15); transform-origin: top right; 
 
 /* While the globe moves: no live backdrop blur (it's recomputed every frame over WebGL), slightly more opaque
    materials instead (near-opaque, so nothing behind a panel reads through it). See globe/motion.ts. */
-body.globe-moving { --material: rgba(247, 244, 237, 0.985); --material-strong: rgba(250, 248, 243, 0.995); }
-@media (prefers-color-scheme: dark) { body.globe-moving { --material: rgba(22, 24, 21, 0.985); --material-strong: rgba(28, 31, 27, 0.995); } }
+body.globe-moving { --material: rgba(249, 248, 246, 0.99); --material-strong: rgba(251, 250, 248, 0.995); }
+@media (prefers-color-scheme: dark) { body.globe-moving { --material: rgba(16, 20, 24, 0.99); --material-strong: rgba(22, 27, 33, 0.995); } }
 body.globe-moving * { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
 
 /* ---- Team, versions and backup (pro/kit/team.ts) ---- */
@@ -4678,3 +4693,78 @@ body.tv-mode { --t-quick: 210ms; --t-move: 480ms; --t-arrive: 900ms; --stagger: 
   @keyframes grow-up { from { opacity: 0; } }
   ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
 }
+
+/* ======================================================================================
+   The Terreno Mobile layer, last so it wins (docs/design.md, the deck "Terreno Mobile"). Soft rounded panels
+   that float over a rendered map with no outlines; white cards on warm paper; icons as filled pigment discs;
+   blue for where you are and what to do, terracotta for people and links, a near-black pill for the strong
+   choice; Figtree, heavier for headings. Night is the deck's drive: slate panels, cool greys.
+   ====================================================================================== */
+:root { --accent-strong: #1a66d9; --card: #ffffff; }
+@media (prefers-color-scheme: dark) { :root { --accent-strong: #2e7cf6; --card: rgba(244, 246, 248, 0.05); } }
+
+/* Surfaces: rounded, lifted, no hairline ring. */
+.sheet, .popover, .lens-panel, .work-panel, .vs-sheet { border-radius: var(--radius-sheet); box-shadow: var(--shadow); }
+.search-results { border-radius: var(--radius); box-shadow: var(--shadow); }
+.sheet-title, .work-title, .mp-head h2, .story-title, h1, h2 { font-weight: 800; letter-spacing: -0.02em; }
+h3 { font-weight: 700; }
+.group-title, .lens-sub, .jr-day-label, .pp-group-label, .studio-root h3, .wk-group-title, .search-heading, .studio-h, .vs-shelf h4 {
+  font: 700 15px/1.3 var(--font) !important; letter-spacing: -0.005em !important; text-transform: none; color: var(--label);
+}
+
+/* Cards: white on paper, a whisper of shadow. */
+.look-tile, .work-tool, .wk-tile, .empty-hint, .insight, .story-card, .vs-row, .po-kpi, .sc-sig-card, .team-card {
+  border-radius: var(--radius); background: var(--card); box-shadow: var(--shadow-soft);
+}
+.look-tile:hover, .work-tool:hover, .wk-tile:hover, .story-card:hover { background: var(--card); box-shadow: var(--shadow); }
+
+/* Icons: a filled disc in its pigment, the icon in white (the deck's favourites and pins). */
+.work-tool-icon, .look-tile-icon, .wk-glyph, .insight-icon, .empty-icon, .vs-row-glyph, .lens-title-glyph {
+  color: #fff !important; background: var(--c, var(--accent)) !important; box-shadow: none !important; border-radius: 50% !important;
+}
+.wk-glyph.lg { border-radius: 16px !important; }
+.lens-glyph { border-radius: 50%; color: #fff; background-color: var(--c); box-shadow: none; }
+.lens-tile:hover .lens-glyph, .lens-tile:focus-visible .lens-glyph { box-shadow: 0 2px 8px color-mix(in srgb, var(--c) 45%, transparent); }
+.lens-tile.on .lens-glyph { box-shadow: 0 0 0 3px var(--material-strong), 0 0 0 5px var(--c); }
+.lens-name { font: 600 12.5px/1.15 var(--font); }
+
+/* Controls. */
+.primary-btn { background: var(--accent-strong); color: #fff; border-radius: var(--r-control); font-weight: 700; box-shadow: none; }
+@media (prefers-color-scheme: dark) { .primary-btn, .holo-go { color: #fff !important; } }
+.pill-btn { border-radius: var(--r-control); background: var(--fill); box-shadow: none; font-weight: 600; }
+.pill-btn:hover { background: var(--fill-strong); }
+.chip { border-radius: 12px; font: 600 13px var(--font); background: var(--fill); box-shadow: none; }
+.chip:hover { background: var(--fill-strong); }
+.chip.on, .chip[aria-checked="true"], .chip[aria-pressed="true"] { background: var(--pill); color: var(--on-pill); box-shadow: none; }
+.link-btn { color: var(--link); font-weight: 600; }
+.icon-btn, .close-btn { border-radius: var(--r-control); }
+.segmented { border-radius: 10px; background: var(--fill); padding: 3px; }
+.segmented button { border-radius: 8px; font-weight: 600; }
+.segmented button[aria-selected="true"], .segmented button[aria-checked="true"], .segmented-mini-btn[aria-pressed="true"] {
+  background: var(--card); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); font-weight: 700;
+}
+@media (prefers-color-scheme: dark) { .segmented button[aria-checked="true"], .segmented button[aria-selected="true"] { background: rgba(244, 246, 248, 0.16); } }
+.card-actions .pill-btn, .pg-btn { border-radius: var(--r-control); background: var(--fill); box-shadow: none; font: 600 13px var(--font); }
+.card-actions .pill-btn .g, .pg-btn .g, .card-actions .pill-btn .gx, .pg-btn .gx { color: var(--accent); }
+.round-btn, .map-ctl, .map-zoom, .look-legend { border-radius: var(--r-control); box-shadow: var(--shadow); }
+.search input { border-radius: var(--r-control); font: 500 16px var(--font); }
+.pro-badge { border-radius: 6px; }
+
+/* The toast: the deck's dark pill. */
+.toast { border-radius: 24px; background: var(--pill); color: var(--on-pill); font: 600 14px var(--font); box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25); -webkit-backdrop-filter: none; backdrop-filter: none; }
+
+/* The dock: lifted, no outline. */
+.dock-row { border-radius: 22px; box-shadow: 0 6px 24px rgba(28, 27, 25, 0.16), 0 1px 3px rgba(28, 27, 25, 0.06); }
+.dock-btn::after { font-weight: 700; }
+
+/* The brand mark's chip and the avatar: rounder. */
+.brand { border-radius: var(--r-control); }
+
+/* Map labels on the light rendered map: ink with a white halo, like the deck's streets; pins as filled discs. */
+body.map-rendered .map-label { color: #3b3833; text-shadow: 0 0 3px #fff, 0 0 3px #fff, 0 0 1px #fff; }
+body.map-rendered .ml-text { text-shadow: 0 0 3px #fff, 0 0 3px #fff, 0 0 1px #fff !important; }
+body.map-rendered .k-water .ml-text, body.map-rendered .k-sea { color: #3a6f96; }
+body.map-rendered .k-range, body.map-rendered .k-desert, body.map-rendered .k-region { color: #7a746b; }
+.ml-glyph { width: 24px; height: 24px; border-radius: 50% !important; color: #fff; box-shadow: 0 0 0 2px #fff, 0 2px 6px rgba(0, 0, 0, 0.25); }
+.ml-glyph svg { width: 13px; height: 13px; }
+.ml-dot { border-radius: 50%; }

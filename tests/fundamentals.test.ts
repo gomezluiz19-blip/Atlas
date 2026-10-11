@@ -90,3 +90,21 @@ describe("no borrowed emoji", () => {
     expect(withoutEmoji("Hologram ✓")).toBe("Hologram ✓");
   });
 });
+
+describe("the rendered map", () => {
+  it("defaults to CARTO's day and night styles, with labels apart", async () => {
+    const { renderedMap } = await import("../src/globe/imagery");
+    const m = renderedMap({});
+    expect(m.ground(false)).toContain("voyager_nolabels");
+    expect(m.ground(true)).toContain("dark_nolabels");
+    expect(m.labels(false)).toContain("voyager_only_labels");
+    expect(m.credit).toMatch(/OpenStreetMap/);
+  });
+  it("takes any other style from settings, day and night from {dark}", async () => {
+    const { renderedMap } = await import("../src/globe/imagery");
+    const m = renderedMap({ renderedTiles: "https://tiles.example/{dark}/{z}/{x}/{y}.png" });
+    expect(m.ground(true)).toBe("https://tiles.example/dark/{z}/{x}/{y}.png");
+    expect(m.ground(false)).toBe("https://tiles.example/light/{z}/{x}/{y}.png");
+    expect(m.labels(false)).toBe("");
+  });
+});

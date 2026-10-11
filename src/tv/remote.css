@@ -1,11 +1,11 @@
-/* The Terreno remote: a basalt instrument. One action colour (cobalt), pigments for meaning, registration
-   ticks for what's framed, figures in mono. The pad takes the whole width of the phone. */
+/* The Terreno remote, in the night palette of the Terreno Mobile deck: slate panels, cool greys, blue for what to
+   do, pigments for meaning, registration ticks for what's framed, figures in mono. The pad takes the phone's width. */
 :root {
   color-scheme: dark;
-  --bg: #0f110e; --surface: #171916; --raise: #1d201c; --line: rgba(236, 232, 222, .1); --line-2: rgba(236, 232, 222, .18);
-  --text: #ece8de; --dim: #8f9187; --faint: #5d6058; --accent: #8fa8f2; --accent-ink: #0f1320; --hot: #dcae4c; --terra: #d9805d; --sage: #94ad93;
+  --bg: #101418; --surface: #151a20; --raise: #1b2128; --line: rgba(244, 246, 248, .1); --line-2: rgba(244, 246, 248, .18);
+  --text: #f4f6f8; --dim: #a9b3be; --faint: #5c6672; --accent: #4c8df8; --accent-ink: #ffffff; --hot: #d9973f; --terra: #e07a62; --sage: #4ade80;
   --mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-  --font: "Terreno Sans", "Plus Jakarta Sans", -apple-system, system-ui, sans-serif;
+  --font: "Figtree", "Terreno Sans", "Plus Jakarta Sans", -apple-system, system-ui, sans-serif;
   --ease: cubic-bezier(.2, .8, .2, 1);
   font-family: var(--font);
 }

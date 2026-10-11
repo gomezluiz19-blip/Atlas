@@ -13,7 +13,7 @@ import { canvasLayer } from "./networkLayer";
 import { populationPoints, type PopPoint } from "../data/people";
 import type { Globe } from "./viewer";
 import { iconFor } from "../ui/glyph";
-import { HOUSE, OCEAN } from "./finish";
+import { OCEAN } from "./finish";
 
 interface Tint { brightness?: number; saturation?: number; contrast?: number; gamma?: number; hue?: number }
 interface LookLayer { layer: ImageryLayer; alpha: number; /** Lit side / night side only (with lighting on). */ day?: number; night?: number }
@@ -273,15 +273,21 @@ export class Looks {
     const t = look?.tint ?? {};
     const mix = (key: keyof Tint, base: number) => base + ((t[key] ?? base) - base) * f;
     for (const sat of this.globe.baseLayers()) {
-      sat.brightness = mix("brightness", HOUSE.brightness);
-      sat.saturation = mix("saturation", HOUSE.saturation);
-      sat.contrast = mix("contrast", HOUSE.contrast);
-      sat.gamma = mix("gamma", HOUSE.gamma);
-      sat.hue = mix("hue", HOUSE.hue);
+      const g = this.globe.gradeOf(sat);
+      sat.brightness = mix("brightness", g.brightness);
+      sat.saturation = mix("saturation", g.saturation);
+      sat.contrast = mix("contrast", g.contrast);
+      sat.gamma = mix("gamma", g.gamma);
+      sat.hue = mix("hue", g.hue);
     }
     if (look) for (const l of this.made.get(look.id) ?? []) { if (animated) this.animate(l.layer, l.alpha * f); else l.layer.alpha = l.alpha * f; }
     this.globe.viewer.scene.requestRender();
     this.globe.viewer.scene.globe.baseColor = look?.id === "built" || look?.id === "animals" ? Color.fromCssColorString("#03070f") : Color.fromCssColorString(OCEAN);
+  }
+
+  /** What the globe is without a look: the map, or the satellite photo. */
+  private plainName() {
+    return this.globe.state.base === "satellite" ? "Satellite" : "Map";
   }
 
   private renderLegend() {
@@ -300,11 +306,11 @@ export class Looks {
     this.legend.replaceChildren(
       h("span", { class: "look-emoji", "aria-hidden": "true" }, iconFor(on ? look.emoji : "🛰️", 17)),
       h("span", { class: "look-text" },
-        h("strong", {}, on ? look.name : "Satellite"),
+        h("strong", {}, on ? look.name : this.plainName()),
         on && look.legend ? h("span", { class: "look-ramp" },
           h("small", {}, look.legend.from),
           h("i", { style: `background:linear-gradient(90deg,${look.legend.stops.join(",")})` }),
-          h("small", {}, look.legend.to)) : h("small", { class: "look-about" }, on ? look.about : "The plain photo of the planet")),
-      h("button", { class: "look-switch", title: on ? look.about : `Back to the ${look.name.toLowerCase()} view`, onclick: () => this.toggle() }, on ? "Satellite" : look.name));
+          h("small", {}, look.legend.to)) : h("small", { class: "look-about" }, on ? look.about : this.globe.state.base === "satellite" ? "The plain photo of the planet" : "The map, drawn")),
+      h("button", { class: "look-switch", title: on ? look.about : `Back to the ${look.name.toLowerCase()} view`, onclick: () => this.toggle() }, on ? this.plainName() : look.name));
   }
 }

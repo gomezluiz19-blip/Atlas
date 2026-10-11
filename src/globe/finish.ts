@@ -13,6 +13,11 @@ import { Color, DynamicAtmosphereLightingType, ImageryLayer, UrlTemplateImageryP
 
 /** The grade every satellite layer wears by default (looks blend away from these). */
 export const HOUSE = { brightness: 1.02, contrast: 1.1, saturation: 1.12, gamma: 0.95, hue: 0 } as const;
+/** The rendered map's grade: the deck's warm paper by day (#ECE8E1 ground), a cool slate by night (#151A20). */
+export const RENDERED = { brightness: 0.96, contrast: 1.02, saturation: 0.85, gamma: 1.02, hue: 0 } as const;
+export const RENDERED_NIGHT = { brightness: 1.35, contrast: 0.95, saturation: 1, gamma: 1, hue: 0 } as const;
+export type Grade = { brightness: number; contrast: number; saturation: number; gamma: number; hue: number };
+
 /** Sunlight shows fully above `from` metres up and has faded out by `to`: orbit lit by the real sun, cities even. */
 export const LIGHT_FADE = { from: 7_000_000, to: 2_500_000 } as const;
 /** Earth's mean radius: Cesium measures its lighting fades from the centre, not the ground. */
@@ -101,7 +106,7 @@ export function finishGlobe(viewer: Viewer) {
   return lights;
 }
 
-/** Applies the house grade to a satellite layer. */
-export function gradeLayer(layer: ImageryLayer) {
-  layer.brightness = HOUSE.brightness; layer.contrast = HOUSE.contrast; layer.saturation = HOUSE.saturation; layer.gamma = HOUSE.gamma; layer.hue = HOUSE.hue;
+/** Applies a grade (the house grade unless told otherwise) to a base layer. */
+export function gradeLayer(layer: ImageryLayer, g: Grade = HOUSE) {
+  layer.brightness = g.brightness; layer.contrast = g.contrast; layer.saturation = g.saturation; layer.gamma = g.gamma; layer.hue = g.hue;
 }

@@ -47,7 +47,7 @@ export function createLayersPanel(globe: Globe): HTMLElement {
   const base = h(
     "div",
     { class: "segmented", role: "radiogroup", "aria-label": "Base map" },
-    ...(["satellite", "plain"] as const).map((b) => {
+    ...(["rendered", "satellite", "plain"] as const).map((b) => {
       const btn = h(
         "button",
         {
@@ -59,7 +59,7 @@ export function createLayersPanel(globe: Globe): HTMLElement {
             apply();
           },
         },
-        b === "satellite" ? "Satellite" : "Plain",
+        b === "rendered" ? "Rendered" : b === "satellite" ? "Satellite" : "Plain",
       );
       return btn;
     }),
@@ -68,7 +68,7 @@ export function createLayersPanel(globe: Globe): HTMLElement {
   const relief = h("label", { class: "layer-row", title: "Shadows from a sun in the north-west bring out the landforms" },
     h("input", { type: "checkbox", checked: s.overlays.hillshade.on, onchange: (e: Event) => { s.overlays.hillshade.on = (e.target as HTMLInputElement).checked; apply(); } }),
     h("span", {}, "Relief shading"));
-  const streets = h("label", { class: "layer-row", title: "Road names, highway shields and place names over the imagery, once you zoom in" },
+  const streets = h("label", { class: "layer-row", title: "Road and place names on the map, once you zoom in" },
     h("input", { type: "checkbox", checked: s.streets, onchange: (e: Event) => { s.streets = (e.target as HTMLInputElement).checked; apply(); } }),
     h("span", {}, "Street and place names"));
 
