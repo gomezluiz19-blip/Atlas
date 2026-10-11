@@ -172,5 +172,11 @@ export const googleDirections = (to: Spot, mode: TravelMode = "drive") =>
 export const appleDirections = (to: Spot, name: string, mode: TravelMode = "drive") =>
   `https://maps.apple.com/?daddr=${to.lat.toFixed(6)},${to.lon.toFixed(6)}&q=${encodeURIComponent(name)}&dirflg=${mode === "walk" ? "w" : mode === "transit" ? "r" : "d"}`;
 
+/** A ride there, booked in Uber or Lyft with the drop-off filled in (pure). Pickup is wherever the person is. */
+export const rideLinks = (to: Spot, name: string) => [
+  { label: "Uber", href: `https://m.uber.com/ul/?action=setPickup&pickup=my_location&dropoff[latitude]=${to.lat.toFixed(6)}&dropoff[longitude]=${to.lon.toFixed(6)}&dropoff[nickname]=${encodeURIComponent(name)}` },
+  { label: "Lyft", href: `https://lyft.com/ride?id=lyft&destination[latitude]=${to.lat.toFixed(6)}&destination[longitude]=${to.lon.toFixed(6)}` },
+];
+
 /** Street-level imagery at a spot in Google Street View (pure). */
 export const streetView = (at: Spot) => `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${at.lat.toFixed(6)},${at.lon.toFixed(6)}`;

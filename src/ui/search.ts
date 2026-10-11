@@ -40,7 +40,7 @@ export function freeArea(canvas: HTMLCanvasElement): { left: number; right: numb
   const pad = { left: 0, right: 0, top: 0, bottom: 0 };
   // Stepped-aside panels (the empty place card while working) don't count.
   const shown = (el: Element) => { const r = el.getBoundingClientRect(), st = getComputedStyle(el); return r.width > 0 && r.height > 0 && st.visibility !== "hidden" && !(el.classList.contains("sheet") && st.pointerEvents === "none") ? r : null; };
-  for (const el of document.querySelectorAll("#ui .sheet, #ui .popover:not([hidden]), #ui .lens-panel:not([hidden]), #ui .topbar, #ui .dock")) {
+  for (const el of document.querySelectorAll("#ui .sheet, #ui .popover:not([hidden]), #ui .lens-panel:not([hidden]), #ui .topbar, #ui .dock, .app-band")) {
     const r = shown(el);
     if (!r) continue;
     const wide = r.width > c.width * 0.6, tall = r.height > c.height * 0.45;

@@ -4768,3 +4768,106 @@ body.map-rendered .k-range, body.map-rendered .k-desert, body.map-rendered .k-re
 .ml-glyph { width: 24px; height: 24px; border-radius: 50% !important; color: #fff; box-shadow: 0 0 0 2px #fff, 0 2px 6px rgba(0, 0, 0, 0.25); }
 .ml-glyph svg { width: 13px; height: 13px; }
 .ml-dot { border-radius: 50%; }
+
+/* ======================================================================================
+   Person first (src/ui/chrome.ts, src/ui/travelModes.ts): Terreno's name in a cyan band across the top; the map
+   under it as a big rounded bubble that opens to the whole screen; and every dock button opening on the person:
+   how you're going before where, what you're after before the field, what you came to Me for as tiles.
+   ====================================================================================== */
+:root { --cyan: #0a8ea0; --band-h: 56px; --band: calc(var(--band-h) + env(safe-area-inset-top, 0px)); --bubble: 8px; --bubble-r: 30px; }
+@media (prefers-color-scheme: dark) { :root { --cyan: #0b6f7e; } }
+@media (min-width: 900px) { :root { --band-h: 60px; --bubble: 12px; --bubble-r: 36px; } }
+/* Around the bubble, a light wash of the band's cyan, so the map reads as one round window. */
+html, body { background: color-mix(in srgb, var(--cyan) 16%, var(--paper)); }
+
+/* The band: the mark and the name, white on cyan. Away when the map is opened up, presenting, filming or on a TV. */
+.app-band {
+  position: fixed; z-index: 25; top: 0; left: 0; right: 0; height: var(--band); padding-top: env(safe-area-inset-top, 0px);
+  display: flex; align-items: center; justify-content: center; background: var(--cyan); color: #fff;
+  transition: transform var(--t-move) var(--ease-settle);
+}
+.app-band .brand { height: 44px; padding: 0 14px; background: transparent !important; box-shadow: none !important; -webkit-backdrop-filter: none; backdrop-filter: none; color: #fff; }
+.app-band .brand-word { display: inline !important; font-size: 15px; letter-spacing: 0.34em; color: #fff; }
+.app-band .brand-mark svg path:not([fill]) { stroke: #fff; }
+.app-band .brand-mark svg path[fill] { stroke: var(--cyan); }
+body.map-open .app-band, body.tv-mode .app-band, body.presenting .app-band, body.clean .app-band { transform: translateY(-100%); }
+
+/* The bubble: the globe clipped to a rounded window under the band; the interface lives inside it. */
+#globe, #ui { transition: clip-path var(--t-arrive) var(--ease-settle), inset var(--t-arrive) var(--ease-settle); }
+body:not(.map-open):not(.tv-mode):not(.presenting):not(.clean) #globe {
+  clip-path: inset(calc(var(--band) + var(--bubble)) var(--bubble) var(--bubble) var(--bubble) round var(--bubble-r));
+}
+body:not(.map-open):not(.tv-mode):not(.presenting):not(.clean) #ui { inset: calc(var(--band) + var(--bubble)) var(--bubble) var(--bubble) var(--bubble); }
+.map-expand {
+  position: absolute; z-index: 26; top: 12px; right: 12px; width: 44px; height: 44px; display: grid; place-items: center; border: 0; border-radius: 50%; cursor: pointer;
+  background: var(--material-strong); color: var(--label); box-shadow: var(--shadow);
+}
+body.map-open .map-expand { top: calc(12px + env(safe-area-inset-top, 0px)); }
+body.tv-mode .map-expand { display: none; }
+
+/* Navigate: how are you going? Big tiles first, the place after. */
+.nav-panel { width: min(520px, calc(100% - 2 * var(--gutter))); padding: 16px; border-radius: var(--radius-sheet); max-height: calc(100% - var(--dock) - 2 * var(--gutter)); }
+.nav-panel .nav-title { margin: 2px 2px 12px; font: 800 22px/1.15 var(--font); letter-spacing: -0.02em; text-transform: none; color: var(--label); }
+.nav-modes { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+.nav-mode {
+  position: relative; display: flex; flex-direction: column; align-items: flex-start; justify-content: space-between; gap: 14px; min-height: 112px; padding: 16px;
+  border: 0; border-radius: 20px; cursor: pointer; text-align: left; font: 800 19px/1.1 var(--font); letter-spacing: -0.01em;
+  background: color-mix(in srgb, var(--c, var(--fill-strong)) 12%, var(--card)); color: var(--label); box-shadow: var(--shadow-soft);
+  transition: transform var(--t-quick) var(--ease-settle), background var(--t-quick) var(--ease-settle);
+}
+.nav-mode:active { transform: scale(0.97); }
+.nav-mode-ico { display: grid; place-items: center; width: 56px; height: 56px; border-radius: 50%; background: var(--c, var(--fill-strong)); color: #fff; }
+.nav-mode-ico svg { width: 32px; height: 32px; }
+.nav-mode[aria-checked="true"] { background: var(--c); color: #fff; box-shadow: 0 6px 18px color-mix(in srgb, var(--c) 40%, transparent); }
+.nav-mode[aria-checked="true"] .nav-mode-ico { background: rgba(255, 255, 255, 0.22); }
+.nav-mode[aria-checked="true"]::after { content: ""; position: absolute; top: 14px; right: 14px; width: 12px; height: 12px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.3); }
+.nav-mode.more { grid-column: 1 / -1; flex-direction: row; align-items: center; justify-content: flex-start; min-height: 64px; padding: 10px 16px; font-size: 16px; --c: var(--secondary); background: var(--fill); box-shadow: none; }
+.nav-mode.more .nav-mode-ico { width: 40px; height: 40px; background: var(--card); color: var(--label); }
+.nav-mode.more .nav-mode-ico svg { width: 20px; height: 20px; }
+.nav-more { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; }
+.nav-more[hidden] { display: none; }
+.nav-mode-chip { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 12px 6px; border: 0; border-radius: 16px; background: var(--card); color: var(--label); font: 700 14px var(--font); cursor: pointer; box-shadow: var(--shadow-soft); }
+.nav-mode-chip .nav-mode-ico { width: 44px; height: 44px; }
+.nav-mode-chip .nav-mode-ico svg { width: 24px; height: 24px; }
+.nav-mode-chip[aria-checked="true"] { box-shadow: 0 0 0 2px var(--c); }
+.nav-where { margin-top: 14px; }
+.nav-input { height: 52px; border-radius: 14px; font: 500 17px var(--font); background: var(--fill); border: 0; padding: 0 16px; }
+.nav-sub { margin: 14px 2px 4px; font: 700 15px var(--font); letter-spacing: 0; text-transform: none; color: var(--label); }
+.nav-head { gap: 10px; margin-bottom: 10px; }
+.nav-head-ico { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; background: var(--c); color: #fff; flex: none; }
+.nav-head-ico svg { width: 24px; height: 24px; }
+.nav-head strong { font: 800 19px/1.15 var(--font); }
+.nav-handoff { margin: 4px 0 12px; padding: 14px; border-radius: 16px; background: color-mix(in srgb, var(--c) 12%, var(--card)); }
+.nav-handoff p { margin: 0 0 10px; font: 700 15px var(--font); }
+.nav-handoff-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.nav-handoff-row a { text-decoration: none; }
+@media (max-width: 560px) {
+  .nav-mode { min-height: 104px; padding: 14px; font-size: 18px; }
+  .nav-mode-ico { width: 50px; height: 50px; }
+  .nav-mode-ico svg { width: 28px; height: 28px; }
+}
+
+/* Search: what you're after, as tiles above the field. */
+.search-quick { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin-bottom: 8px; padding: 10px; border-radius: 20px; background: var(--material-strong); box-shadow: var(--shadow); }
+.quick-tile { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 6px 2px; border: 0; border-radius: 14px; background: transparent; color: var(--label); font: 700 13px var(--font); cursor: pointer; }
+.quick-tile:hover { background: var(--fill); }
+.quick-dot { display: grid; place-items: center; width: 52px; height: 52px; border-radius: 50%; background: var(--c); color: #fff; }
+.quick-dot svg { width: 26px; height: 26px; }
+body.search-open .dock-search:has(.search input:not(:placeholder-shown)) .search-quick { display: none; }
+/* Empty, the field offers the tiles; its own suggestions come once you type. */
+body.search-open .dock-search:has(.search input:placeholder-shown) .search-results { display: none; }
+@media (max-width: 560px) { .search-quick { grid-template-columns: repeat(3, 1fr); } }
+
+/* Me: what you came for, as tiles. */
+.popover.account-menu { width: min(360px, calc(100% - 2 * var(--gutter))); padding: 12px; }
+.am-tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 8px 0; }
+.am-tile { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; min-height: 92px; padding: 14px; border: 0; border-radius: 18px; cursor: pointer; text-align: left;
+  background: color-mix(in srgb, var(--c) 12%, var(--card)); color: var(--label); font: 800 16px/1.15 var(--font); box-shadow: var(--shadow-soft); }
+.am-tile-ico { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; background: var(--c); color: #fff; }
+.am-tile-ico svg { width: 22px; height: 22px; }
+
+/* ＋: the three ways in, bigger. */
+.plus-big { min-height: 108px; padding: 14px 12px; border-radius: 18px; }
+.plus-big .plus-ico { width: 48px; height: 48px; border-radius: 50%; }
+.plus-big .plus-ico svg { width: 26px; height: 26px; }
+.plus-big strong { font-size: 16px; font-weight: 800; }

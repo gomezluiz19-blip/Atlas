@@ -21,7 +21,7 @@ export function avatarEl(p: Pick<Profile, "avatar" | "name">, size = 32): HTMLEl
 
 const PERSON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.5" r="3.6"/><path d="M4.8 19.5c1.3-3.3 4-5 7.2-5s5.9 1.7 7.2 5"/></svg>`;
 
-export interface AccountMenuItem { label: string; run: () => void; icon?: string }
+export interface AccountMenuItem { label: string; run: () => void; icon?: string; /** Shown as a big tile at the top, with this pigment. */ big?: string }
 interface AccountUi {
   button: HTMLButtonElement;
   menu: HTMLElement;
@@ -56,9 +56,19 @@ export function createAccount(opts: {
   const row = (label: string, run: () => void, icon = "", extra?: string) =>
     h("button", { class: "am-row", role: "menuitem", onclick: () => { close(); run(); } }, icon ? h("span", { class: "am-ico", html: icon }) : "", h("span", {}, label), extra ? h("small", {}, extra) : "");
 
+  /** The things a person comes to Me for, as big tiles under their name. */
+  const tile = (label: string, run: () => void, icon: string, color: string) =>
+    h("button", { class: "am-tile", role: "menuitem", style: `--c:${color}`, onclick: () => { close(); run(); } }, h("span", { class: "am-tile-ico", html: icon }), h("span", {}, label));
+
   function renderMenu() {
     const p = me();
     const others = localAccounts().filter((a) => a.handle !== p?.handle);
+    const extras = opts.extras();
+    const bigs = extras.filter((x): x is AccountMenuItem => !(x instanceof HTMLElement) && !!x.big);
+    const tiles = [
+      ...(p ? [tile("My page", () => opts.openProfile(p.handle), icons.people, "var(--terra)"), tile("Field note", () => document.dispatchEvent(new CustomEvent("atlas:note")), icons.pin, "var(--sage)")] : []),
+      ...bigs.map((x) => tile(x.label, x.run, x.icon ?? icons.pin, x.big!)),
+    ];
     menu.replaceChildren(
       p
         ? h("button", { class: "am-me", onclick: () => { close(); opts.openProfile(p.handle); } }, avatarEl(p, 44), h("span", {}, h("strong", {}, p.name), h("small", {}, `@${p.handle} · See your page`)))
@@ -66,15 +76,15 @@ export function createAccount(opts: {
           h("strong", {}, "Your own Terreno"),
           h("p", {}, "A page of the places you love, lenses you make, and your place's daily brief."),
           h("button", { class: "primary-btn", onclick: () => { close(); openSignIn(); } }, "Sign in or join")),
+      tiles.length ? h("div", { class: "am-tiles" }, ...tiles) : "",
       p ? h("div", { class: "am-group" },
         row("Edit my page", () => opts.openProfile(p.handle, true), icons.pencil),
-        row("Field note", () => document.dispatchEvent(new CustomEvent("atlas:note")), icons.pin),
         row("Make a lens", () => opts.lenses(), icons.sparkle)) : "",
       others.length || p ? h("div", { class: "am-group" },
         ...others.slice(0, 4).map((o) => h("button", { class: "am-row", role: "menuitem", onclick: () => { close(); signIn(o); opts.welcome(o, false); } }, avatarEl(o, 22), h("span", {}, `Switch to ${o.name}`))),
         p ? row("Sign out", () => { signOut(); }) : "",
         p && !p.demo ? row("Delete my account", () => void deleteMine(p)) : "") : "",
-      h("div", { class: "am-group" }, ...opts.extras().map((x) => x instanceof HTMLElement ? x : row(x.label, x.run, x.icon))));
+      h("div", { class: "am-group" }, ...extras.filter((x) => x instanceof HTMLElement || !x.big).map((x) => x instanceof HTMLElement ? x : row(x.label, x.run, x.icon))));
   }
 
   button.addEventListener("click", (e) => {

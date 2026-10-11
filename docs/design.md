@@ -134,12 +134,24 @@ The model is `src/wayfind/model.ts` (pure, tested); the screens are `src/wayfind
 
 ## The frame
 
-The map is the page, opening over where you are (or your home), like any map you already trust. Around it,
-one bar and no more, the same on every screen:
+The map is the page, opening over where you are (or your home), like any map you already trust.
 
-- **The dock**, along the bottom, big and plain: **Search**, **Navigate** (where to, and the way there), **Me**
-  and **＋**, each a big icon with its word under it, ＋ in the one action colour. Search opens just above the dock,
-  its suggestions rising from it.
+- **The band**: Terreno's mark and name, white on a field of cyan, across the top. It opens About.
+- **The bubble**: under the band the map is a big rounded window, framed by a light wash of the band's cyan.
+  The button at its top right opens it to the whole screen (the band slides away) and back. Presenting, filming
+  and a TV always have the whole screen.
+- **Person first.** Each button in the dock opens on the person, then the place:
+  - **Navigate** asks *How are you going?* with big tiles that fill the panel: **Walk**, **Drive**, **Train**,
+    **Taxi**, and **More** (Bike, Fly, Guide me). Walking is the default and the last choice is remembered.
+    Below them, *Where to, walking?* and your places and people. A walk, a drive or a ride is routed on the
+    map; the train opens a transit planner (Google or Apple Maps) and a taxi a ride app (Uber, Lyft) with the
+    drop-off filled in, with the journey drawn here alongside. Fly opens the trip planner; Guide me starts
+    on-foot guidance (`src/ui/travelModes.ts`).
+  - **Search** shows what people look for as big tiles (Food, Coffee, Parks, Shops, Stay, Fuel) above the field;
+    a tap searches near the map. Its own suggestions come once you type.
+  - **Me** shows what you came for as tiles (My page, Field note, My Place, Watching), then the rest as rows.
+- **The dock**, along the bottom inside the bubble, big and plain: **Search**, **Navigate**, **Me** and **＋**, each
+  a big icon with its word under it, ＋ in the action colour.
 - **＋** opens Explore, Create and Work; then the **views** (People, Nature, Countries as tiles, the rest as
   chips), which work like map layers: choosing one changes the map and leaves its card as just a heading; choose
   it again, or tap the heading, to read it; then the tools (Pulse, Time, map style, Lenses, a TV, My Place).
