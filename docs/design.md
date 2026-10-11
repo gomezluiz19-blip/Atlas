@@ -103,6 +103,19 @@ seems to know where you're headed. Three rules carry that:
 
 The model is `src/wayfind/model.ts` (pure, tested); the screens are `src/wayfind/ui.ts`.
 
+## The frame
+
+The map is the page, opening over where you are (or your home), like any map you already trust. Around it,
+four things and no more, the same on every screen:
+
+- **Search**, **Navigate** (where to, and the way there), **Me**, and a small **＋**.
+- **＋** opens Explore, Create and Work, then the tools (Pulse, Time, map style, a view, a TV, My Place).
+- **The views** along the bottom (People, Nature, Countries, and More) work like map layers: tapping one
+  changes the map and leaves its card as just a heading; tap the view again, or the heading, to read it.
+
+On a TV the menu is the same frame: Search, Go to, Me, ＋ in the first row, the views in the second, and the
+room's own tools only once ＋ is opened.
+
 ## Web, phone and TV
 
 Each is a different instrument for the same Earth, and each hands off to the others.

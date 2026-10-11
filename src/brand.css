@@ -233,3 +233,102 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .tv-quiz-end span { display: none; }
 /* The question's place, if any, sits in the open globe to the left. */
 body.tv-mode:has(.tv-quiz) .tv-caption { opacity: 0; }
+
+/* ======================================================================================
+   The frame, simplified: the map is the page. Top right, four buttons (Search, Navigate,
+   Me, ＋); bottom, the views, switched like map layers; the card starts as a heading.
+   ====================================================================================== */
+:root { --bar: 52px; }
+@media (max-width: 820px) { :root { --bar: 52px; } }
+@media (max-width: 560px) { :root { --bar: 52px; } }
+.topbar > .mode-bar, #layers-btn { display: none !important; }
+.topbar { flex-wrap: nowrap !important; }
+.topbar > .topbar-actions { order: 9 !important; margin-left: auto !important; gap: 0 !important; }
+.chrome {
+  display: flex; gap: 2px; padding: 4px; border-radius: 14px;
+  background: var(--material); -webkit-backdrop-filter: blur(20px) saturate(115%); backdrop-filter: blur(20px) saturate(115%);
+  box-shadow: var(--shadow);
+}
+.chrome .round-btn, .chrome .account-btn { width: 40px; height: 40px; border-radius: 10px; background: transparent; box-shadow: none; color: var(--label); }
+.chrome .round-btn:hover { background: var(--fill); }
+.chrome .round-btn[aria-expanded="true"] { background: color-mix(in srgb, var(--accent) 12%, transparent); color: var(--accent); }
+.chrome .round-btn svg { width: 20px; height: 20px; }
+.chrome-plus { margin-left: 4px; position: relative; }
+.chrome-plus::before { content: ""; position: absolute; left: -4px; top: 22%; bottom: 22%; width: 1px; background: var(--hairline); }
+
+/* Search opens from its button. */
+.topbar > .search { display: none; }
+body.search-open .topbar > .search { display: block; animation: ask-in 0.2s var(--ease) both; }
+@media (max-width: 560px) {
+  body.search-open .topbar > .search { position: absolute; left: 0; right: 0; top: 0; z-index: 30; width: auto; flex: none; }
+  body.search-open .topbar > .search input { height: 48px; }
+}
+
+/* ＋: the rest of Terreno. */
+.plus-menu, .nav-panel {
+  position: absolute; z-index: 40; top: calc(var(--gutter) + var(--bar) + 6px + env(safe-area-inset-top, 0px)); right: var(--gutter);
+  width: min(380px, calc(100vw - 2 * var(--gutter))); max-height: calc(100dvh - var(--bar) - 3 * var(--gutter) - 90px); overflow: auto;
+  padding: 12px; border-radius: 14px; background: var(--material-strong); box-shadow: var(--shadow); animation: ask-in 0.18s var(--ease) both;
+}
+.plus-menu[hidden], .nav-panel[hidden] { display: none; }
+.plus-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 10px; }
+.plus-big { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; padding: 12px 10px; border: 0; border-radius: 12px; background: var(--fill); color: var(--label); font: inherit; text-align: left; cursor: pointer; }
+.plus-big:hover { background: color-mix(in srgb, var(--c) 12%, transparent); }
+.plus-big .plus-ico { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 9px; background: color-mix(in srgb, var(--c) 15%, transparent); color: var(--c); }
+.plus-big .plus-ico svg { width: 19px; height: 19px; }
+.plus-big strong { display: block; font-size: 14px; }
+.plus-big small { display: block; font-size: 11px; line-height: 1.3; color: var(--secondary); }
+.plus-tools { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; padding-top: 8px; border-top: 1px solid var(--hairline); }
+.plus-item { display: flex; align-items: center; gap: 10px; padding: 8px; border: 0; border-radius: 10px; background: transparent; color: var(--label); font: inherit; text-align: left; cursor: pointer; min-width: 0; }
+.plus-item:hover { background: var(--fill); }
+.plus-item .plus-ico { flex: none; display: grid; place-items: center; width: 30px; height: 30px; border-radius: 8px; background: var(--fill); color: var(--secondary); }
+.plus-item .plus-ico svg { width: 17px; height: 17px; }
+.plus-item strong { display: block; font-size: 13px; font-weight: 600; }
+.plus-item small { display: block; font-size: 11px; color: var(--secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.plus-item > span:last-child { min-width: 0; }
+
+/* Navigate: where to, then the way there. */
+.nav-title { margin: 0 0 8px; font: 650 10.5px var(--font); letter-spacing: 0.14em; text-transform: uppercase; color: var(--secondary); }
+.nav-sub { margin: 12px 0 4px; font: 650 10.5px var(--font); letter-spacing: 0.14em; text-transform: uppercase; color: var(--secondary); }
+.nav-input { width: 100%; box-sizing: border-box; height: 42px; font-size: 15px; }
+.nav-hits:empty { display: none; }
+.nav-panel .list-row { padding: 8px 6px; border-radius: 10px; }
+.nav-ico { flex: none; display: grid; place-items: center; width: 32px; height: 32px; border-radius: 9px; background: var(--fill); color: var(--secondary); }
+.nav-ico svg { width: 17px; height: 17px; }
+.nav-ico.here { background: color-mix(in srgb, var(--accent) 14%, transparent); color: var(--accent); }
+.nav-here { margin-top: 6px; }
+.nav-head { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.nav-head small { display: block; font-size: 11px; color: var(--secondary); }
+.nav-head strong { font-size: 15px; }
+.nav-panel .vn-getting { margin: 0; }
+
+/* The views: like map layers, a row of chips at the bottom. */
+.tabbar { padding: 4px; gap: 2px; border-radius: 14px; }
+.tab { flex-direction: row; gap: 7px; min-width: 0; padding: 9px 14px; border-radius: 10px; }
+.tab-icon svg { width: 18px; height: 18px; }
+.tab-label { font-size: 13px; font-weight: 600; }
+.more-tab::before { top: 24%; bottom: 24%; }
+@media (max-width: 820px) {
+  .tabbar { left: 50%; right: auto; transform: translateX(-50%); width: auto; max-width: calc(100vw - 2 * var(--gutter)); justify-content: center; }
+  .tab { flex: 0 0 auto; padding: 9px 12px; }
+  .tab-label { font-size: 12.5px; }
+  .more-tab { position: relative; right: auto; min-width: 0; box-shadow: none; background: transparent; }
+}
+
+/* The card starts as its heading, on every screen; tap the heading (or the view you're on) to open it. */
+@media (min-width: 821px) {
+  .sheet { transition: max-height 0.3s var(--ease); }
+  .sheet.collapsed { bottom: auto; max-height: 104px; }
+  .sheet.collapsed .sheet-head { cursor: pointer; }
+}
+.sheet.collapsed .sheet-body, .sheet.collapsed .segmented { visibility: hidden; }
+@media (max-width: 820px) { .sheet.collapsed { max-height: 112px; } }
+
+/* Quiet until you need them: the compass ribbon while navigating, the view stack's add button in ＋. */
+body:not(.wf-guiding) .wf-compass { display: none !important; }
+.vs-add { display: none !important; }
+
+/* TV, the same frame: Search · Go to · Me · ＋, then the views; the room's tools wait behind ＋. */
+.tv-menu:not(.more) .tv-menu-more { display: none; }
+.tv-tile.current { box-shadow: inset 0 -3px 0 var(--accent, #2f5bd3); }
+.tv-dots, .tv-room-chip { display: none !important; }

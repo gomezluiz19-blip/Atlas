@@ -12,6 +12,12 @@ export interface Room { id: RoomId; icon: string; label: string; who: string; ab
 /** Everything the remote can reach for, in any room. */
 export const TOOLS: Record<string, Tool> = {
   search: { id: "search", icon: "⌕", label: "Search", about: "Fly anywhere" },
+  goto: { id: "goto", icon: "➤", label: "Go to", about: "Where to? A place, and the way there" },
+  me: { id: "me", icon: "◉", label: "Me", about: "Your people: where they are and their time" },
+  plus: { id: "plus", icon: "+", label: "More", about: "This screen's tools" },
+  "view:people": { id: "view:people", icon: "👥", label: "People" },
+  "view:nature": { id: "view:nature", icon: "🌿", label: "Nature" },
+  "view:countries": { id: "view:countries", icon: "🏳", label: "Countries" },
   trip: { id: "trip", icon: "✈️", label: "Plan a trip", about: "Where, when and who, then the whole journey" },
   trips: { id: "trips", icon: "🧳", label: "My trips", about: "Play a saved journey" },
   myplace: { id: "myplace", icon: "🏠", label: "My Place", about: "Home as a hologram, with the day's brief" },
@@ -66,9 +72,19 @@ export const ROOMS: Room[] = [
 ];
 export const roomOf = (id: string | null | undefined): Room => ROOMS.find((r) => r.id === id) ?? ROOMS[0];
 
-/** The menu on the TV for a room: its own tools, then what every room has (pure). */
+/** The views, like map layers: the same three as the bottom of the web and the phone. */
+export const VIEWS = ["people", "nature", "countries"] as const;
+
+/**
+ * The menu on the TV, the same frame as the web (pure): Search, Go to, Me and ＋ first; then the views; then,
+ * only once ＋ is opened, the room's own tools with change-room and exit at the end.
+ */
 export function menuFor(room: Room): Tool[][] {
-  return [room.tools.map((t) => TOOLS[t]).filter(Boolean), [TOOLS.room, TOOLS.exit]];
+  return [
+    [TOOLS.search, TOOLS.goto, TOOLS.me, TOOLS.plus],
+    VIEWS.map((v) => TOOLS[`view:${v}`]),
+    [...room.tools.filter((t) => t !== "search").map((t) => TOOLS[t]).filter(Boolean), TOOLS.room, TOOLS.exit],
+  ];
 }
 
 export const SCENE_LABELS: Record<SceneId, string> = {

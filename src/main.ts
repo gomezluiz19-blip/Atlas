@@ -26,6 +26,7 @@ import { landTheme } from "./themes/land";
 import { mineralsTheme } from "./themes/minerals";
 import { animalsTheme, natureTheme, plantsTheme } from "./themes/life";
 import { peopleOnMap } from "./people/mineUi";
+import { createChrome } from "./ui/chrome";
 import { waterTheme } from "./themes/water";
 import { formatElevation, formatLonLat, h } from "./ui/dom";
 import { icons } from "./ui/icons";
@@ -622,10 +623,10 @@ app.actions.set("myplace:report", {
     setTimeout(() => myPlaces.panel.querySelector(".report")?.scrollIntoView({ behavior: "smooth", block: "start" }), 400);
   },
 });
-$("layers-btn").parentElement!.before(modes.el);
+// The mode switch no longer sits in the top bar: Explore, Create and Work open from ＋ (My Place from Me).
 // Pulse: everything you have, alive on the planet, with time and what-ifs.
 const pulseBtn = h("button", { class: "round-btn pulse-btn", "aria-label": "Pulse: your world, live", title: "Pulse: your world, live", html: icons.activity, onclick: () => { closePanels(); closeHolo(); void import("./pulse/ui").then((m) => m.openPulse(app)); } });
-$("layers-btn").before(pulseBtn);
+
 app.actions.set("pulse:open", { label: "Pulse: your world, live", run: () => pulseBtn.click() });
 // The switch follows whichever panel is showing.
 const syncMode = () => {
@@ -1039,7 +1040,7 @@ const timeBar = new TimeBar(app);
 $("ui").append(timeBar.el);
 const timeBtn = h("button", { id: "time-btn", class: "round-btn", "aria-label": "Time: see the globe in another year", html: iconSvg("⏳", 20) ?? "" });
 timeBtn.addEventListener("click", () => (timeBar.el.hidden ? timeBar.open() : timeBar.close()));
-layersBtn.before(timeBtn);
+
 app.actions.set("time:open", { label: "Time travel", run: () => timeBar.open() });
 // "1914", or "1914@lon,lat" to light up whoever governed that place.
 app.actions.set("time:close", { label: "Back to today", run: () => timeBar.close() });
@@ -1071,7 +1072,7 @@ app.actions.set("tv:mode", { label: "TV mode", run: (code) => void import("./tv/
 app.actions.set("tv:cast", { label: "Show Terreno on a TV", run: () => void import("./tv/tv").then((m) => m.openCast(app)) });
 {
   const castBtn = h("button", { class: "round-btn cast-btn", "aria-label": "Show Terreno on a TV", title: "Show Terreno on a TV", html: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 16.5V6.8A1.8 1.8 0 0 1 4.8 5h14.4A1.8 1.8 0 0 1 21 6.8v10.4a1.8 1.8 0 0 1-1.8 1.8H14"/><path d="M3 19.5h.01M3 13a6.5 6.5 0 0 1 6.5 6.5M3 16a3.5 3.5 0 0 1 3.5 3.5"/></svg>', onclick: () => app.actions.get("tv:cast")?.run() });
-  document.querySelector(".topbar-actions")?.prepend(castBtn);
+  void castBtn; // On a TV now opens from ＋.
   if (tvLink) setTimeout(() => void import("./tv/tv").then((m) => {
     const [, code, lat, lon, name] = tvLink;
     closePanels();
@@ -1179,6 +1180,7 @@ const social = wireSocial(app, {
   openPlace: (slug) => openPlace(slug),
   closePanels: () => closePanels(),
   extras: () => [
+    { label: "My Place", icon: icons.home, run: () => openMode("place") },
     { label: `Watching${social ? ` (${social.watch.count()})` : ""}`, icon: iconSvg("🔔", 18) ?? icons.sparkle, run: () => app.actions.get("watch:open")?.run() },
     { label: "Take the tour", icon: icons.compass, run: () => startTour(app) },
     { label: aiOn() ? "Terreno AI: connected" : "Connect Terreno AI", icon: icons.sparkle, run: () => aiSettings.open() },
@@ -1189,6 +1191,31 @@ const social = wireSocial(app, {
 });
 about.replaceWith(social.account.button);
 $("ui").append(social.account.menu);
+// The frame: Search, Navigate, Me and ＋, top right. Everything else waits behind ＋.
+{
+  const TV_ICON = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 16.5V6.8A1.8 1.8 0 0 1 4.8 5h14.4A1.8 1.8 0 0 1 21 6.8v10.4a1.8 1.8 0 0 1-1.8 1.8H14"/><path d="M3 19.5h.01M3 13a6.5 6.5 0 0 1 6.5 6.5M3 16a3.5 3.5 0 0 1 3.5 3.5"/></svg>';
+  const chrome = createChrome(app, {
+    search: document.querySelector<HTMLElement>(".topbar .search")!,
+    me: social.account.button,
+    primary: [
+      { label: "Explore", sub: "The world now, games, space", icon: icons.compass, color: "#3563d6", run: () => { closePanels(lookHub.panel); lookHub.ctx.open(); lookHub.ctx.home(); } },
+      { label: "Create", sub: "Trips, stories, videos, lessons", icon: icons.pencil, color: "#8b5fa8", run: () => openMode("make") },
+      { label: "Work", sub: "Tools for your field", icon: icons.briefcase, color: "#d19a2e", run: () => openMode("work") },
+    ],
+    tools: [
+      { label: "Pulse", sub: "Your world, live", icon: icons.activity, run: () => pulseBtn.click() },
+      { label: "Time", sub: "The globe in another year", icon: iconSvg("⏳", 20) ?? icons.clock, run: () => timeBtn.click() },
+      { label: "Map style and layers", sub: "Satellite, terrain, overlays", icon: icons.layers, run: () => layersBtn.click() },
+      { label: "Add a view", sub: "Keep a layer on the map", icon: icons.eye, run: () => document.querySelector<HTMLButtonElement>(".vs-add")?.click() },
+      { label: "On a TV", sub: "Cast to a screen", icon: TV_ICON, run: () => app.actions.get("tv:cast")?.run() },
+      { label: "My Place", sub: "Home, farm or business", icon: icons.home, run: () => openMode("place") },
+    ],
+  });
+  document.querySelector(".topbar-actions")!.append(chrome.cluster);
+  $("ui").append(chrome.plusMenu, chrome.navPanel);
+  app.actions.set("nav:open", { label: "Navigate", run: () => chrome.openNavigate() });
+  app.actions.set("search:open", { label: "Search", run: () => chrome.openSearch(true) });
+}
 hideSocial = () => { if (social.profiles.isOpen) social.profiles.close(); if (social.studio.isOpen) social.studio.close(); };
 // A landmark with an intro gets a small chip to play it again.
 const introChip = h("button", { class: "lmi-replay", hidden: true });
@@ -1320,11 +1347,20 @@ if (pageLinked) { if (/^#\/p\//.test(location.hash)) placeHash(); else if (pageS
 if (shared.theme) app.setTheme(shared.theme);
 else if (!pageLinked && !shared.place) app.setTheme("people");
 if (shared.place) app.select({ lon: shared.place.lon, lat: shared.place.lat, height: 0 });
-else if (!shared.camera && !pageLinked && myStore.all().length) {
-  // Start where people are: over their own part of the world, with the People page open.
+else if (!shared.camera && !pageLinked) {
+  // Like a maps app: open over where you are. Your location if the browser already allows it, else your
+  // saved place; with neither, the Earth stays on your side of the planet and the locate button is there.
   const saved = myStore.all();
   const home = saved.find((p) => p.kind === "home") ?? saved[0];
-  setTimeout(() => void flyToPlace(globe, { name: home.name, lon: home.lon, lat: home.lat, radius: 1_500_000 }), 1200);
+  const local = (lon: number, lat: number, name: string) => void flyToPlace(globe, { name, lon, lat, radius: 6000 });
+  setTimeout(() => {
+    void (async () => {
+      let granted = false;
+      try { granted = (await navigator.permissions?.query({ name: "geolocation" as PermissionName }))?.state === "granted"; } catch { /* no permissions API */ }
+      if (granted) navigator.geolocation.getCurrentPosition((p) => local(p.coords.longitude, p.coords.latitude, "You"), () => { if (home) local(home.lon, home.lat, home.name); }, { timeout: 6000, maximumAge: 300_000 });
+      else if (home) local(home.lon, home.lat, home.name);
+    })();
+  }, 1600);
 }
 
 // Offline: the app, bundled data and the map tiles you've seen keep working without a connection,

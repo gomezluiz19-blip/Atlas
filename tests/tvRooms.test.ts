@@ -17,10 +17,13 @@ describe("rooms", () => {
     expect(roomOf("home").tools).toEqual(expect.arrayContaining(["trip", "trips", "myplace", "scene:world", "scene:places"]));
     expect(roomOf("classroom").tools).toEqual(expect.arrayContaining(["lesson", "quiz", "pointer", "spotlight", "pen", "timer", "timemachine"]));
   });
-  it("puts the room's tools first, then change-room and exit", () => {
+  it("leads with the web's frame, then the views, then the room's tools behind ＋", () => {
     const rows = menuFor(roomOf("ops"));
-    expect(rows[0][0].id).toBe("sites");
-    expect(rows[1].map((t) => t.id)).toEqual(["room", "exit"]);
+    expect(rows[0].map((t) => t.id)).toEqual(["search", "goto", "me", "plus"]);
+    expect(rows[1].map((t) => t.id)).toEqual(["view:people", "view:nature", "view:countries"]);
+    expect(rows[2][0].id).toBe("sites");
+    expect(rows[2].map((t) => t.id).slice(-2)).toEqual(["room", "exit"]);
+    expect(rows[2].some((t) => t.id === "search")).toBe(false);
   });
 });
 
