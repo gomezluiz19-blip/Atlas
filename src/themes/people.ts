@@ -19,6 +19,7 @@ import { myPeopleBox } from "../people/mineUi";
 import { networkStrip } from "../social/friends";
 import { peopleFront, youCard } from "../brief/ui";
 import { gatherPanel, viewArea } from "../people/gatherUi";
+import { fadeIn } from "../ui/motion";
 
 const fmtPeople = (n: number) => (n >= 1e9 ? `${(n / 1e9).toFixed(1)} billion` : n >= 1e6 ? `${(n / 1e6).toFixed(n >= 1e7 ? 0 : 1)} million` : n >= 1e4 ? `${Math.round(n / 1e3).toLocaleString()},000` : Math.round(n).toLocaleString());
 const byId = (id: string) => VIEWS.find((v) => v.id === id)!;
@@ -63,6 +64,7 @@ export function peopleTheme(app: App): Theme {
     layer = vectorLayer(shapes, { stroke: "rgba(255,255,255,0.35)", width: 0.7, scaleWithZoom: true, fillOf: (s) => { const c = iso3((s as unknown as { id: string }).id); const x = c ? values[c]?.value : undefined; return x === undefined ? "rgba(120,120,120,0.35)" : colorFor(v, x, lo, hi); } });
     layer.alpha = 0.82;
     app.globe.viewer.imageryLayers.add(layer);
+    fadeIn(app.globe.viewer, layer);
     app.looks?.setLegend({ emoji: v.emoji, name: v.label, stops: v.ramp, from: v.unit(lo), to: v.unit(hi) });
   };
 

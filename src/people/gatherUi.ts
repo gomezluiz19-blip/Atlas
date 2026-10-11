@@ -9,6 +9,7 @@ import { flyToPlace } from "../ui/search";
 import { venueOf } from "../place/venue";
 import { busyAt, busyWord, centres, gatherFrom, gatherQuery, GROUPS, HEAT_STOPS, heatColor, heatGrid, KINDS, type GatherGroup, type GatherSpot } from "./gather";
 import { kmBetween } from "../util/geo";
+import { fadeIn } from "../ui/motion";
 
 type Spot = { lon: number; lat: number };
 
@@ -49,6 +50,7 @@ function heatLayer(app: App, id: string, scope: "place" | "world") {
       if (my !== job) return;
       const next = new ImageryLayer(provider, { alpha: 0.85 });
       viewer.imageryLayers.add(next);
+      fadeIn(viewer, next);
       if (layer) viewer.imageryLayers.remove(layer, true);
       layer = next;
       unlisten ??= viewer.imageryLayers.layerAdded.addEventListener(() => setTimeout(onTop, 0));

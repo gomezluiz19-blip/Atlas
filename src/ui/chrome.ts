@@ -5,6 +5,7 @@ import { gettingThere } from "../place/venueCard";
 import { h } from "./dom";
 import { icons } from "./icons";
 import { flyToPlace, geocode } from "./search";
+import { morphBetween } from "./motion";
 import { savedSpots } from "../myplaces/saved";
 import { loadList } from "../util/storage";
 
@@ -25,8 +26,13 @@ export function createChrome(app: App, opts: {
   const input = () => opts.search.querySelector("input") as HTMLInputElement | null;
   const openSearch = (open = !document.body.classList.contains("search-open")) => {
     close();
-    document.body.classList.toggle("search-open", open);
-    searchBtn.setAttribute("aria-expanded", String(open));
+    const was = document.body.classList.contains("search-open");
+    const apply = () => {
+      document.body.classList.toggle("search-open", open);
+      searchBtn.setAttribute("aria-expanded", String(open));
+    };
+    // The icon opens out into the field.
+    if (open && !was) morphBetween(searchBtn, () => opts.search, "search", apply); else apply();
     if (open) setTimeout(() => input()?.focus(), 30);
   };
   const searchBtn = h("button", { class: "round-btn chrome-btn", "aria-label": "Search", title: "Search (/)", "aria-expanded": "false", html: icons.search, onclick: () => openSearch() }) as HTMLButtonElement;
@@ -42,7 +48,7 @@ export function createChrome(app: App, opts: {
   const navBtn = h("button", { class: "round-btn chrome-btn", "aria-label": "Navigate", title: "Navigate", "aria-expanded": "false", html: NAV, onclick: () => {
     const open = navPanel.hidden;
     close(); openSearch(false);
-    if (open) { drawNav(); navPanel.hidden = false; navBtn.setAttribute("aria-expanded", "true"); setTimeout(() => navPanel.querySelector("input")?.focus(), 30); }
+    if (open) morphBetween(navBtn, () => navPanel, "nav", () => { drawNav(); navPanel.hidden = false; navBtn.setAttribute("aria-expanded", "true"); setTimeout(() => navPanel.querySelector("input")?.focus(), 30); });
   } }) as HTMLButtonElement;
 
   const saved = (): { name: string; sub: string; lon: number; lat: number }[] => {
@@ -97,8 +103,11 @@ export function createChrome(app: App, opts: {
     const open = plusMenu.hidden;
     close(); openSearch(false);
     if (!open) return;
-    plusMenu.replaceChildren(h("div", { class: "plus-row" }, ...opts.primary.map((x) => item(x, true))), h("div", { class: "plus-tools" }, ...opts.tools.map((x) => item(x))));
-    plusMenu.hidden = false; plusBtn.setAttribute("aria-expanded", "true");
+    // ＋ grows into its menu: the three ways in, then the tools.
+    morphBetween(plusBtn, () => plusMenu, "plus", () => {
+      plusMenu.replaceChildren(h("div", { class: "plus-row" }, ...opts.primary.map((x) => item(x, true))), h("div", { class: "plus-tools" }, ...opts.tools.map((x) => item(x))));
+      plusMenu.hidden = false; plusBtn.setAttribute("aria-expanded", "true");
+    });
   } }) as HTMLButtonElement;
 
   document.addEventListener("pointerdown", (e) => {

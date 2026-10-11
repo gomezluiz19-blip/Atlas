@@ -116,6 +116,24 @@ four things and no more, the same on every screen:
 On a TV the menu is the same frame: Search, Go to, Me, ＋ in the first row, the views in the second, and the
 room's own tools only once ＋ is opened.
 
+## Motion
+
+Motion is how the simple insight arrives, not decoration. One curve, three durations, one stagger step
+(`src/ui/motion.ts`, the Motion block at the end of `src/styles.css`):
+
+- **Tokens.** `--t-quick` 140 ms (a press), `--t-move` 320 ms (something changes place), `--t-arrive` 600 ms
+  (something new lands); `--stagger` 40 ms between siblings. `--ease-settle` (quick to leave, long to settle)
+  for the interface, `--ease-lift` (a gentle start) for the camera. On a TV everything takes half again as long.
+- **The map leads.** The camera arrives first, timed by how far it travels; the card settles behind it; what the
+  card says arrives top to bottom.
+- **Morph, don't pop.** A view's chip grows into the card; ＋ grows into its menu; Navigate grows into its panel;
+  Search opens out of its icon. These are View Transitions on the named pieces only, so the globe keeps moving
+  underneath.
+- **The marks move.** Registration ticks draw in when something is chosen; hairlines draw left to right; figures
+  in Geist Mono and in an insight's headline count up to their value; pigments wash in; the hours rise like a
+  skyline; your people land on the globe one after another; heat and view layers fade up rather than appear.
+- **Respectful.** With less motion asked for, everything is a 120 ms fade and nothing travels.
+
 ## Web, phone and TV
 
 Each is a different instrument for the same Earth, and each hands off to the others.

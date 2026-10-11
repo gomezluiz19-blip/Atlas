@@ -8,6 +8,7 @@ import { viaEdge } from "../data/http";
 import { icons } from "./icons";
 import { osmRef, type Category } from "../place/venue";
 import { decodePlusCode, formatCoordinates, parseLocation, recoverPlusCode } from "../data/locationParse";
+import { lift, reduced } from "./motion";
 
 export interface Place {
   name: string;
@@ -89,7 +90,9 @@ export async function flyToPlace(globe: Globe, place: Place) {
   camera.cancelFlight();
   camera.flyToBoundingSphere(new BoundingSphere(target, 1), {
     offset: new HeadingPitchRange(0, pitch, small ? height * 1.15 : height),
-    duration: Math.min(2.2, Math.max(0.9, 0.5 + Math.log10(1 + distance / 1000) * 0.4)),
+    // Timed by how far it goes, eased like everything else: it lifts off gently and settles.
+    duration: reduced() ? 0 : Math.min(2.2, Math.max(0.9, 0.5 + Math.log10(1 + distance / 1000) * 0.4)) * (document.body.classList.contains("tv-mode") ? 1.5 : 1),
+    easingFunction: lift,
   });
 }
 

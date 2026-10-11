@@ -22,6 +22,9 @@ map, and its card waits as a heading until you open it. On a TV the menu is the 
 
 Everything each part does, tool by tool, is in [docs/features.md](docs/features.md).
 
+Claude can ask Terreno too: its MCP server answers questions about real places, with the source of every value
+([docs/mcp.md](docs/mcp.md)).
+
 ## Run it
 
 ```bash
@@ -111,6 +114,7 @@ src/
   main.ts              wiring: the globe, the views, the hubs behind ＋, and the actions everything else calls
   shell/               the frame's parts: search box, About, the opening view, My Place as a hologram, the card
                        that follows the map, Connected links, analysis layers on the canvas
+  mcp/                 Terreno as tools for Claude: tools.ts (place_read, weather_on, country, scene), worker.ts (MCP server)
   util/                shared helpers: geo (distances), storage (saved JSON), later (load on first use)
   canvas.ts            the shared canvas: what's on the map, across themes and places
   robot/               the task robot: plan.ts turns a request into steps, run.ts carries them out
