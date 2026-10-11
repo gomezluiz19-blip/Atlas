@@ -1089,6 +1089,108 @@ body.presenting #ui > :not(#credits), body.clean #ui > :not(#credits) { display:
 .present-btn:hover { background: rgba(255,255,255,0.15); }
 .present-count { font-size: 13.5px; font-weight: 600; min-width: 52px; text-align: center; font-variant-numeric: tabular-nums; }
 
+/* Work › Present: a slide's visual, drawn from someone's data (src/work/presentVisual.ts). Beside the globe on a
+   wide screen, above the card on a phone; hairlines, mono figures and the pigments, moving as it arrives. */
+.present-visual {
+  position: absolute; right: max(24px, env(safe-area-inset-right)); top: 0; bottom: 0; margin-block: auto; height: fit-content;
+  width: min(520px, 42vw); max-height: calc(100vh - 200px); overflow: auto; padding: 18px 22px 20px; border-radius: 20px;
+  background: rgba(12,16,24,0.74); color: #fff; backdrop-filter: blur(18px) saturate(1.4); -webkit-backdrop-filter: blur(18px) saturate(1.4);
+  box-shadow: 0 10px 40px rgba(0,0,0,0.35); animation: rise var(--t-arrive) var(--ease-settle) both;
+}
+.present-visual:has(.pv-points) { bottom: auto; margin-block: 0; top: max(24px, env(safe-area-inset-top)); width: min(340px, 36vw); }
+.present.teach .present-visual { width: min(640px, 46vw); }
+@media (max-width: 720px) {
+  .present-visual, .present-visual:has(.pv-points) { left: 12px; right: 12px; top: max(12px, env(safe-area-inset-top)); bottom: auto; margin-block: 0; width: auto; max-height: 44vh; padding: 14px 16px; }
+}
+
+.pv { --pv-hair: color-mix(in srgb, currentColor 16%, transparent); --pv-soft: color-mix(in srgb, currentColor 62%, transparent); display: flex; flex-direction: column; gap: 12px; }
+.pv-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.pv-title { margin: 0; font-size: 15px; font-weight: 650; letter-spacing: .01em; }
+.pv-sub { font-size: 12.5px; color: var(--pv-soft); font-family: var(--font-mono); }
+.pv-figure { font-family: var(--font-mono); font-weight: 500; font-size: clamp(44px, 7vw, 84px); line-height: 1; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+.pv-figure.small { font-size: 30px; }
+.pv-val { font-family: var(--font-mono); font-size: 13px; font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
+.pv-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13.5px; }
+
+/* Bars: ranked, growing from the left one after another. */
+.pv-rows { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: minmax(70px, 34%) 1fr auto; gap: 7px 10px; align-items: center; }
+.pv-rows li { display: contents; }
+.pv-track { height: 12px; background: linear-gradient(var(--pv-hair), var(--pv-hair)) 0 50% / 100% 1px no-repeat; }
+.pv-bar { display: block; height: 100%; width: var(--w); background: var(--ochre); border-radius: 0 3px 3px 0; transform-origin: left; animation: pv-grow var(--t-arrive) var(--ease-settle) both; animation-delay: calc(var(--i, 0) * var(--stagger) * 2); }
+.pv-bar.neg { background: var(--terra); }
+.pv-rows li:first-child .pv-bar { background: color-mix(in srgb, var(--ochre) 80%, #fff); }
+@keyframes pv-grow { from { transform: scaleX(0); } }
+.pv-rows li > * { animation: rise var(--t-move) var(--ease-settle) both; animation-delay: calc(var(--i, 0) * var(--stagger) * 2); }
+.pv-rows li > .pv-track { animation: none; }
+.pv-rows.plain { grid-template-columns: 12px 1fr auto; }
+.pv-key { width: 10px; height: 10px; border-radius: 2px; background: var(--c, var(--ochre)); }
+
+/* A line: the grid first, then the line draws itself left to right and the latest value lands. */
+.pv-now { display: flex; align-items: baseline; gap: 10px; }
+.pv-svg { width: 100%; height: auto; overflow: visible; }
+.pv-grid line { stroke: var(--pv-hair); stroke-width: 1; }
+.pv-grid text, .pv-x { fill: var(--pv-soft); font: 11px var(--font-mono); }
+.pv-line { fill: none; stroke: var(--ochre); stroke-width: 3; stroke-linejoin: round; stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: 0; animation: pv-draw calc(var(--t-arrive) * 2) var(--ease-lift) both; }
+.pv-area { fill: color-mix(in srgb, var(--ochre) 18%, transparent); animation: rise var(--t-arrive) var(--ease-settle) both; animation-delay: calc(var(--t-arrive) * 1.2); }
+.pv-dot { fill: var(--ochre); stroke: #fff; stroke-width: 2; transform-box: fill-box; transform-origin: center; animation: pv-land var(--t-move) var(--ease-settle) both; animation-delay: calc(var(--t-arrive) * 1.8); }
+@keyframes pv-draw { from { stroke-dashoffset: 1; } }
+@keyframes pv-land { from { transform: scale(0); } }
+@media (prefers-reduced-motion: reduce) { .pv-bar, .pv-line, .pv-dot { animation-name: rise; } }
+
+/* One figure: it counts up; the change since arrives after. */
+.pv-number { gap: 6px; }
+.pv-change { margin: 6px 0 0; font-size: 15px; font-weight: 600; animation: rise var(--t-move) var(--ease-settle) both; animation-delay: var(--t-arrive); }
+.pv-change.up { color: color-mix(in srgb, var(--sage) 55%, currentColor); }
+.pv-change.down { color: color-mix(in srgb, var(--terra) 70%, currentColor); }
+
+/* Shares: a hundred tesserae, filling tile by tile. */
+.pv-share-body { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px; align-items: center; }
+.pv.mini .pv-share-body, .present-visual .pv-share-body { grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); }
+@media (max-width: 720px) { .pv-share-body { grid-template-columns: 1fr; } .present-visual .pv-tiles { max-width: 220px; } }
+.pv-tiles { display: grid; grid-template-columns: repeat(10, 1fr); gap: 3px; max-width: 300px; }
+.pv-tile { aspect-ratio: 1; border-radius: 2px; background: var(--c); animation: wash var(--t-move) var(--ease-settle) both; animation-delay: calc(var(--i, 0) * 9ms); }
+.pv-legend { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 12px 1fr auto; gap: 6px 10px; align-items: center; }
+.pv-legend li { display: contents; }
+.pv-legend li > * { animation: rise var(--t-move) var(--ease-settle) both; animation-delay: calc(var(--i, 0) * var(--stagger) + var(--t-arrive)); }
+
+.pv-image { margin: 0; }
+.pv-image img { display: block; width: 100%; border-radius: 10px; background: #fff; animation: wash var(--t-arrive) var(--ease-settle) both; }
+.pv-image figcaption { margin-top: 8px; font-size: 13px; color: var(--pv-soft); }
+
+/* In the player, the card above says the title; the visual doesn't repeat it. */
+.pv.untitled .pv-head > .pv-title, .pv-number.untitled > .pv-title { display: none; }
+.pv.untitled .pv-head:not(:has(.pv-sub)) { display: none; }
+/* Read across a room: the rows larger in the player. */
+.present-visual .pv-label { font-size: 15px; }
+.present-visual .pv-val { font-size: 14.5px; }
+.present-visual .pv-track { height: 16px; }
+
+/* In the editor: small, on paper. */
+.pv.mini { padding: 12px; border-radius: 12px; box-shadow: inset 0 0 0 1px var(--hairline); gap: 8px; }
+.pv.mini .pv-figure { font-size: 40px; }
+.pv.mini .pv-figure.small { font-size: 20px; }
+.pv.mini .pv-tiles { max-width: 160px; gap: 2px; }
+.pv.mini .pv-rows { gap: 4px 8px; }
+.pv.mini .pv-label { font-size: 12.5px; }
+.pv.mini .pv-image img { max-height: 180px; object-fit: contain; }
+
+/* Add data. */
+.pi-drop { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 22px 16px; border-radius: var(--radius); text-align: center; cursor: pointer;
+  background: repeating-linear-gradient(90deg, var(--hairline) 0 6px, transparent 6px 12px) top / 100% 1px no-repeat, repeating-linear-gradient(90deg, var(--hairline) 0 6px, transparent 6px 12px) bottom / 100% 1px no-repeat,
+    repeating-linear-gradient(0deg, var(--hairline) 0 6px, transparent 6px 12px) left / 1px 100% no-repeat, repeating-linear-gradient(0deg, var(--hairline) 0 6px, transparent 6px 12px) right / 1px 100% no-repeat;
+  transition: background-color var(--t-quick) var(--ease-settle); }
+.pi-drop:hover, .pi-drop.over, .pi-drop:focus-visible { background-color: color-mix(in srgb, var(--accent) 7%, transparent); }
+.pi-drop strong { font-size: 14.5px; }
+.pi-paste { width: 100%; margin-top: 10px; font-family: var(--font-mono); font-size: 12.5px; }
+.pi-out { display: flex; flex-direction: column; gap: 12px; }
+.pi-sugg { display: flex; flex-direction: column; gap: 10px; padding-top: 12px; border-top: 1px solid var(--hairline); animation: rise var(--t-move) var(--ease-settle) both; }
+.pi-sugg-label { margin: 0; font-size: 14px; font-weight: 600; }
+.pi-find, .pi-sections { margin: 0; padding-left: 18px; font-size: 13px; line-height: 1.5; }
+.pi-find { list-style: none; padding: 0; font-family: var(--font-mono); font-size: 12px; }
+.present-visual-row { display: flex; align-items: center; gap: 8px; }
+.present-visual-tag { font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px; box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ochre) 60%, transparent); color: var(--label); }
+.present-visual-row .link-btn { margin: 0; }
+
 /* Work › Video */
 a.primary-btn { text-decoration: none; display: inline-flex; align-items: center; }
 .clean-exit {

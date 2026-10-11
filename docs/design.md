@@ -134,6 +134,10 @@ Motion is how the simple insight arrives, not decoration. One curve, three durat
 - **The marks move.** Registration ticks draw in when something is chosen; hairlines draw left to right; figures
   in Geist Mono and in an insight's headline count up to their value; pigments wash in; the hours rise like a
   skyline; your people land on the globe one after another; heat and view layers fade up rather than appear.
+- **Data in the same hand.** What someone brings to a presentation is redrawn, never pasted as a picture of
+  someone else's chart: bars in ochre grow in rank order, a line draws itself and its latest value lands, one figure
+  counts up in Geist Mono, a share fills a grid of tesserae in the four pigments, places land on the globe one after
+  another. Hairlines for axes, no gridlines more than needed, plain words for the change ("Up 33% since 1960").
 - **Respectful.** With less motion asked for, everything is a 120 ms fade and nothing travels.
 
 ## Web, phone and TV

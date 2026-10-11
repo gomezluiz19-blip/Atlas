@@ -1,6 +1,8 @@
 // Presentations: slides that are places on the globe (a camera view), each with
 // a title, a few lines of text, and optionally the world's borders in a past
-// year and map layers switched on.
+// year, map layers switched on, and a visual made from someone's data (presentData.ts).
+import { visualFromJson, type Visual } from "./presentData";
+
 export interface SlideCamera { lon: number; lat: number; height: number; heading: number; pitch: number; roll: number }
 
 export interface Slide {
@@ -19,6 +21,8 @@ export interface Slide {
   thumb?: string;
   /** Teacher's notes: shown only when the presenter asks for them. */
   notes?: string;
+  /** A chart, a figure, places on the globe or a picture, made from data brought in. */
+  visual?: Visual;
 }
 
 export interface Deck { id: string; name: string; created: number; slides: Slide[] }
@@ -77,6 +81,7 @@ export function deckFromJson(data: unknown, id: () => string): Deck | null {
       seconds: isNum(s.seconds) && s.seconds > 0 ? s.seconds : undefined,
       thumb: typeof s.thumb === "string" && s.thumb.startsWith("data:image/") ? s.thumb : undefined,
       notes: typeof s.notes === "string" && s.notes ? s.notes : undefined,
+      visual: visualFromJson(s.visual),
     }];
   });
   return { id: id(), name: String(o.name ?? "Imported presentation"), created: Date.now(), slides };

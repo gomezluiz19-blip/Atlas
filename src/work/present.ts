@@ -8,6 +8,7 @@ import { HISTORY_CREDIT, HistoryLayer, YEARS, nearestYear, polityColor as polity
 import { h } from "../ui/dom";
 import type { WorkCtx } from "./hub";
 import { deckFromJson, slideSeconds, type Deck, type Slide, type SlideCamera } from "./presentModel";
+import { animateVisual, showPoints, visualEl, visualLabel } from "./presentVisual";
 import { ListStore, download, newId } from "./store";
 
 const store = new ListStore<Deck>("atlas.work.decks.v1");
@@ -151,9 +152,11 @@ function penLayer() {
 
 /** Plays a deck full screen; resolves when it ends or is closed. */
 export function play(app: App, deck: Deck, opts: PlayOptions = {}): { done: Promise<void>; close(): void; step(dir: 1 | -1): void } {
-  let i = -1, stopOrbit = () => {}, timer = 0, closed = false, token = 0, paused = false;
+  let i = -1, stopOrbit = () => {}, timer = 0, closed = false, token = 0, paused = false, clearPoints = () => {};
   const prevYear = borders(app).year;
   const card = h("div", { class: "present-card" });
+  // The slide's visual: a chart or figure beside the globe, or places on it.
+  const visual = h("div", { class: "present-visual", hidden: true });
   const counter = h("span", { class: "present-count" });
   const pauseBtn = h("button", { class: "present-btn", "aria-label": "Pause" }, "❚❚");
   // Teaching tools.
@@ -168,7 +171,7 @@ export function play(app: App, deck: Deck, opts: PlayOptions = {}): { done: Prom
   const notesBtn = h("button", { class: "present-btn", "aria-label": "Show my notes", title: "Notes (N)", onclick: () => { notes.hidden = !notes.hidden; notesBtn.classList.toggle("on", !notes.hidden); } }, "🗒");
   const root = h("div", { class: "present" + (opts.teach ? " teach" : ""), role: "dialog", "aria-label": deck.name },
     pen ? pen.el : "",
-    card, notes,
+    visual, card, notes,
     h("div", { class: "present-bar" },
       h("button", { class: "present-btn", "aria-label": "Previous slide", onclick: () => go(i - 1) }, "‹"),
       counter,
@@ -213,6 +216,17 @@ export function play(app: App, deck: Deck, opts: PlayOptions = {}): { done: Prom
     card.classList.remove("in");
     void card.offsetWidth;
     card.classList.add("in");
+    clearPoints(); clearPoints = () => {};
+    visual.hidden = !s.visual;
+    root.classList.toggle("has-visual", !!s.visual && s.visual.kind !== "points");
+    if (s.visual) {
+      const el = visualEl(s.visual);
+      // The card already says it.
+      if (s.visual.title && s.visual.title === (s.title || deck.name)) el.classList.add("untitled");
+      visual.replaceChildren(el);
+      animateVisual(el);
+      if (s.visual.kind === "points") clearPoints = showPoints(app, s.visual);
+    } else visual.replaceChildren();
     opts.onSlide?.(s, i);
     void showYear(app, s.year ?? null).catch(() => app.toast("Couldn't load the borders for that year. Check the connection.", 5000));
     for (const id of s.layers ?? []) {
@@ -241,6 +255,7 @@ export function play(app: App, deck: Deck, opts: PlayOptions = {}): { done: Prom
     if (closed) return;
     closed = true;
     stopOrbit();
+    clearPoints();
     clearTimeout(timer);
     removeEventListener("keydown", onKey);
     clearInterval(clockTimer);
@@ -315,6 +330,9 @@ export function openDeck(ctx: WorkCtx, id: string) {
         h("input", { class: "mp-label", value: s.title, placeholder: "Title", "aria-label": "Slide title", onchange: (e: Event) => { s.title = (e.target as HTMLInputElement).value; save(); } }),
         h("textarea", { class: "mp-notes", rows: 2, placeholder: "What to say about this place", "aria-label": "Slide text", onchange: (e: Event) => { s.text = (e.target as HTMLTextAreaElement).value; save(); } }, s.text),
         h("textarea", { class: "mp-notes present-notes-input", rows: 1, placeholder: "Presenter notes (only shown when you ask)", "aria-label": "Presenter notes", onchange: (e: Event) => { s.notes = (e.target as HTMLTextAreaElement).value || undefined; save(); } }, s.notes ?? ""),
+        s.visual ? h("div", { class: "present-visual-row" },
+          h("span", { class: "present-visual-tag" }, visualLabel(s.visual)),
+          h("button", { class: "link-btn danger", onclick: () => { s.visual = undefined; save(); again(); } }, "Remove")) : "",
         h("div", { class: "present-opts" },
           yearSelect(s),
           h("label", { class: "present-check" }, h("input", { type: "checkbox", checked: !!s.orbit, onchange: (e: Event) => { s.orbit = (e.target as HTMLInputElement).checked || undefined; save(); } }), "Circle"),
@@ -326,9 +344,10 @@ export function openDeck(ctx: WorkCtx, id: string) {
 
   ctx.show("Story", () => openPresent(ctx),
     h("input", { class: "mp-name", value: d.name, "aria-label": "Story name", onchange: (e: Event) => { d.name = (e.target as HTMLInputElement).value || d.name; save(); } }),
-    h("p", { class: "muted small" }, "Move the globe to what you want to show (turn on borders or layers too), then add it as a slide."),
+    h("p", { class: "muted small" }, "Move the globe to what you want to show (turn on borders or layers too), then add it as a slide. Or bring in data: a table, a document, numbers or addresses become a moving chart or places on the globe."),
     h("div", { class: "chips wrap" },
       h("button", { class: "chip", onclick: () => void addSlide() }, "+ Add this view as a slide"),
+      h("button", { class: "chip", title: "Spreadsheets, documents, numbers, addresses, pictures of charts", onclick: () => void import("./presentImport").then((m) => m.openImport(ctx, d, save, again)) }, "+ Add data"),
       h("button", { class: "chip", onclick: () => openBorders(ctx, d.id) }, "Borders through time")),
     d.slides.length ? h("div", { class: "present-slides" }, ...d.slides.map(slideRow)) : h("p", { class: "muted small" }, "No slides yet."),
     d.slides.length ? h("div", { class: "pro-actions" },

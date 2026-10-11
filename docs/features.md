@@ -476,6 +476,22 @@ Video and Teach under **Create**; Learn under **Explore**. All of them are open 
   history (123,000 BC to 2010), and any map layers. Play it full screen, one slide at a time or as a flying
   tour that circles each place. Topic templates (the Roman Empire, World War I, the age of exploration) and a
   *Borders through time* slider help with school projects. Decks save to a file to share.
+  **Add data** brings in what you already have and draws it in Terreno's hand, moving, on a slide:
+  - *Spreadsheets* (CSV, TSV, Excel .xlsx), *JSON* and *GeoJSON*, or a table pasted from anywhere. Terreno reads
+    each column (names, numbers, money, percentages, years and dates, coordinates, addresses) and offers what it
+    can draw: **bars** ranked and growing one after another, a **line** over time that draws itself, **one big
+    figure** that counts up (with the change since the first year), **shares** of a whole as a hundred tiles that
+    fill in, or **places on the globe**, sized by their number, that land one after another and are framed.
+  - *Addresses and place names*, a column of them or a pasted list, are found on the map (OpenStreetMap) and
+    become places on the globe; any it can't find are named.
+  - *Documents* (Word .docx, text, Markdown, web pages) become slides, one per heading or paragraph, and a short
+    part built around one figure shows that figure; addresses in the text can go on the globe.
+  - *Numbers* ("8.1 billion people", "Rent: $1,200 / Food: $450") become a figure or bars.
+  - *Pictures of charts* (a file, or a screenshot pasted in) go on the slide as they are; with Terreno AI on,
+    Claude reads their numbers so Terreno can redraw them, and reads PDFs into slides, a chart and their places.
+  The slide list shows what each visual is, and it can be removed. Visuals play on the web, the phone and a TV,
+  beside the globe on a wide screen and above it on a phone (code: `src/work/presentData.ts`, `presentVisual.ts`,
+  `presentImport.ts`).
 - **Video** is a studio: the globe on a monitor framed to the film's shape (widescreen, square or
   vertical), with the title, caption and safe area shown as they'll be recorded. Save shots (with a
   thumbnail and caption) and play or record them as the camera flies between them; switch the look
