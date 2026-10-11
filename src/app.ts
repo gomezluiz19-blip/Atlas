@@ -1,5 +1,5 @@
 // App shell. The model is simple: tap anywhere to choose a place, pick a theme
-// from the tab bar, and every subtab of that theme describes the chosen place.
+// (a view, under ＋), and every subtab of that theme describes the chosen place.
 import { Cartesian2, Cartesian3, Color, HeightReference, ScreenSpaceEventHandler, ScreenSpaceEventType, type Entity } from "cesium";
 import { Canvas } from "./canvas";
 import { reverseGeocode, type PlaceName } from "./data/geocode";
@@ -9,7 +9,7 @@ import { Chart, type ChartData, type ChartOptions } from "./ui/chart";
 import { formatDms } from "./data/locationParse";
 import { formatLonLat, h } from "./ui/dom";
 import { icons } from "./ui/icons";
-import { morphBetween, stagger } from "./ui/motion";
+import { stagger } from "./ui/motion";
 
 export interface GeoPoint {
   lon: number;
@@ -118,9 +118,9 @@ export interface Theme {
   leave?(app: App): void;
   /** Content before a place is chosen; defaults to the app's empty state. */
   renderEmpty?(app: App, body: HTMLElement): void;
-  /** A topic: kept off the main bar, under "More". */
+  /** Not one of the main views (set from barOrder): listed under ＋'s "More views". */
   more?: boolean;
-  /** A shorter name for the bar, when the label is long ("Money"). */
+  /** A shorter name where space is tight, when the label is long ("Money"). */
   tabLabel?: string;
 }
 
@@ -167,16 +167,14 @@ export class App {
   place: Place | null = null;
   theme!: Theme;
   subtab!: Subtab;
-  private tabbar: HTMLElement;
-  private tabButtons = new Map<string, HTMLButtonElement>();
+
   /** The main bar's order, by theme id; themes not named here go under More. Space stands a little apart. */
   barOrder: string[] = [];
-  barApart = new Set<string>();
+
   /** "More": the topics that aren't on the main bar, plus whatever main adds (your lenses). */
-  private moreBtn: HTMLButtonElement | null = null;
-  private moreMenu = h("div", { class: "more-menu", role: "menu", hidden: true });
+
   /** Extra rows for the More menu (set by main). */
-  moreExtras?: () => (Node | string)[];
+
   private tools = new Map<string, { tool: Tool; panel: Panel; placeKey: string; active: boolean }>();
   private toolHome = new Map<string, [string, string]>();
   private interaction: Tool | null = null;
@@ -208,8 +206,7 @@ export class App {
   private handleClick: (pos: Cartesian2) => void = () => {};
 
   constructor(readonly globe: Globe, root: HTMLElement) {
-    this.tabbar = h("nav", { class: "tabbar", role: "tablist", "aria-label": "Themes" });
-    root.append(this.sheet.el, this.drawer.el, this.tabbar, this.toastEl);
+    root.append(this.sheet.el, this.drawer.el, this.toastEl);
     this.sheet.close.addEventListener("click", () => this.clearPlace());
     this.sheet.share.addEventListener("click", () => this.toggleShare());
 
@@ -278,67 +275,22 @@ export class App {
         return;
       }
       const n = Number(e.key);
-      const bar = [...this.tabButtons.entries()].sort(([, a], [, b]) => (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1)).map(([id]) => id);
-      if (n >= 1 && n <= bar.length) this.setTheme(bar[n - 1]);
+      const bar = this.views().main;
+      if (n >= 1 && n <= bar.length) this.setTheme(bar[n - 1].id);
     });
   }
 
   addTheme(theme: Theme) {
-    // With a bar order set, it decides what's on the bar and what goes under More.
+    // With a bar order set, it decides which are the main views and which wait under "More views".
     if (this.barOrder.length) theme = { ...theme, more: !this.barOrder.includes(theme.id) };
     this.themes.push(theme);
-    if (theme.more) { this.moreButton(); return; }
-    const btn = h(
-      "button",
-      {
-        class: "tab",
-        role: "tab",
-        "aria-selected": "false",
-        style: `--tab-color:${theme.color}`,
-        // A view is like a map layer: switching keeps the card as it is; tapping the one you're on opens or folds it.
-        // Another view: its chip grows into the card. The view you're on: the card opens or folds.
-        onclick: (e: Event) => {
-          if (this.theme?.id === theme.id) this.sheet.el.classList.toggle("collapsed");
-          else morphBetween(e.currentTarget as HTMLElement, () => this.sheet.el, "view", () => this.setTheme(theme.id));
-        },
-      },
-      h("span", { class: "tab-icon", html: theme.icon }),
-      h("span", { class: "tab-label" }, theme.tabLabel ?? theme.label),
-    );
-    if (this.barApart.has(theme.id)) btn.classList.add("tab-apart");
-    this.tabButtons.set(theme.id, btn);
-    // In bar order, whatever order the themes are added in.
-    const at = this.barOrder.indexOf(theme.id);
-    const before = at < 0 ? null : [...this.tabButtons].map(([id, b]) => ({ i: this.barOrder.indexOf(id), b })).filter((x) => x.i > at).sort((a, b) => a.i - b.i)[0]?.b;
-    this.tabbar.insertBefore(btn, before ?? this.moreBtn);
-    if (!this.theme) this.setTheme(theme.id);
+    if (!this.theme && !theme.more) this.setTheme(theme.id);
   }
 
-  /** The last tab: the topics that aren't on the main bar. */
-  private moreButton() {
-    if (this.moreBtn) return;
-    this.moreBtn = h("button", { class: "tab more-tab", role: "tab", "aria-selected": "false", "aria-haspopup": "menu", "aria-expanded": "false", style: "--tab-color:var(--accent)", onclick: () => this.toggleMore() },
-      h("span", { class: "tab-icon", html: icons.grid }), h("span", { class: "tab-label" }, "More"));
-    this.tabbar.append(this.moreBtn);
-    this.tabbar.after(this.moreMenu);
-    document.addEventListener("pointerdown", (e) => {
-      if (!this.moreMenu.hidden && !this.moreMenu.contains(e.target as Node) && !this.moreBtn!.contains(e.target as Node)) this.toggleMore(false);
-    });
-    document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !this.moreMenu.hidden) this.toggleMore(false); });
-  }
-
-  toggleMore(open = this.moreMenu.hidden) {
-    if (open) {
-      this.moreMenu.replaceChildren(
-        h("p", { class: "more-title" }, "Everything else"),
-        h("div", { class: "more-grid" }, ...this.themes.filter((t) => t.more).map((t) =>
-          h("button", { class: "more-item", role: "menuitem", style: `--tab-color:${t.color}`, "aria-current": String(t === this.theme), onclick: () => { this.toggleMore(false); this.sheet.el.classList.remove("collapsed"); this.setTheme(t.id); } },
-            h("span", { class: "more-icon", html: t.icon }),
-            h("span", { class: "more-text" }, h("strong", {}, t.label), h("span", {}, t.intro))))),
-        ...(this.moreExtras?.() ?? []));
-    }
-    this.moreMenu.hidden = !open;
-    this.moreBtn?.setAttribute("aria-expanded", String(open));
+  /** The views, as ＋ offers them: the main ones in bar order, then the rest. */
+  views(): { main: Theme[]; more: Theme[] } {
+    const main = this.barOrder.map((id) => this.themes.find((t) => t.id === id)).filter((t): t is Theme => !!t);
+    return { main, more: this.themes.filter((t) => t.more) };
   }
 
   /** Remembers which theme/subtab hosts a tool, so tools can link to each other. */
@@ -358,14 +310,6 @@ export class App {
       this.theme?.leave?.(this);
       this.theme = theme;
       this.subtab = theme.subtabs[0];
-      for (const [tid, b] of this.tabButtons) b.setAttribute("aria-selected", String(tid === id));
-      // A topic shows on the More tab while it's open.
-      if (this.moreBtn) {
-        this.moreBtn.setAttribute("aria-selected", String(!!theme.more));
-        this.moreBtn.style.setProperty("--tab-color", theme.more ? theme.color : "var(--accent)");
-        this.moreBtn.querySelector(".tab-icon")!.innerHTML = theme.more ? theme.icon : icons.grid;
-        this.moreBtn.querySelector(".tab-label")!.textContent = theme.more ? theme.label.split(" ")[0] : "More";
-      }
       document.documentElement.style.setProperty("--theme", theme.color);
       theme.enter?.(this);
       this.canvas.setTheme(theme.id);

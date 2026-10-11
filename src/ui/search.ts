@@ -33,14 +33,14 @@ const FIELD_SITES: Place[] = [
 /**
  * The part of the map not covered by panels, in canvas pixels: the place
  * card on the left (or along the bottom on phones), panels on the right,
- * the top bar and the tab bar.
+ * the top bar and the dock.
  */
 export function freeArea(canvas: HTMLCanvasElement): { left: number; right: number; top: number; bottom: number } {
   const c = canvas.getBoundingClientRect();
   const pad = { left: 0, right: 0, top: 0, bottom: 0 };
   // Stepped-aside panels (the empty place card while working) don't count.
   const shown = (el: Element) => { const r = el.getBoundingClientRect(), st = getComputedStyle(el); return r.width > 0 && r.height > 0 && st.visibility !== "hidden" && !(el.classList.contains("sheet") && st.pointerEvents === "none") ? r : null; };
-  for (const el of document.querySelectorAll("#ui .sheet, #ui .popover:not([hidden]), #ui .lens-panel:not([hidden]), #ui .topbar, #ui .tabbar")) {
+  for (const el of document.querySelectorAll("#ui .sheet, #ui .popover:not([hidden]), #ui .lens-panel:not([hidden]), #ui .topbar, #ui .dock")) {
     const r = shown(el);
     if (!r) continue;
     const wide = r.width > c.width * 0.6, tall = r.height > c.height * 0.45;
