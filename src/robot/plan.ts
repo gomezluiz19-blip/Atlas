@@ -67,7 +67,7 @@ const RULES: Rule[] = [
   { re: /\b(construction|building site|worksite|work site|construction site|build (a |an |my )?(house|building|tower|block)|site progress)\b/, step: layer("work:build", "Open Build (My Place)") },
   { re: /\b(livestock|herds?|flocks?|my (cows|cattle|sheep|goats|pigs|horses|chickens|animals)|paddocks?|vet(erinary)? (practice|clinic|records)|animal rescue|rescue cent(re|er)|(pet|animal) adoption|adoption agency|adopt a (dog|cat|pet))\b/, step: layer("work:flock", "Open Flock (My Place)") },
   { re: /\b(learn(ing)? games?|games? (for|to learn)|flight (game|school)|flag (game|quiz|match)|flags of|my passport|daily challenge|homework|(museums?|librar(y|ies)|science cent(re|er)s?|planetariums?|zoos?) (near|nearby|around|to visit|for (kids|students))|free museums?|places to learn|student discounts?)\b/, step: layer("work:learn", "Open Learn (Explore)") },
-  { re: /\b(field trips?|school trips?|class trips?|excursions?|lesson( plans?)?|quiz(zes)?|tests? for my class|my (class|students)|teach(ing)?|classroom|world summit)\b/, step: layer("work:teach", "Open Teach (Create)") },
+  { re: /\b(field trips?|school trips?|class trips?|excursions?|lesson( plans?)?|quiz(zes)?|tests? for my class|my (class|students)|teach(ing)?|classroom|world summit)\b/, step: layer("work:teach", "Open Teach (Explore)") },
   { re: /\b(plant|crop|vegetation) health\b|\bndvi\b|\bhow green\b/, step: layer("work:ndvi", "Add plant health from space (NDVI)") },
   // Map layers
   { re: /\b(live )?(rain )?radar\b|\bis it raining\b/, step: layer("overlay:radar", "Add live rain radar") },

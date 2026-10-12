@@ -1,6 +1,7 @@
-// Any place, booted up: a holographic model of it on a projector. The ground
-// comes from the real terrain and the buildings around from OpenStreetMap.
-// The one that's yours (or the landmark) is lit warm among the cool blue ones,
+// Any place, booted up: a paper model of it on a round plinth, like an
+// architect's maquette. The ground comes from the real terrain and the
+// buildings around from OpenStreetMap, in paper with ink edges; the one that's
+// yours (or the landmark) is in the accent (clay for a place, ochre for a site),
 // with whatever lives there drawn on it: your cameras and panels, a site's
 // machines by health, its cranes by the wind, a port's ships waiting. Around
 // it, what's going on there now, and a dock of what you do with it. Tap a dock
@@ -58,7 +59,7 @@ export interface SpaceOptions {
   dock?: DockItem[];
   chips?: Chip[];
   addLabel?: string;
-  /** The tint: cool blue for places, amber for sites, green for programmes. */
+  /** The accent: clay for places, ochre for sites, sage for programmes, violet for the rest. */
   tint?: "cyan" | "amber" | "green" | "violet";
   onPick?(id: string): void;
   onChip?(id: string): void;
@@ -68,7 +69,9 @@ export interface SpaceOptions {
 }
 
 const N = 48;
-const TINTS = { cyan: [0x5ad8ff, 0xffc46b], amber: [0xffb347, 0x5ad8ff], green: [0x5dffa8, 0xffd36b], violet: [0xb59bff, 0xffc46b] } as const;
+/** Ink for the edges of everything around; the accent for yours (by tint). */
+const INK = 0x2b2824, PAPER = 0xf6f1e8, PLINTH = 0xe6dfd2;
+const TINTS = { cyan: [INK, 0x9c4a32], amber: [INK, 0xb7741f], green: [INK, 0x3e7a2e], violet: [INK, 0x8b5fa8] } as const;
 const within = <T,>(p: Promise<T>, ms: number, fallback: T) => Promise.race([p.catch(() => fallback), new Promise<T>((r) => setTimeout(() => r(fallback), ms))]);
 const hex = (n: number) => `#${n.toString(16).padStart(6, "0")}`;
 
@@ -89,7 +92,7 @@ export function bootSpace(o: SpaceOptions): Holo {
   const puckHint = h("span", { class: "holo-puck-hint" }, o.name);
   const capture = h("button", { class: "holo-btn", onclick: () => void shoot(false) }, "Still");
   const filmBtn = h("button", { class: "holo-btn", onclick: () => void shoot(true) }, "Film");
-  const el = h("section", { class: "holo", role: "dialog", "aria-label": o.name, style: `--holo:${hex(COOL)};--holo-warm:${hex(WARM)}` },
+  const el = h("section", { class: "holo", role: "dialog", "aria-label": o.name, style: `--holo:${hex(WARM)};--holo-warm:${hex(WARM)}` },
     canvasHost,
     tags,
     h("div", { class: "holo-scan", "aria-hidden": "true" }),
@@ -139,7 +142,12 @@ export function bootSpace(o: SpaceOptions): Holo {
 
   // ---- The scene ----
   const scene = new THREE.Scene();
-  scene.fog = new THREE.Fog(0x02060d, 18, 46);
+  scene.fog = new THREE.Fog(0xece8e1, 26, 60);
+  // Daylight on paper: soft sky light and one low sun, so the model's faces read.
+  scene.add(new THREE.HemisphereLight(0xffffff, 0xd9d0c2, 1.6));
+  const sun = new THREE.DirectionalLight(0xffffff, 1.4);
+  sun.position.set(-6, 10, 4);
+  scene.add(sun);
   const camera = new THREE.PerspectiveCamera(32, 1, 0.05, 200);
   const controls = new OrbitControls(camera, renderer.domElement);
   controls.enableDamping = true; controls.enablePan = false; controls.minDistance = 5; controls.maxDistance = 30; controls.maxPolarAngle = Math.PI * 0.46;
@@ -147,27 +155,23 @@ export function bootSpace(o: SpaceOptions): Holo {
   camera.position.set(9, 7.5, 12);
   controls.target.set(0, 0.6, 0);
 
-  const additive = (color: number, opacity: number) => new THREE.MeshBasicMaterial({ color, transparent: true, opacity, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide });
-  const lineMat = (color: number, opacity: number) => new THREE.LineBasicMaterial({ color, transparent: true, opacity, blending: THREE.AdditiveBlending, depthWrite: false });
+  // Flat colour (markers, the plinth's marks) and ink lines, on paper: no glow.
+  const additive = (color: number, opacity: number) => new THREE.MeshBasicMaterial({ color, transparent: opacity < 1, opacity, depthWrite: opacity >= 0.9, side: THREE.DoubleSide });
+  const lineMat = (color: number, opacity: number) => new THREE.LineBasicMaterial({ color, transparent: true, opacity, depthWrite: false });
 
-  // The projector: rings of light on the floor, turning.
+  // The plinth: a round board the model sits on, with a hairline rim and the compass's degree ticks in ink.
   const projector = new THREE.Group();
-  for (const [r, w, op] of [[6.2, 0.05, 0.9], [6.5, 0.015, 0.5], [7.3, 0.01, 0.25]] as const)
-    projector.add(new THREE.Mesh(new THREE.RingGeometry(r, r + w, 128).rotateX(-Math.PI / 2), additive(COOL, op)));
-  for (let i = 0; i < 48; i++) {
-    const a = (i / 48) * Math.PI * 2, tick = new THREE.Mesh(new THREE.PlaneGeometry(0.02, i % 4 ? 0.12 : 0.3).rotateX(-Math.PI / 2), additive(COOL, 0.6));
-    tick.position.set(Math.cos(a) * 6.9, 0, Math.sin(a) * 6.9); tick.rotation.y = -a;
+  const board = new THREE.Mesh(new THREE.CylinderGeometry(6.6, 6.75, 0.28, 128), new THREE.MeshLambertMaterial({ color: PLINTH }));
+  board.position.y = -0.16;
+  projector.add(board);
+  projector.add(new THREE.Mesh(new THREE.RingGeometry(6.55, 6.58, 128).rotateX(-Math.PI / 2), additive(INK, 0.55)));
+  for (let i = 0; i < 72; i++) {
+    const a = (i / 72) * Math.PI * 2, tick = new THREE.Mesh(new THREE.PlaneGeometry(0.018, i % 6 ? 0.1 : 0.26).rotateX(-Math.PI / 2), additive(i === 0 ? WARM : INK, i % 6 ? 0.35 : 0.7));
+    tick.position.set(Math.cos(a) * 6.38, 0.002, Math.sin(a) * 6.38); tick.rotation.y = -a;
     projector.add(tick);
   }
   projector.position.y = -0.02;
   scene.add(projector);
-  const beam = new THREE.Mesh(new THREE.CylinderGeometry(5.2, 6.2, 4, 64, 1, true), new THREE.MeshBasicMaterial({ color: COOL, transparent: true, opacity: 0.035, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }));
-  beam.position.y = 2;
-  scene.add(beam);
-  const motes = new THREE.BufferGeometry(), mcount = 260, mpos = new Float32Array(mcount * 3);
-  for (let i = 0; i < mcount; i++) { const a = Math.random() * Math.PI * 2, r = Math.sqrt(Math.random()) * 5.6; mpos.set([Math.cos(a) * r, Math.random() * 4, Math.sin(a) * r], i * 3); }
-  motes.setAttribute("position", new THREE.BufferAttribute(mpos, 3));
-  scene.add(new THREE.Points(motes, new THREE.PointsMaterial({ color: COOL, size: 0.035, transparent: true, opacity: 0.7, blending: THREE.AdditiveBlending, depthWrite: false })));
 
   const model = new THREE.Group();
   scene.add(model);
@@ -237,7 +241,11 @@ export function bootSpace(o: SpaceOptions): Holo {
     const merged = geos.length ? mergeGeometries(geos) : null;
     if (!merged) return null;
     const grp = new THREE.Group();
-    grp.add(new THREE.Mesh(merged, additive(color, fill)), new THREE.LineSegments(new THREE.EdgesGeometry(merged, 25), lineMat(color, edge)));
+    // Paper volumes with ink edges; yours in the accent. A faint one (an estimate) stays see-through.
+    const paper = color === COOL;
+    const faint = !paper && fill < 0.15;
+    const body = new THREE.MeshLambertMaterial({ color: paper ? PAPER : color, transparent: faint, opacity: faint ? 0.5 : 1 });
+    grp.add(new THREE.Mesh(merged, body), new THREE.LineSegments(new THREE.EdgesGeometry(merged, 25), lineMat(paper ? INK : 0x3a1d14, paper ? edge * 0.75 : 0.6)));
     model.add(grp);
     grp.scale.y = reduced ? 1 : 0.001;
     risers.push({ g: grp, t0: performance.now() });
@@ -288,7 +296,7 @@ export function bootSpace(o: SpaceOptions): Holo {
     }
     const grid = new THREE.BufferGeometry();
     grid.setAttribute("position", new THREE.Float32BufferAttribute(segs, 3));
-    model.add(new THREE.LineSegments(grid, lineMat(COOL, 0.22)));
+    model.add(new THREE.LineSegments(grid, lineMat(INK, 0.1)));
     const beacon = new THREE.Mesh(new THREE.CylinderGeometry(SIZE / 430, SIZE / 430, SIZE / 9, 16, 1, true), additive(WARM, 0.35));
     beacon.position.set(0, SIZE / 18, 0);
     model.add(beacon);
@@ -455,13 +463,8 @@ export function bootSpace(o: SpaceOptions): Holo {
   const ease = (t: number) => (t <= 0 ? 0 : t >= 1 ? 1 : 1 - (1 - t) ** 3);
   const afterFrame: (() => void)[] = [];
   const v = new THREE.Vector3();
-  let raf = 0, last = performance.now();
+  let raf = 0;
   const loop = (now: number) => {
-    const dt = Math.min(0.1, (now - last) / 1000); last = now;
-    projector.rotation.y += dt * 0.08;
-    const a = motes.attributes.position as THREE.BufferAttribute;
-    for (let i = 0; i < mcount; i++) { let y = a.getY(i) + dt * 0.25; if (y > 4) y = 0; a.setY(i, y); }
-    a.needsUpdate = true;
     const beat = 1 + 0.6 * ((now / 1400) % 1);
     for (const p of pulses) { p.scale.set(beat, 1, beat); (p.material as THREE.MeshBasicMaterial).opacity = 0.9 * (1 - ((now / 1400) % 1)); }
     // Water and pools shimmer.
@@ -484,10 +487,10 @@ export function bootSpace(o: SpaceOptions): Holo {
     raf = requestAnimationFrame(loop);
   };
   const everyFrame = new Set<() => void>();
-  raf = requestAnimationFrame((n) => { el.classList.add("in"); last = n; loop(n); });
+  raf = requestAnimationFrame((n) => { el.classList.add("in"); loop(n); });
 
   async function shoot(asFilm: boolean) {
-    const card = { title: o.name, sub: o.kicker.replace(/ · -?\d.*$/, ""), accent: hex(COOL) };
+    const card = { title: o.name, sub: o.kicker.replace(/ · -?\d.*$/, ""), accent: hex(WARM) };
     if (!asFilm) { await still(renderer!.domElement, (cb) => afterFrame.push(cb), card); return; }
     filmBtn.textContent = "Recording…"; filmBtn.setAttribute("disabled", "");
     const ok = await film(renderer!.domElement, (cb) => { everyFrame.add(cb); return () => everyFrame.delete(cb); }, card, 8, () => {

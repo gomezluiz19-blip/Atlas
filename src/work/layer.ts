@@ -4,6 +4,7 @@
 import { ArcType, Cartesian2, Cartesian3, Color, CustomDataSource, PolylineDashMaterialProperty, HeightReference, LabelStyle, VerticalOrigin, type ImageryLayer } from "cesium";
 import type { App } from "../app";
 import { canvasLayer, tracePath } from "../globe/networkLayer";
+import { makeTappable } from "../globe/pickables";
 import type { LonLat } from "./geo";
 
 export interface WorkFeature {
@@ -17,6 +18,10 @@ export interface WorkFeature {
   fill?: number;
   /** Lines: draw as a crisp geodesic polyline in exactly this colour, instead of on the map tiles (best for long, sparse legs). */
   solid?: boolean;
+  /** Points: what tapping the marker does (opens its record). */
+  tap?: () => void;
+  /** Points: a bigger marker, for the one that matters now. */
+  big?: boolean;
 }
 
 export class WorkLayer {
@@ -32,16 +37,18 @@ export class WorkLayer {
     if (label) this.label = label;
     this.ds.entities.removeAll();
     for (const f of features.filter((x) => x.kind === "point"))
-      for (const [lon, lat] of f.pts)
-        this.ds.entities.add({
+      for (const [lon, lat] of f.pts) {
+        const e = this.ds.entities.add({
           position: Cartesian3.fromDegrees(lon, lat),
-          point: { pixelSize: 14, color: Color.fromCssColorString(f.color), outlineColor: Color.WHITE, outlineWidth: 2.5, heightReference: HeightReference.CLAMP_TO_GROUND, disableDepthTestDistance: Number.POSITIVE_INFINITY },
+          point: { pixelSize: f.big ? 20 : 14, color: Color.fromCssColorString(f.color), outlineColor: Color.WHITE, outlineWidth: 2.5, heightReference: HeightReference.CLAMP_TO_GROUND, disableDepthTestDistance: Number.POSITIVE_INFINITY },
           label: f.label ? {
             text: f.label, font: "700 13px 'Terreno Sans', 'Plus Jakarta Sans', system-ui, sans-serif", style: LabelStyle.FILL_AND_OUTLINE, fillColor: Color.WHITE,
-            outlineColor: Color.fromCssColorString("#0b1320"), outlineWidth: 4, verticalOrigin: VerticalOrigin.BOTTOM, pixelOffset: new Cartesian2(0, -12),
+            outlineColor: Color.fromCssColorString("#1c1b19"), outlineWidth: 4, verticalOrigin: VerticalOrigin.BOTTOM, pixelOffset: new Cartesian2(0, -12),
             heightReference: HeightReference.CLAMP_TO_GROUND, disableDepthTestDistance: Number.POSITIVE_INFINITY,
           } : undefined,
         });
+        if (f.tap) makeTappable(e, f.tap);
+      }
     for (const f of features.filter((x) => x.kind === "line" && x.solid && x.pts.length > 1))
       this.ds.entities.add({ polyline: { positions: Cartesian3.fromDegreesArray(f.pts.flat()), width: 4, arcType: ArcType.GEODESIC, clampToGround: true,
         material: f.dashed ? new PolylineDashMaterialProperty({ color: Color.fromCssColorString(f.color), dashLength: 18 }) : Color.fromCssColorString(f.color) } });

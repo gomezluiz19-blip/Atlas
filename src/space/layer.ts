@@ -123,7 +123,7 @@ export class SpaceLayer {
         billboard: { image: emojiIcon("🛰️", s === iss ? "rgba(255,214,10,0.9)" : "rgba(196, 81, 58,0.85)"), width: 34, height: 34, disableDepthTestDistance: 0 },
         label: {
           text: s === iss ? "ISS" : "Tiangong", font: "700 14px 'Terreno Sans', 'Plus Jakarta Sans', system-ui, sans-serif", style: LabelStyle.FILL_AND_OUTLINE, fillColor: Color.WHITE,
-          outlineColor: Color.fromCssColorString("#0b1320"), outlineWidth: 4, verticalOrigin: VerticalOrigin.BOTTOM, pixelOffset: new Cartesian2(0, -22),
+          outlineColor: Color.fromCssColorString("#1c1b19"), outlineWidth: 4, verticalOrigin: VerticalOrigin.BOTTOM, pixelOffset: new Cartesian2(0, -22),
         },
       });
       (e as unknown as { _space: { sat: Sat } })._space = { sat: s };
@@ -165,7 +165,7 @@ export class SpaceLayer {
         billboard: { image: emojiIcon("🚀"), width: 30, height: 30, disableDepthTestDistance: Number.POSITIVE_INFINITY },
         label: {
           text: new CallbackProperty(() => `${l.rocket}\n${inFlight(l) ? "In flight" : countdown(l.net)}`, false) as never,
-          font: "600 12px 'Terreno Sans', 'Plus Jakarta Sans', system-ui, sans-serif", style: LabelStyle.FILL_AND_OUTLINE, fillColor: Color.WHITE, outlineColor: Color.fromCssColorString("#0b1320"), outlineWidth: 4,
+          font: "600 12px 'Terreno Sans', 'Plus Jakarta Sans', system-ui, sans-serif", style: LabelStyle.FILL_AND_OUTLINE, fillColor: Color.WHITE, outlineColor: Color.fromCssColorString("#1c1b19"), outlineWidth: 4,
           verticalOrigin: VerticalOrigin.BOTTOM, pixelOffset: new Cartesian2(0, -20), scaleByDistance: new NearFarScalar(1e6, 1, 2e7, 0.6), disableDepthTestDistance: Number.POSITIVE_INFINITY,
         },
       });

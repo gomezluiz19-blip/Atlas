@@ -92,7 +92,7 @@ export function marker(ds: CustomDataSource, lon: number, lat: number, opts: { c
           font: "600 14px 'Terreno Sans', 'Plus Jakarta Sans', system-ui, sans-serif",
           style: LabelStyle.FILL_AND_OUTLINE,
           fillColor: Color.WHITE,
-          outlineColor: Color.fromCssColorString("#0b1320"),
+          outlineColor: Color.fromCssColorString("#1c1b19"),
           outlineWidth: 4,
           verticalOrigin: VerticalOrigin.BOTTOM,
           pixelOffset: new Cartesian2(0, -12),

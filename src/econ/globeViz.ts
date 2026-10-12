@@ -62,7 +62,7 @@ export class EconLayer {
       if (c.label)
         this.ds.entities.add({
           position: new CallbackProperty(() => Cartesian3.fromDegrees(lon, at.lat, full * grow() + 90_000), false) as unknown as Cartesian3,
-          label: { text: c.label, font: "700 13px 'Terreno Sans', 'Plus Jakarta Sans', system-ui, sans-serif", style: LabelStyle.FILL_AND_OUTLINE, fillColor: Color.WHITE, outlineColor: Color.fromCssColorString("#0b1320"), outlineWidth: 4,
+          label: { text: c.label, font: "700 13px 'Terreno Sans', 'Plus Jakarta Sans', system-ui, sans-serif", style: LabelStyle.FILL_AND_OUTLINE, fillColor: Color.WHITE, outlineColor: Color.fromCssColorString("#1c1b19"), outlineWidth: 4,
             verticalOrigin: VerticalOrigin.BOTTOM, pixelOffset: new Cartesian2(0, -4), scaleByDistance: new NearFarScalar(2e6, 1.1, 2.4e7, 0.75) },
         });
     }
@@ -81,7 +81,7 @@ export class EconLayer {
       this.ds.entities.add({
         position: Cartesian3.fromDegrees(p.lon, p.lat),
         point: { pixelSize: new CallbackProperty(() => 12 + 6 * (0.5 + 0.5 * Math.sin((performance.now() - this.born) / 300)), false), color: Color.fromCssColorString(p.color), outlineColor: Color.WHITE, outlineWidth: 2, disableDepthTestDistance: Number.POSITIVE_INFINITY },
-        label: { text: p.label, font: "700 12px 'Terreno Sans', 'Plus Jakarta Sans', system-ui, sans-serif", style: LabelStyle.FILL_AND_OUTLINE, fillColor: Color.WHITE, outlineColor: Color.fromCssColorString("#0b1320"), outlineWidth: 4, verticalOrigin: VerticalOrigin.BOTTOM, pixelOffset: new Cartesian2(0, -14), disableDepthTestDistance: Number.POSITIVE_INFINITY },
+        label: { text: p.label, font: "700 12px 'Terreno Sans', 'Plus Jakarta Sans', system-ui, sans-serif", style: LabelStyle.FILL_AND_OUTLINE, fillColor: Color.WHITE, outlineColor: Color.fromCssColorString("#1c1b19"), outlineWidth: 4, verticalOrigin: VerticalOrigin.BOTTOM, pixelOffset: new Cartesian2(0, -14), disableDepthTestDistance: Number.POSITIVE_INFINITY },
       });
     // Flows: streams of light arcing between countries, heavier for bigger trade.
     const max = Math.max(1, ...(opts.flows ?? []).map((f) => f.weight));

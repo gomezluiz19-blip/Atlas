@@ -110,7 +110,7 @@ export class HistoryLayer {
         position: Cartesian3.fromDegrees(p.label[0], p.label[1]),
         label: {
           text: p.name, font: "600 13px 'Terreno Sans', 'Plus Jakarta Sans', system-ui, sans-serif", style: LabelStyle.FILL_AND_OUTLINE,
-          fillColor: Color.WHITE, outlineColor: Color.fromCssColorString("#0b1320"), outlineWidth: 4,
+          fillColor: Color.WHITE, outlineColor: Color.fromCssColorString("#1c1b19"), outlineWidth: 4,
           scaleByDistance: new NearFarScalar(1e6, 1.1, 2e7, 0.7),
           distanceDisplayCondition: new DistanceDisplayCondition(0, far),
           disableDepthTestDistance: 5e6,

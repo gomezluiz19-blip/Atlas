@@ -81,7 +81,7 @@ function drawModel(app: App, p: BuildProject, date: string | null) {
     position: Cartesian3.fromDegrees(lx, ly, g + height + 6),
     label: {
       text: `${p.name}\n${m.complete ? "Complete" : `${phase?.label ?? ""} · ${Math.round(overall(p.phases, (ph) => (date ? plannedPct(ph, date) : ph.done)))}%`}${date ? ` (plan, ${fmtDate(date)})` : ""}`,
-      font: "700 13px 'Terreno Sans', 'Plus Jakarta Sans', system-ui, sans-serif", style: LabelStyle.FILL_AND_OUTLINE, fillColor: Color.WHITE, outlineColor: Color.fromCssColorString("#0b1320"), outlineWidth: 4,
+      font: "700 13px 'Terreno Sans', 'Plus Jakarta Sans', system-ui, sans-serif", style: LabelStyle.FILL_AND_OUTLINE, fillColor: Color.WHITE, outlineColor: Color.fromCssColorString("#1c1b19"), outlineWidth: 4,
       verticalOrigin: VerticalOrigin.BOTTOM, pixelOffset: new Cartesian2(0, -6), disableDepthTestDistance: Number.POSITIVE_INFINITY,
     },
   });

@@ -209,6 +209,21 @@ The TV remote is where it's richest: the pad's edges *select*, a double tap *con
 orb ticks as it turns, the zoom fader has detents and a firmer knock at either end, and a finger sliding across
 the keys or the tool strip ticks once per key, like a real remote.
 
+## My Place, as a paper model
+
+A place booted in 3D (`src/myplaces/holo.ts`) is an architect's model, not a hologram: a round paper plinth with
+a hairline rim and the compass's degree ticks in ink, the ground's grid faint on it, every building around in
+paper with ink edges, lit by a soft sky and one low sun, and yours in the accent (clay for a place, ochre for a
+site, sage for a programme). No glow, beam, motes or scan lines. The frame around it is the app's own: paper
+cards for the readouts, pill buttons, a white dock with icons in tinted discs, tags as small cards.
+
+## Hubs
+
+Create, Explore, My Place and Work list their tools the same way: a white card per tool, the icon in a clay-tinted
+disc, the name in `--t-row` and one line under it. **Create** is three things: *Plan*, *Present* and *Video*
+(Video opens on *Film the globe* or *3D captures*: bring scans and models onto the Earth, then film them). Teach
+sits in Explore beside Learn; *What if…* waits in Work. **Work** opens on the desk (docs/work-design.md).
+
 ## Motion
 
 Motion is how the simple insight arrives, not decoration. One curve, three durations, one stagger step
