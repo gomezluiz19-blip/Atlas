@@ -141,7 +141,7 @@ export function mineralsTheme(app: App): Theme {
         label: {
           text: mn.name,
           font: "600 13px 'Terreno Sans', 'Plus Jakarta Sans', system-ui, sans-serif",
-          style: LabelStyle.FILL_AND_OUTLINE, fillColor: Color.WHITE, outlineColor: Color.fromCssColorString("#0b1320"), outlineWidth: 4,
+          style: LabelStyle.FILL_AND_OUTLINE, fillColor: Color.WHITE, outlineColor: Color.fromCssColorString("#1c1b19"), outlineWidth: 4,
           verticalOrigin: VerticalOrigin.TOP, pixelOffset: new Cartesian2(0, 18),
           heightReference: HeightReference.CLAMP_TO_GROUND, disableDepthTestDistance: Number.POSITIVE_INFINITY,
           distanceDisplayCondition: new DistanceDisplayCondition(0, 2.5e6),

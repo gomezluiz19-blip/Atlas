@@ -1,7 +1,52 @@
 # Work: design notes
 
-How Work's front door was designed, and why. Code: `src/work/workMap.ts` (the screens) and
-`src/work/workLines.ts` (the fields, rungs and matching).
+How Work is designed, and why. Work opens on **your desk** (`src/work/desk/`); the tools for each field (the
+line map, `src/work/workMap.ts` and `src/work/workLines.ts`) are one tap down, under *Tools for your field*.
+
+## The desk: your work in real space
+
+**Who it's for.** Three kinds of working person, each with a different first question:
+
+- **Someone at a company** (account manager, ops, logistics, sales): *which of my clients is about to be let
+  down, and why?* Their work is clients, orders, the shipments that fill them and the sites in between.
+- **Someone in the field** (engineer, technician, carer, inspector): *where am I going today, in what order, and
+  what can't I do yet?* Their work is jobs and visits, and the parts and people those wait on.
+- **A practitioner on their own** (lawyer, accountant, consultant, contractor): *what's due, where do I have to
+  be, and who do I need nearby?* Their work is clients, cases and appointments, and the courts, registries,
+  notaries and services around each.
+
+**What a CRM misses.** A CRM keeps records as rows. But work sits in places and depends on other work: an order
+waits on a container that's waiting at Bab-el-Mandeb; a hearing waits on an expert's report; a repair waits on a
+valve that's still in Leeds. The desk keeps the same records (a client, an order, a shipment, a job, a case, a
+visit, a site, an asset), each with a place, a status, a promise date and an expected date, and two links: what
+it *belongs to* (an order's client) and what it *waits on* (an order's shipment).
+
+**Consequences, not just status.** Because records are linked, the desk carries a slip forward
+(`model.ts › projected`): a record is expected no earlier than the latest thing it waits on. *Needs you* lists
+where trouble starts, worst first, each told as one sentence with the money on it: "Shipment MSKU 7714200 is 6
+days behind, so order 1042 for Halden Foods misses 21 Oct by 2 days (€48,000), and 1 more after it." What's
+only late because of something upstream isn't listed twice.
+
+**Space.** Every record is a pin coloured by how it stands; shipments draw their route (dashed when late). Tap a
+pin or a row for its card: where it is (the camera goes there), what it holds up and by how much, what it waits
+on, what it's part of, its tracking link (container, parcel or AWB number), and **Nearby**: the lawyers,
+notaries, courts, customs, freight, couriers, accountants, insurers, clinics, hotels or trade counters around it
+(OpenStreetMap), each with call and website. The card's thin dashed lines on the map join it to its client, what
+it waits on and what it holds up.
+
+**In the field, the day is a round.** Today's jobs and visits, in a short loop from the depot (nearest next),
+with the distance; anything that can't go ahead (blocked, or waiting on a part that isn't here) is left out and
+named, so nobody drives to a job they can't do. *Show the round* draws it, numbered.
+
+**Bringing work in.** Any CRM, job system or spreadsheet export as CSV: the usual columns are understood (name,
+type, stage or status, address or lat/lon, close or due date, amount, account or parent, depends on, tracking),
+and the kind and health are read from the words where they aren't given. Rows can link by id or by name.
+Addresses are found on the map one by one. Everything can be exported back as CSV. Records stay on the device.
+
+**First run.** Three cards, one per kind of worker, each with *Try it with an example* (a company shipping ovens
+from Shanghai to Oslo, an engineer's day in Manchester, a lawyer in Austin), and *Bring my records*.
+
+## The tools for your field
 
 ## First principles
 

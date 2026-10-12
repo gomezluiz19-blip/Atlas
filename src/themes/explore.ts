@@ -118,7 +118,7 @@ export function exploreTheme(app: App, feeds: Feeds, overlays: Overlays, openSit
       h("p", {}, "The whole Earth, and your own corner of it. Three ways in:"),
       h("button", { class: "welcome-row", onclick: go("mode:place") }, h("span", { class: "welcome-icon", style: "--c:#d19a2e", html: icons.home }), h("span", {}, h("strong", {}, "My Place"), h("small", {}, "Save your home, farm or site for a daily brief and the tools to run it"))),
       h("button", { class: "welcome-row", onclick: done }, h("span", { class: "welcome-icon", style: "--c:#3563d6", html: icons.eye }), h("span", {}, h("strong", {}, "Explore"), h("small", {}, "Tap any mountain, sea, river or city and look at it through a lens"))),
-      h("button", { class: "welcome-row", onclick: go("mode:make") }, h("span", { class: "welcome-icon", style: "--c:#8b5fa8", html: icons.pencil }), h("span", {}, h("strong", {}, "Create"), h("small", {}, "Trips, stories, videos and lessons from the map"))),
+      h("button", { class: "welcome-row", onclick: go("mode:make") }, h("span", { class: "welcome-icon", style: "--c:#8b5fa8", html: icons.pencil }), h("span", {}, h("strong", {}, "Create"), h("small", {}, "Plan it, present it, film it"))),
       h("p", { class: "muted small" }, "Or just type what you want in the search box: \u201cslice open Mount Fuji\u201d, \u201cfrost at my farm\u201d, \u201csubway map of Tokyo\u201d."));
     return card;
   };

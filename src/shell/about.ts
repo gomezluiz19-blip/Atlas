@@ -9,7 +9,7 @@ import { icons } from "../ui/icons";
 export function createAbout(openAi: () => void) {
   const panel = h("div", { class: "popover about", hidden: true },
     h("div", { class: "about-head" }, h("h2", { class: "group-title" }, "About Terreno"), h("button", { class: "icon-btn", "aria-label": "Close", html: icons.close, onclick: () => (panel.hidden = true) })),
-    h("p", {}, "Explore the whole Earth, live. Create trips, stories and lessons from it. Work with the tools for your field. Keep My Place: your home, farm or business, with a daily brief."),
+    h("p", {}, "Explore the whole Earth, live. Plan, present and film from it. Work with the tools for your field. Keep My Place: your home, farm or business, with a daily brief."),
     h("p", {}, "You can also type a request into the search box, like \u201cstorm drains and railways in Chicago\u201d, and Terreno will plan the steps and do them."),
     h("p", {}, "People have pages here too: the places they love, a journal, and lenses they've made. Make your own from the account button, and a lens of your own in Lens Studio."),
     h("button", { class: "pill-btn about-ai", onclick: () => { panel.hidden = true; openAi(); } }, aiOn() ? "Terreno AI: connected · settings" : "Connect Terreno AI (Claude)…"),

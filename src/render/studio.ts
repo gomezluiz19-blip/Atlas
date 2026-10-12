@@ -1,4 +1,4 @@
-// 3D Studio (Create): bring any 3D onto the real globe and film it. Gaussian-splat captures (from phone scanning
+// 3D captures (Create › Video): bring any 3D onto the real globe and film it. Gaussian-splat captures (from phone scanning
 // apps, Polycam, Luma, Postshot, Scaniverse, research code: .ply, .splat, .spz), photogrammetry, LiDAR and BIM as
 // 3D Tiles, and glTF models; each stood on the ground where you want it, turned and scaled. Then a camera
 // operator's shot library (orbit, reveal, flyover, dronie, crane, dolly zoom) around whatever you picked, and a
@@ -235,7 +235,7 @@ export function openStudio(ctx: WorkCtx) {
       say(g.about + ".");
     } }, h("span", { class: "studio-swatch", "aria-hidden": "true" }), g.label)));
 
-  ctx.show("3D Studio", () => ctx.home(),
+  ctx.show("3D captures", () => ctx.app.actions.get("work:video")?.run(),
     h("p", { class: "mp-intro" }, "Real 3D captures on the real Earth, filmed like a drone shot."),
     drop, file,
     h("div", { class: "pro-url-row" }, link, h("button", { class: "primary-btn", onclick: () => void takeLink() }, "Add")),

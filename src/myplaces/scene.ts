@@ -174,7 +174,7 @@ export class PlaceScene {
         billboard: { image: deviceIcon(d.type), width: 28, height: 28, heightReference: HeightReference.CLAMP_TO_GROUND, disableDepthTestDistance: Number.POSITIVE_INFINITY },
         label: {
           text: d.label || DEVICES[d.type].label, font: "600 12px 'Terreno Sans', 'Plus Jakarta Sans', system-ui, sans-serif", style: LabelStyle.FILL_AND_OUTLINE,
-          fillColor: Color.WHITE, outlineColor: Color.fromCssColorString("#0b1320"), outlineWidth: 3, verticalOrigin: VerticalOrigin.TOP,
+          fillColor: Color.WHITE, outlineColor: Color.fromCssColorString("#1c1b19"), outlineWidth: 3, verticalOrigin: VerticalOrigin.TOP,
           pixelOffset: new Cartesian2(0, 16), heightReference: HeightReference.CLAMP_TO_GROUND, disableDepthTestDistance: Number.POSITIVE_INFINITY,
           scale: 0.95,
         },
@@ -224,7 +224,7 @@ export class PlaceScene {
           position: Cartesian3.fromDegrees(east[0], east[1], bottom + storey / 2),
           label: {
             text: f.label, font: "700 13px 'Terreno Sans', 'Plus Jakarta Sans', system-ui, sans-serif", style: LabelStyle.FILL_AND_OUTLINE,
-            fillColor: Color.WHITE, outlineColor: Color.fromCssColorString("#0b1320"), outlineWidth: 4,
+            fillColor: Color.WHITE, outlineColor: Color.fromCssColorString("#1c1b19"), outlineWidth: 4,
             horizontalOrigin: HorizontalOrigin.LEFT, pixelOffset: new Cartesian2(12, 0), disableDepthTestDistance: Number.POSITIVE_INFINITY,
           },
         });

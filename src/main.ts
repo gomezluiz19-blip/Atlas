@@ -229,20 +229,32 @@ const WORK_TOOLS: WorkTool[] = [
   tool("services", "Field Network", "Service equipment across many sites: crews, parts and travel", "#d19a2e", icons.gem, (ctx) => void import("./pro/services/ui").then((m) => m.openServices(ctx))),
   tool("mining", "Mining Pro", "Run a mine: output, communities, permits and the tailings dam", "#9a7552", icons.pick, (ctx) => void import("./pro/mining/ui").then((m) => m.openMining(ctx))),
   tool("field", "Field Ops", "Run an aid programme: who's out of reach and where to build next", "#5b9467", icons.medical, (ctx) => void import("./pro/field/ui").then((m) => m.openField(ctx))),
-];
-const MAKE_TOOLS: WorkTool[] = [
-  tool("plan", "Plan", "Trips, events, sites and routes, step by step", "#3563d6", icons.route, openPlans),
-  tool("present", "Stories", "Tell a story on the globe and publish it", "#c9a256", icons.slides, openPresent),
-  tool("video", "Video", "Film the globe with shots, looks and narration", "#b8496a", icons.video, openVideo),
-  tool("studio3d", "3D Studio", "Place real 3D captures on the Earth and film them", "#4c9ac9", icons.cube, (ctx) => void import("./render/studio").then((m) => m.openStudio(ctx))),
-  tool("teach", "Teach", "Lessons, quizzes, games and field trips", "#8b5fa8", icons.graduate, openTeach),
   tool("whatif", "What if…", "Model a shock and watch prices, countries and companies react", "#c4513a", icons.activity, (ctx) => void import("./econ/labUi").then((m) => m.openLab(ctx, app))),
+];
+// Create is three things: plan it, present it, film it. 3D captures live inside Video (bring them in, then film
+// them); Teach moved to Explore, beside Learn; What if… waits in Work for now.
+const open3d = (ctx: WorkCtx) => void import("./render/studio").then((m) => m.openStudio(ctx));
+const MAKE_TOOLS: WorkTool[] = [
+  tool("plan", "Plan", "Trips, events, sites and routes, step by step", "var(--clay)", icons.route, openPlans),
+  tool("present", "Present", "Slides and stories on the globe, from your own numbers and documents", "var(--clay)", icons.slides, openPresent),
+  tool("video", "Video", "Film the globe, or bring in 3D captures and film them", "var(--clay)", icons.video, (ctx) => ctx.show("Video", () => ctx.home(),
+    h("p", { class: "mp-intro" }, "Film anywhere on Earth with shots, looks and narration, or place your own 3D captures on it first."),
+    h("div", { class: "work-tools" },
+      h("button", { class: "work-tool", style: "--c:var(--clay)", onclick: () => openVideo(ctx) },
+        h("span", { class: "work-tool-icon", html: icons.video }), h("span", { class: "work-tool-text" }, h("strong", {}, "Film the globe"), h("span", {}, "Shots, looks, titles and narration, recorded as a video"))),
+      h("button", { class: "work-tool", style: "--c:var(--clay)", onclick: () => open3d(ctx) },
+        h("span", { class: "work-tool-icon", html: icons.cube }), h("span", { class: "work-tool-text" }, h("strong", {}, "3D captures"), h("span", {}, "Place scans and models (.ply, .splat, .spz, .glb) on the Earth, then film them")))))),
+];
+/** Still reachable by name (search, the robot, links), just not listed in Create. */
+const MAKE_HIDDEN: WorkTool[] = [
+  tool("studio3d", "3D captures", "Place real 3D captures on the Earth and film them", "var(--clay)", icons.cube, open3d),
 ];
 const LOOK_TOOLS: WorkTool[] = [
   tool("news", "World now", "Top stories, live headlines, fires, storms and quakes", "#b8496a", icons.globe, (ctx) => openWorldNow(ctx)),
   tool("year", "The year breathes", "Watch a year of seasons sweep the planet", "#5b9467", icons.sprout, (ctx) => { ctx.close(); app.actions.get("rhythms:year")?.run(); }),
   tool("ask", "Ask the map", "Find places that meet many conditions at once", "#ffb04a", icons.sparkle, openAsk),
   tool("learn", "Learn", "Games, a daily challenge and your passport", "#5b9467", icons.book, openLearn),
+  tool("teach", "Teach", "Lessons, quizzes, games and field trips", "#8b5fa8", icons.graduate, openTeach),
   tool("space", "Space", "Satellites, the ISS, rocket launches and the solar system", "#5160c2", icons.saturn, () => app.setTheme("space")),
 ];
 
@@ -348,7 +360,7 @@ keepStorage();
 }
 const makeHub = createWork(app, MAKE_TOOLS, {
   title: "Create",
-  intro: "Make something from the map: a trip, a story, a video or a lesson.",
+  intro: "Make something from the map: plan it, present it, film it.",
 });
 /** Work: every pro tool as a station on its industry's line (the Work map). */
 const openStation = (st: Station) => {
@@ -392,11 +404,15 @@ const openStation = (st: Station) => {
   if (t) t.open(ctx);
   else app.actions.get(`work:${st.tool}`)?.run(); // Create and Explore tools (Teach, Learn) open in their own hub
 };
+// Work opens on your desk: your records (clients, orders, shipments, jobs, cases) on the map, with what's slipping
+// and what it knocks on. The tools for each field (the line map) are one tap down.
+const workFail = () => app.toast("Couldn't load Work. Check the connection and try again.", 5000);
+const openFieldTools = () => workHub.ctx.show("Tools for your field", () => workHub.ctx.home(),
+  deferred(() => import("./work/workMap").then((m) => m.workMap(openStation)), workFail));
 const workHub = createWork(app, [], {
   title: "Work",
   intro: "",
-  // The line map loads with Work, the first time it opens.
-  top: () => [deferred(() => import("./work/workMap").then((m) => m.workMap(openStation)), () => app.toast("Couldn't load Work. Check the connection and try again.", 5000))],
+  top: () => [deferred(() => import("./work/desk/ui").then((m) => m.deskHome(workHub.ctx, { tools: openFieldTools })), workFail)],
 });
 const lookHub = createWork(app, LOOK_TOOLS, {
   title: "Explore more",
@@ -427,7 +443,7 @@ app.actions.set("space:boot", { label: "See it as a hologram", run: () => {
   const kind = String((p.feature as { world?: { kind?: string } } | undefined)?.world?.kind ?? "");
   const size = /peak|volcano|range|glacier|island|water|lake/.test(kind) ? 2400 : /city|capital/.test(kind) ? 1600 : 700;
   closePanels();
-  void openSpace(app, { name: p.name?.title ?? "This spot", kicker: [p.name?.context, `${p.lat.toFixed(4)}, ${p.lon.toFixed(4)}`].filter(Boolean).join(" · "), lon: p.lon, lat: p.lat, size, own: true, tint: "violet" });
+  void openSpace(app, { name: p.name?.title ?? "This spot", kicker: [p.name?.context, `${p.lat.toFixed(4)}, ${p.lon.toFixed(4)}`].filter(Boolean).join(" · "), lon: p.lon, lat: p.lat, size, own: true, tint: "cyan" });
 } });
 // Space: satellites, the ISS, launches and the solar system, loaded the first time it opens.
 const spacePanel = later(() => import("./space/panel").then((m) => m.createSpace(app)), (s) => {
@@ -516,7 +532,7 @@ const watcher = new MutationObserver(syncPanels);
 for (const el of [placeHub.panel, myPlaces.panel, makeHub.panel, workHub.panel, lookHub.panel]) watcher.observe(el, { attributes: true, attributeFilter: ["hidden"] });
 
 const HUB_OF: Record<string, { hub: typeof placeHub; open: (ctx: WorkCtx) => void }> = {};
-for (const [hub, tools] of [[placeHub, PLACE_TOOLS], [makeHub, MAKE_TOOLS], [workHub, WORK_TOOLS], [lookHub, LOOK_TOOLS]] as const)
+for (const [hub, tools] of [[placeHub, PLACE_TOOLS], [makeHub, [...MAKE_TOOLS, ...MAKE_HIDDEN]], [workHub, WORK_TOOLS], [lookHub, LOOK_TOOLS]] as const)
   for (const t of tools) if (t.id !== "occupancy" && t.id !== "space" && t.id !== "year") HUB_OF[t.id] = { hub, open: t.open };
 for (const [t, { hub, open }] of Object.entries(HUB_OF))
   app.actions.set(`work:${t}`, { label: `${hub === placeHub ? "My Place" : hub === makeHub ? "Create" : hub === workHub ? "Work" : "Explore"} › ${t}`, run: () => { hub.ctx.open(); open(hub.ctx); } });
