@@ -10,17 +10,6 @@
 .toast { z-index: 80; }
 
 .account-menu { width: 300px; padding: 8px; gap: 4px; z-index: 40; }
-.am-me { display: flex; align-items: center; gap: 12px; padding: 10px; border: 0; border-radius: 14px; background: transparent; cursor: pointer; text-align: left; color: inherit; font: inherit; }
-.am-me:hover { background: var(--fill); }
-.am-me > span:last-child { display: flex; flex-direction: column; min-width: 0; }
-.am-me strong { font-size: 16px; }
-.am-me small { color: var(--secondary); font-size: 12.5px; }
-.am-signin { padding: 14px 12px 12px; border-radius: 12px; background: color-mix(in srgb, var(--accent) 7%, transparent); box-shadow: inset 0 0 0 1px var(--hairline); display: flex; flex-direction: column; gap: 6px; }
-.am-signin strong { font-size: 16px; letter-spacing: -0.01em; }
-.am-signin p { font-size: 13px; color: var(--secondary); }
-.am-signin .primary-btn { align-self: flex-start; margin-top: 4px; }
-.am-group { display: flex; flex-direction: column; padding-top: 4px; margin-top: 2px; border-top: 0.5px solid var(--separator); }
-.am-group:first-child { border-top: 0; }
 .am-row { display: flex; align-items: center; gap: 10px; width: 100%; padding: 9px 10px; border: 0; border-radius: 10px; background: transparent; color: var(--label); font: inherit; font-size: 14.5px; text-align: left; cursor: pointer; }
 .am-row:hover { background: var(--fill); }
 .am-row small { margin-left: auto; color: var(--secondary); }

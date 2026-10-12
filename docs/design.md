@@ -140,16 +140,22 @@ The map is the page, opening over where you are (or your home), like any map you
 - **The bubble**: under the band the map is a big rounded window, framed by a light wash of the band's cyan.
   The button at its top right opens it to the whole screen (the band slides away) and back. Presenting, filming
   and a TV always have the whole screen.
-- **Person first.** Each button in the dock opens on the person, then the place:
-  - **Navigate** asks *How are you going?* with big tiles that fill the panel: **Walk**, **Drive**, **Train**,
-    **Taxi**, and **More** (Bike, Fly, Guide me). Walking is the default and the last choice is remembered.
-    Below them, *Where to, walking?* and your places and people. A walk, a drive or a ride is routed on the
-    map; the train opens a transit planner (Google or Apple Maps) and a taxi a ride app (Uber, Lyft) with the
-    drop-off filled in, with the journey drawn here alongside. Fly opens the trip planner; Guide me starts
-    on-foot guidance (`src/ui/travelModes.ts`).
-  - **Search** shows what people look for as big tiles (Food, Coffee, Parks, Shops, Stay, Fuel) above the field;
-    a tap searches near the map. Its own suggestions come once you type.
-  - **Me** shows what you came for as tiles (My page, Field note, My Place, Watching), then the rest as rows.
+- **Stages, person first.** Each button in the dock opens the bubble into a *stage* (`src/ui/stage.ts`): a sheet of
+  paper with a small mark and a question at the top, **four big icons** composed across the middle (two-thirds to
+  four-fifths of the height), a line of more choices in words, and a **small field** at the bottom.
+  - The icons are drawn after the Bauhaus (`src/ui/bauhaus.ts`): each thing made of a few plain shapes (a circle,
+    a square, a triangle, a bar) in red, yellow, blue and ink, overlapping like a print. No tiles, no bubbles, no
+    outlines. They're laid out as a composition, different sizes and gently tilted, and they're playful: they drop
+    in one after another, wiggle when touched, and the one you chose stands while the others step back.
+  - **Navigate**: *How are you going?* Walk, Drive, Train, Taxi; Bike, Fly, Guide me in words; *Where to,
+    walking?* at the bottom (your location, places and people as soon as you tap it). Walking is the default and
+    the last choice is remembered. A walk, a drive or a ride is routed on the map; the train opens a transit planner
+    and a taxi a ride app with the drop-off filled in (`src/ui/travelModes.ts`).
+  - **Search**: *Look for* Food, Coffee, Parks, A bed; Shops, Fuel, Pharmacy in words; the search field at the
+    bottom.
+  - **Me**: your name at the top; My page and Field note (or Sign in), My Place, Watching, the tour; everything else
+    found from the field.
+  - **＋**: *Way in*: Explore, Create, Work, Views (the views open as words); any view or tool found from the field.
 - **The dock**, along the bottom inside the bubble, big and plain: **Search**, **Navigate**, **Me** and **＋**, each
   a big icon with its word under it, ＋ in the action colour.
 - **＋** opens Explore, Create and Work; then the **views** (People, Nature, Countries as tiles, the rest as

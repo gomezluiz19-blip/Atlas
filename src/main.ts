@@ -829,9 +829,9 @@ const social = wireSocial(app, {
   openPlace: (slug) => openPlace(slug),
   closePanels: () => closePanels(),
   extras: () => [
-    { label: "My Place", icon: icons.home, run: () => openMode("place"), big: "var(--cobalt)" },
-    { label: `Watching${social ? ` (${social.watch.count()})` : ""}`, icon: iconSvg("🔔", 18) ?? icons.sparkle, run: () => app.actions.get("watch:open")?.run(), big: "var(--ochre)" },
-    { label: "Take the tour", icon: icons.compass, run: () => startTour(app) },
+    { label: "My Place", icon: icons.home, run: () => openMode("place"), art: "home" },
+    { label: `Watching${social ? ` (${social.watch.count()})` : ""}`, icon: iconSvg("🔔", 18) ?? icons.sparkle, run: () => app.actions.get("watch:open")?.run(), art: "bell" },
+    { label: "Take the tour", icon: icons.compass, run: () => startTour(app), art: "flag" },
     { label: aiOn() ? "Terreno AI: connected" : "Connect Terreno AI", icon: icons.sparkle, run: () => aiSettings.open() },
     { label: "Send feedback", icon: icons.pencil, run: () => void import("./ui/feedback").then((m) => m.openFeedback(app)) },
     { label: "About Terreno and its data", icon: icons.info, run: about.open },
@@ -861,7 +861,7 @@ $("ui").append(social.account.menu);
     ],
   });
   // The dock: big, at the bottom, the one place to start from.
-  $("ui").append(chrome.dock, chrome.plusMenu, chrome.navPanel);
+  $("ui").append(chrome.stage, chrome.dock, chrome.navPanel);
   app.actions.set("nav:open", { label: "Navigate", run: () => chrome.openNavigate() });
   app.actions.set("search:open", { label: "Search", run: () => chrome.openSearch(true) });
 }

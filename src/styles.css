@@ -4539,16 +4539,9 @@ body.tv-mode:has(.tv-quiz) .tv-caption { opacity: 0; }
 .dock-plus[aria-expanded="true"]::after { color: #fff; }
 
 /* Search opens just above the dock; its suggestions rise from it. */
-.dock-search { display: none; }
-body.search-open .dock-search { display: block; animation: rise var(--t-move) var(--ease-settle); transform-origin: bottom center; }
-.dock-search { align-self: center; width: min(560px, calc(100vw - 2 * var(--gutter))); }
-.dock-search .search { width: auto; }
-.dock-search .search input { height: 52px; border-radius: 16px; font-size: 16px; box-shadow: 0 0 0 1px var(--hairline), 0 10px 30px rgba(20, 22, 18, 0.18); }
-.dock-search .search-results { top: auto; bottom: calc(100% + 8px); max-height: min(60vh, calc(100dvh - var(--dock) - 160px)); }
 
 @media (max-width: 560px) {
   .dock { left: var(--gutter); right: var(--gutter); transform: none; align-items: stretch; }
-  .dock-search { width: auto; align-self: stretch; }
   .dock-btn { flex: 1 1 0; width: auto; height: 62px; }
 }
 
@@ -4557,45 +4550,14 @@ body.search-open .dock-search { display: block; animation: rise var(--t-move) va
 .popover.account-menu:not([hidden]) { animation-name: rise; transform-origin: bottom center; }
 
 /* ＋ and Navigate open upward from the dock. */
-.plus-menu, .nav-panel {
+.nav-panel {
   position: absolute; z-index: 40; bottom: calc(var(--gutter) + var(--dock) + env(safe-area-inset-bottom, 0px)); left: 0; right: 0; margin: 0 auto;
   width: min(420px, calc(100vw - 2 * var(--gutter))); max-height: calc(100dvh - var(--dock) - var(--bar) - 3 * var(--gutter)); overflow: auto;
   padding: 12px; border-radius: 16px; background: var(--material-strong); box-shadow: var(--shadow); animation: ask-in 0.18s var(--ease) both;
 }
-.plus-head { margin: 4px 2px 8px; font: 650 10.5px var(--font); letter-spacing: 0.14em; text-transform: uppercase; color: var(--secondary); }
-.plus-views { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 8px; }
-.plus-view { display: flex; align-items: center; gap: 8px; padding: 10px; border: 0; border-radius: 12px; background: var(--fill); color: var(--label); font: 600 13px var(--font); cursor: pointer; text-align: left; }
-.plus-view .plus-ico { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 8px; background: color-mix(in srgb, var(--c) 15%, transparent); color: var(--c); }
-.plus-view .plus-ico svg { width: 17px; height: 17px; }
-.plus-view[aria-checked="true"] { background: color-mix(in srgb, var(--c) 12%, var(--material-strong)); }
-.plus-chips { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 12px; }
-.plus-chip { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px 6px 7px; border: 0; border-radius: 999px; background: transparent; box-shadow: inset 0 0 0 1px var(--hairline); color: var(--label); font: 500 12.5px var(--font); cursor: pointer; }
-.plus-chip .plus-ico { display: grid; place-items: center; width: 18px; height: 18px; color: var(--c); }
-.plus-chip .plus-ico svg { width: 15px; height: 15px; }
-.plus-chip:hover { background: var(--fill); }
-.plus-chip[aria-checked="true"] { background: color-mix(in srgb, var(--c) 12%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 40%, transparent); }
-.plus-menu[hidden], .nav-panel[hidden] { display: none; }
-.plus-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 10px; }
-.plus-big { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; padding: 12px 10px; border: 0; border-radius: 12px; background: var(--fill); color: var(--label); font: inherit; text-align: left; cursor: pointer; }
-.plus-big:hover { background: color-mix(in srgb, var(--c) 12%, transparent); }
-.plus-big .plus-ico { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 9px; background: color-mix(in srgb, var(--c) 15%, transparent); color: var(--c); }
-.plus-big .plus-ico svg { width: 19px; height: 19px; }
-.plus-big strong { display: block; font-size: 14px; }
-.plus-big small { display: block; font-size: 11px; line-height: 1.3; color: var(--secondary); }
-.plus-tools { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; padding-top: 8px; border-top: 1px solid var(--hairline); }
-.plus-item { display: flex; align-items: center; gap: 10px; padding: 8px; border: 0; border-radius: 10px; background: transparent; color: var(--label); font: inherit; text-align: left; cursor: pointer; min-width: 0; }
-.plus-item:hover { background: var(--fill); }
-.plus-item .plus-ico { flex: none; display: grid; place-items: center; width: 30px; height: 30px; border-radius: 8px; background: var(--fill); color: var(--secondary); }
-.plus-item .plus-ico svg { width: 17px; height: 17px; }
-.plus-item strong { display: block; font-size: 13px; font-weight: 600; }
-.plus-item small { display: block; font-size: 11px; color: var(--secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.plus-item > span:last-child { min-width: 0; }
+.nav-panel[hidden] { display: none; }
 
 /* Navigate: where to, then the way there. */
-.nav-title { margin: 0 0 8px; font: 650 10.5px var(--font); letter-spacing: 0.14em; text-transform: uppercase; color: var(--secondary); }
-.nav-sub { margin: 12px 0 4px; font: 650 10.5px var(--font); letter-spacing: 0.14em; text-transform: uppercase; color: var(--secondary); }
-.nav-input { width: 100%; box-sizing: border-box; height: 42px; font-size: 15px; }
-.nav-hits:empty { display: none; }
 .nav-panel .list-row { padding: 8px 6px; border-radius: 10px; }
 .nav-ico { flex: none; display: grid; place-items: center; width: 32px; height: 32px; border-radius: 9px; background: var(--fill); color: var(--secondary); }
 .nav-ico svg { width: 17px; height: 17px; }
@@ -4659,13 +4621,9 @@ body.tv-mode { --t-quick: 210ms; --t-move: 480ms; --t-arrive: 900ms; --stagger: 
 /* Popovers unfold from the button that opened them. */
 .popover:not([hidden]), .lens-panel:not([hidden]) { animation: unfold var(--t-move) var(--ease-settle); transform-origin: top right; }
 /* Out of the dock, they rise rather than drop. */
-.plus-menu:not([hidden]), .nav-panel:not([hidden]) { animation-name: rise; transform-origin: bottom center; }
+.nav-panel:not([hidden]) { animation-name: rise; transform-origin: bottom center; }
 
 /* ＋: the three ways in, then the tools, in step; the hairline between them draws left to right. */
-.plus-menu:not([hidden]) :is(.plus-big, .plus-item, .plus-view, .plus-chip) { animation: rise var(--t-move) var(--ease-settle) both; animation-delay: calc(var(--i, 0) * var(--stagger)); }
-.plus-menu:not([hidden]) .plus-tools .plus-item { animation-delay: calc((var(--i, 0) + 3) * var(--stagger)); }
-.plus-tools { border-top: 0; background: linear-gradient(var(--hairline), var(--hairline)) 0 0 / 100% 1px no-repeat; }
-.plus-menu:not([hidden]) .plus-tools { animation: hairline var(--t-arrive) var(--ease-settle) both; animation-delay: calc(3 * var(--stagger)); }
 
 
 /* The card: it opens and folds smoothly, and what it says arrives top to bottom. */
@@ -4674,10 +4632,10 @@ body.tv-mode { --t-quick: 210ms; --t-move: 480ms; --t-arrive: 900ms; --stagger: 
 .sheet-head .sheet-title { transition: color var(--t-quick) var(--ease-settle); }
 
 /* Navigate: the way there arrives in order, the quickest choice first. */
-.nav-panel .vn-getting > *, .nav-panel .nav-hits > * { animation: rise var(--t-move) var(--ease-settle) both; animation-delay: calc(var(--i, 0) * var(--stagger)); }
+.nav-panel .vn-getting > * { animation: rise var(--t-move) var(--ease-settle) both; animation-delay: calc(var(--i, 0) * var(--stagger)); }
 
 /* The registration mark draws its four corners in when something is chosen. */
-.lens-tile.on .lens-glyph, .plus-big:focus-visible { animation: reg-draw var(--t-arrive) var(--ease-settle); }
+.lens-tile.on .lens-glyph { animation: reg-draw var(--t-arrive) var(--ease-settle); }
 
 /* Insight plates: pigments wash in, the hours rise like a skyline, the mosaic fills tile by tile. */
 .bf-hour { transform-origin: bottom; animation: grow-up var(--t-arrive) var(--ease-settle) both; animation-delay: calc(var(--i, 0) * 12ms); }
@@ -4805,34 +4763,8 @@ body:not(.map-open):not(.tv-mode):not(.presenting):not(.clean) #ui { inset: calc
 body.map-open .map-expand { top: calc(12px + env(safe-area-inset-top, 0px)); }
 body.tv-mode .map-expand { display: none; }
 
-/* Navigate: how are you going? Big tiles first, the place after. */
+/* The way there, once a place is chosen: a small panel over the map. */
 .nav-panel { width: min(520px, calc(100% - 2 * var(--gutter))); padding: 16px; border-radius: var(--radius-sheet); max-height: calc(100% - var(--dock) - 2 * var(--gutter)); }
-.nav-panel .nav-title { margin: 2px 2px 12px; font: 800 22px/1.15 var(--font); letter-spacing: -0.02em; text-transform: none; color: var(--label); }
-.nav-modes { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
-.nav-mode {
-  position: relative; display: flex; flex-direction: column; align-items: flex-start; justify-content: space-between; gap: 14px; min-height: 112px; padding: 16px;
-  border: 0; border-radius: 20px; cursor: pointer; text-align: left; font: 800 19px/1.1 var(--font); letter-spacing: -0.01em;
-  background: color-mix(in srgb, var(--c, var(--fill-strong)) 12%, var(--card)); color: var(--label); box-shadow: var(--shadow-soft);
-  transition: transform var(--t-quick) var(--ease-settle), background var(--t-quick) var(--ease-settle);
-}
-.nav-mode:active { transform: scale(0.97); }
-.nav-mode-ico { display: grid; place-items: center; width: 56px; height: 56px; border-radius: 50%; background: var(--c, var(--fill-strong)); color: #fff; }
-.nav-mode-ico svg { width: 32px; height: 32px; }
-.nav-mode[aria-checked="true"] { background: var(--c); color: #fff; box-shadow: 0 6px 18px color-mix(in srgb, var(--c) 40%, transparent); }
-.nav-mode[aria-checked="true"] .nav-mode-ico { background: rgba(255, 255, 255, 0.22); }
-.nav-mode[aria-checked="true"]::after { content: ""; position: absolute; top: 14px; right: 14px; width: 12px; height: 12px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.3); }
-.nav-mode.more { grid-column: 1 / -1; flex-direction: row; align-items: center; justify-content: flex-start; min-height: 64px; padding: 10px 16px; font-size: 16px; --c: var(--secondary); background: var(--fill); box-shadow: none; }
-.nav-mode.more .nav-mode-ico { width: 40px; height: 40px; background: var(--card); color: var(--label); }
-.nav-mode.more .nav-mode-ico svg { width: 20px; height: 20px; }
-.nav-more { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; }
-.nav-more[hidden] { display: none; }
-.nav-mode-chip { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 12px 6px; border: 0; border-radius: 16px; background: var(--card); color: var(--label); font: 700 14px var(--font); cursor: pointer; box-shadow: var(--shadow-soft); }
-.nav-mode-chip .nav-mode-ico { width: 44px; height: 44px; }
-.nav-mode-chip .nav-mode-ico svg { width: 24px; height: 24px; }
-.nav-mode-chip[aria-checked="true"] { box-shadow: 0 0 0 2px var(--c); }
-.nav-where { margin-top: 14px; }
-.nav-input { height: 52px; border-radius: 14px; font: 500 17px var(--font); background: var(--fill); border: 0; padding: 0 16px; }
-.nav-sub { margin: 14px 2px 4px; font: 700 15px var(--font); letter-spacing: 0; text-transform: none; color: var(--label); }
 .nav-head { gap: 10px; margin-bottom: 10px; }
 .nav-head-ico { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; background: var(--c); color: #fff; flex: none; }
 .nav-head-ico svg { width: 24px; height: 24px; }
@@ -4841,33 +4773,81 @@ body.tv-mode .map-expand { display: none; }
 .nav-handoff p { margin: 0 0 10px; font: 700 15px var(--font); }
 .nav-handoff-row { display: flex; gap: 8px; flex-wrap: wrap; }
 .nav-handoff-row a { text-decoration: none; }
-@media (max-width: 560px) {
-  .nav-mode { min-height: 104px; padding: 14px; font-size: 18px; }
-  .nav-mode-ico { width: 50px; height: 50px; }
-  .nav-mode-ico svg { width: 28px; height: 28px; }
+
+/* ======================================================================================
+   The stages (src/ui/stage.ts, src/ui/bauhaus.ts): each dock button opens the bubble into a sheet of paper, a
+   small mark at the top, four big icons composed across the middle like a Bauhaus print, a small field at the
+   bottom. Playful: the shapes drop in, tilt, wiggle when touched; the one you chose stands, the others step back.
+   ====================================================================================== */
+:root { --bh-red: #e0412f; --bh-yellow: #f2b530; --bh-blue: #2458c6; --bh-green: #2f8f5b; --bh-ink: #1c1b19; --bh-paper: #f4efe6; }
+@media (prefers-color-scheme: dark) { :root { --bh-red: #ef5a46; --bh-yellow: #f5c04a; --bh-blue: #4a7ff0; --bh-green: #45b07a; --bh-ink: #f1ede4; --bh-paper: #161b21; } }
+
+.stage-panel, .stage-panel.account-menu {
+  position: absolute; inset: 0; z-index: 28; width: auto; display: flex; flex-direction: column; align-items: center; gap: 0;
+  padding: 14px 16px calc(var(--dock) + var(--gutter) + 6px); border-radius: var(--bubble-r); overflow: hidden;
+  background: var(--bh-paper); color: var(--bh-ink); box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none;
+  animation: stage-in var(--t-move) var(--ease-settle) both;
 }
+.stage-panel[hidden] { display: none !important; }
+body.map-open .stage-panel { border-radius: 0; padding-top: calc(14px + env(safe-area-inset-top, 0px)); }
+@keyframes stage-in { from { opacity: 0; transform: scale(0.98); } }
 
-/* Search: what you're after, as tiles above the field. */
-.search-quick { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin-bottom: 8px; padding: 10px; border-radius: 20px; background: var(--material-strong); box-shadow: var(--shadow); }
-.quick-tile { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 6px 2px; border: 0; border-radius: 14px; background: transparent; color: var(--label); font: 700 13px var(--font); cursor: pointer; }
-.quick-tile:hover { background: var(--fill); }
-.quick-dot { display: grid; place-items: center; width: 52px; height: 52px; border-radius: 50%; background: var(--c); color: #fff; }
-.quick-dot svg { width: 26px; height: 26px; }
-body.search-open .dock-search:has(.search input:not(:placeholder-shown)) .search-quick { display: none; }
-/* Empty, the field offers the tiles; its own suggestions come once you type. */
-body.search-open .dock-search:has(.search input:placeholder-shown) .search-results { display: none; }
-@media (max-width: 560px) { .search-quick { grid-template-columns: repeat(3, 1fr); } }
+.stage-top { position: relative; width: 100%; display: flex; justify-content: center; flex: none; }
+.stage-close { position: absolute; left: 0; top: -2px; width: 40px; height: 40px; border: 0; border-radius: 50%; background: transparent; color: var(--bh-ink); font: 400 28px/1 var(--font); cursor: pointer; }
+.stage-close:hover { background: color-mix(in srgb, var(--bh-ink) 8%, transparent); }
+.stage-mark { display: flex; flex-direction: column; align-items: center; gap: 5px; font: 800 11px/1 var(--font); letter-spacing: 0.16em; text-transform: uppercase; }
+.stage-mark-art, .stage-mark-art svg { display: grid; place-items: center; width: 30px; height: 30px; }
 
-/* Me: what you came for, as tiles. */
-.popover.account-menu { width: min(360px, calc(100% - 2 * var(--gutter))); padding: 12px; }
-.am-tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 8px 0; }
-.am-tile { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; min-height: 92px; padding: 14px; border: 0; border-radius: 18px; cursor: pointer; text-align: left;
-  background: color-mix(in srgb, var(--c) 12%, var(--card)); color: var(--label); font: 800 16px/1.15 var(--font); box-shadow: var(--shadow-soft); }
-.am-tile-ico { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; background: var(--c); color: #fff; }
-.am-tile-ico svg { width: 22px; height: 22px; }
+/* The composition: four icons placed like a print, sized to the room the stage has. */
+.stage-art { position: relative; flex: 1 1 auto; min-height: 0; width: min(100%, 620px); margin: 6px auto 0; container-type: size; transition: opacity var(--t-move) var(--ease-settle); }
+.bh {
+  --s: 40; --rot: 0deg; position: absolute; display: flex; flex-direction: column; align-items: center; gap: 2cqmin;
+  padding: 0; border: 0; background: none; color: var(--bh-ink); cursor: pointer; transform: rotate(var(--rot));
+  animation: bh-in var(--t-arrive) var(--ease-settle) both; animation-delay: calc(var(--i, 0) * 70ms);
+  transition: opacity var(--t-move) var(--ease-settle), filter var(--t-move) var(--ease-settle);
+}
+.bh:nth-child(1) { --s: 42; --rot: -6deg; left: 4%; top: 2%; }
+.bh:nth-child(2) { --s: 34; --rot: 7deg; left: 58%; top: 9%; }
+.bh:nth-child(3) { --s: 33; --rot: 4deg; left: 9%; top: 53%; }
+.bh:nth-child(4) { --s: 40; --rot: -3deg; left: 52%; top: 49%; }
+.bh-art { display: block; line-height: 0; }
+.bh-art svg { width: calc(var(--s) * 1cqmin); height: calc(var(--s) * 1cqmin); overflow: visible; }
+.bh-label { font: 800 clamp(15px, 4.4cqmin, 24px)/1 var(--font); letter-spacing: -0.015em; transform: rotate(calc(var(--rot) * -1)); }
+.bh:hover .bh-art, .bh:focus-visible .bh-art { animation: bh-wiggle 0.5s var(--ease-settle); }
+.bh:active .bh-art { transform: scale(0.93); }
+.bh:focus-visible { outline: 3px solid var(--bh-blue); outline-offset: 6px; border-radius: 12px; }
+.bh[aria-pressed="false"] { opacity: 0.32; filter: saturate(0.5); }
+.bh[aria-pressed="true"] .bh-label::after { content: ""; display: block; width: 70%; height: 5px; margin: 7px auto 0; background: var(--bh-ink); }
+.bh-mul { mix-blend-mode: multiply; }
+@media (prefers-color-scheme: dark) { .bh-mul { mix-blend-mode: normal; opacity: 0.92; } }
+@keyframes bh-in { from { opacity: 0; transform: translateY(24px) rotate(calc(var(--rot) * 3)) scale(0.6); } }
+@keyframes bh-wiggle { 25% { transform: rotate(-5deg) scale(1.04); } 60% { transform: rotate(4deg); } }
+@media (prefers-reduced-motion: reduce) { .bh, .bh:hover .bh-art { animation: none !important; } }
 
-/* ＋: the three ways in, bigger. */
-.plus-big { min-height: 108px; padding: 14px 12px; border-radius: 18px; }
-.plus-big .plus-ico { width: 48px; height: 48px; border-radius: 50%; }
-.plus-big .plus-ico svg { width: 26px; height: 26px; }
-.plus-big strong { font-size: 16px; font-weight: 800; }
+/* More choices, in words; and the small field at the bottom. */
+.stage-extra { flex: none; min-height: 34px; display: flex; justify-content: center; margin: 4px 0 8px; }
+.stage-more { display: flex; flex-wrap: wrap; justify-content: center; gap: 2px 18px; max-width: 560px; }
+.stage-more[hidden] { display: none; }
+.stage-more-btn { padding: 6px 2px 3px; border: 0; border-bottom: 3px solid transparent; background: none; color: var(--bh-ink); font: 700 15px var(--font); cursor: pointer; }
+.stage-more-btn:hover { border-bottom-color: color-mix(in srgb, var(--bh-ink) 25%, transparent); }
+.stage-more-btn[aria-pressed="true"] { border-bottom-color: var(--c, var(--bh-red)); }
+.stage-field { flex: none; position: relative; width: min(100%, 420px); }
+.stage-field-box { position: relative; }
+.stage-input, .stage-field .search input {
+  width: 100%; height: 42px; padding: 0 16px; border: 2px solid var(--bh-ink); border-radius: 21px; outline: none;
+  background: transparent; color: var(--bh-ink); font: 500 15px var(--font); box-shadow: none !important;
+}
+.stage-field .search input { padding-left: 38px; }
+.stage-field .search { width: auto; }
+.stage-input::placeholder, .stage-field .search input::placeholder { color: color-mix(in srgb, var(--bh-ink) 55%, transparent); }
+.stage-input:focus, .stage-field .search input:focus { border-color: var(--bh-blue); }
+.stage-hits, .stage-field .search-results {
+  position: absolute; left: 0; right: 0; top: auto; bottom: calc(100% + 8px); max-height: min(46vh, 380px); overflow: auto; padding: 6px;
+  border-radius: 16px; background: var(--material-strong); color: var(--label); box-shadow: var(--shadow);
+}
+.stage-hits { display: none; }
+.stage-panel.typing .stage-hits:not(:empty) { display: block; }
+.stage-panel.typing .stage-art { opacity: 0.18; }
+.stage-field:has(.search input:placeholder-shown) .search-results { display: none; }
+.stage-hits .list-row { padding: 8px 6px; border-radius: 10px; }
+.search-parking { display: none; }

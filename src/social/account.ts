@@ -4,6 +4,7 @@
 // the lenses you've made, switching accounts, the tour, sounds, Terreno AI.
 import { h } from "../ui/dom";
 import { icons } from "../ui/icons";
+import { stageArt, stageView, type StageItem } from "../ui/stage";
 import type { Profile } from "./model";
 import { cloudOn, deleteCloudAccount, takeOAuthReturn } from "../cloud/client";
 import { openJoin } from "../auth/join";
@@ -21,7 +22,7 @@ export function avatarEl(p: Pick<Profile, "avatar" | "name">, size = 32): HTMLEl
 
 const PERSON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.5" r="3.6"/><path d="M4.8 19.5c1.3-3.3 4-5 7.2-5s5.9 1.7 7.2 5"/></svg>`;
 
-export interface AccountMenuItem { label: string; run: () => void; icon?: string; /** Shown as a big tile at the top, with this pigment. */ big?: string }
+export interface AccountMenuItem { label: string; run: () => void; icon?: string; /** Shown as one of the big icons, drawn as this (ui/bauhaus.ts). */ art?: string }
 interface AccountUi {
   button: HTMLButtonElement;
   menu: HTMLElement;
@@ -41,7 +42,7 @@ export function createAccount(opts: {
   lenses(): void;
 }): AccountUi {
   const button = h("button", { class: "round-btn account-btn", "aria-label": "Your account", "aria-haspopup": "menu", "aria-expanded": "false" }) as HTMLButtonElement;
-  const menu = h("div", { class: "popover account-menu", hidden: true, role: "menu" });
+  const menu = h("div", { class: "stage-panel account-menu", hidden: true, role: "dialog", "aria-label": "Me", "data-kind": "me" });
 
   const paint = () => {
     const p = me();
@@ -56,35 +57,41 @@ export function createAccount(opts: {
   const row = (label: string, run: () => void, icon = "", extra?: string) =>
     h("button", { class: "am-row", role: "menuitem", onclick: () => { close(); run(); } }, icon ? h("span", { class: "am-ico", html: icon }) : "", h("span", {}, label), extra ? h("small", {}, extra) : "");
 
-  /** The things a person comes to Me for, as big tiles under their name. */
-  const tile = (label: string, run: () => void, icon: string, color: string) =>
-    h("button", { class: "am-tile", role: "menuitem", style: `--c:${color}`, onclick: () => { close(); run(); } }, h("span", { class: "am-tile-ico", html: icon }), h("span", {}, label));
-
+  /**
+   * Me as a stage: your name small at the top, the four things people come here for as big icons (your page and a
+   * field note, or signing in; My Place; what you're watching; the tour), and everything else found from the field.
+   */
   function renderMenu() {
     const p = me();
     const others = localAccounts().filter((a) => a.handle !== p?.handle);
     const extras = opts.extras();
-    const bigs = extras.filter((x): x is AccountMenuItem => !(x instanceof HTMLElement) && !!x.big);
-    const tiles = [
-      ...(p ? [tile("My page", () => opts.openProfile(p.handle), icons.people, "var(--terra)"), tile("Field note", () => document.dispatchEvent(new CustomEvent("atlas:note")), icons.pin, "var(--sage)")] : []),
-      ...bigs.map((x) => tile(x.label, x.run, x.icon ?? icons.pin, x.big!)),
+    const items: StageItem[] = [
+      ...(p
+        ? [{ id: "page", label: "My page", art: "person", run: () => { close(); opts.openProfile(p.handle); } }, { id: "note", label: "Field note", art: "note", run: () => { close(); document.dispatchEvent(new CustomEvent("atlas:note")); } }]
+        : [{ id: "signin", label: "Sign in", art: "door", run: () => { close(); openSignIn(); } }]),
+      ...extras.filter((x): x is AccountMenuItem => !(x instanceof HTMLElement) && !!x.art).map((x, i) => ({ id: `x${i}`, label: x.label, art: x.art!, run: () => { close(); x.run(); } })),
     ];
-    menu.replaceChildren(
-      p
-        ? h("button", { class: "am-me", onclick: () => { close(); opts.openProfile(p.handle); } }, avatarEl(p, 44), h("span", {}, h("strong", {}, p.name), h("small", {}, `@${p.handle} · See your page`)))
-        : h("div", { class: "am-signin" },
-          h("strong", {}, "Your own Terreno"),
-          h("p", {}, "A page of the places you love, lenses you make, and your place's daily brief."),
-          h("button", { class: "primary-btn", onclick: () => { close(); openSignIn(); } }, "Sign in or join")),
-      tiles.length ? h("div", { class: "am-tiles" }, ...tiles) : "",
-      p ? h("div", { class: "am-group" },
-        row("Edit my page", () => opts.openProfile(p.handle, true), icons.pencil),
-        row("Make a lens", () => opts.lenses(), icons.sparkle)) : "",
-      others.length || p ? h("div", { class: "am-group" },
-        ...others.slice(0, 4).map((o) => h("button", { class: "am-row", role: "menuitem", onclick: () => { close(); signIn(o); opts.welcome(o, false); } }, avatarEl(o, 22), h("span", {}, `Switch to ${o.name}`))),
-        p ? row("Sign out", () => { signOut(); }) : "",
-        p && !p.demo ? row("Delete my account", () => void deleteMine(p)) : "") : "",
-      h("div", { class: "am-group" }, ...extras.filter((x) => x instanceof HTMLElement || !x.big).map((x) => x instanceof HTMLElement ? x : row(x.label, x.run, x.icon))));
+    const shown = new Set(items.slice(0, 4).map((x) => x.label));
+    // Everything else, as plain rows found from the field.
+    const rows: (HTMLElement & { dataset: DOMStringMap })[] = [
+      ...(p ? [row("Edit my page", () => opts.openProfile(p.handle, true), icons.pencil), row("Make a lens", () => opts.lenses(), icons.sparkle)] : []),
+      ...others.slice(0, 4).map((o) => h("button", { class: "am-row", role: "menuitem", onclick: () => { close(); signIn(o); opts.welcome(o, false); } }, avatarEl(o, 22), h("span", {}, `Switch to ${o.name}`))),
+      ...(p ? [row("Sign out", () => { signOut(); })] : []),
+      ...(p && !p.demo ? [row("Delete my account", () => void deleteMine(p))] : []),
+      ...extras.filter((x) => x instanceof HTMLElement || !shown.has(x.label)).map((x) => x instanceof HTMLElement ? x : row(x.label, x.run, x.icon)),
+    ];
+    const hits = h("div", { class: "stage-hits list" }, ...rows);
+    const field = h("input", { class: "stage-input", type: "search", autocomplete: "off", placeholder: "Settings, the tour, sounds…", "aria-label": "Find a setting" }) as HTMLInputElement;
+    field.oninput = () => { const q = field.value.trim().toLowerCase(); for (const r of rows) r.hidden = !!q && !(r.textContent ?? "").toLowerCase().includes(q); };
+    field.onfocus = () => menu.classList.add("typing");
+    field.onblur = () => setTimeout(() => { if (!menu.contains(document.activeElement)) menu.classList.remove("typing"); }, 150);
+    const more = h("button", { class: "stage-more-btn", onclick: () => { menu.classList.toggle("typing"); field.focus({ preventScroll: true }); } }, "Everything else");
+    menu.replaceChildren(...stageView({
+      mark: "me", title: p ? p.name : "You", art: stageArt(items), close,
+      extra: [h("div", { class: "stage-more" }, more)],
+      field: h("div", { class: "stage-field-box" }, hits, field),
+    }));
+    if (p) menu.querySelector(".stage-mark-art")?.replaceChildren(avatarEl(p, 26));
   }
 
   button.addEventListener("click", (e) => {
