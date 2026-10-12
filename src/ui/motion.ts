@@ -117,7 +117,7 @@ export function countUp(el: HTMLElement, ms = T.arrive): void {
 const FIGURES = ".bf-title, .bf-mono, .hero-value, .stat-value, .callout-value, .pp-value, .po-kpi strong";
 
 /** Sets whose pieces arrive one after another: the hours, the mosaic, the faces, the countries. */
-const SETS = ".bf-ribbon, .bf-mosaic, .bf-faces, .bf-countries-list, .plus-row, .plus-views, .plus-chips, .plus-tools, .nav-hits, .vn-getting";
+const SETS = ".bf-ribbon, .bf-mosaic, .bf-faces, .bf-countries-list, .stage-hits, .vn-getting";
 
 /** As things arrive anywhere under `root`: figures count up (once each) and sets stagger in. */
 export function watchMotion(root: HTMLElement): void {
