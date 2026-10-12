@@ -2,6 +2,8 @@
 // a soft two-note chime on arriving somewhere, a low swell for the opening.
 // On phones, a light tap of haptic feedback marks the same moments.
 
+import { haptic } from "../ui/haptics";
+
 const KEY = "atlas.sound";
 let ctx: AudioContext | null = null;
 
@@ -27,7 +29,7 @@ function tone(ac: AudioContext, freq: number, start: number, dur: number, gain: 
 
 /** A moment's sound (if sound is on) and tap (on phones). */
 export function chime(kind: "arrive" | "open" | "surprise") {
-  haptic(kind === "open" ? 0 : 8);
+  if (kind !== "open") haptic(kind === "surprise" ? "success" : "confirm");
   if (!soundOn()) return;
   try {
     ctx ??= new AudioContext();
@@ -38,6 +40,3 @@ export function chime(kind: "arrive" | "open" | "surprise") {
   } catch { /* no audio */ }
 }
 
-function haptic(ms = 8) {
-  if (ms > 0 && matchMedia("(pointer: coarse)").matches) navigator.vibrate?.(ms);
-}

@@ -22,7 +22,7 @@ export function avatarEl(p: Pick<Profile, "avatar" | "name">, size = 32): HTMLEl
 
 const PERSON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.5" r="3.6"/><path d="M4.8 19.5c1.3-3.3 4-5 7.2-5s5.9 1.7 7.2 5"/></svg>`;
 
-export interface AccountMenuItem { label: string; run: () => void; icon?: string; /** Shown as one of the big icons, drawn as this (ui/bauhaus.ts). */ art?: string }
+export interface AccountMenuItem { label: string; run: () => void; icon?: string; /** Shown as one of the big icons, drawn as this (ui/pictograms.ts). */ art?: string }
 interface AccountUi {
   button: HTMLButtonElement;
   menu: HTMLElement;

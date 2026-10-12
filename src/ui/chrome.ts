@@ -4,7 +4,8 @@
 // (how they're going, what they're looking for, which way in), and the details follow.
 import type { App, Place, Theme } from "../app";
 import { gettingThere } from "../place/venueCard";
-import { appleDirections, googleDirections, rideLinks } from "../place/around";
+import { appleDirections, googleDirections } from "../place/around";
+import { taxiOptions } from "../taxi/ui";
 import { lastTravel, rememberTravel, TRAVEL, type TravelChoice } from "./travelModes";
 import { h } from "./dom";
 import { icons } from "./icons";
@@ -75,7 +76,7 @@ export function createChrome(app: App, opts: {
     if (open !== "search") show("search", drawSearch);
     setTimeout(() => input()?.focus({ preventScroll: true }), 30);
   };
-  const searchBtn = h("button", { class: "dock-btn", "data-label": "Search", "aria-label": "Search", title: "Search (/)", "aria-expanded": "false", html: icons.search, onclick: () => openSearch() }) as HTMLButtonElement;
+  const searchBtn = h("button", { class: "dock-btn", "data-haptic": "select", "data-label": "Search", "aria-label": "Search", title: "Search (/)", "aria-expanded": "false", html: icons.search, onclick: () => openSearch() }) as HTMLButtonElement;
   // A place picked from the results: the stage gives the map back.
   stage.addEventListener("click", (e) => { if (open === "search" && (e.target as HTMLElement).closest(".search-results [role=option], .search-results button, .search-results li")) setTimeout(closeStage, 0); });
   stage.addEventListener("keydown", (e) => { if (open === "search" && e.key === "Enter" && input()?.value.trim()) setTimeout(closeStage, 0); });
@@ -105,23 +106,22 @@ export function createChrome(app: App, opts: {
     const place: Place = { lon: d.lon, lat: d.lat, height: 0, name: { title: d.name, context: d.sub ?? "" } };
     const way = gettingThere(app, place, d.name);
     const t = TRAVEL[how];
-    // The train hands over to a transit planner; a taxi to a ride app (with the drive drawn here alongside).
+    // The train hands over to a transit planner; a taxi to the local firms and ranks, with rideshare alongside
+    // (and the drive drawn here).
     const handOff = how === "train"
       ? h("div", { class: "nav-handoff", style: `--c:${t.color}` }, h("p", {}, "Trains, buses and their times"),
         h("div", { class: "nav-handoff-row" },
           h("a", { class: "primary-btn", href: googleDirections(place, "transit"), target: "_blank", rel: "noopener" }, "Google Maps"),
           h("a", { class: "pill-btn", href: appleDirections(place, d.name, "transit"), target: "_blank", rel: "noopener" }, "Apple Maps")))
-      : how === "taxi"
-        ? h("div", { class: "nav-handoff", style: `--c:${t.color}` }, h("p", {}, "Get a ride there"),
-          h("div", { class: "nav-handoff-row" }, ...rideLinks(place, d.name).map((r, i) => h("a", { class: i ? "pill-btn" : "primary-btn", href: r.href, target: "_blank", rel: "noopener" }, r.label))))
-        : "";
+      : how === "taxi" ? taxiOptions(app, place, d.name) : "";
     navPanel.replaceChildren(
       h("div", { class: "nav-head" }, h("button", { class: "icon-btn", "aria-label": "Back", html: "&larr;", onclick: () => { navPanel.hidden = true; show("nav", drawNav); } }),
         h("span", { class: "nav-head-ico", style: `--c:${t.color}`, html: t.icon }),
         h("div", {}, h("small", {}, `${t.label} to`), h("strong", {}, d.name))),
       handOff, way.el);
     navPanel.hidden = false;
-    way.directions(t.route ?? "walk");
+    // With a hand-off on top (the taxis, the trains), that stays in view; the drive is drawn below it.
+    way.directions(t.route ?? "walk", !handOff);
   };
 
   function drawNav() {
@@ -156,7 +156,7 @@ export function createChrome(app: App, opts: {
     ]);
     stage.replaceChildren(...stageView({ mark: "navigate", title: "How are you going?", art, close: closeStage, extra: [more], field: h("div", { class: "stage-field-box" }, hits, field) }));
   }
-  const navBtn = h("button", { class: "dock-btn", "data-label": "Navigate", "aria-label": "Navigate", title: "Navigate", "aria-expanded": "false", html: NAV, onclick: () => show("nav", drawNav) }) as HTMLButtonElement;
+  const navBtn = h("button", { class: "dock-btn", "data-haptic": "select", "data-label": "Navigate", "aria-label": "Navigate", title: "Navigate", "aria-expanded": "false", html: NAV, onclick: () => show("nav", drawNav) }) as HTMLButtonElement;
 
   // ---- ＋: which way in? ----
   /** Every view and tool, to find by name from the field. */
@@ -186,7 +186,7 @@ export function createChrome(app: App, opts: {
     field.onblur = () => setTimeout(() => { if (!stage.contains(document.activeElement)) stage.classList.remove("typing"); }, 150);
     stage.replaceChildren(...stageView({ mark: "more", title: "Way in", art, close: closeStage, extra: [viewsRow], field: h("div", { class: "stage-field-box" }, hits, field) }));
   };
-  const plusBtn = h("button", { class: "dock-btn dock-plus", "data-label": "More", "aria-label": "More: Explore, Create, Work, the views and tools", title: "Explore, Create, Work, views", "aria-expanded": "false", html: PLUS, onclick: () => show("plus", drawPlus) }) as HTMLButtonElement;
+  const plusBtn = h("button", { class: "dock-btn dock-plus", "data-haptic": "select", "data-label": "More", "aria-label": "More: Explore, Create, Work, the views and tools", title: "Explore, Create, Work, views", "aria-expanded": "false", html: PLUS, onclick: () => show("plus", drawPlus) }) as HTMLButtonElement;
 
   document.addEventListener("pointerdown", (e) => {
     const t = e.target as HTMLElement;
@@ -196,7 +196,7 @@ export function createChrome(app: App, opts: {
   opts.me.addEventListener("click", () => { closeStage(); navPanel.hidden = true; });
 
   // The account button redraws itself on sign-in, so its label is an attribute the dock's CSS shows.
-  opts.me.classList.add("dock-btn");
+  opts.me.classList.add("dock-btn"); opts.me.dataset.haptic = "select";
   opts.me.dataset.label = "Me";
   const dock = h("nav", { class: "dock", "aria-label": "Terreno" }, parking, h("div", { class: "dock-row" }, searchBtn, navBtn, opts.me, plusBtn));
   return { dock, stage, navPanel, openSearch, openNavigate: () => { if (open !== "nav") show("nav", drawNav); } };

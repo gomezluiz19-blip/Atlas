@@ -50,8 +50,9 @@ tiles, and what you choose is framed like a plate on press.
 | `--ink` / `--label` | #1c1b19 | #f4f6f8 | Text |
 | `--secondary` | #6b6760 | #a9b3be | Supporting text |
 | `--fill` | #e9e6e0 | 7% white | Search fields, chips, quiet buttons |
-| `--cobalt` (`--accent`) | #2e7cf6 | #4c8df8 | You, routes, the main action, focus |
-| `--terra` (`--link`) | #c8553d | #e07a62 | People, avatars, links |
+| `--clay` (`--accent`, `--link`) | #9c4a32 | #c8714f | Terreno's own colour: the band, the main action, focus, links, the one accent in every pictogram |
+| `--cobalt` | #2e7cf6 | #4c8df8 | You and your routes on the map |
+| `--terra` | #c8553d | #e07a62 | People, avatars |
 | `--pill` | #1c1b19 | #f4f6f8 | The strongest choice, toasts |
 | `--ochre` | #b7741f | #d9973f | Food, attention |
 | `--sage` | #3e7a2e | #4ade80 | Parks, growth, on time |
@@ -66,8 +67,10 @@ volcanoes and the plates, ice for glaciers, madder for reefs, sap for wetlands a
 
 ## Type
 
-- **Figtree** for everything you read, as in the deck: 15 px for interface text, 600 for names, 700 for section
-  heads ("Favorites", "From your circle") in sentence case, 800 for titles. **Axiforma Heavy** stays the wordmark,
+- **Figtree** for everything you read, on one scale (the type block at the end of `src/styles.css`):
+  `--t-display` 800 at 26–32 px, tight, for what a panel is about; `--t-title` 750 20 px; `--t-row` 650 16 px for
+  the things you tap; `--t-small` 13.5 px for what supports them; `--t-kicker` 750 11.5 px, spaced capitals, above
+  each group ("GETTING THERE"). **Axiforma Heavy** stays the wordmark,
   tracked wide (0.3 em).
 - **Geist Mono** only for figures: coordinates, distances, headings, counters, the remote's readouts.
 - Axiforma is licensed. Drop the licensed webfonts into `public/fonts/` as `Axiforma-Regular`, `-Medium`,
@@ -83,12 +86,13 @@ dome, no arc or marks) is for 32 px and below. `scripts/brand-icons.mjs` writes 
 
 ## Components
 
-- **Surfaces**: 18 px radius for sheets and panels, 16 for cards, 12 for controls, buttons and chips, 22 for the
-  dock. A soft lift (`--shadow`), no outline; cards sit white on the panel with a whisper of shadow.
-- **Buttons**: primary is solid blue, 12 px radius, bold. Secondary is a quiet fill. The strongest choice (Follow,
-  View on map) is the near-black pill; links are terracotta text.
-- **Chips**: a quiet fill, 12 px radius, 600; on is the near-black pill.
-- **Segmented**: a fill track; the chosen one is a white card with a small shadow.
+- **Surfaces**: 26 px radius for sheets and panels, 18 for cards, 14 for fields. A deep, soft lift and no outline.
+- **Menus**: rows at least 56 px tall, the title in `--t-row`, the icon in a clay-tinted disc, no separators; a row
+  dips slightly when pressed.
+- **Buttons**: pills. Primary is solid clay, bold 15 px, with a clay glow under it; secondary is a quiet fill.
+  Links are clay text.
+- **Chips**: pills, 650; on is solid clay.
+- **Segmented**: a pill track; the chosen one is a white pill with a small shadow.
 - **Icon discs**: `--c` sets the pigment; the disc is filled with it and the icon drawn in white.
 - **Toasts**: the near-black pill, centred, white text.
 - The Terreno Mobile layer at the end of `src/styles.css` carries these over every component.
@@ -136,34 +140,74 @@ The model is `src/wayfind/model.ts` (pure, tested); the screens are `src/wayfind
 
 The map is the page, opening over where you are (or your home), like any map you already trust.
 
-- **The band**: Terreno's mark and name, white on a field of cyan, across the top. It opens About.
-- **The bubble**: under the band the map is a big rounded window, framed by a light wash of the band's cyan.
+- **The band**: Terreno's mark and name, white on a field of clay (a red-brown, `--band-c`), across the top. It
+  opens About.
+- **The bubble**: under the band the map is a big rounded window, framed by a light wash of the band's clay.
   The button at its top right opens it to the whole screen (the band slides away) and back. Presenting, filming
   and a TV always have the whole screen.
 - **Stages, person first.** Each button in the dock opens the bubble into a *stage* (`src/ui/stage.ts`): a sheet of
-  paper with a small mark and a question at the top, **four big icons** composed across the middle (two-thirds to
-  four-fifths of the height), a line of more choices in words, and a **small field** at the bottom.
-  - The icons are drawn after the Bauhaus (`src/ui/bauhaus.ts`): each thing made of a few plain shapes (a circle,
-    a square, a triangle, a bar) in red, yellow, blue and ink, overlapping like a print. No tiles, no bubbles, no
-    outlines. They're laid out as a composition, different sizes and gently tilted, and they're playful: they drop
-    in one after another, wiggle when touched, and the one you chose stands while the others step back.
+  paper with a small mark and a question at the top, **four big pictograms in a row** across the middle, a line of
+  more choices in words, and a **small field** at the bottom.
+  - The pictograms (`src/ui/pictograms.ts`) are drawn like a new set of road and wayfinding signs that happen to
+    be art: a plain, solid silhouette in ink with one accent in clay (a taxi's roof sign, a train's stripe, a sun),
+    all on one 100-unit grid at one weight, so four read as a family. No tiles, no bubbles, no outlines. Every
+    other one sits a little higher so the row reads as a set; they rise in one after another, nudge when touched,
+    and the one you chose keeps a clay underline while the others step back.
   - **Navigate**: *How are you going?* Walk, Drive, Train, Taxi; Bike, Fly, Guide me in words; *Where to,
     walking?* at the bottom (your location, places and people as soon as you tap it). Walking is the default and
-    the last choice is remembered. A walk, a drive or a ride is routed on the map; the train opens a transit planner
-    and a taxi a ride app with the drop-off filled in (`src/ui/travelModes.ts`).
+    the last choice is remembered. A walk, a drive or a ride is routed on the map; the train opens a transit planner.
+  - **Taxi** puts local firms first (`src/taxi/`): the ranks and taxi companies near you from OpenStreetMap, plus
+    firms that listed themselves, ranked by who can take you (covers the pickup, has what you need, licence checked,
+    nearest; paying never moves a firm up). The meter's fare is estimated from the country's typical tariff, as a
+    range ("about $10–13"), and never invented where there's no tariff. Call, WhatsApp and Book each carry a fresh
+    booking reference (TRN-7K4P-2M9Q, easy to read out), kept on the device and sent to the firm's records when
+    Terreno's servers are on. Uber and Lyft sit underneath, so the choice stays yours. *Run a taxi company? List
+    it free* opens the listing page: Listed is free; Partner adds bookings into the firm's dispatch and a monthly
+    report for a small flat fee per booking, paid by the company and never by drivers. Firms can sign a *drivers
+    keep the full fare* pledge, which riders see as a badge. Tables: `taxi_firms`, `taxi_bookings` in
+    `docs/backend.sql`.
   - **Search**: *Look for* Food, Coffee, Parks, A bed; Shops, Fuel, Pharmacy in words; the search field at the
     bottom.
   - **Me**: your name at the top; My page and Field note (or Sign in), My Place, Watching, the tour; everything else
     found from the field.
   - **＋**: *Way in*: Explore, Create, Work, Views (the views open as words); any view or tool found from the field.
-- **The dock**, along the bottom inside the bubble, big and plain: **Search**, **Navigate**, **Me** and **＋**, each
-  a big icon with its word under it, ＋ in the action colour.
+- **The dock**, along the bottom inside the bubble: **Search**, **Navigate** and **Me** as big buttons, each a
+  big icon with its word under it, and **＋** as a smaller clay disc beside them that turns into × when open.
+- **The weather bubble**: a small pill at the top of the map with the weather where you're looking, a symbol and
+  the temperature (°F where people read Fahrenheit), from Open-Meteo. It steps away from orbit and while a stage
+  is open; tapping it opens the climate view there (`src/shell/weatherBubble.ts`). The map no longer opens on
+  the population layer.
+- **Quieter**: passing-by cards only for the notable (a higher bar and longer gaps between them), no counters
+  or stamps popping up.
 - **＋** opens Explore, Create and Work; then the **views** (People, Nature, Countries as tiles, the rest as
   chips), which work like map layers: choosing one changes the map and leaves its card as just a heading; choose
   it again, or tap the heading, to read it; then the tools (Pulse, Time, map style, Lenses, a TV, My Place).
 
 On a TV the menu is the same frame: Search, Go to, Me, ＋ in the first row, the views in the second, and the
 room's own tools only once ＋ is opened.
+
+## The opening
+
+Cut like a film title (`src/delight/intro.ts`, `intro.css`), about nine seconds the first time: letterbox bars
+close in, a warm clay light drifts over grain, and three title cards come up out of a blur and drift away
+(*Every street, every summit, every sea* · *Where you are, and where you're going* · *The whole Earth, as it
+is right now*). Then the dome of tesserae falls into place, the horizon is drawn, the name settles from wide to its
+own spacing, and the sun's position right now is read out. The dark opens through the dome onto the real Earth,
+lit by that sun, and the camera comes down slowly over your part of the world while the bars draw back. Return
+visits get the short cut; any key or tap skips.
+
+## Haptics
+
+Every touch answers in the hand (`src/ui/haptics.ts`), on phones only and with one vocabulary: *tick* (a detent,
+a finger crossing a key), *tap* (any button), *select* (choosing: a pictogram, a dock button, a tab), *confirm*
+(a booking, a chime), *success* (something done), *warn* (something missing), *heavy* (an end stop, a hold).
+Android plays them through vibration; iPhone Safari, which has no vibration, gets the system's selection tick
+through a hidden switch control. Every button, link, tab and chip gets one without wiring (`hapticsOn`), and an
+element can name its own with `data-haptic`. Off with `atlas.haptics = "off"`.
+
+The TV remote is where it's richest: the pad's edges *select*, a double tap *confirms*, a hold is *heavy*, the
+orb ticks as it turns, the zoom fader has detents and a firmer knock at either end, and a finger sliding across
+the keys or the tool strip ticks once per key, like a real remote.
 
 ## Motion
 

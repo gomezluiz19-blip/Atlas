@@ -31,6 +31,7 @@ import { cardFollowsMap } from "./shell/followCard";
 import { openingView } from "./shell/opening";
 import { connections } from "./shell/connections";
 import { globeLayersOnCanvas } from "./shell/globeLayers";
+import { weatherBubble } from "./shell/weatherBubble";
 import { waterTheme } from "./themes/water";
 import { deferred, formatElevation, formatLonLat, h } from "./ui/dom";
 import { icons } from "./ui/icons";
@@ -49,6 +50,8 @@ import { venueOf } from "./place/venue";
 import { flyToPlace, geocode, type Place as SearchPlace, type SearchResult } from "./ui/search";
 import { createRobot } from "./ui/robotCard";
 import { createAiSettings } from "./ui/aiSettings";
+import { createTaxiListing } from "./taxi/ui";
+import { hapticsOn } from "./ui/haptics";
 import { aiOn } from "./robot/llm";
 import { PlaceStore, blankPlace } from "./myplaces/store";
 import { activeSpace, openSpace } from "./delight/spaces";
@@ -108,6 +111,8 @@ const present = later(() => import("./work/present"));
 
 const globe = new Globe($("globe"), $("credits"));
 const app = new App(globe, $("ui"));
+// Every button, chip, tab and link answers in the hand on a phone (ui/haptics.ts).
+hapticsOn(document);
 globe.onNotice = (m) => app.toast(m, 6000);
 
 // A thin bar along the top while terrain and imagery tiles are streaming in.
@@ -574,7 +579,7 @@ app.actions.set("pro:occupancy", {
 
 // The task robot: plain-language requests typed into the search box.
 const aiSettings = createAiSettings();
-$("ui").append(aiSettings.panel);
+$("ui").append(aiSettings.panel, createTaxiListing(app));
 const robot = createRobot(app, {
   async find(text) {
     const mine = myStore.find(text);
@@ -780,6 +785,12 @@ const about = createAbout(() => aiSettings.open());
   band.append(about.mark);
   document.body.insertBefore(band, $("ui"));
   $("ui").append(expand);
+  // The weather where you're looking, at the top of the map.
+  $("ui").append(weatherBubble(app.globe.viewer, (at) => {
+    app.select({ lon: at.lon, lat: at.lat, height: 0 }, { title: "Here", context: "" });
+    app.setTheme("climate");
+    app.sheet.el.classList.remove("collapsed");
+  }));
 }
 $("ui").append(about.panel);
 
@@ -907,9 +918,9 @@ app.onPlace = (p) => {
     void countryAt(p.lon, p.lat).then((c) => {
       if (!c) return;
       const pass = loadPassport();
-      const earned = stamp(pass, c.name);
+      // Quietly: the stamp is there in Learn's passport, no notice over the map.
+      stamp(pass, c.name);
       savePassport(pass);
-      if (earned.length) app.toast(`🛂 New passport stamp: ${c.name}`, 3000);
     }).catch(() => {});
 };
 // Each theme sees the planet its own way (relief, depths, clouds, greenness, night lights…).

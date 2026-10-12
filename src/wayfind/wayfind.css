@@ -40,7 +40,6 @@
 .wf-pass p { margin: 0; font-size: 13px; line-height: 1.4; color: var(--secondary); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 .wf-pass-row { display: flex; align-items: center; gap: 10px; margin-top: 3px; }
 .wf-look { border: 0; border-radius: 7px; padding: 6px 12px; background: var(--accent); color: #fff; font: 600 12.5px var(--font); cursor: pointer; }
-.wf-found { font: 500 10px/1 var(--font-mono); letter-spacing: .08em; color: var(--secondary); }
 .wf-x { margin-left: auto; width: 26px; height: 26px; border: 0; border-radius: 6px; background: transparent; color: var(--secondary); font-size: 17px; line-height: 1; cursor: pointer; }
 .wf-x:hover { background: var(--fill); }
 .wf-timer { position: absolute; left: 0; bottom: 0; height: 2px; width: 100%; background: var(--c); transform-origin: left; animation: wf-timer 9s linear both; opacity: .55; }
