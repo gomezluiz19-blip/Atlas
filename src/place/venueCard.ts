@@ -150,7 +150,7 @@ const PACE: Record<ReachMode, "walk" | "cycle" | "drive"> = { walk: "walk", bike
 const TRAVEL: Record<ReachMode, TravelMode> = { walk: "walk", bike: "bike", drive: "drive" };
 
 /** Walk, bike and drive from you (or home) to here; tap one for the route on the map and its turns. */
-export function gettingThere(app: App, place: Place, name = "there"): { el: HTMLElement; directions: (mode?: ReachMode) => void } {
+export function gettingThere(app: App, place: Place, name = "there"): { el: HTMLElement; directions: (mode?: ReachMode, scroll?: boolean) => void } {
   const tiles = Object.fromEntries(REACH_IDS.map((m) => {
     const time = h("strong", {}, "…"), sub = h("small", {}, REACH_MODES[m].label);
     const el = h("button", { class: "vn-mode", "data-mode": m, onclick: () => void route(m) }, time, sub);
@@ -216,8 +216,8 @@ export function gettingThere(app: App, place: Place, name = "there"): { el: HTML
   };
 
   /** Directions: from where you are (asking, if need be), the way chosen (else the quickest), on the map. */
-  const directions = (mode?: ReachMode) => {
-    box.scrollIntoView({ behavior: "smooth", block: "start" });
+  const directions = (mode?: ReachMode, scroll = true) => {
+    if (scroll) box.scrollIntoView({ behavior: "smooth", block: "start" });
     if (origin) { void route(mode ?? best); return; }
     from.textContent = "Finding you…";
     askHere().then(async (o) => { await show(o, "where you are", "here"); void route(mode ?? best); })

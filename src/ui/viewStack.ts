@@ -8,6 +8,7 @@
 //     "volcanoes") or browse the shelves; each row switches its view on or off
 //     right there, so you can stack several in a row. The camera never moves
 //     and no panel opens.
+import { haptic } from "./haptics";
 import type { App } from "../app";
 import type { OverlayKind } from "../globe/viewer";
 import { h } from "./dom";
@@ -45,7 +46,7 @@ export function createViewStack(app: App, things: () => Thing[]): HTMLElement {
     let held = false, timer = 0;
     bub.addEventListener("pointerdown", (e) => {
       held = false;
-      if (e.pointerType !== "mouse") timer = window.setTimeout(() => { held = true; closeCard(); item.classList.add("open"); openCard = item; navigator.vibrate?.(12); }, HOLD_MS);
+      if (e.pointerType !== "mouse") timer = window.setTimeout(() => { held = true; closeCard(); item.classList.add("open"); openCard = item; haptic("heavy"); }, HOLD_MS);
     });
     const cancel = () => clearTimeout(timer);
     bub.addEventListener("pointerup", cancel);

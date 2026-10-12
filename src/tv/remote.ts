@@ -19,6 +19,7 @@ import { formatHash } from "../data/locationParse";
 import { installEmojiGuard } from "../ui/noEmoji";
 import { markSvg } from "../ui/brand";
 import { loadList } from "../util/storage";
+import { haptic, type Haptic } from "../ui/haptics";
 
 const $ = <K extends keyof HTMLElementTagNameMap>(tag: K, attrs: Record<string, string> = {}, ...kids: (Node | string)[]) => {
   const e = document.createElement(tag);
@@ -26,7 +27,20 @@ const $ = <K extends keyof HTMLElementTagNameMap>(tag: K, attrs: Record<string, 
   e.append(...kids);
   return e;
 };
-const buzz = (ms = 8) => { try { navigator.vibrate?.(ms); } catch { /* not supported */ } };
+// The remote is held, not looked at: every control answers in the hand (ui/haptics.ts), and the grids of keys
+// and tools tick under a finger sliding across them, like keys on a real remote.
+const buzz = (kind: Haptic = "tap") => haptic(kind);
+/** A finger dragged over a grid of buttons ticks once per button it crosses. */
+function tickAcross(grid: HTMLElement) {
+  let last: Element | null = null;
+  grid.addEventListener("pointerdown", (e) => { last = (e.target as HTMLElement).closest("button"); }, { passive: true });
+  grid.addEventListener("pointermove", (e) => {
+    if (e.pointerType === "mouse" || !e.buttons && e.pointerType !== "touch") return;
+    const over = document.elementFromPoint(e.clientX, e.clientY)?.closest("button") ?? null;
+    if (over && over !== last && grid.contains(over)) { last = over; buzz("tick"); }
+  }, { passive: true });
+  grid.addEventListener("pointerup", () => { last = null; }, { passive: true });
+}
 const root = document.getElementById("remote")!;
 
 function pairScreen(note = "") {
@@ -79,7 +93,7 @@ function start(code: string) {
   const pad = $("div", { class: "r-pad", role: "application", "aria-label": "Drag to roll the Earth, pinch to zoom, twist to turn, tap the edges to move through menus, tap the middle for OK" },
     ...["tl", "tr", "bl", "br"].map((c) => $("i", { class: `r-tick r-tick-${c}` })),
     ...Object.values(hud), ...Object.values(edges), orb, $("p", { class: "r-hint" }, "Roll · pinch · twist"));
-  const press = (dir: "up" | "down" | "left" | "right") => { buzz(10); edges[dir].classList.add("hit"); setTimeout(() => edges[dir].classList.remove("hit"), 180); cmd({ t: "dpad", dir }); };
+  const press = (dir: "up" | "down" | "left" | "right") => { buzz("select"); edges[dir].classList.add("hit"); setTimeout(() => edges[dir].classList.remove("hit"), 180); cmd({ t: "dpad", dir }); };
   /** The TV's camera, read out in the pad's corners. */
   const showCam = (c: Extract<State, { t: "cam" }>) => {
     label(hud.tl, "LAT", `${Math.abs(c.lat).toFixed(3)}° ${c.lat >= 0 ? "N" : "S"}`);
@@ -151,7 +165,7 @@ function start(code: string) {
     if (pts.size === 1) {
       last = { x: e.clientX, y: e.clientY, t: performance.now() }; vel = { x: 0, y: 0 }; travelled = 0; downAt = performance.now(); downXY = { x: e.clientX, y: e.clientY };
       clearTimeout(holdTimer);
-      holdTimer = window.setTimeout(() => { if (travelled < 8) { buzz(30); pad.classList.add("pulse"); setTimeout(() => pad.classList.remove("pulse"), 500); cmd({ t: "menu" }); travelled = 999; } }, 520);
+      holdTimer = window.setTimeout(() => { if (travelled < 8) { buzz("heavy"); pad.classList.add("pulse"); setTimeout(() => pad.classList.remove("pulse"), 500); cmd({ t: "menu" }); travelled = 999; } }, 520);
     } else if (pts.size === 2) { two = pair(); clearTimeout(holdTimer); travelled = 999; }
   });
   pad.addEventListener("pointermove", (e) => {
@@ -161,7 +175,7 @@ function start(code: string) {
       const now = pair();
       const f = now.d / two.d, da = ((now.a - two.a + Math.PI * 3) % (Math.PI * 2)) - Math.PI, dy = (now.my - two.my) / size();
       if (Math.abs(f - 1) > 0.035) { cmd({ t: "zoom", f }); two.d = now.d; orb.style.transform = `scale(${Math.min(1.12, Math.max(0.9, f))})`; }
-      if (Math.abs(da) > 0.02 || Math.abs(dy) > 0.01) { cmd({ t: "orbit", turn: -da, tilt: dy * 1.6 }); two.a = now.a; two.my = now.my; spinLines(-da * 0.3, 0); if ((tick += Math.abs(da)) > 0.2) { tick = 0; buzz(3); } }
+      if (Math.abs(da) > 0.02 || Math.abs(dy) > 0.01) { cmd({ t: "orbit", turn: -da, tilt: dy * 1.6 }); two.a = now.a; two.my = now.my; spinLines(-da * 0.3, 0); if ((tick += Math.abs(da)) > 0.2) { tick = 0; buzz("tick"); } }
       return;
     }
     const now = performance.now(), dx = (e.clientX - last.x) / size(), dy = (e.clientY - last.y) / size(), dt = Math.max(1, now - last.t);
@@ -172,7 +186,7 @@ function start(code: string) {
     last = { x: e.clientX, y: e.clientY, t: now };
     cmd({ t: "pan", dx, dy });
     spinLines(dx, dy);
-    if ((tick += Math.hypot(dx, dy)) > 0.18) { tick = 0; buzz(3); }
+    if ((tick += Math.hypot(dx, dy)) > 0.18) { tick = 0; buzz("tick"); }
   });
   const up = (e: PointerEvent) => {
     if (!pts.has(e.pointerId)) return;
@@ -190,7 +204,7 @@ function start(code: string) {
       if (x < band || x > 1 - band || y < band || y > 1 - band) { press(edgeDir(x - 0.5, y - 0.5)); return; }
       const now = performance.now();
       ripple(downXY.x - r.left, downXY.y - r.top);
-      if (now - lastTap < 320) { buzz(14); cmd({ t: "zoom", f: 2.6 }); lastTap = 0; } else { buzz(10); lastTap = now; window.setTimeout(() => { if (lastTap === now) cmd({ t: "select" }); }, 300); }
+      if (now - lastTap < 320) { buzz("confirm"); cmd({ t: "zoom", f: 2.6 }); lastTap = 0; } else { buzz("select"); lastTap = now; window.setTimeout(() => { if (lastTap === now) cmd({ t: "select" }); }, 300); }
       return;
     }
     // A flick keeps the Earth turning a moment, slowing like a real globe.
@@ -217,7 +231,7 @@ function start(code: string) {
   const fadeLoop = () => { if (Math.abs(fPos) > 0.04) cmd({ t: "zoom", f: Math.exp(fPos * 0.09) }); fRaf = requestAnimationFrame(fadeLoop); };
   fader.addEventListener("pointerdown", (e) => {
     const r = fader.getBoundingClientRect(), x = (e.clientX - r.left) / r.width;
-    if (x < 0.16 || x > 0.84) { buzz(8); cmd({ t: "zoom", f: x < 0.5 ? 1 / 1.6 : 1.6 }); return; }
+    if (x < 0.16 || x > 0.84) { buzz("tap"); cmd({ t: "zoom", f: x < 0.5 ? 1 / 1.6 : 1.6 }); return; }
     fader.setPointerCapture(e.pointerId); fx0 = e.clientX; fLast = 0; fader.classList.add("on"); fRaf = requestAnimationFrame(fadeLoop);
   });
   fader.addEventListener("pointermove", (e) => {
@@ -225,7 +239,9 @@ function start(code: string) {
     const span = fader.clientWidth * 0.32;
     fPos = Math.max(-1, Math.min(1, (e.clientX - fx0) / span));
     knob.style.transform = `translateX(${fPos * span * 0.9}px)`;
-    if (Math.abs(fPos - fLast) > 0.25) { fLast = fPos; buzz(3); }
+    // Detents as it moves, and a firmer knock at either end stop.
+    if (Math.abs(fPos) === 1 && Math.abs(fLast) !== 1) { fLast = fPos; buzz("heavy"); }
+    else if (Math.abs(fPos - fLast) > 0.25) { fLast = fPos; buzz("tick"); }
   });
   const fadeEnd = () => { fader.classList.remove("on"); cancelAnimationFrame(fRaf); fPos = 0; knob.style.transform = ""; };
   fader.addEventListener("pointerup", fadeEnd); fader.addEventListener("pointercancel", fadeEnd);
@@ -241,12 +257,13 @@ function start(code: string) {
   const key = (label: string, icon: string, fn: () => void, cls = "") => {
     const b = $("button", { class: `r-key ${cls}`, "aria-label": label }, $("span", { class: "r-key-icon" }), $("small", {}, label));
     b.querySelector(".r-key-icon")!.innerHTML = svg(icon);
-    b.addEventListener("click", () => { buzz(8); fn(); });
+    b.addEventListener("click", () => { buzz("tap"); fn(); });
     return b;
   };
   const keys = $("div", { class: "r-keys" },
     key("Back", "back", () => cmd({ t: "back" })), key("Menu", "menu", () => cmd({ t: "menu" })),
     key("Search", "search", () => enterTyping(true)), key("Voice", "voice", () => listenVoice(), "r-key-voice"));
+  tickAcross(keys);
   const deck = $("div", { class: "r-deck" }, pad, fader, keys);
 
   // ---- Typing: the orb gives way to a search bar and the keyboard ----
@@ -271,7 +288,7 @@ function start(code: string) {
     cmd({ t: "select" }); leaveTyping(false);
   };
   field.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); finish(); } });
-  doneBtn.addEventListener("click", () => { buzz(10); finish(); });
+  doneBtn.addEventListener("click", () => { buzz("select"); finish(); });
   closeType.addEventListener("click", () => leaveTyping(!editing));
   function enterTyping(tellTv: boolean) {
     editing = false;
@@ -310,7 +327,7 @@ function start(code: string) {
     const back = input({ type: "date", value: day(26), min: day(0) });
     let people = 2;
     const count = $("strong", {}, "2");
-    const step = (d: number) => { const b = $("button", { type: "button", class: "r-step" }, d > 0 ? "+" : "−"); b.addEventListener("click", () => { buzz(6); people = Math.max(1, Math.min(9, people + d)); count.textContent = String(people); }); return b; };
+    const step = (d: number) => { const b = $("button", { type: "button", class: "r-step" }, d > 0 ? "+" : "−"); b.addEventListener("click", () => { buzz("tick"); people = Math.max(1, Math.min(9, people + d)); count.textContent = String(people); }); return b; };
     depart.addEventListener("change", () => { back.min = depart.value; if (back.value < depart.value) back.value = iso(new Date(new Date(depart.value).getTime() + 5 * 864e5)); });
     const go = $("button", { class: "r-primary", type: "submit" }, "Plan it on the TV ✈");
     const x = $("button", { class: "r-type-x", type: "button", "aria-label": "Close" }, "✕");
@@ -328,7 +345,7 @@ function start(code: string) {
     form.addEventListener("submit", (e) => {
       e.preventDefault();
       if (!to.value.trim()) { to.classList.add("shake"); to.focus(); return; }
-      buzz(16);
+      buzz("success");
       cmd({ t: "trip", to: to.value.trim(), from: from.value.trim() || undefined, depart: depart.value, back: back.value, people });
       close();
     });
@@ -339,7 +356,7 @@ function start(code: string) {
   function showSuggestions(items: string[], focus: number) {
     sugg.replaceChildren(...items.map((name, i) => {
       const b = $("button", { class: "r-sugg-row" + (i === focus ? " focus" : "") }, $("span", {}, "📍"), name);
-      b.addEventListener("click", () => { buzz(10); cmd({ t: "pick", i }); leaveTyping(false); });
+      b.addEventListener("click", () => { buzz("select"); cmd({ t: "pick", i }); leaveTyping(false); });
       return b;
     }));
   }
@@ -366,12 +383,13 @@ function start(code: string) {
 
   // ---- The room's tools: a strip the TV fills in, so the phone always matches the screen ----
   const strip = $("div", { class: "r-tools", role: "toolbar", "aria-label": "Tools for this screen" });
+  tickAcross(strip);
   function drawTools() {
     if (!tools) return;
     strip.replaceChildren(...tools.items.map((t) => {
       const on = tools!.mode === t.id;
       const b = $("button", { class: "r-tool" + (on ? " on" : ""), "aria-pressed": String(on) }, $("span", {}, t.icon), $("small", {}, t.label));
-      b.addEventListener("click", () => { buzz(8); toolPress(t); });
+      b.addEventListener("click", () => { buzz("tap"); toolPress(t); });
       return b;
     }));
     root.classList.toggle("has-tools", tools.items.length > 0);
@@ -398,7 +416,7 @@ function start(code: string) {
       note ? $("p", { class: "r-sheet-note" }, note) : "",
       $("div", { class: "r-list" }, ...rows.map((r) => {
         const b = $("button", { class: "r-list-row" }, r.icon ? $("span", { class: "r-list-icon" }, r.icon) : "", $("div", {}, $("strong", {}, r.label), r.sub ? $("small", {}, r.sub) : ""));
-        b.addEventListener("click", () => { buzz(10); close(); r.go(); });
+        b.addEventListener("click", () => { buzz("select"); close(); r.go(); });
         return b;
       })));
     const close = () => { box.classList.add("out"); setTimeout(() => box.remove(), 300); };
@@ -465,8 +483,8 @@ function start(code: string) {
       const q = at(e); pad.style.setProperty("--x", `${q.x * 100}%`); pad.style.setProperty("--y", `${q.y * 100}%`); cmd({ t: "point", ...q, down: mode === "pen" }); });
     const up = () => { down = false; pad.classList.remove("touch"); cmd({ t: "point-end" }); };
     pad.addEventListener("pointerup", up); pad.addEventListener("pointercancel", up);
-    done.addEventListener("click", () => { buzz(10); cmd({ t: "tool", tool: mode }); closePanel(); });
-    clear.addEventListener("click", () => { buzz(8); cmd({ t: "tool", tool: "ink-clear" }); });
+    done.addEventListener("click", () => { buzz("select"); cmd({ t: "tool", tool: mode }); closePanel(); });
+    clear.addEventListener("click", () => { buzz("tap"); cmd({ t: "tool", tool: "ink-clear" }); });
     showPanel(p);
   }
 
@@ -480,8 +498,8 @@ function start(code: string) {
       const prev = $("button", { class: "r-big r-prev", "aria-label": "Previous slide" }, "‹");
       const next = $("button", { class: "r-big r-next", "aria-label": "Next slide" }, "Next ›");
       const end = $("button", { class: "r-ghost" }, "End");
-      prev.addEventListener("click", () => { buzz(10); cmd({ t: "slide", dir: -1 }); });
-      next.addEventListener("click", () => { buzz(14); cmd({ t: "slide", dir: 1 }); });
+      prev.addEventListener("click", () => { buzz("select"); cmd({ t: "slide", dir: -1 }); });
+      next.addEventListener("click", () => { buzz("confirm"); cmd({ t: "slide", dir: 1 }); });
       end.addEventListener("click", () => { cmd({ t: "back" }); closePanel(); });
       showPanel($("div", { class: "r-panel r-present" },
         $("div", { class: "r-panel-top" }, $("p", { class: "r-panel-k" }), elapsed),
@@ -501,8 +519,8 @@ function start(code: string) {
       const reveal = $("button", { class: "r-big r-next" }, "Reveal");
       const prev = $("button", { class: "r-big r-prev", "aria-label": "Previous question" }, "‹");
       const end = $("button", { class: "r-ghost" }, "End the quiz");
-      reveal.addEventListener("click", () => { buzz(14); cmd({ t: "quiz", act: reveal.dataset.next ? "next" : "reveal" }); });
-      prev.addEventListener("click", () => { buzz(10); cmd({ t: "quiz", act: "prev" }); });
+      reveal.addEventListener("click", () => { buzz("confirm"); cmd({ t: "quiz", act: reveal.dataset.next ? "next" : "reveal" }); });
+      prev.addEventListener("click", () => { buzz("select"); cmd({ t: "quiz", act: "prev" }); });
       end.addEventListener("click", () => { cmd({ t: "quiz", act: "end" }); closePanel(); });
       showPanel($("div", { class: "r-panel r-quiz" },
         $("div", { class: "r-panel-top" }, $("p", { class: "r-panel-k" }), $("span", { class: "r-elapsed" })),
@@ -537,7 +555,7 @@ function start(code: string) {
   /** Terreno on this phone, at a place or the TV's own view. */
   const appLink = (place?: { lon: number; lat: number }) => new URL(`./${formatHash(place ? { place: { lon: place.lon, lat: place.lat } } : camNow ? { camera: { lon: camNow.lon, lat: camNow.lat, height: camNow.alt, heading: camNow.heading, pitch: camNow.pitch } } : {})}`, location.href).href;
   const openHere = $("button", { class: "r-open", "aria-label": "Open the TV's view in Terreno on this phone", disabled: "" }, "Open here") as HTMLButtonElement;
-  openHere.addEventListener("click", () => { buzz(10); location.href = appLink(); });
+  openHere.addEventListener("click", () => { buzz("select"); location.href = appLink(); });
   const passBox = $("div", { class: "r-pass", hidden: "" });
   let passTimer = 0;
   function showPassing(s: Extract<State, { t: "passing" }>) {
@@ -546,7 +564,7 @@ function start(code: string) {
     passBox.replaceChildren($("p", { class: "r-pass-k" }, $("i"), "Passing on the TV"), $("strong", {}, s.name), s.line ? $("p", { class: "r-pass-line" }, s.line) : "", open);
     passBox.hidden = false;
     passBox.classList.remove("in"); void passBox.offsetWidth; passBox.classList.add("in");
-    buzz(6);
+    buzz("tick");
     clearTimeout(passTimer);
     passTimer = window.setTimeout(() => { passBox.hidden = true; }, 15_000);
   }

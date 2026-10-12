@@ -140,7 +140,6 @@ export function installWayfinder(app: App, root: HTMLElement): Wayfinder {
     told.add(s.poi.id);
     remember(s.poi.id);
     cardAt = Date.now();
-    const n = String(found.size).padStart(3, "0");
     card.style.setProperty("--c", colorOf(s.poi));
     card.replaceChildren(
       h("div", { class: "wf-pass-k" }, h("i", { class: "wf-tile" }), h("span", {}, moving ? `Passing · ${distanceText(s.km)} ${sideText(s.rel)}` : `Nearby · ${distanceText(s.km)}`)),
@@ -148,7 +147,6 @@ export function installWayfinder(app: App, root: HTMLElement): Wayfinder {
       s.poi.line ? h("p", {}, s.poi.line) : "",
       h("div", { class: "wf-pass-row" },
         h("button", { class: "wf-look", onclick: () => { look(s.poi); hideCard(); } }, "Look"),
-        h("span", { class: "wf-found", title: "Places you've found" }, `No. ${n} found`),
         h("button", { class: "wf-x", "aria-label": "Dismiss", onclick: () => hideCard() }, "×")),
       h("i", { class: "wf-timer" }));
     // A listing or a street-level find gets Wikipedia's first lines, when they come.
@@ -244,8 +242,9 @@ export function installWayfinder(app: App, root: HTMLElement): Wayfinder {
     const guess = m && steering ? guessDestination(at, m, cands, { reachKm: sc.rangeKm * 1.6, hour: new Date().getHours(), minKm: sc.reachKm }) : null;
     drawMarks(aheadOf(at, heading, pool, { rangeKm: sc.rangeKm, coneDeg: FOV / 2, minWeight: sc.minWeight, limit: 7 }), guess ?? guessing);
     if (steering) showGuess(guess);
-    if (m && Date.now() - cardAt > 6500 && !closeTo(app.place, at, sc.reachKm)) {
-      const s = passingNow(at, m.heading, pool, sc.reachKm, told, sc.minWeight);
+    // Selective: only places worth a card (landmarks and notable places, not every article), and not often.
+    if (m && Date.now() - cardAt > 45_000 && !closeTo(app.place, at, sc.reachKm)) {
+      const s = passingNow(at, m.heading, pool, sc.reachKm, told, Math.max(2, sc.minWeight));
       if (s) showCard(s, true);
     }
   });
@@ -299,7 +298,7 @@ export function installWayfinder(app: App, root: HTMLElement): Wayfinder {
     const reach = pace === "walk" || pace === "still" || pace === "run" ? 0.35 : pace === "cycle" ? 0.7 : pace === "drive" ? 2.5 : 25;
     refreshWiki(here, pace === "drive" ? 8000 : 3000);
     const pool = [...pois, ...wiki];
-    if (Date.now() - cardAt > 15_000) { const s = passingNow(here, heading, pool, reach, told, 1); if (s) showCard(s, pace !== "still"); }
+    if (Date.now() - cardAt > 40_000) { const s = passingNow(here, heading, pool, reach, told, 1.4); if (s) showCard(s, pace !== "still"); }
     // Where you're going: a guess while there's no target; turn-by-turn once there is.
     if (target) void steer();
     else if (m) showGuess(guessDestination(here, m, myCandidates(), { hour: new Date().getHours() }));

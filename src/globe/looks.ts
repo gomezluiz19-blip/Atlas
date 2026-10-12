@@ -156,7 +156,8 @@ export class Looks {
 
   constructor(private globe: Globe, host: HTMLElement) {
     host.append(this.legend);
-    try { for (const id of JSON.parse(localStorage.getItem("atlas.looks.natural") ?? "[]") as string[]) this.natural.add(id); } catch { /* storage unavailable */ }
+    // People opens on the plain map (the population glow is a choice, not the default).
+    try { for (const id of JSON.parse(localStorage.getItem("atlas.looks.natural") ?? '["people"]') as string[]) this.natural.add(id); } catch { this.natural.add("people"); }
     const cam = globe.viewer.camera;
     cam.percentageChanged = 0.05;
     cam.changed.addEventListener(() => this.onZoom());
@@ -300,8 +301,9 @@ export class Looks {
       return;
     }
     const look = LOOKS[this.themeId];
-    if (!look) { this.legend.hidden = true; return; }
-    const on = this.current === look;
+    const on = !!look && this.current === look;
+    // Nothing over the map unless a look is actually on: the plain map needs no label.
+    if (!look || !on) { this.legend.hidden = true; return; }
     this.legend.hidden = false;
     this.legend.replaceChildren(
       h("span", { class: "look-emoji", "aria-hidden": "true" }, iconFor(on ? look.emoji : "🛰️", 17)),

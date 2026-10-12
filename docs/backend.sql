@@ -126,6 +126,49 @@ create policy "upload to your folder" on storage.objects for insert with check (
 create policy "replace in your folder" on storage.objects for update using (bucket_id = 'media' and (storage.foldername(name))[1] = auth.uid()::text);
 create policy "delete in your folder" on storage.objects for delete using (bucket_id = 'media' and (storage.foldername(name))[1] = auth.uid()::text);
 
+-- Local taxi firms that list themselves (Navigate › Taxi › "List your taxi company"). Anyone can list; a listing
+-- goes live once Terreno has checked the licence (live, verified are set by Terreno, never by the firm). Riders
+-- read the public columns only: the contact email and tier stay private to Terreno.
+create table if not exists taxi_firms (
+  id                uuid primary key default gen_random_uuid(),
+  name              text not null check (char_length(name) between 1 and 120),
+  lon               double precision not null,
+  lat               double precision not null,
+  radius_km         real not null default 25 check (radius_km between 1 and 300),
+  phone             text,
+  whatsapp          text,
+  booking           text check (booking is null or booking ~ '^https://'),
+  needs             text[] not null default '{}',
+  fixed             jsonb not null default '[]',
+  licence           text,
+  drivers_keep_fare boolean not null default false,
+  email             text not null,
+  tier              text not null default 'free' check (tier in ('free', 'partner')),
+  verified          boolean not null default false,
+  live              boolean not null default false,
+  created_at        timestamptz not null default now()
+);
+create index if not exists taxi_firms_where on taxi_firms (lat, lon) where live;
+alter table taxi_firms enable row level security;
+create policy "riders see live firms" on taxi_firms for select using (live);
+create policy "anyone can list a firm" on taxi_firms for insert with check (not live and not verified);
+revoke select on taxi_firms from anon, authenticated;
+grant select (id, name, lon, lat, radius_km, phone, whatsapp, booking, needs, fixed, licence, verified, drivers_keep_fare, live) on taxi_firms to anon, authenticated;
+
+-- A reference for every ride Terreno sends a firm: what the Partner fee counts, and what the monthly report
+-- lists. Only the reference, the firm, how and where to; the rider's id only when they're signed in.
+create table if not exists taxi_bookings (
+  ref         text primary key check (ref ~ '^TRN-[2-9A-HJ-NP-Z]{4}-[2-9A-HJ-NP-Z]{4}$'),
+  firm_id     uuid not null references taxi_firms on delete cascade,
+  via         text not null check (via in ('call', 'whatsapp', 'book')),
+  destination text,
+  rider       uuid references auth.users on delete set null default auth.uid(),
+  at          timestamptz not null default now()
+);
+alter table taxi_bookings enable row level security;
+create policy "record a booking" on taxi_bookings for insert with check (rider is null or rider = auth.uid());
+create policy "see your own rides" on taxi_bookings for select using (rider = auth.uid());
+
 -- Deleting your own account from the app (Account › Delete my account). Everything above cascades from auth.users.
 create or replace function delete_me() returns void language sql security definer set search_path = public as $$
   delete from auth.users where id = auth.uid();

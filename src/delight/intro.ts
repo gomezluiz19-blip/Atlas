@@ -1,8 +1,9 @@
-// The opening, in under four seconds: the printer's registration marks find the corners of the screen, the
-// dome of tesserae falls into place, the horizon is drawn over it, the name settles from wide to its own
-// spacing, and a readout says where the sun stands overhead right now. Then the dark opens through the dome
-// onto the real Earth, composed on that sun: a crescent over the night side's cities turning into the day
-// over your part of the world. Then a line on what's happening on the planet now. Return visits get the
+// The opening, cut like a film title (about nine seconds the first time): letterbox bars close in, a warm clay
+// light drifts over grain, and three title cards come and go. Then the dome of tesserae falls into place, the
+// horizon is drawn over it, the name settles from wide to its own spacing, and a readout says where the sun
+// stands overhead right now. The dark opens through the dome onto the real Earth, composed on that sun: a
+// crescent over the night side's cities, turning slowly into the day over your part of the world, and the bars
+// draw back as the camera arrives. Then a line on what's happening on the planet now. Return visits get the
 // short cut. Any key or tap skips.
 import { Cartesian3, EasingFunction } from "cesium";
 import type { App } from "../app";
@@ -50,9 +51,14 @@ export async function playIntro(app: App, opts: IntroOptions) {
       h("span", {}, "The whole Earth, live"),
       h("span", { class: "op-sun" }, `Sun overhead ${fmt(sunNow.lat, "N", "S")}, ${fmt(sunNow.lon, "E", "W")} · ${utc} UTC`)));
   const skipBtn = h("button", { class: "op-skip" }, "Skip");
+  // The title cards, first visit only.
+  const cards = h("div", { class: "op-cards", "aria-hidden": "true" },
+    ...["Every street, every summit, every sea", "Where you are, and where you're going", "The whole Earth, as it is right now"].map((t, i) => h("p", { class: "op-card", style: `--c:${i}` }, t)));
   const veil = h("div", { class: "op" + (opts.full ? " full" : ""), role: "presentation" },
-    ...["tl", "tr", "bl", "br"].map((c) => h("i", { class: `op-tick op-tick-${c}`, "aria-hidden": "true" })), mark, skipBtn);
-  document.body.append(veil);
+    ...["tl", "tr", "bl", "br"].map((c) => h("i", { class: `op-tick op-tick-${c}`, "aria-hidden": "true" })), opts.full ? cards : "", mark, skipBtn);
+  // The letterbox: two bars that frame the opening like a film and draw back once the camera arrives.
+  const bars = h("div", { class: "op-bars", "aria-hidden": "true" }, h("i"), h("i"));
+  document.body.append(bars, veil);
   const skip = { on: false };
   const doSkip = () => { skip.on = true; };
   skipBtn.addEventListener("click", doSkip);
@@ -74,15 +80,18 @@ export async function playIntro(app: App, opts: IntroOptions) {
 
   if (!reduced) {
     // Marks, tiles, horizon, name, readout (intro.css); a return visit gets the short cut.
-    requestAnimationFrame(() => veil.classList.add("on"));
-    await wait(opts.full ? 3700 : 1500, skip);
+    requestAnimationFrame(() => { veil.classList.add("on"); if (opts.full) bars.classList.add("on"); });
+    await wait(opts.full ? 9000 : 1500, skip);
   }
   // Fade up on the Earth as the camera settles in.
   veil.classList.add("on", "out");
   chime("open");
-  if (opts.home) cam.flyTo({ destination: Cartesian3.fromDegrees(opts.home.lon, opts.home.lat * 0.8, 14_000_000), duration: reduced ? 0 : 5.6, easingFunction: EasingFunction.QUINTIC_IN_OUT });
+  const flight = reduced || skip.on ? 0 : opts.full ? 7.5 : 5.6;
+  if (opts.home) cam.flyTo({ destination: Cartesian3.fromDegrees(opts.home.lon, opts.home.lat * 0.8, 14_000_000), duration: flight, easingFunction: EasingFunction.QUINTIC_IN_OUT });
   opts.onReveal?.();
   setTimeout(() => veil.remove(), 1700);
+  // The bars draw back as the camera settles (at once if skipped).
+  setTimeout(() => { bars.classList.remove("on"); setTimeout(() => bars.remove(), 1400); }, Math.max(0, flight * 1000 - 1600));
   removeEventListener("keydown", doSkip);
   showPulse(app, await pulse);
   if (!opts.home) return;
