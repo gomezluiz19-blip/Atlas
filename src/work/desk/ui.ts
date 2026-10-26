@@ -47,30 +47,41 @@ const when = (r: Rec, t: string) => {
   return d === 0 ? "Today" : d === 1 ? "Tomorrow" : d === -1 ? "Yesterday" : d < 0 ? `${-d} days ago` : d < 14 ? `In ${d} days` : dateText(r.due);
 };
 
-/** The Work desk's home, for the Work hub. `tools` opens the tools for your field (the line map). */
-export function deskHome(ctx: WorkCtx, opts: { tools: () => void }): HTMLElement {
+/** The desk, as a screen of Work (back goes to Work's front: your field). */
+export function openDesk(ctx: WorkCtx) {
   const root = h("div", { class: "dk" });
   const book = read();
-  if (!book) { root.append(...welcome(ctx, opts)); return root; }
-  root.append(...home(ctx, book, opts));
-  return root;
+  root.append(...(book ? home(ctx, book) : welcome(ctx)));
+  ctx.show("Your work on the map", () => { near?.clear(); ctx.home(); }, root);
 }
 
-function welcome(ctx: WorkCtx, opts: { tools: () => void }): (HTMLElement | string)[] {
-  const start = (role: Role) => { const b: Stored = { ...demoBook(role, today()), example: true }; write(b); haptic("select"); ctx.home(); };
+/** Work's front shows the desk as one card under your field: what it is, or what needs you now. */
+export function deskCard(ctx: WorkCtx): HTMLElement {
+  const book = read();
+  const alerts = book ? attention(book.recs, today()) : [];
+  const sub = !book ? "Clients, orders, shipments, jobs and cases as pins, and what happens if one slips"
+    : alerts.length ? `${alerts.length} need${alerts.length === 1 ? "s" : ""} you · ${book.recs.length} records${book.example ? " (example)" : ""}`
+    : `Everything on track · ${book.recs.length} records${book.example ? " (example)" : ""}`;
+  return h("button", { class: "dk-tools dk-card" + (alerts.length ? " alert" : ""), onclick: () => openDesk(ctx) },
+    h("span", { class: "work-tool-icon", html: icons.pin }),
+    h("span", { class: "work-tool-text" }, h("strong", {}, "Your work on the map"), h("span", {}, sub)),
+    h("span", { class: "wk-chev", "aria-hidden": "true" }, "›"));
+}
+
+function welcome(ctx: WorkCtx): (HTMLElement | string)[] {
+  const start = (role: Role) => { const b: Stored = { ...demoBook(role, today()), example: true }; write(b); haptic("select"); openDesk(ctx); };
   return [
     h("p", { class: "mp-intro" }, "Your work as it really sits: clients, orders, shipments, jobs and cases on the map, with what each one waits on and what happens if it slips."),
     h("h3", { class: "group-title" }, "How do you work?"),
     h("div", { class: "dk-roles" }, ...(Object.keys(ROLES) as Role[]).map((r) =>
       h("button", { class: "dk-role", onclick: () => start(r) }, h("strong", {}, ROLES[r].label), h("span", {}, ROLES[r].who), h("small", {}, "Try it with an example ›")))),
     h("div", { class: "pro-actions" },
-      h("button", { class: "primary-btn", onclick: () => importScreen(ctx, null) }, "Bring my records"),
-      h("button", { class: "pill-btn", onclick: opts.tools }, "Tools for your field")),
+      h("button", { class: "primary-btn", onclick: () => importScreen(ctx, null) }, "Bring my records")),
     h("p", { class: "muted small" }, "Records stay on this device. Export from any CRM or spreadsheet as CSV; Terreno reads the usual columns."),
   ];
 }
 
-function home(ctx: WorkCtx, book: Stored, opts: { tools: () => void }): (HTMLElement | string)[] {
+function home(ctx: WorkCtx, book: Stored): (HTMLElement | string)[] {
   const t = today(), recs = book.recs;
   const alerts = attention(recs, t);
   const proj = projected(recs);
@@ -80,7 +91,7 @@ function home(ctx: WorkCtx, book: Stored, opts: { tools: () => void }): (HTMLEle
   const roles = h("div", { class: "segmented dk-seg", role: "tablist" }, ...(Object.keys(ROLES) as Role[]).map((r) =>
     h("button", { role: "tab", "aria-selected": String(book.role === r), onclick: () => {
       write(book.example ? { ...demoBook(r, t), example: true } : { ...book, role: r });
-      ctx.home();
+      openDesk(ctx);
     } }, ROLES[r].label)));
 
   const needs = alerts.length
@@ -135,11 +146,8 @@ function home(ctx: WorkCtx, book: Stored, opts: { tools: () => void }): (HTMLEle
       h("button", { class: "pill-btn", onclick: () => fitAll(ctx, recs) }, "See it all"),
       h("button", { class: "pill-btn", onclick: () => importScreen(ctx, book) }, "Bring records in"),
       h("button", { class: "pill-btn", onclick: () => exportCsv(book) }, "Export")),
-    h("button", { class: "dk-tools", onclick: opts.tools },
-      h("span", { class: "work-tool-icon", style: "--c:var(--clay)", html: icons.briefcase }),
-      h("span", { class: "work-tool-text" }, h("strong", {}, "Tools for your field"), h("span", {}, "Freight, construction, mining, an office, a school district and more, each with its own desk"))),
     h("p", { class: "muted small" }, "Kept on this device. ",
-      h("button", { class: "link-btn", onclick: () => { if (confirm(book.example ? "Put the example away?" : "Clear every record from this device?")) { localStorage.removeItem(KEY); layer?.clear(); near?.clear(); ctx.home(); } } }, book.example ? "Put the example away" : "Clear everything")),
+      h("button", { class: "link-btn", onclick: () => { if (confirm(book.example ? "Put the example away?" : "Clear every record from this device?")) { localStorage.removeItem(KEY); layer?.clear(); near?.clear(); openDesk(ctx); } } }, book.example ? "Put the example away" : "Clear everything")),
   ];
 }
 
@@ -224,7 +232,7 @@ function openRec(ctx: WorkCtx, id: string) {
   const health = h("select", { "aria-label": "How it stands" }, ...(Object.keys(HEALTH) as Health[]).map((x) => h("option", { value: x, selected: x === r.health }, HEALTH[x].label))) as HTMLSelectElement;
   const note = h("input", { class: "pro-url", placeholder: "Add a note to its history", "aria-label": "Note" }) as HTMLInputElement;
 
-  ctx.show(r.title, () => { near?.clear(); ctx.home(); },
+  ctx.show(r.title, () => { near?.clear(); openDesk(ctx); },
     h("div", { class: "dk-head" },
       h("span", { class: "dk-kicker" }, KINDS[r.kind].one, client && client.id !== r.id ? ` · ${client.title}` : ""),
       h("span", { class: "dk-pill", style: `--hc:${HEALTH[r.health].color}` }, HEALTH[r.health].label)),
@@ -277,7 +285,7 @@ function editScreen(ctx: WorkCtx, book: Stored, r: Rec | null) {
   let picked: { lon: number; lat: number } | null = r?.lon !== undefined ? { lon: r.lon, lat: r.lat! } : null;
   const tap = h("button", { class: "pill-btn", type: "button", onclick: () => { ctx.hide(); ctx.app.pickOnce("Tap where it is", (p) => { picked = { lon: p.lon, lat: p.lat }; where.value = ""; where.placeholder = "Placed on the map"; ctx.unhide(); }, () => ctx.unhide()); } }, "Tap the map");
 
-  ctx.show(r ? `Edit ${r.title}` : "Add to your work", () => (r ? openRec(ctx, r.id) : ctx.home()),
+  ctx.show(r ? `Edit ${r.title}` : "Add to your work", () => (r ? openRec(ctx, r.id) : openDesk(ctx)),
     h("div", { class: "mp-fields" }, h("label", { class: "mp-field" }, h("span", {}, "Kind"), kind), h("label", { class: "mp-field" }, h("span", {}, "Part of"), parent)),
     h("label", { class: "mp-field" }, h("span", {}, "Name"), title),
     h("label", { class: "mp-field" }, h("span", {}, "Details"), sub),
@@ -310,7 +318,7 @@ function editScreen(ctx: WorkCtx, book: Stored, r: Rec | null) {
       r ? h("button", { class: "link-btn danger", onclick: () => {
         if (!confirm(`Delete ${r.title}?`)) return;
         book.recs = book.recs.filter((x) => x.id !== r.id).map((x) => ({ ...x, parent: x.parent === r.id ? undefined : x.parent, needs: x.needs?.filter((n) => n !== r.id) }));
-        write(book); ctx.home();
+        write(book); openDesk(ctx);
       } }, "Delete") : ""),
     msg);
 }
@@ -322,7 +330,7 @@ function importScreen(ctx: WorkCtx, book: Stored | null) {
   const file = h("input", { type: "file", accept: ".csv,text/csv", hidden: true, onchange: async () => { const f = file.files?.[0]; if (f) area.value = await f.text(); } }) as HTMLInputElement;
   const msg = h("p", { class: "muted small", "aria-live": "polite" });
   const role = h("select", { "aria-label": "How you work" }, ...(Object.keys(ROLES) as Role[]).map((r) => h("option", { value: r, selected: r === (book?.role ?? "company") }, ROLES[r].label))) as HTMLSelectElement;
-  ctx.show("Bring your records", () => ctx.home(),
+  ctx.show("Bring your records", () => openDesk(ctx),
     h("p", { class: "mp-intro" }, "Export from your CRM, job system or a spreadsheet as CSV, then paste it here or choose the file. Names, types, statuses, addresses, dates, amounts and links between rows are understood."),
     h("label", { class: "mp-field" }, h("span", {}, "How you work"), role),
     area, file,
@@ -347,7 +355,7 @@ function importScreen(ctx: WorkCtx, book: Stored | null) {
         write({ role: role.value as Role, recs: [...keep, ...recs] });
         haptic("success");
         ctx.app.toast(`${recs.length} record${recs.length === 1 ? "" : "s"} in${missed ? `; ${missed} couldn't be placed (add a place on each)` : ""}.`, 6000);
-        ctx.home();
+        openDesk(ctx);
       } }, "Bring them in")),
     msg);
 }

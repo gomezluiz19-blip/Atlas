@@ -230,9 +230,12 @@ cards for the readouts, pill buttons, a white dock with icons in tinted discs, t
 ## Hubs
 
 Create, Explore, My Place and Work list their tools the same way: a white card per tool, the icon in a clay-tinted
-disc, the name in `--t-row` and one line under it. **Create** is three things: *Plan*, *Present* and *Video*
-(Video opens on *Film the globe* or *3D captures*: bring scans and models onto the Earth, then film them). Teach
-sits in Explore beside Learn; *What if…* waits in Work. **Work** opens on the desk (docs/work-design.md).
+disc, the name in `--t-row` and one line under it. **Create** is three things: *Plan* (plan anything), *Present*
+(show it to people) and *Video* (film it; it opens on *Film the globe* or *3D captures*). Plan opens on *What are
+you planning?*: say it the way you would ("Ana's 30th", "a new bike lane") and the words choose the kind of plan
+and name it; or pick a kind, in plain words: a trip, an event, where to open, a route or a build, areas on a map,
+or anything else (places, routes and areas with a checklist). Teach sits in Explore beside Learn; *What if…*
+waits in Work. **Work** leads with your field, then your records on the map (docs/work-design.md).
 
 ## Motion
 
