@@ -151,8 +151,14 @@ The map is the page, opening over where you are (or your home), like any map you
   - The pictograms (`src/ui/pictograms.ts`) are drawn like a new set of road and wayfinding signs that happen to
     be art: a plain, solid silhouette in ink with one accent in clay (a taxi's roof sign, a train's stripe, a sun),
     all on one 100-unit grid at one weight, so four read as a family. No tiles, no bubbles, no outlines. Every
-    other one sits a little higher so the row reads as a set; they rise in one after another, nudge when touched,
-    and the one you chose keeps a clay underline while the others step back.
+    other one sits a little higher so the row reads as a set; they rise in one after another, and the one you
+    chose keeps a clay underline while the others step back.
+  - **They're alive.** The parts that would move do: the walker's leg and arms swing, the fork lifts to the mouth
+    while the knife cuts, the train rocks on its rails, steam rises off the coffee, the taxi's roof sign blinks, the
+    bell rings, the flag waves, the compass needle hunts. On an open stage they barely breathe (`--amp` .28, cycles
+    1.7 times slower); under the pointer, on keyboard focus, or for a moment after a finger presses one, the same
+    motion runs at full reach and pace. Each part names its motion, pivot, reach, cycle and phase in the 100 grid
+    (`mv()` in pictograms.ts; the motions in styles.css › Living pictograms). Less motion asked for: they stand still.
   - **Navigate**: *How are you going?* Walk, Drive, Train, Taxi; Bike, Fly, Guide me in words; *Where to,
     walking?* at the bottom (your location, places and people as soon as you tap it). Walking is the default and
     the last choice is remembered. A walk, a drive or a ride is routed on the map; the train opens a transit planner.
@@ -204,6 +210,10 @@ a finger crossing a key), *tap* (any button), *select* (choosing: a pictogram, a
 Android plays them through vibration; iPhone Safari, which has no vibration, gets the system's selection tick
 through a hidden switch control. Every button, link, tab and chip gets one without wiring (`hapticsOn`), and an
 element can name its own with `data-haptic`. Off with `atlas.haptics = "off"`.
+
+The pictograms press back in their own rhythm (`MOTION_HAPTIC`): footsteps for Walk and Bike, an engine's purr
+for Drive and Taxi, the clack of the rails for Train, a rising whoosh for Fly, two bites for Food, a sip for
+Coffee, a ring for the bell, a slow breath for a bed or a park.
 
 The TV remote is where it's richest: the pad's edges *select*, a double tap *confirms*, a hold is *heavy*, the
 orb ticks as it turns, the zoom fader has detents and a firmer knock at either end, and a finger sliding across

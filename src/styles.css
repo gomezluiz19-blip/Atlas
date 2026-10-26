@@ -5097,3 +5097,42 @@ select[multiple] { font: inherit; border-radius: 14px; padding: 6px; border: 0; 
 .pu-count-fine { color: var(--secondary); }
 .pu-now { background: var(--clay); box-shadow: none; }
 .holo-top { right: 84px; }
+
+/* ---- Living pictograms (ui/pictograms.ts): every moving part breathes on an open stage, and comes fully alive
+   under the pointer, on keyboard focus, or for a moment after a finger presses it. --amp is how much, --pace how
+   slow; each part sets its own motion, pivot (--o), reach (--d), cycle (--t) and phase (--lag). ---- */
+.bh, .stage-mark-art { --amp: .28; --pace: 1.7; }
+.bh:hover, .bh:focus-visible, .bh.live { --amp: 1; --pace: 1; }
+.bh:hover .bh-art, .bh:focus-visible .bh-art { animation: none; }
+.mv { transform-box: view-box; transform-origin: var(--o); animation-duration: calc(var(--t) * var(--pace)); animation-delay: calc(var(--t) * var(--lag) * -1); animation-iteration-count: infinite; animation-timing-function: ease-in-out; }
+.mv-swing { animation-name: mv-swing; }
+.mv-bob { animation-name: mv-bob; }
+.mv-sway { animation-name: mv-sway; }
+.mv-blink { animation-name: mv-blink; }
+.mv-rise { animation-name: mv-rise; animation-timing-function: ease-out; }
+.mv-bite { animation-name: mv-bite; }
+.mv-grow { animation-name: mv-grow; }
+.mv-breathe { animation-name: mv-breathe; }
+.mv-wave { animation-name: mv-wave; }
+.mv-orbit { animation-name: mv-orbit; animation-timing-function: linear; }
+.mv-nudge { animation-name: mv-nudge; }
+@keyframes mv-swing { 0%, 100% { transform: rotate(calc(var(--d) * var(--amp) * 1deg)); } 50% { transform: rotate(calc(var(--d) * var(--amp) * -1deg)); } }
+@keyframes mv-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(calc(var(--d) * var(--amp) * -1px)); } }
+@keyframes mv-sway { 0%, 100% { transform: translateX(calc(var(--d) * var(--amp) * 1px)); } 50% { transform: translateX(calc(var(--d) * var(--amp) * -1px)); } }
+@keyframes mv-blink { 0%, 100% { opacity: 1; } 50% { opacity: calc(1 - .75 * var(--amp)); } }
+@keyframes mv-rise { 0% { transform: translateY(calc(var(--d) * var(--amp) * .4px)); opacity: 1; } 100% { transform: translateY(calc(var(--d) * var(--amp) * -1px)); opacity: calc(1 - var(--amp)); } }
+@keyframes mv-bite {
+  0%, 60%, 100% { transform: none; }
+  25%, 40% { transform: translateY(calc(var(--d) * var(--amp) * -1px)) rotate(calc(var(--d) * var(--amp) * -.6deg)); }
+}
+@keyframes mv-grow { 0%, 100% { transform: scaleX(calc(1 - .6 * var(--amp))); } 50% { transform: scaleX(1); } }
+@keyframes mv-breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(calc(1 + var(--d) * var(--amp))); } }
+@keyframes mv-wave { 0%, 100% { transform: skewY(0); } 50% { transform: skewY(calc(var(--d) * var(--amp) * -1deg)) scaleX(calc(1 - .05 * var(--amp))); } }
+@keyframes mv-orbit {
+  0%, 100% { transform: translate(calc(var(--d) * var(--amp) * 1px), 0); }
+  25% { transform: translate(0, calc(var(--d) * var(--amp) * 1px)); }
+  50% { transform: translate(calc(var(--d) * var(--amp) * -1px), 0); }
+  75% { transform: translate(0, calc(var(--d) * var(--amp) * -1px)); }
+}
+@keyframes mv-nudge { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(calc(var(--d) * var(--amp) * 1px), calc(var(--d) * var(--amp) * -.5px)); } }
+@media (prefers-reduced-motion: reduce) { .mv { animation: none !important; } }

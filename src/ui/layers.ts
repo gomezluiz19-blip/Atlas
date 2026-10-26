@@ -108,7 +108,7 @@ export function createLayersPanel(globe: Globe): HTMLElement {
         }),
         h("span", {}, "Photorealistic 3D (Google)"),
       )
-    : h("p", { class: "fineprint" }, "Add a Google Maps API key to unlock photorealistic 3D cities and terrain. See the README.");
+    : "";
 
   return h(
     "div",
