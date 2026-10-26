@@ -45,7 +45,7 @@ window.HOTEL = {
       passPrice: 200,
       maxGuests: 2, // EDITAR
       floor: 2,
-      numbers: ["201", "202", "203", "204", "205", "206", "207", "208", "209", "210", "211", "212"], // EDITAR: números reales
+      numbers: ["8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19"],
       image: "img/estandar.svg", // EDITAR: foto real de una habitación estándar
       name: { es: "Habitación Estándar", en: "Standard Room" },
       bed: { es: "Segundo nivel", en: "Second floor" },
@@ -62,7 +62,7 @@ window.HOTEL = {
       passPrice: 400,
       maxGuests: 3, // EDITAR
       floor: 1,
-      numbers: ["101", "102", "103", "104", "105", "106"], // EDITAR: números reales
+      numbers: ["1", "2", "3", "4", "5", "6"],
       image: "img/premium.svg", // EDITAR: foto real de una habitación premium
       name: { es: "Habitación Premium", en: "Premium Room" },
       bed: { es: "Primer nivel", en: "First floor" },
@@ -78,8 +78,8 @@ window.HOTEL = {
       price: 750,
       passPrice: null, // solo por noche
       maxGuests: 3, // EDITAR
-      floor: 1, // EDITAR: si está en otro nivel
-      numbers: ["107"], // EDITAR: número real
+      floor: 1,
+      numbers: ["7"],
       image: "img/deluxe.svg", // EDITAR: foto real de la habitación deluxe
       name: { es: "Habitación Deluxe", en: "Deluxe Room" },
       bed: { es: "Primer nivel", en: "First floor" },

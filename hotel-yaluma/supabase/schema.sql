@@ -83,13 +83,13 @@ create table if not exists public.activity (
 );
 
 -- ------------------------------------------------------------------ habitaciones
--- EDITAR: si los números reales son otros, cámbielos aquí y en config.js.
+-- Si cambian los números, cámbielos aquí y en config.js.
 insert into public.rooms (number, tier, floor) values
-  ('101', 'premium', 1), ('102', 'premium', 1), ('103', 'premium', 1), ('104', 'premium', 1),
-  ('105', 'premium', 1), ('106', 'premium', 1), ('107', 'deluxe', 1),
-  ('201', 'estandar', 2), ('202', 'estandar', 2), ('203', 'estandar', 2), ('204', 'estandar', 2),
-  ('205', 'estandar', 2), ('206', 'estandar', 2), ('207', 'estandar', 2), ('208', 'estandar', 2),
-  ('209', 'estandar', 2), ('210', 'estandar', 2), ('211', 'estandar', 2), ('212', 'estandar', 2)
+  ('1', 'premium', 1), ('2', 'premium', 1), ('3', 'premium', 1), ('4', 'premium', 1),
+  ('5', 'premium', 1), ('6', 'premium', 1), ('7', 'deluxe', 1),
+  ('8', 'estandar', 2), ('9', 'estandar', 2), ('10', 'estandar', 2), ('11', 'estandar', 2),
+  ('12', 'estandar', 2), ('13', 'estandar', 2), ('14', 'estandar', 2), ('15', 'estandar', 2),
+  ('16', 'estandar', 2), ('17', 'estandar', 2), ('18', 'estandar', 2), ('19', 'estandar', 2)
 on conflict (number) do nothing;
 
 -- ------------------------------------------------------------------ cuentas nuevas

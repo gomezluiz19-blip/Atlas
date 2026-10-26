@@ -130,9 +130,9 @@ window.YalumaStore = (() => {
       const profiles = [P("u1", "lg", "LG", "admin"), P("u4", "fg", "FG", "admin"), P("u2", "luis", "Luis", "staff"), P("u3", "fanny", "Fanny", "staff")];
       const rooms = allRooms();
       const set = (n, st) => { const r = rooms.find((x) => x.number === n); if (r) r.state = st; };
-      set("203", "limpieza");
-      set("211", "fuera");
-      rooms.find((x) => x.number === "211").note = "Aire acondicionado dañado";
+      set("10", "limpieza");
+      set("18", "fuera");
+      rooms.find((x) => x.number === "18").note = "Aire acondicionado dañado";
       const price = (tier, type) => { const t = H.rooms.find((x) => x.id === tier); return type === "pase" ? t.passPrice : t.price; };
       let id = 0;
       const R = (o) => ({
@@ -141,12 +141,12 @@ window.YalumaStore = (() => {
         pass_start: null, pass_end: null, checked_in_at: null, checked_in_by: null, checked_out_at: null, checked_out_by: null, ...o,
       });
       const reservations = [
-        R({ stay_type: "noche", room_tier: "premium", room_number: "101", guest_name: "Carlos Rodríguez", guest_phone: "809-555-0101", check_in: day(-1), check_out: day(1), total: price("premium", "noche") * 2, status: "en_curso", checked_in_at: at(-20), checked_in_by: "u2" }),
-        R({ stay_type: "noche", room_tier: "premium", room_number: "104", guest_name: "Ana Peña", guest_phone: "829-555-0104", check_in: day(0), check_out: day(1), total: price("premium", "noche"), status: "en_curso", checked_in_at: at(-3), checked_in_by: "u2", source: "telefono" }),
-        R({ stay_type: "noche", room_tier: "estandar", room_number: "202", guest_name: "José Martínez", guest_phone: "849-555-0202", check_in: day(-2), check_out: day(0), total: price("estandar", "noche") * 2, status: "en_curso", checked_in_at: at(-44), checked_in_by: "u3" }),
-        R({ stay_type: "pase", room_tier: "estandar", room_number: "205", guest_name: "Cliente", guest_phone: null, check_in: day(0), pass_start: at(-1.5), pass_end: at(2.5), total: price("estandar", "pase"), status: "en_curso", checked_in_at: at(-1.5), checked_in_by: "u2" }),
-        R({ stay_type: "pase", room_tier: "estandar", room_number: "208", guest_name: "Cliente", guest_phone: null, check_in: day(0), pass_start: at(-4.3), pass_end: at(-0.3), total: price("estandar", "pase"), status: "en_curso", checked_in_at: at(-4.3), checked_in_by: "u2" }),
-        R({ stay_type: "noche", room_tier: "premium", room_number: "106", guest_name: "Familia Almonte", guest_phone: "809-555-0106", adults: 2, kids: 1, check_in: day(0), check_out: day(2), total: price("premium", "noche") * 2, status: "confirmada", source: "telefono", arrival: "6:00 p. m." }),
+        R({ stay_type: "noche", room_tier: "premium", room_number: "1", guest_name: "Carlos Rodríguez", guest_phone: "809-555-0101", check_in: day(-1), check_out: day(1), total: price("premium", "noche") * 2, status: "en_curso", checked_in_at: at(-20), checked_in_by: "u2" }),
+        R({ stay_type: "noche", room_tier: "premium", room_number: "4", guest_name: "Ana Peña", guest_phone: "829-555-0104", check_in: day(0), check_out: day(1), total: price("premium", "noche"), status: "en_curso", checked_in_at: at(-3), checked_in_by: "u2", source: "telefono" }),
+        R({ stay_type: "noche", room_tier: "estandar", room_number: "9", guest_name: "José Martínez", guest_phone: "849-555-0202", check_in: day(-2), check_out: day(0), total: price("estandar", "noche") * 2, status: "en_curso", checked_in_at: at(-44), checked_in_by: "u3" }),
+        R({ stay_type: "pase", room_tier: "estandar", room_number: "12", guest_name: "Cliente", guest_phone: null, check_in: day(0), pass_start: at(-1.5), pass_end: at(2.5), total: price("estandar", "pase"), status: "en_curso", checked_in_at: at(-1.5), checked_in_by: "u2" }),
+        R({ stay_type: "pase", room_tier: "estandar", room_number: "15", guest_name: "Cliente", guest_phone: null, check_in: day(0), pass_start: at(-4.3), pass_end: at(-0.3), total: price("estandar", "pase"), status: "en_curso", checked_in_at: at(-4.3), checked_in_by: "u2" }),
+        R({ stay_type: "noche", room_tier: "premium", room_number: "6", guest_name: "Familia Almonte", guest_phone: "809-555-0106", adults: 2, kids: 1, check_in: day(0), check_out: day(2), total: price("premium", "noche") * 2, status: "confirmada", source: "telefono", arrival: "6:00 p. m." }),
         R({ stay_type: "noche", room_tier: "estandar", guest_name: "María Gómez", guest_phone: "809-555-1234", check_in: day(0), check_out: day(1), total: price("estandar", "noche"), status: "confirmada", source: "web", created_by: null, arrival: "Todavía no sé" }),
         R({ stay_type: "noche", room_tier: "premium", guest_name: "Pedro Santos", guest_phone: "829-555-7788", guest_email: "pedro@ejemplo.com", check_in: day(3), check_out: day(5), total: price("premium", "noche") * 2, status: "pendiente", source: "web", created_by: null, arrival: "8:00 p. m.", notes: "Llegamos desde Santiago" }),
         R({ stay_type: "pase", room_tier: "estandar", guest_name: "Rafael", guest_phone: "809-555-3344", check_in: day(1), pass_start: new Date(new Date().setHours(44, 0, 0, 0)).toISOString(), pass_end: new Date(new Date().setHours(48, 0, 0, 0)).toISOString(), total: price("estandar", "pase"), status: "pendiente", source: "web", created_by: null }),
@@ -160,8 +160,8 @@ window.YalumaStore = (() => {
         { id: 3, user_id: "u2", started_at: at(-54), ended_at: at(-46) },
       ];
       const activity = [
-        { id: 1, at: at(-1.5), user_id: "u2", text: "Registró entrada en la 205 (paso)" },
-        { id: 2, at: at(-3), user_id: "u2", text: "Registró entrada en la 104 (Ana Peña)" },
+        { id: 1, at: at(-1.5), user_id: "u2", text: "Registró entrada en la 12 (paso)" },
+        { id: 2, at: at(-3), user_id: "u2", text: "Registró entrada en la 4 (Ana Peña)" },
         { id: 3, at: at(-5), user_id: "u2", text: "Inició su turno" },
       ];
       return {
@@ -172,7 +172,10 @@ window.YalumaStore = (() => {
     }
 
     let db = read();
-    if (!db || !db.rooms || db.rooms.length !== allRooms().length) { db = seed(); write(db); }
+    // Datos nuevos si no hay, o si cambiaron los números de habitación (se conservan las contraseñas).
+    const sameRooms = db && db.rooms && db.rooms.length === allRooms().length
+      && allRooms().every((r) => db.rooms.some((x) => x.number === r.number));
+    if (!sameRooms) { const keep = (db && db.passwords) || {}; db = seed(); db.passwords = keep; write(db); }
     // Si cambian los tipos de habitación en config.js, actualizarlos sin borrar los datos (ni las contraseñas).
     allRooms().forEach((r) => {
       const cur = db.rooms.find((x) => x.number === r.number);

@@ -208,6 +208,8 @@
     const [profiles, rooms, reservations, payments, shifts, activity] = await Promise.all([
       db.profiles(), db.rooms(), db.reservations(), db.payments(since), db.shifts(week), db.activity(80),
     ]);
+    // Los números son texto en la base de datos: ordenarlos como números (2 antes que 10).
+    rooms.sort((a, b) => a.number.localeCompare(b.number, undefined, { numeric: true }));
     Object.assign(data, { profiles, rooms, reservations, payments, shifts, activity });
     const fresh = profiles.find((p) => p.id === me.id);
     if (!fresh || !fresh.active) { await logout("Su cuenta fue desactivada."); return; }
@@ -424,7 +426,7 @@
   function checkInModal(r, preferRoom) {
     const busy = new Set(data.reservations.filter((x) => x.status === "en_curso").map((x) => x.room_number));
     const free = data.rooms.filter((x) => x.state === "ok" && !busy.has(x.number));
-    free.sort((a, b) => (a.tier === r.room_tier ? 0 : 1) - (b.tier === r.room_tier ? 0 : 1) || a.number.localeCompare(b.number));
+    free.sort((a, b) => (a.tier === r.room_tier ? 0 : 1) - (b.tier === r.room_tier ? 0 : 1) || a.number.localeCompare(b.number, undefined, { numeric: true }));
     const pick = preferRoom || (r.room_number && free.some((x) => x.number === r.room_number) ? r.room_number : (free.find((x) => x.tier === r.room_tier) || {}).number);
     const due = Math.max(0, r.total - paidFor(r.id));
     const body = openModal(`Llegada · ${r.guest_name}`, `
