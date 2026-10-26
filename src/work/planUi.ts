@@ -10,7 +10,7 @@ import { flyToPlace } from "../ui/search";
 import { drawOnMap } from "./draw";
 import { along, areaM2, crossings, fmtArea, fmtDist, pathLength, type LonLat } from "./geo";
 import { WorkLayer } from "./layer";
-import { circle, countInside, lengthInside, PLAN_TYPES, profileStats, type Plan, type PlanItem, type PlanType } from "./planModel";
+import { circle, countInside, lengthInside, PLAN_TYPES, planKindFor, planNameFrom, profileStats, type Plan, type PlanItem, type PlanType } from "./planModel";
 import { ListStore, download, newId } from "./store";
 import type { WorkCtx } from "./hub";
 import { addFromText, copyJourney, frameJourney, highlight, journeyEditor, journeyFeatures, playJourney, stopPlaying } from "./journey";
@@ -112,19 +112,30 @@ export function openPlans(ctx: WorkCtx) {
   tripLayer?.clear();
   migrateTrips();
   const types = Object.keys(PLAN_TYPES) as PlanType[];
+  const start = (t: PlanType, name?: string) => {
+    if (t === "trip") {
+      const j: Journey = { id: newId(), name: name || "New trip", start: new Date(Date.now() + 14 * 86_400_000).toISOString().slice(0, 10), time: "09:00", origin: null, steps: [], created: Date.now() };
+      trips.save(j);
+      return openTrip(ctx, j.id);
+    }
+    const p: Plan = { id: newId(), type: t, name: name || (t === "general" ? "New plan" : `New ${PLAN_TYPES[t].label.replace(/^(a|an) /i, "").toLowerCase()}`), created: Date.now(), items: [], checklist: [] };
+    store.save(p);
+    openPlan(ctx, p.id);
+  };
+  // Say it the way you would; Terreno picks the kind of plan from the words, and names it with them.
+  const ask = h("input", { class: "pro-url plan-ask", type: "text", enterkeyhint: "go", placeholder: "Ana's 30th, a week in Lisbon, a new bike lane…", "aria-label": "What are you planning?" }) as HTMLInputElement;
+  const guess = h("p", { class: "plan-guess", "aria-live": "polite" });
+  const go = () => { const v = ask.value.trim(); if (v) start(planKindFor(v), planNameFrom(v)); };
+  ask.addEventListener("input", () => { const v = ask.value.trim(); guess.textContent = v ? `Plan it as ${PLAN_TYPES[planKindFor(v)].label.toLowerCase()} ›` : ""; });
+  ask.addEventListener("keydown", (e) => { if (e.key === "Enter") go(); });
+  guess.addEventListener("click", go);
   ctx.show("Plan", ctx.home,
-    h("p", { class: "mp-intro" }, "Plan on the map: pick what kind of plan, then place its stops, sites, zones or routes."),
-    h("div", { class: "work-types" }, ...types.map((t) =>
-      h("button", { class: "work-type", style: `--c:${PLAN_TYPES[t].color}`, onclick: () => {
-        if (t === "trip") {
-          const j: Journey = { id: newId(), name: "New trip", start: new Date(Date.now() + 14 * 86_400_000).toISOString().slice(0, 10), time: "09:00", origin: null, steps: [], created: Date.now() };
-          trips.save(j);
-          return openTrip(ctx, j.id);
-        }
-        const p: Plan = { id: newId(), type: t, name: `New ${PLAN_TYPES[t].label.toLowerCase()} plan`, created: Date.now(), items: [], checklist: [] };
-        store.save(p);
-        openPlan(ctx, p.id);
-      } }, h("strong", {}, PLAN_TYPES[t].label), h("span", {}, PLAN_TYPES[t].about)))),
+    h("h2", { class: "plan-q" }, "What are you planning?"),
+    h("div", { class: "plan-ask-row" }, ask, h("button", { class: "primary-btn", onclick: go }, "Plan it")),
+    guess,
+    h("p", { class: "muted small" }, "Or pick the kind:"),
+    h("div", { class: "work-types plan-types" }, ...types.map((t) =>
+      h("button", { class: "work-type", style: `--c:${PLAN_TYPES[t].color}`, onclick: () => start(t) }, h("strong", {}, PLAN_TYPES[t].label), h("span", {}, PLAN_TYPES[t].about)))),
     store.all().length || trips.all().length ? h("section", { class: "group" }, h("h2", { class: "group-title" }, "Your plans"),
       h("div", { class: "list" }, ...trips.all().map((j) =>
         h("button", { class: "list-row", onclick: () => openTrip(ctx, j.id) },
@@ -286,6 +297,16 @@ async function analyse(p: Plan, box: HTMLElement, redraw: (extra?: import("./lay
           ["Landmark mines", String(countInside(z.pts, MINES).count)],
         ));
       }), h("p", { class: "fineprint" }, "World datasets (Natural Earth, WRI power plants, Terreno mines): good for regions, too coarse for single streets. For local detail, pair with Built › Overview."));
+    } else if (p.type === "general") {
+      // Anything else: what's on the map, measured, without assuming what kind of plan it is.
+      const routes = p.items.filter((i) => i.kind === "line"), areas = p.items.filter((i) => i.kind === "area");
+      if (!p.items.length) { box.replaceChildren(h("p", { class: "muted small" }, "Add places, routes or areas, and they're measured here.")); return; }
+      box.replaceChildren(section("On the map", stats(
+        pts.length ? ["Places", String(pts.length)] : null,
+        routes.length ? [`Route${routes.length === 1 ? "" : "s"}`, km(routes.reduce((a, r) => a + pathLength(r.pts), 0))] : null,
+        areas.length ? [`Area${areas.length === 1 ? "" : "s"}`, fmtArea(areas.reduce((a, z) => a + areaM2(z.pts), 0))] : null,
+        pts.length > 1 ? ["Furthest apart", km(Math.max(...pts.flatMap((a) => pts.map((b) => pathLength([a.pts[0], b.pts[0]])))))] : null,
+      )));
     } else {
       const routes = p.items.filter((i) => i.kind === "line");
       if (!routes.length) { box.replaceChildren(h("p", { class: "muted small" }, "Draw a proposed route to see its length, terrain and what it crosses.")); return; }

@@ -235,9 +235,9 @@ const WORK_TOOLS: WorkTool[] = [
 // them); Teach moved to Explore, beside Learn; What if… waits in Work for now.
 const open3d = (ctx: WorkCtx) => void import("./render/studio").then((m) => m.openStudio(ctx));
 const MAKE_TOOLS: WorkTool[] = [
-  tool("plan", "Plan", "Trips, events, sites and routes, step by step", "var(--clay)", icons.route, openPlans),
-  tool("present", "Present", "Slides and stories on the globe, from your own numbers and documents", "var(--clay)", icons.slides, openPresent),
-  tool("video", "Video", "Film the globe, or bring in 3D captures and film them", "var(--clay)", icons.video, (ctx) => ctx.show("Video", () => ctx.home(),
+  tool("plan", "Plan", "Plan anything on the map: a trip, a party, a move, a new shop, a route", "var(--clay)", icons.route, openPlans),
+  tool("present", "Present", "Show it to people: slides and stories on the globe, from your own numbers and files", "var(--clay)", icons.slides, openPresent),
+  tool("video", "Video", "Film it: fly the globe with titles and narration, or film your own 3D scans", "var(--clay)", icons.video, (ctx) => ctx.show("Video", () => ctx.home(),
     h("p", { class: "mp-intro" }, "Film anywhere on Earth with shots, looks and narration, or place your own 3D captures on it first."),
     h("div", { class: "work-tools" },
       h("button", { class: "work-tool", style: "--c:var(--clay)", onclick: () => openVideo(ctx) },
@@ -360,7 +360,7 @@ keepStorage();
 }
 const makeHub = createWork(app, MAKE_TOOLS, {
   title: "Create",
-  intro: "Make something from the map: plan it, present it, film it.",
+  intro: "Plan it, show it to people, or film it.",
 });
 /** Work: every pro tool as a station on its industry's line (the Work map). */
 const openStation = (st: Station) => {
@@ -404,15 +404,16 @@ const openStation = (st: Station) => {
   if (t) t.open(ctx);
   else app.actions.get(`work:${st.tool}`)?.run(); // Create and Explore tools (Teach, Learn) open in their own hub
 };
-// Work opens on your desk: your records (clients, orders, shipments, jobs, cases) on the map, with what's slipping
-// and what it knocks on. The tools for each field (the line map) are one tap down.
+// Work leads with your field: what's your field (or, once picked, that field's tools). Under it, one card opens
+// your records on the map (clients, orders, shipments, jobs, cases) and what's slipping.
 const workFail = () => app.toast("Couldn't load Work. Check the connection and try again.", 5000);
-const openFieldTools = () => workHub.ctx.show("Tools for your field", () => workHub.ctx.home(),
-  deferred(() => import("./work/workMap").then((m) => m.workMap(openStation)), workFail));
+
 const workHub = createWork(app, [], {
   title: "Work",
   intro: "",
-  top: () => [deferred(() => import("./work/desk/ui").then((m) => m.deskHome(workHub.ctx, { tools: openFieldTools })), workFail)],
+  // Your field first (what's your field? or your field's tools, if you've picked one); your records under it.
+  top: () => [deferred(() => import("./work/workMap").then((m) => m.workMap(openStation)), workFail),
+    deferred(() => import("./work/desk/ui").then((m) => m.deskCard(workHub.ctx)), workFail)],
 });
 const lookHub = createWork(app, LOOK_TOOLS, {
   title: "Explore more",

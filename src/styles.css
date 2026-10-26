@@ -5071,6 +5071,7 @@ select[multiple] { font: inherit; border-radius: 14px; padding: 6px; border: 0; 
 
 /* ---- One family of tool rows and icon discs in every hub (Create, Explore, My Place, Work) ---- */
 .work-panel { width: 440px; }
+@media (max-width: 720px) { .work-panel { width: auto; } }
 .work-tools { gap: 8px; }
 .work-tool { gap: 14px; padding: 14px 16px; border-radius: var(--radius); background: var(--card); box-shadow: var(--shadow-soft); transition: transform .15s ease; }
 .work-tool:hover { background: var(--card) !important; filter: brightness(.985); }
@@ -5136,3 +5137,20 @@ select[multiple] { font: inherit; border-radius: 14px; padding: 6px; border: 0; 
 }
 @keyframes mv-nudge { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(calc(var(--d) * var(--amp) * 1px), calc(var(--d) * var(--amp) * -.5px)); } }
 @media (prefers-reduced-motion: reduce) { .mv { animation: none !important; } }
+
+/* ---- Plan: "What are you planning?" (work/planUi.ts) ---- */
+.plan-q { margin: 4px 0 0; font: var(--t-title); font-size: 22px; letter-spacing: -0.02em; }
+.plan-ask-row { display: flex; gap: 8px; align-items: center; }
+.plan-ask-row .pro-url { flex: 1; font-size: 16px !important; }
+.plan-ask-row .primary-btn { flex: none; align-self: stretch; }
+.plan-guess { margin: -2px 0 0; min-height: 1.2em; font: 650 14px var(--font); color: var(--clay); cursor: pointer; }
+.plan-guess:empty { display: none; }
+.plan-types { display: flex; flex-direction: column; gap: 8px; }
+.plan-types .work-type { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; text-align: left; padding: 14px 16px; border: 0; border-left: 4px solid var(--c); border-radius: var(--radius); background: var(--card); box-shadow: var(--shadow-soft); color: var(--label); font: inherit; cursor: pointer; }
+.plan-types .work-type strong { font: var(--t-row); }
+.plan-types .work-type span { font: var(--t-small); color: var(--secondary); }
+
+/* ---- Work: the desk as one card under your field ---- */
+.dk-card { width: 100%; margin-top: 14px; }
+.dk-card .work-tool-text { flex: 1; min-width: 0; }
+.dk-card.alert .work-tool-text span { color: #c8553d; font-weight: 650; }

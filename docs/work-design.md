@@ -1,7 +1,9 @@
 # Work: design notes
 
-How Work is designed, and why. Work opens on **your desk** (`src/work/desk/`); the tools for each field (the
-line map, `src/work/workMap.ts` and `src/work/workLines.ts`) are one tap down, under *Tools for your field*.
+How Work is designed, and why. Work leads with **your area of work**: *What's your field?* (every field as a
+tile, or describe what you do), and once you've picked one, that field's tools (`src/work/workMap.ts`,
+`src/work/workLines.ts`). Under it, one card opens **your work on the map** (`src/work/desk/`): your records as
+pins, and what needs you. The card says how many things need you, so it's worth a glance without opening.
 
 ## The desk: your work in real space
 

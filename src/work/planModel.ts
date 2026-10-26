@@ -1,9 +1,9 @@
-// Plans: trips, events, business sites, policy zones and infrastructure
-// proposals, each a set of things placed on the map, with the numbers that
-// matter for that kind of plan.
+// Plans: anything you're planning, as things placed on the map: a trip, an event,
+// where to open, a route or build, areas on a map, or anything else (places,
+// routes and areas with a checklist), each with the numbers that matter for it.
 import { along, areaM2, inside, metres, pathLength, type LonLat } from "./geo";
 
-export type PlanType = "trip" | "event" | "business" | "policy" | "infrastructure";
+export type PlanType = "trip" | "event" | "business" | "policy" | "infrastructure" | "general";
 export type TravelMode = "walk" | "bike" | "drive" | "transit" | "fly";
 
 export interface PlanItem {
@@ -30,13 +30,31 @@ export interface Plan {
   program?: import("./journeyModel").Journey;
 }
 
+/** Each kind of plan in plain words, in the order they're offered. */
 export const PLAN_TYPES: Record<PlanType, { label: string; color: string; about: string; add: { kind: PlanItem["kind"]; label: string; name: string }[] }> = {
-  trip: { label: "Trip", color: "#3563d6", about: "Fly, drive, stay: step by step, each leg its own way, with times and stops", add: [{ kind: "point", label: "Add a stop", name: "Stop" }] },
-  event: { label: "Event", color: "#b8496a", about: "A venue, meeting points and parking, and how far people can reach it", add: [{ kind: "point", label: "Place the venue", name: "Venue" }, { kind: "point", label: "Add a meeting point or parking", name: "Meeting point" }] },
-  business: { label: "Business", color: "#5b9467", about: "Candidate sites compared side by side: transport, power and markets", add: [{ kind: "point", label: "Add a candidate site", name: "Site" }] },
-  policy: { label: "Policy", color: "#8b5fa8", about: "Zones drawn on the map, and what's inside each one", add: [{ kind: "area", label: "Draw a zone", name: "Zone" }] },
-  infrastructure: { label: "Infrastructure", color: "#d19a2e", about: "Proposed lines (roads, pipes, rail, power) and sites: length, terrain and what they cross", add: [{ kind: "line", label: "Draw a proposed route", name: "Route" }, { kind: "point", label: "Place a facility", name: "Facility" }] },
+  trip: { label: "A trip", color: "#3563d6", about: "Where you'll go and stay, and how you'll get between them, day by day", add: [{ kind: "point", label: "Add a stop", name: "Stop" }] },
+  event: { label: "An event", color: "#b8496a", about: "A party, a wedding, a meetup: the venue, the running order, how people get there", add: [{ kind: "point", label: "Place the venue", name: "Venue" }, { kind: "point", label: "Add a meeting point or parking", name: "Meeting point" }] },
+  business: { label: "Where to open", color: "#5b9467", about: "Compare spots for a shop, an office or a warehouse: transport, power and what's near", add: [{ kind: "point", label: "Add a spot", name: "Site" }] },
+  infrastructure: { label: "A route or a build", color: "#d19a2e", about: "A path, a road, a pipe or a line: how long it is, the ground and what it crosses", add: [{ kind: "line", label: "Draw the route", name: "Route" }, { kind: "point", label: "Place a building", name: "Facility" }] },
+  policy: { label: "Areas on a map", color: "#8b5fa8", about: "Draw areas (a delivery zone, a catchment, a district) and see what's inside each", add: [{ kind: "area", label: "Draw an area", name: "Area" }] },
+  general: { label: "Anything else", color: "#9c4a32", about: "Drop places, draw routes and areas, keep a checklist, all on one map", add: [{ kind: "point", label: "Add a place", name: "Place" }, { kind: "line", label: "Draw a route", name: "Route" }, { kind: "area", label: "Draw an area", name: "Area" }] },
 };
+
+const KIND_WORDS: [RegExp, PlanType][] = [
+  [/\b(trip|travel|holiday|vacation|getaway|road ?trip|tour|honeymoon|visit|weekend (in|away)|flight|itinerary|backpack)/i, "trip"],
+  [/\b(party|wedding|birthday|\d+(st|nd|rd|th)\b|meet ?up|reunion|conference|festival|gig|concert|launch|event|dinner|picnic|ceremony|fundraiser|marathon|race)/i, "event"],
+  [/\b(open(ing)?|new (shop|store|office|restaurant|café|cafe|warehouse|clinic|branch|location)|where to (open|put|put up|locate)|site for|premises|lease|franchise)/i, "business"],
+  [/\b(road|path|pipe(line)?|cable|rail(way)?|bike lane|cycle ?lane|trail|bridge|power line|sewer|fence|build(ing)?|construct)/i, "infrastructure"],
+  [/\b(zone|area|district|catchment|ward|boundary|territory|delivery area|patch|neighbou?rhood|region|coverage)/i, "policy"],
+];
+
+/** What kind of plan someone means, from how they'd say it ("Ana's 30th", "a new bike lane"); anything else otherwise (pure). */
+export function planKindFor(text: string): PlanType {
+  return KIND_WORDS.find(([re]) => re.test(text))?.[1] ?? "general";
+}
+
+/** A plan's name from how it was described: the words, tidied, first letter up (pure). */
+export const planNameFrom = (text: string) => { const t = text.trim().replace(/\s+/g, " ").replace(/^(i'?m |we'?re )?(planning |plan )(a |an |my |our )?/i, "").slice(0, 60); return t ? t[0].toUpperCase() + t.slice(1) : ""; };
 
 /** Typical door-to-door speeds (km/h) and how much longer real routes are than a straight line. */
 export const MODES: Record<TravelMode, { label: string; kmh: number; detour: number; overheadH: number }> = {

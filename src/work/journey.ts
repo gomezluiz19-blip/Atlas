@@ -248,7 +248,7 @@ export function journeyEditor(host: JourneyHost): HTMLElement {
     ...MODE_IDS.filter((m) => t.byMode[m]).map((m) => h("span", { class: "jr-mode-count", style: `--c:${MODES[m].color}`, title: `${MODES[m].label}: ${fmtDist(t.byMode[m]!.km * 1000)}` }, iconFor(MODES[m].emoji, 13), String(t.byMode[m]!.n)))) : "";
 
   // Start.
-  const startInput = h("input", { class: "jr-inline", placeholder: host.short ? "Your school's name or address" : "Where do you start? A city or address", value: j.origin?.name ?? "" }) as HTMLInputElement;
+  const startInput = h("input", { class: "jr-inline", placeholder: host.short ? `${host.originLabel ?? "The place"}: a name or an address` : "Where do you start? A city or address", value: j.origin?.name ?? "" }) as HTMLInputElement;
   const findStart = async () => {
     const q = startInput.value.trim();
     if (!q) return;
