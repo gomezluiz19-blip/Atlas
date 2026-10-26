@@ -3,7 +3,9 @@
 // iPhone Safari has no vibrate, but toggling a hidden switch input plays the system's selection tick, so that
 // stands in. Only on touch screens, and off if the person turns it off (atlas.haptics = "off").
 
-export type Haptic = "tap" | "tick" | "select" | "confirm" | "success" | "warn" | "heavy";
+export type Haptic = "tap" | "tick" | "select" | "confirm" | "success" | "warn" | "heavy"
+  // The pictograms' own rhythms, played when one is pressed (ui/pictograms.ts › MOTION_HAPTIC).
+  | "steps" | "purr" | "chug" | "whoosh" | "bite" | "sip" | "ring" | "swing" | "breath";
 
 /** Each feel as a vibration pattern in ms (pure, so it's tested). */
 export const PATTERNS: Record<Haptic, number[]> = {
@@ -14,6 +16,15 @@ export const PATTERNS: Record<Haptic, number[]> = {
   success: [8, 50, 8, 50, 22],
   warn: [30, 60, 30],
   heavy: [26],
+  steps: [10, 110, 10, 110, 10],
+  purr: [6, 18, 6, 18, 6, 18, 6, 18, 6],
+  chug: [16, 60, 10, 60, 16, 60, 10],
+  whoosh: [4, 8, 8, 8, 14, 8, 22],
+  bite: [12, 90, 18],
+  sip: [30],
+  ring: [8, 40, 8, 40, 8, 40, 8],
+  swing: [10, 160, 10],
+  breath: [20, 140, 12],
 };
 
 let iosSwitch: HTMLLabelElement | null = null;
@@ -41,9 +52,11 @@ export function haptic(kind: Haptic = "tap") {
   if (!enabled()) return;
   try {
     if (typeof navigator.vibrate === "function") { navigator.vibrate(PATTERNS[kind]); return; }
-    // iOS: one tick, or two for the bigger moments.
     iosTick();
-    if (kind === "confirm" || kind === "success" || kind === "warn") setTimeout(iosTick, 90);
+    // iOS: one tick, or the pattern's beats as ticks for the bigger moments and the pictograms' rhythms.
+    const beats = PATTERNS[kind].length > 1 ? Math.ceil(PATTERNS[kind].length / 2) : 1;
+    let at = 0;
+    for (let i = 1; i < beats; i++) { at += (PATTERNS[kind][i * 2 - 2] ?? 0) + (PATTERNS[kind][i * 2 - 1] ?? 0); setTimeout(iosTick, at); }
   } catch { /* not supported */ }
 }
 

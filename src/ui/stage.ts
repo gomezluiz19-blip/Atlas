@@ -1,7 +1,7 @@
 // A stage: how each of the dock's buttons opens. The whole map bubble becomes a sheet of paper with a small mark
 // at the top, four big pictograms in a row across the middle, and a small field at
 // the bottom. The person picks what they want first; the details come after. See docs/design.md › The frame.
-import { ART } from "./pictograms";
+import { ART, MOTION_HAPTIC } from "./pictograms";
 import { h } from "./dom";
 
 export interface StageItem { id: string; label: string; art: string; run(): void }
@@ -9,9 +9,17 @@ export interface StageItem { id: string; label: string; art: string; run(): void
 /** The four icons, in a row, the chosen one marked. */
 export function stageArt(items: StageItem[], chosen?: string | null): HTMLElement {
   return h("div", { class: "stage-art", role: "group" }, ...items.slice(0, 4).map((it, i) =>
-    h("button", { class: "bh", "data-id": it.id, "data-haptic": "select", "aria-pressed": chosen === undefined ? undefined : String(chosen === it.id), style: `--i:${i}`, onclick: () => it.run() },
+    h("button", { class: "bh", "data-id": it.id, "data-art": it.art, "data-haptic": MOTION_HAPTIC[it.art] ?? "select", "aria-pressed": chosen === undefined ? undefined : String(chosen === it.id), style: `--i:${i}`, onclick: () => it.run(),
+      // A finger has no hover: pressing wakes the icon fully, and it settles back a moment after.
+      onpointerdown: (e: Event) => { if ((e as PointerEvent).pointerType !== "mouse") wake(e.currentTarget as HTMLElement); } },
       h("span", { class: "bh-art", html: ART[it.art] ?? ART.more }), h("span", { class: "bh-label" }, it.label))));
 }
+
+const wake = (b: HTMLElement) => {
+  b.classList.add("live");
+  clearTimeout(Number(b.dataset.liveT));
+  b.dataset.liveT = String(window.setTimeout(() => b.classList.remove("live"), 1600));
+};
 
 /** Marks which icon is chosen, without redrawing. */
 export function choose(art: HTMLElement, id: string) {

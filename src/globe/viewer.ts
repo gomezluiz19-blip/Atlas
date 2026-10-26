@@ -6,6 +6,8 @@ import {
   Cesium3DTileset,
   CesiumTerrainProvider,
   createGooglePhotorealistic3DTileset,
+  Google2DImageryProvider,
+  type ImageryProvider,
   ImageryLayer,
   Ion,
   Math as CesiumMath,
@@ -21,6 +23,7 @@ import { createAnalyticLayer, type AnalyticKind } from "./analyticLayers";
 import { initMotion } from "./motion";
 import { currentQuality } from "./quality";
 import { imagery, renderedMap } from "./imagery";
+import { googleLocale, OSM_FALLBACK, PAPER_STYLES, SLATE_STYLES, tileWorks } from "./basemap";
 import { createTerrariumTerrain, terrainOptions } from "./terrain";
 import { blueMarble, finishGlobe, gradeLayer, HOUSE, RENDERED, RENDERED_NIGHT, type Grade } from "./finish";
 
@@ -73,7 +76,11 @@ export class Globe {
     photorealistic: Boolean(config.googleMapsKey),
     streets: true,
   };
-  readonly hasPhotoreal = Boolean(config.googleMapsKey);
+  /** Google's photorealistic 3D, while the key works for it (it turns itself off if Google refuses). */
+  get hasPhotoreal() { return Boolean(config.googleMapsKey) && !this.photorealFailed; }
+  private photorealFailed = false;
+  /** Which source the drawn map and the photographs come from now (for the credits and the docs). */
+  source: { map: "google" | "carto" | "custom" | "osm"; photos: "google" | "esri" | "maptiler" | "mapbox" | "eox" } = { map: config.renderedTiles ? "custom" : "carto", photos: imagery().id };
   private applied: (() => void)[] = [];
   /** Calls `fn` after every apply() (to mirror layer state elsewhere, or restyle with the map). */
   whenApplied(fn: () => void) {
@@ -190,6 +197,75 @@ export class Globe {
       });
     }
     this.apply();
+    void this.secureBase();
+  }
+
+  /** Puts a new layer where an old one was, keeping its visibility and the house grade. */
+  private swapLayer(old: ImageryLayer, provider: ImageryProvider | Google2DImageryProvider, opts: { minimumTerrainLevel?: number } = {}): ImageryLayer {
+    const layers = this.viewer.imageryLayers, i = layers.indexOf(old);
+    // (Cesium's typings disagree with themselves on getTileCredits' return; the provider is a real imagery provider.)
+    const next = new ImageryLayer(provider as unknown as ImageryProvider, { show: old.show, ...opts });
+    layers.remove(old, true);
+    layers.add(next, i);
+    return next;
+  }
+
+  /**
+   * Makes sure there's a real map underneath (globe/basemap.ts): Google's tiles when the key works for them,
+   * else the drawn map and photographs as configured, checked, with OpenStreetMap standing in if they don't answer.
+   */
+  private async secureBase() {
+    const key = config.googleMapsKey;
+    if (key) {
+      try {
+        const loc = googleLocale();
+        const [day, night, photos, names] = await Promise.all([
+          Google2DImageryProvider.fromUrl({ key, mapType: "roadmap", styles: PAPER_STYLES, ...loc }),
+          Google2DImageryProvider.fromUrl({ key, mapType: "roadmap", styles: SLATE_STYLES, ...loc }),
+          Google2DImageryProvider.fromUrl({ key, mapType: "satellite", ...loc }),
+          Google2DImageryProvider.fromUrl({ key, overlayLayerType: "layerRoadmap", ...loc }),
+        ]);
+        this.rendered.day = this.swapLayer(this.rendered.day, day);
+        this.rendered.night = this.swapLayer(this.rendered.night, night);
+        // Google's roadmap carries its own names; CARTO's would double them.
+        for (const l of [this.rendered.dayLabels, this.rendered.nightLabels]) if (l) this.viewer.imageryLayers.remove(l, true);
+        this.rendered.dayLabels = this.rendered.nightLabels = null;
+        this.satellite = this.swapLayer(this.satellite, photos);
+        // Over the photographs, Google's own road and place names (its "hybrid" view) instead of Esri's.
+        const [first, ...rest] = this.streetLayers;
+        for (const l of rest) this.viewer.imageryLayers.remove(l, true);
+        this.streetLayers = first ? [this.swapLayer(first, names, { minimumTerrainLevel: 3 })] : [];
+        this.source = { map: "google", photos: "google" };
+        for (const l of this.baseLayers()) gradeLayer(l, this.gradeOf(l));
+        this.apply();
+        return;
+      } catch (e) {
+        console.warn("Google map tiles unavailable; using the open map instead.", e);
+      }
+    }
+    // No Google: check the drawn map and the photographs answer, and stand in for whichever doesn't.
+    const map = renderedMap();
+    const [mapOk, photosOk] = await Promise.all([tileWorks(map.ground(false), map.subdomains), tileWorks(imagery().template)]);
+    if (!mapOk) this.useOsm();
+    if (!photosOk) {
+      this.satellite.show = false;
+      this.satellite = this.backup;
+      this.source.photos = "eox";
+      this.apply();
+    }
+  }
+
+  /** OpenStreetMap's own tiles for the drawn map, day and night alike (labels included). */
+  private useOsm() {
+    if (this.source.map === "osm") return;
+    const osm = () => new UrlTemplateImageryProvider({ url: OSM_FALLBACK.url, maximumLevel: OSM_FALLBACK.maximumLevel, credit: OSM_FALLBACK.credit });
+    this.rendered.day = this.swapLayer(this.rendered.day, osm());
+    this.rendered.night = this.swapLayer(this.rendered.night, osm());
+    for (const l of [this.rendered.dayLabels, this.rendered.nightLabels]) if (l) this.viewer.imageryLayers.remove(l, true);
+    this.rendered.dayLabels = this.rendered.nightLabels = null;
+    this.source.map = "osm";
+    for (const l of this.baseLayers()) gradeLayer(l, this.gradeOf(l));
+    this.apply();
   }
 
   /** Retries failed imagery tiles, and brings in the backup imagery if failures pile up. */
@@ -295,14 +371,33 @@ export class Globe {
     for (const fn of this.applied) fn();
   }
 
+  private photorealLoading: Promise<void> | null = null;
   private async setPhotoreal(on: boolean) {
-    if (!this.hasPhotoreal) return;
+    if (!this.hasPhotoreal) { this.viewer.scene.globe.show = true; return; }
     if (on && !this.photoreal) {
-      this.photoreal = await createGooglePhotorealistic3DTileset({ key: config.googleMapsKey });
-      this.viewer.scene.primitives.add(this.photoreal);
+      // The globe stays until the city has actually arrived, so a refused key never leaves an empty screen.
+      this.photorealLoading ??= createGooglePhotorealistic3DTileset({ key: config.googleMapsKey }).then((t) => {
+        let failed = 0;
+        t.tileFailed.addEventListener(() => { if (++failed === 4) this.dropPhotoreal("Google's 3D city isn't loading right now, so the map is showing instead."); });
+        this.photoreal = t;
+        this.viewer.scene.primitives.add(t);
+      }).catch((e) => { console.warn("Photorealistic 3D unavailable", e); this.dropPhotoreal(); });
+      await this.photorealLoading;
     }
-    if (this.photoreal) this.photoreal.show = on;
-    this.viewer.scene.globe.show = !on;
+    if (!this.hasPhotoreal) return;
+    const show = this.state.photorealistic;
+    if (this.photoreal) this.photoreal.show = show;
+    this.viewer.scene.globe.show = !(show && this.photoreal);
+  }
+
+  /** Turns the 3D city off for this visit and goes back to the globe and its map. */
+  private dropPhotoreal(notice?: string) {
+    this.photorealFailed = true;
+    this.state.photorealistic = false;
+    if (this.photoreal) { this.viewer.scene.primitives.remove(this.photoreal); this.photoreal = null; }
+    this.viewer.scene.globe.show = true;
+    if (notice) this.onNotice?.(notice);
+    for (const fn of this.applied) fn();
   }
 
   /** The point on the Earth's surface under a screen position. */
