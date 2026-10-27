@@ -35,7 +35,7 @@ const setMyField = (id: string | null) => write(FIELD, id);
 const icon = (key: string) => (icons as Record<string, string>)[key] ?? icons.briefcase;
 const find = (id: string) => { for (const line of LINES) { const s = line.stations.find((x) => x.id === id); if (s) return { line, s }; } return null; };
 
-export function workMap(onOpen: (s: Station, line: Line) => void): HTMLElement {
+export function workMap(onOpen: (s: Station, line: Line) => void, opts: { layers?: (line: Line) => HTMLElement } = {}): HTMLElement {
   const root = h("div", { class: "wk" });
   const open = (s: Station, line: Line) => { remember(s.id); setMyField(line.id); onOpen(s, line); };
   const show = (view: HTMLElement, dir: "in" | "back") => {
@@ -112,13 +112,16 @@ export function workMap(onOpen: (s: Station, line: Line) => void): HTMLElement {
       sections.set(t.id, sec);
       return sec;
     });
+    // The field in three layers first (the field, its Pro, its services); the specialist tools fold away under them.
+    const layers = opts.layers?.(line);
     return h("div", { class: "wk-view wk-field", style: `--c:${line.color}` },
       h("button", { class: "link-btn wk-back", onclick: () => show(picker(), "back") }, "‹ All fields"),
       h("header", { class: "wk-hero" },
         h("span", { class: "wk-glyph lg", html: icon(look.icon) }),
-        h("h2", {}, line.label),
-        look.blurb ? h("p", {}, look.blurb) : ""),
-      chain, ...body,
+        h("h2", {}, line.label)),
+      ...(layers
+        ? [layers, h("details", { class: "wk-more" }, h("summary", {}, `More tools for ${look.noun}`), chain, ...body)]
+        : [look.blurb ? h("p", {}, look.blurb) : "", chain, ...body]),
       h("button", { class: "wk-other", onclick: () => show(picker(true), "back") }, "Not quite it? Describe what you do"));
   }
 

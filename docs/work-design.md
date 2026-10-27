@@ -1,9 +1,27 @@
 # Work: design notes
 
 How Work is designed, and why. Work leads with **your area of work**: *What's your field?* (every field as a
-tile, or describe what you do), and once you've picked one, that field's tools (`src/work/workMap.ts`,
-`src/work/workLines.ts`). Under it, one card opens **your work on the map** (`src/work/desk/`): your records as
-pins, and what needs you. The card says how many things need you, so it's worth a glance without opening.
+tile, or describe what you do). Every field then reads the same simple way, in three layers
+(`src/work/fields/catalog.ts`, `src/work/fields/ui.ts`):
+
+1. **The field** (Food): anything to do with it, **live on the map** around where you're looking, for anyone.
+   Restaurants, cafés, takeaways, bars, markets, bakeries, grocers, farms and producers, each a colour; filter by
+   tapping; the list and the pins follow the map as it moves.
+2. **The field's Pro** (Food Pro): your own work in it, **as a map you run**: a spatial CRM with the field's own
+   names for things (Locations, Customers and accounts, Orders, Deliveries, Inspections and licences, Equipment),
+   live pins, what needs you and what it knocks on, and **your HQ**: add it and it goes on the map in ink and boots
+   as a 3D paper model (like My Place) with your nearby work pinned on it by how it stands. Each field keeps its own
+   records.
+3. **The field's services** (Food services): **every kind of company that serves it**, not one niche. For food:
+   distributors and wholesalers, produce, meat, fish, bakery and dairy suppliers, drinks, coffee, kitchens and
+   equipment, refrigeration, pest control, grease and oil, linen, packaging, payments, delivery, catering hire,
+   food safety and labs, fit-out, utilities, music licensing, cleaning, waste, staffing, uniforms, marketing,
+   photography, accountants, insurance, lawyers, security, electricians, plumbers, builders, IT, banks and
+   consultants. Tap one to see them around you on the map (OpenStreetMap tags where they're mapped; a map search
+   where they're not).
+
+The specialist tools each field already had (Freight Desk, Mining Pro, Build Pro, City Ops…) fold away under
+*More tools for {field}*, so the three layers are what you see first.
 
 ## The desk: your work in real space
 
