@@ -6,7 +6,9 @@ import {
   Cesium3DTileset,
   CesiumTerrainProvider,
   createGooglePhotorealistic3DTileset,
+  type Credit,
   Google2DImageryProvider,
+  GoogleMaps,
   type ImageryProvider,
   ImageryLayer,
   Ion,
@@ -23,7 +25,7 @@ import { createAnalyticLayer, type AnalyticKind } from "./analyticLayers";
 import { initMotion } from "./motion";
 import { currentQuality } from "./quality";
 import { imagery, renderedMap } from "./imagery";
-import { googleLocale, OSM_FALLBACK, PAPER_STYLES, SLATE_STYLES, tileWorks } from "./basemap";
+import { googleLocale, googleSessionBody, OSM_FALLBACK, tileWorks, type GoogleLayer } from "./basemap";
 import { createTerrariumTerrain, terrainOptions } from "./terrain";
 import { blueMarble, finishGlobe, gradeLayer, HOUSE, RENDERED, RENDERED_NIGHT, type Grade } from "./finish";
 
@@ -80,7 +82,7 @@ export class Globe {
   get hasPhotoreal() { return Boolean(config.googleMapsKey) && !this.photorealFailed; }
   private photorealFailed = false;
   /** Which source the drawn map and the photographs come from now (for the credits and the docs). */
-  source: { map: "google" | "carto" | "custom" | "osm"; photos: "google" | "esri" | "maptiler" | "mapbox" | "eox" } = { map: config.renderedTiles ? "custom" : "carto", photos: imagery().id };
+  source: { map: "google" | "esri" | "custom" | "osm"; photos: "google" | "esri" | "maptiler" | "mapbox" | "eox" } = { map: config.renderedTiles ? "custom" : "esri", photos: imagery().id };
   private applied: (() => void)[] = [];
   /** Calls `fn` after every apply() (to mirror layer state elsewhere, or restyle with the map). */
   whenApplied(fn: () => void) {
@@ -112,7 +114,11 @@ export class Globe {
     });
     const { scene } = this.viewer;
     scene.globe.depthTestAgainstTerrain = true;
-    scene.globe.preloadSiblings = false;
+    // Smooth movement: the tiles around the view and a few more levels at a time load ahead, so panning and zooming
+    // never show blank paper; slower devices keep to the view itself.
+    const q = currentQuality();
+    scene.globe.preloadSiblings = q.tier !== "low";
+    scene.globe.loadingDescendantLimit = q.tier === "high" ? 48 : q.tier === "mid" ? 32 : 20;
     scene.globe.showGroundAtmosphere = true;
     scene.screenSpaceCameraController.enableCollisionDetection = true;
     this.keepRendering();
@@ -139,12 +145,12 @@ export class Globe {
     this.viewer.imageryLayers.add(this.satellite);
     // The rendered map, over the satellite imagery and under Blue Marble (which still takes over from orbit).
     const map = renderedMap();
-    const tiles = (url: string, show = true, minimumTerrainLevel?: number) =>
-      new ImageryLayer(new UrlTemplateImageryProvider({ url, subdomains: map.subdomains, maximumLevel: map.maximumLevel, credit: map.credit }), { show, minimumTerrainLevel });
+    const tiles = (url: string, dark: boolean, show = true, minimumTerrainLevel?: number) =>
+      new ImageryLayer(new UrlTemplateImageryProvider({ url, subdomains: map.subdomains, maximumLevel: dark ? map.darkMaximumLevel ?? map.maximumLevel : map.maximumLevel, credit: map.credit }), { show, minimumTerrainLevel });
     // Its own names (muted, like the deck), once past the whole-planet view.
     this.rendered = {
-      day: tiles(map.ground(false)), night: tiles(map.ground(true), false),
-      dayLabels: map.labels(false) ? tiles(map.labels(false), true, 3) : null, nightLabels: map.labels(true) ? tiles(map.labels(true), false, 3) : null,
+      day: tiles(map.ground(false), false), night: tiles(map.ground(true), true, false),
+      dayLabels: map.labels(false) ? tiles(map.labels(false), false, true, 3) : null, nightLabels: map.labels(true) ? tiles(map.labels(true), true, false, 3) : null,
     };
     this.viewer.imageryLayers.add(this.rendered.day);
     this.viewer.imageryLayers.add(this.rendered.night);
@@ -218,13 +224,19 @@ export class Globe {
     const key = config.googleMapsKey;
     if (key) {
       try {
-        const loc = googleLocale();
-        const [day, night, photos, names] = await Promise.all([
-          Google2DImageryProvider.fromUrl({ key, mapType: "roadmap", styles: PAPER_STYLES, ...loc }),
-          Google2DImageryProvider.fromUrl({ key, mapType: "roadmap", styles: SLATE_STYLES, ...loc }),
-          Google2DImageryProvider.fromUrl({ key, mapType: "satellite", ...loc }),
-          Google2DImageryProvider.fromUrl({ key, overlayLayerType: "layerRoadmap", ...loc }),
-        ]);
+        const loc = googleLocale(), dpr = window.devicePixelRatio || 1;
+        // Our own sessions (Cesium's don't ask for sharp tiles): on a sharp screen, 512 px tiles drawn at 2x.
+        const google = async (layer: GoogleLayer) => {
+          const res = await fetch(`https://tile.googleapis.com/v1/createSession?key=${encodeURIComponent(key)}`, {
+            method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(googleSessionBody(layer, dpr, loc)),
+          });
+          if (!res.ok) throw new Error(`Google Map Tiles: HTTP ${res.status}`);
+          const s = await res.json() as { session: string; tileWidth: number; tileHeight: number };
+          // (Cesium's typings call the tile size a string and leave out getDefaultCredit, the Google logo credit.)
+          const credit = (GoogleMaps as unknown as { getDefaultCredit(): Credit }).getDefaultCredit();
+          return new Google2DImageryProvider({ session: s.session, key, tileWidth: s.tileWidth, tileHeight: s.tileHeight, credit } as unknown as ConstructorParameters<typeof Google2DImageryProvider>[0]);
+        };
+        const [day, night, photos, names] = await Promise.all([google("day"), google("night"), google("photos"), google("names")]);
         this.rendered.day = this.swapLayer(this.rendered.day, day);
         this.rendered.night = this.swapLayer(this.rendered.night, night);
         // Google's roadmap carries its own names; CARTO's would double them.
@@ -245,8 +257,18 @@ export class Globe {
     }
     // No Google: check the drawn map and the photographs answer, and stand in for whichever doesn't.
     const map = renderedMap();
-    const [mapOk, photosOk] = await Promise.all([tileWorks(map.ground(false), map.subdomains), tileWorks(imagery().template)]);
-    if (!mapOk) this.useOsm();
+    const nightLabels = map.labels(true);
+    const [mapOk, nightOk, photosOk, namesOk] = await Promise.all([
+      tileWorks(map.ground(false), map.subdomains), tileWorks(map.ground(true), map.subdomains), tileWorks(imagery().template),
+      tileWorks("https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}"),
+    ]);
+    if (!mapOk || !nightOk) this.useOsm();
+    else if (nightLabels && !(await tileWorks(nightLabels, map.subdomains)) && this.rendered.nightLabels) {
+      this.viewer.imageryLayers.remove(this.rendered.nightLabels, true);
+      this.rendered.nightLabels = null;
+    }
+    // Names over the photographs: if they don't come back as names, the photographs go without.
+    if (!namesOk) { for (const l of this.streetLayers) this.viewer.imageryLayers.remove(l, true); this.streetLayers = []; }
     if (!photosOk) {
       this.satellite.show = false;
       this.satellite = this.backup;

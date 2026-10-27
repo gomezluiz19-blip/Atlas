@@ -65,7 +65,8 @@ export function qualityFor(tier: Tier, s: Pick<Signals, "dpr" | "saveData" | "ne
   return {
     tier,
     pixelRatio: Math.min(s.dpr || 1, cap),
-    sse: tier === "high" ? 1.5 : tier === "mid" ? 2.25 : 4,
+    // Finer detail than Cesium's default (2): streets and names come in at their own zoom, not enlarged.
+    sse: tier === "high" ? 1.25 : tier === "mid" ? 1.75 : 3,
     tileCache: tier === "high" ? 600 : tier === "mid" ? 350 : 150,
     fxaa: tier === "mid",
     msaa: tier === "high" ? 4 : 1,

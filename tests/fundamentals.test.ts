@@ -92,13 +92,17 @@ describe("no borrowed emoji", () => {
 });
 
 describe("the rendered map", () => {
-  it("defaults to CARTO's day and night styles, with labels apart", async () => {
+  it("defaults to Esri's street map by day and dark canvas by night, each only as deep as it's drawn", async () => {
     const { renderedMap } = await import("../src/globe/imagery");
     const m = renderedMap({});
-    expect(m.ground(false)).toContain("voyager_nolabels");
-    expect(m.ground(true)).toContain("dark_nolabels");
-    expect(m.labels(false)).toContain("voyager_only_labels");
-    expect(m.credit).toMatch(/OpenStreetMap/);
+    expect(m.ground(false)).toContain("World_Street_Map");
+    expect(m.ground(true)).toContain("World_Dark_Gray_Base");
+    expect(m.labels(false)).toBe("");
+    expect(m.labels(true)).toContain("World_Dark_Gray_Reference");
+    expect(m.maximumLevel).toBe(19);
+    expect(m.darkMaximumLevel).toBe(16);
+    expect(m.credit).toMatch(/Esri/);
+    expect(m.ground(false)).not.toMatch(/cartocdn/);
   });
   it("takes any other style from settings, day and night from {dark}", async () => {
     const { renderedMap } = await import("../src/globe/imagery");

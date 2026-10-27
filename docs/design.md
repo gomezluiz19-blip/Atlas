@@ -100,9 +100,11 @@ dome, no arc or marks) is for 32 px and below. `scripts/brand-icons.mjs` writes 
 
 ## The map
 
-The default is **rendered** (`src/globe/viewer.ts`, `src/globe/imagery.ts`): a drawn street map (CARTO's Voyager
-by day, Dark Matter by night, from OpenStreetMap) graded to the deck's warm paper or slate, with its own muted street
-and place names, and, as you come down over a town, the buildings themselves standing up in white clay (slate by
+The default is **rendered** (`src/globe/viewer.ts`, `src/globe/imagery.ts`): a drawn street map (Google's roadmap
+in the house paper and slate styles when the Google key works; otherwise Esri's World Street Map by day and Dark Gray
+Canvas by night, with OpenStreetMap standing in if a provider answers with a message instead of a map) graded to the
+deck's warm paper or slate, with its street and place names, drawn crisp on sharp screens (512 px Google tiles at
+2x, a finer level of detail than Cesium's default, neighbouring tiles loaded ahead so moving never shows blank paper), and, as you come down over a town, the buildings themselves standing up in white clay (slate by
 night) with trees in the parks (`src/city/life.ts`). Over the satellite photo the same buildings keep their
 coloured roofs. Night follows the device's setting. Map style offers Rendered, Satellite and Plain, and remembers the
 choice. Another drawn style is a setting away (`VITE_RENDERED_TILES`, `VITE_RENDERED_LABELS`; see
