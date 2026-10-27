@@ -5151,6 +5151,41 @@ select[multiple] { font: inherit; border-radius: 14px; padding: 6px; border: 0; 
 .plan-types .work-type span { font: var(--t-small); color: var(--secondary); }
 
 /* ---- Work: the desk as one card under your field ---- */
-.dk-card { width: 100%; margin-top: 14px; }
-.dk-card .work-tool-text { flex: 1; min-width: 0; }
-.dk-card.alert .work-tool-text span { color: #c8553d; font-weight: 650; }
+
+/* ---- A field in three layers (work/fields/ui.ts) ---- */
+.fl { display: flex; flex-direction: column; gap: 10px; margin: 6px 0 4px; }
+.fl-card { display: flex; align-items: center; gap: 14px; width: 100%; text-align: left; padding: 16px; border: 0; border-radius: var(--radius); background: var(--card); box-shadow: var(--shadow-soft); color: var(--label); font: inherit; cursor: pointer; transition: transform .15s ease; }
+.fl-card:active { transform: scale(.985); }
+.fl-n { flex: none; width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; font: 800 17px var(--font); color: #fff; background: var(--c, var(--clay)); }
+.fl-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.fl-text strong { font: var(--t-title); letter-spacing: -0.015em; }
+.fl-text span { font: var(--t-small); color: var(--secondary); }
+.fl-text small { font: 700 12.5px var(--font); color: var(--c, var(--clay)); }
+.wk-more { margin-top: 6px; }
+.wk-more > summary { cursor: pointer; font: 700 14px var(--font); color: var(--secondary); padding: 8px 0; list-style: none; }
+.wk-more > summary::before { content: "＋ "; color: var(--clay); }
+.wk-more[open] > summary::before { content: "－ "; }
+.fl-view { display: flex; flex-direction: column; gap: 10px; }
+.fl-chip { display: inline-flex; align-items: center; gap: 6px; }
+.fl-chip i { width: 9px; height: 9px; border-radius: 50%; background: var(--c); }
+.fl-chip b { font-weight: 800; font-variant-numeric: tabular-nums; }
+.fl-chip b:empty { display: none; }
+.fl-chip[aria-pressed="false"] { opacity: .45; }
+.fl-chip[aria-pressed="true"] { background: var(--card) !important; color: var(--label) !important; box-shadow: inset 0 0 0 1.5px var(--c); }
+.fl-list { display: flex; flex-direction: column; }
+.fl-services { display: flex; flex-direction: column; gap: 6px; }
+.fl-service { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; padding: 12px 14px; border: 0; border-radius: 14px; background: var(--card); box-shadow: 0 1px 0 color-mix(in srgb, var(--label) 6%, transparent); color: var(--label); font: var(--t-row); font-size: 15px; cursor: pointer; }
+.fl-service i { flex: none; width: 10px; height: 10px; border-radius: 50%; background: var(--c); }
+.fl-service span { flex: 1; min-width: 0; }
+.fl-service small { flex: none; font: 650 12px var(--font); color: var(--secondary); }
+.fl-service.on { box-shadow: inset 0 0 0 2px var(--c); }
+.fl-found { display: flex; flex-direction: column; gap: 4px; padding: 4px 4px 10px 26px; }
+.fl-found .primary-btn, .fl-found .link-btn { align-self: flex-start; text-decoration: none; }
+
+/* ---- The HQ on a field's Pro desk ---- */
+.dk-hq { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; padding: 14px 16px; border: 0; border-radius: var(--radius); background: color-mix(in srgb, var(--clay) 8%, var(--card)); box-shadow: var(--shadow-soft); color: var(--label); font: inherit; }
+button.dk-hq { cursor: pointer; }
+.dk-hq .work-tool-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.dk-hq .work-tool-text small { font: var(--t-kicker); letter-spacing: .12em; text-transform: uppercase; color: var(--clay); }
+.dk-hq .work-tool-text span { font: var(--t-small); color: var(--secondary); }
+.dk-hq .primary-btn { padding: 10px 16px; font-size: 14px; }

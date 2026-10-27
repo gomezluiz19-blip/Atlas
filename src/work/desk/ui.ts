@@ -22,9 +22,21 @@ import {
 } from "./model";
 
 const KEY = "atlas.work.desk.v1";
-type Stored = Book & { example?: boolean };
-const read = (): Stored | null => loadJson<Stored | null>(KEY, null, (v) => !!v && typeof v === "object" && Array.isArray((v as Book).recs));
-const write = (b: Stored) => saveJson(KEY, b);
+/** Your HQ: where the work is run from, shown on the map and as a 3D model. */
+interface Hq { name: string; lon: number; lat: number }
+type Stored = Book & { example?: boolean; hq?: Hq };
+
+/**
+ * Which desk is open: Work's own, or a field's Pro (Food Pro keeps its own records, under its own key, with its own
+ * names for things: "Locations" rather than "Sites"). Set by openDesk; every screen after reads it.
+ */
+interface Scope { field?: string; title: string; about?: string; names?: Partial<Record<Kind, string>>; back?: () => void }
+let scope: Scope = { title: "Your work on the map" };
+const keyOf = () => (scope.field ? `${KEY}:${scope.field}` : KEY);
+const read = (): Stored | null => loadJson<Stored | null>(keyOf(), null, (v) => !!v && typeof v === "object" && Array.isArray((v as Book).recs));
+const write = (b: Stored) => saveJson(keyOf(), b);
+/** What this desk calls a kind of record, many of them ("Locations", "Deliveries"). */
+const many = (k: Kind) => scope.names?.[k] ?? KINDS[k].many;
 const today = () => isoDay(Date.now());
 
 /** The services worth offering for a kind of record, when it doesn't name its own. */
@@ -47,31 +59,32 @@ const when = (r: Rec, t: string) => {
   return d === 0 ? "Today" : d === 1 ? "Tomorrow" : d === -1 ? "Yesterday" : d < 0 ? `${-d} days ago` : d < 14 ? `In ${d} days` : dateText(r.due);
 };
 
-/** The desk, as a screen of Work (back goes to Work's front: your field). */
-export function openDesk(ctx: WorkCtx) {
+/** The desk, as a screen of Work. With a scope (a field's Pro), it opens that desk; without, it stays on the one open. */
+export function openDesk(ctx: WorkCtx, open?: Scope) {
+  if (open) scope = open;
   const root = h("div", { class: "dk" });
   const book = read();
   root.append(...(book ? home(ctx, book) : welcome(ctx)));
-  ctx.show("Your work on the map", () => { near?.clear(); ctx.home(); }, root);
+  ctx.show(scope.title, () => { near?.clear(); (scope.back ?? ctx.home)(); }, root);
 }
 
-/** Work's front shows the desk as one card under your field: what it is, or what needs you now. */
-export function deskCard(ctx: WorkCtx): HTMLElement {
-  const book = read();
-  const alerts = book ? attention(book.recs, today()) : [];
-  const sub = !book ? "Clients, orders, shipments, jobs and cases as pins, and what happens if one slips"
-    : alerts.length ? `${alerts.length} need${alerts.length === 1 ? "s" : ""} you · ${book.recs.length} records${book.example ? " (example)" : ""}`
-    : `Everything on track · ${book.recs.length} records${book.example ? " (example)" : ""}`;
-  return h("button", { class: "dk-tools dk-card" + (alerts.length ? " alert" : ""), onclick: () => openDesk(ctx) },
-    h("span", { class: "work-tool-icon", html: icons.pin }),
-    h("span", { class: "work-tool-text" }, h("strong", {}, "Your work on the map"), h("span", {}, sub)),
-    h("span", { class: "wk-chev", "aria-hidden": "true" }, "›"));
+/** A line for a field's Pro card: how many records and what needs you, once there are any (pure on storage). */
+export function fieldDeskLine(field: string): string | undefined {
+  const b = loadJson<Stored | null>(`${KEY}:${field}`, null, (v) => !!v && typeof v === "object" && Array.isArray((v as Book).recs));
+  if (!b?.recs.length) return undefined;
+  const n = attention(b.recs, today()).length;
+  return n ? `${n} need${n === 1 ? "s" : ""} you · ${b.recs.length} on the map` : `All on track · ${b.recs.length} on the map`;
 }
+
+/** A field's Pro desk: your work in that field, as a map you run (work/fields/ui.ts). */
+export const openFieldDesk = (ctx: WorkCtx, field: string, title: string, about: string, names: Partial<Record<Kind, string>> | undefined, back: () => void) =>
+  openDesk(ctx, { field, title, about, names, back });
 
 function welcome(ctx: WorkCtx): (HTMLElement | string)[] {
   const start = (role: Role) => { const b: Stored = { ...demoBook(role, today()), example: true }; write(b); haptic("select"); openDesk(ctx); };
   return [
-    h("p", { class: "mp-intro" }, "Your work as it really sits: clients, orders, shipments, jobs and cases on the map, with what each one waits on and what happens if it slips."),
+    h("p", { class: "mp-intro" }, scope.about ? `${scope.about}, with what each one waits on and what happens if it slips.` : "Your work as it really sits: clients, orders, shipments, jobs and cases on the map, with what each one waits on and what happens if it slips."),
+    hqCard(ctx, null),
     h("h3", { class: "group-title" }, "How do you work?"),
     h("div", { class: "dk-roles" }, ...(Object.keys(ROLES) as Role[]).map((r) =>
       h("button", { class: "dk-role", onclick: () => start(r) }, h("strong", {}, ROLES[r].label), h("span", {}, ROLES[r].who), h("small", {}, "Try it with an example ›")))),
@@ -128,13 +141,14 @@ function home(ctx: WorkCtx, book: Stored): (HTMLElement | string)[] {
   const chips = h("div", { class: "dk-kinds", role: "group", "aria-label": "Show" },
     ...(["all", ...kinds] as (Kind | "all")[]).map((k) => {
       const b = h("button", { class: "chip", "aria-pressed": String(k === shown), onclick: () => { shown = k; for (const c of chips.children) c.setAttribute("aria-pressed", String(c === b)); fill(); } },
-        k === "all" ? `All ${recs.length}` : `${KINDS[k].many} ${recs.filter((r) => r.kind === k).length}`);
+        k === "all" ? `All ${recs.length}` : `${many(k)} ${recs.filter((r) => r.kind === k).length}`);
       return b;
     }));
   fill();
 
   return [
     roles,
+    hqCard(ctx, book),
     book.example ? h("p", { class: "dk-example" }, `An example ${ROLES[book.role].label.toLowerCase() === "my company" ? "company" : "book"}, to show the idea. `, h("button", { class: "link-btn", onclick: () => importScreen(ctx, book) }, "Bring your own records ›")) : "",
     h("h3", { class: "group-title" }, "Needs you"),
     needs,
@@ -147,8 +161,75 @@ function home(ctx: WorkCtx, book: Stored): (HTMLElement | string)[] {
       h("button", { class: "pill-btn", onclick: () => importScreen(ctx, book) }, "Bring records in"),
       h("button", { class: "pill-btn", onclick: () => exportCsv(book) }, "Export")),
     h("p", { class: "muted small" }, "Kept on this device. ",
-      h("button", { class: "link-btn", onclick: () => { if (confirm(book.example ? "Put the example away?" : "Clear every record from this device?")) { localStorage.removeItem(KEY); layer?.clear(); near?.clear(); openDesk(ctx); } } }, book.example ? "Put the example away" : "Clear everything")),
+      h("button", { class: "link-btn", onclick: () => { if (confirm(book.example ? "Put the example away?" : "Clear every record from this device?")) { localStorage.removeItem(keyOf()); layer?.clear(); near?.clear(); openDesk(ctx); } } }, book.example ? "Put the example away" : "Clear everything")),
   ];
+}
+
+// ---- Your HQ --------------------------------------------------------------------------------------------------
+
+/** The HQ on the desk: add it, or open it as a 3D model with the work around it. */
+function hqCard(ctx: WorkCtx, book: Stored | null): HTMLElement {
+  const hq = book?.hq;
+  if (!hq) return h("button", { class: "dk-hq add", onclick: () => hqScreen(ctx) },
+    h("span", { class: "work-tool-icon", html: icons.building }),
+    h("span", { class: "work-tool-text" }, h("strong", {}, "Add your HQ"), h("span", {}, "Where the work is run from: it goes on the map, and you can walk round it in 3D")));
+  return h("div", { class: "dk-hq" },
+    h("span", { class: "work-tool-icon", html: icons.building }),
+    h("span", { class: "work-tool-text" }, h("small", {}, "HQ"), h("strong", {}, hq.name)),
+    h("button", { class: "primary-btn", onclick: () => void openHq3d(ctx) }, "See it in 3D"),
+    h("button", { class: "link-btn", onclick: () => hqScreen(ctx) }, "Move"));
+}
+
+function hqScreen(ctx: WorkCtx) {
+  const book: Stored = read() ?? { role: "company", recs: [] };
+  const name = h("input", { class: "pro-url", value: book.hq?.name ?? "", placeholder: "Head office, main kitchen, depot…", "aria-label": "Name" }) as HTMLInputElement;
+  const where = h("input", { class: "pro-url", placeholder: "Address, town or postcode", "aria-label": "Where" }) as HTMLInputElement;
+  const msg = h("p", { class: "muted small", "aria-live": "polite" });
+  let picked: { lon: number; lat: number } | null = book.hq ? { lon: book.hq.lon, lat: book.hq.lat } : null;
+  const save = async () => {
+    if (where.value.trim()) {
+      msg.textContent = "Finding it on the map…";
+      const hit = (await geocode(where.value.trim()).catch(() => [])).find((x) => !x.run);
+      if (!hit) { msg.textContent = "Couldn't find that place. Try a town or postcode, or tap the map."; haptic("warn"); return; }
+      picked = { lon: hit.lon, lat: hit.lat };
+    }
+    if (!picked) { msg.textContent = "Say where it is, or tap the map."; haptic("warn"); return; }
+    book.hq = { name: name.value.trim() || "HQ", ...picked };
+    write(book);
+    haptic("success");
+    openDesk(ctx);
+    void openHq3d(ctx);
+  };
+  ctx.show(book.hq ? "Move your HQ" : "Add your HQ", () => openDesk(ctx),
+    h("p", { class: "mp-intro" }, "Your HQ goes on the map with everything else, and boots as a 3D model: your building among the real ones around it, with your work pinned where it is."),
+    h("label", { class: "mp-field" }, h("span", {}, "Name"), name),
+    h("label", { class: "mp-field" }, h("span", {}, "Where"), where),
+    h("div", { class: "pro-actions" },
+      h("button", { class: "primary-btn", onclick: () => void save() }, "Save and see it in 3D"),
+      h("button", { class: "pill-btn", onclick: () => { ctx.hide(); ctx.app.pickOnce("Tap your HQ", (p) => { picked = { lon: p.lon, lat: p.lat }; where.value = ""; ctx.unhide(); void save(); }, () => ctx.unhide()); } }, "Tap the map")),
+    msg);
+}
+
+/** The HQ as a paper model (myplaces/holo.ts), with every record within reach pinned on it by how it stands. */
+async function openHq3d(ctx: WorkCtx) {
+  const book = read();
+  if (!book?.hq) return;
+  const { hq } = book, t = today();
+  const near = book.recs.filter((r) => r.lon !== undefined && Math.hypot((r.lon - hq.lon) * Math.cos((hq.lat * Math.PI) / 180), r.lat! - hq.lat) * 111 < 1.2);
+  const alerts = attention(book.recs, t);
+  const { openSpace, closeSpace } = await import("../../delight/spaces");
+  // The panel steps aside for the model; the model's dock brings it back.
+  ctx.close();
+  await openSpace(ctx.app, {
+    name: hq.name, kicker: `${scope.title} · HQ`, lon: hq.lon, lat: hq.lat, size: 900, own: true, tint: "cyan",
+    markers: near.map((r) => ({ lon: r.lon!, lat: r.lat!, color: HEALTH[r.health].color, label: r.title, pulse: r.health === "late" || r.health === "blocked" })),
+    dock: [
+      { id: "needs", label: "Needs you", icon: icons.flag, color: "#c8553d", badge: alerts.length ? String(alerts.length) : undefined, alert: alerts.length > 0 },
+      { id: "all", label: "Everything", icon: icons.pin, color: "#9c4a32", badge: String(book.recs.length) },
+      { id: "add", label: "Add", icon: icons.pencil, color: "#5b9467" },
+    ],
+    onPick: (id) => { closeSpace(); ctx.open(); if (id === "add") editScreen(ctx, book, null); else openDesk(ctx); },
+  });
 }
 
 // ---- The map ------------------------------------------------------------------------------------------------
@@ -157,6 +238,9 @@ function drawAll(ctx: WorkCtx, book: Book, focus?: string) {
   layer ??= new WorkLayer(ctx.app, "work-desk", "My work", "#9c4a32");
   const by = new Map(book.recs.map((r) => [r.id, r]));
   const f: WorkFeature[] = [];
+  // The HQ, in ink and bigger than the rest; tapping it boots the 3D model.
+  const hq = (book as Stored).hq;
+  if (hq) f.push({ id: "hq", kind: "point", pts: [[hq.lon, hq.lat]], color: "#1c1b19", label: `HQ · ${hq.name}`, big: true, tap: () => void openHq3d(ctx) });
   for (const r of book.recs) {
     if (r.route && r.route.length > 1) f.push({ id: `${r.id}-route`, kind: "line", pts: r.route, color: r.health === "done" ? "#8c8f87" : HEALTH[r.health].color, solid: true, dashed: r.health === "late" || r.health === "blocked" });
     if (r.lon === undefined || r.lat === undefined) continue;
@@ -166,7 +250,7 @@ function drawAll(ctx: WorkCtx, book: Book, focus?: string) {
   const fr = focus ? by.get(focus) : undefined;
   if (fr?.lon !== undefined) for (const other of [fr.parent, ...(fr.needs ?? []), ...downstream(book.recs, fr.id).map((x) => x.id)].filter(Boolean).map((id) => by.get(id!)))
     if (other?.lon !== undefined) f.push({ id: `${fr.id}-${other.id}`, kind: "line", pts: [[fr.lon, fr.lat!], [other.lon, other.lat!]], color: "#9c4a32", solid: true, dashed: true });
-  layer.set(f, "My work");
+  layer.set(f, scope.title);
 }
 
 function fitAll(ctx: WorkCtx, recs: Rec[]) {

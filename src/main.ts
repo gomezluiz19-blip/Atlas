@@ -404,16 +404,21 @@ const openStation = (st: Station) => {
   if (t) t.open(ctx);
   else app.actions.get(`work:${st.tool}`)?.run(); // Create and Explore tools (Teach, Learn) open in their own hub
 };
-// Work leads with your field: what's your field (or, once picked, that field's tools). Under it, one card opens
-// your records on the map (clients, orders, shipments, jobs, cases) and what's slipping.
+// Work leads with your field: what's your field, then that field in three layers (Food: anything food, live on the
+// map; Food Pro: your own work in it, as a map you run, HQ in 3D; Food services: every kind of company that serves
+// it), with the specialist tools folded underneath.
 const workFail = () => app.toast("Couldn't load Work. Check the connection and try again.", 5000);
 
 const workHub = createWork(app, [], {
   title: "Work",
   intro: "",
   // Your field first (what's your field? or your field's tools, if you've picked one); your records under it.
-  top: () => [deferred(() => import("./work/workMap").then((m) => m.workMap(openStation)), workFail),
-    deferred(() => import("./work/desk/ui").then((m) => m.deskCard(workHub.ctx)), workFail)],
+  top: () => [deferred(() => Promise.all([import("./work/workMap"), import("./work/fields/ui"), import("./work/fields/catalog"), import("./work/desk/ui")]).then(([wm, fl, cat, desk]) =>
+    wm.workMap(openStation, { layers: (line) => fl.fieldLayers(workHub.ctx, line, {
+      // Field Pro: your work in this field, as its own desk, back to the field when done.
+      openPro: () => { const names = cat.layerNames(line.label), f = cat.FIELDS[line.id]; desk.openFieldDesk(workHub.ctx, line.id, names.pro, f?.pro.about ?? "", f?.pro.names, () => workHub.ctx.home()); },
+      proLine: desk.fieldDeskLine(line.id),
+    }) })), workFail)],
 });
 const lookHub = createWork(app, LOOK_TOOLS, {
   title: "Explore more",
