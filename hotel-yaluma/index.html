@@ -84,8 +84,9 @@
       <!-- Barra rápida de reserva -->
       <form class="quickbook" id="quickbook" aria-label="Buscar disponibilidad" data-i18n-aria="quick.label">
         <div class="stay-toggle qb-tabs" role="radiogroup" aria-label="Tipo de estadía" data-i18n-aria="stay.label">
-          <button type="button" role="radio" data-stay="night" data-i18n="stay.night">Por noche</button>
-          <button type="button" role="radio" data-stay="pass" data-i18n="stay.pass">Paso de 4 horas</button>
+          <button type="button" role="radio" data-stay="night" data-i18n="stay.nightShort">Noche</button>
+          <button type="button" role="radio" data-stay="day" data-i18n="stay.dayShort">Noche y día</button>
+          <button type="button" role="radio" data-stay="pass" data-i18n="stay.passShort">Paso 4 h</button>
         </div>
         <button type="button" class="qb-field" data-book-step="dates">
           <svg class="ico"><use href="#i-calendar"/></svg>
@@ -214,8 +215,9 @@
       <!-- Paso 1: fechas y personas -->
       <section class="step" data-step="dates">
         <div class="stay-toggle" role="radiogroup" aria-label="Tipo de estadía" data-i18n-aria="stay.label">
-          <button type="button" role="radio" data-stay="night"><strong data-i18n="stay.night">Por noche</strong><small data-i18n="stay.nightSub">Para pasar la noche</small></button>
-          <button type="button" role="radio" data-stay="pass"><strong data-i18n="stay.pass">Paso de 4 horas</strong><small data-i18n="stay.passSub">Descanso sin pasar la noche</small></button>
+          <button type="button" role="radio" data-stay="night"><strong data-i18n="stay.nightShort">Noche</strong><small data-i18n="stay.nightSub">Salida 12:00 PM</small></button>
+          <button type="button" role="radio" data-stay="day"><strong data-i18n="stay.dayShort">Noche y día</strong><small data-i18n="stay.daySub">Salida 3:00 PM</small></button>
+          <button type="button" role="radio" data-stay="pass"><strong data-i18n="stay.passShort">Paso 4 h</strong><small data-i18n="stay.passSubShort">Sin pasar la noche</small></button>
         </div>
         <div class="date-summary">
           <button type="button" class="ds-box" data-edge="in"><small id="ds-in-label">Llegada</small><strong id="ds-in">—</strong></button>

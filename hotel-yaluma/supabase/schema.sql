@@ -32,7 +32,7 @@ create table if not exists public.reservations (
   id bigint generated always as identity primary key,
   code text not null,
   source text not null default 'web' check (source in ('web', 'telefono', 'llegada')),
-  stay_type text not null check (stay_type in ('noche', 'pase')),
+  stay_type text not null check (stay_type in ('noche', 'dia', 'pase')), -- dia = "Noche y día"
   room_tier text not null,
   room_number text references public.rooms (number),
   guest_name text not null,
@@ -57,6 +57,10 @@ create table if not exists public.reservations (
   checked_out_at timestamptz,
   checked_out_by uuid references public.profiles (id)
 );
+-- Si la tabla ya existía con solo 'noche' y 'pase', permitir también 'dia' (Noche y día).
+alter table public.reservations drop constraint if exists reservations_stay_type_check;
+alter table public.reservations add constraint reservations_stay_type_check
+  check (stay_type in ('noche', 'dia', 'pase'));
 create index if not exists reservations_status_idx on public.reservations (status);
 create index if not exists reservations_check_in_idx on public.reservations (check_in);
 

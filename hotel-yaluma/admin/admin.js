@@ -53,10 +53,15 @@
   const initials = (name) => (name || "?").trim().split(/\s+/).map((w) => w[0]).slice(0, 2).join("").toUpperCase();
   const paidFor = (resId) => data.payments.filter((p) => p.reservation_id === resId).reduce((s, p) => s + Number(p.amount), 0);
   const stayIn = (number) => data.reservations.find((r) => r.status === "en_curso" && r.room_number === number);
+  // Precio, nombre y palabra de cada tipo de estadía: "noche", "dia" (noche y día) o "pase" (paso).
+  const unitPrice = (t, type) => (type === "pase" ? t.passPrice : type === "dia" ? t.dayPrice : t.price);
+  const typeLabel = (type) => (type === "pase" ? `Paso ${PH} h` : type === "dia" ? "Noche y día" : "Noche");
+  const unitWord = (type, q) => (type === "pase" ? (q === 1 ? "paso" : "pasos")
+    : type === "dia" ? (q === 1 ? "noche y día" : "noches y días") : (q === 1 ? "noche" : "noches"));
   const stayEnd = (r) => {
     if (r.stay_type === "pase") return new Date(r.pass_end);
     const d = parseDay(r.check_out);
-    d.setHours(H.checkOutHour || 12, 0, 0, 0);
+    d.setHours(r.stay_type === "dia" ? H.dayCheckOutHour || 15 : H.checkOutHour || 12, 0, 0, 0);
     return d;
   };
   const arrivingToday = () => data.reservations.filter((r) => r.status === "confirmada" && r.check_in <= todayIso());
@@ -80,9 +85,9 @@
       // Textos cortos: tienen que caber en el cuadro del teléfono.
       if (late) when = `Vencido ${fmtDurShort(Date.now() - end)}`;
       else if (pass) when = `Hasta ${fmtTime(end)}`;
-      else if (stay.check_out === todayIso()) when = `Sale hoy ${fmtHour(H.checkOutHour || 12)}`;
+      else if (stay.check_out === todayIso()) when = `Sale hoy ${fmtTime(end)}`;
       else when = `Sale ${parseDay(stay.check_out).toLocaleDateString(LOC, { weekday: "short", day: "numeric" }).replace(",", "")}`;
-      return { cls: pass ? "pass" : "night", label: pass ? "Paso" : "Noche", who: stay.guest_name, when, late, stay };
+      return { cls: pass ? "pass" : "night", label: pass ? "Paso" : typeLabel(stay.stay_type), who: stay.guest_name, when, late, stay };
     }
     if (room.state === "limpieza") return { cls: "clean", label: "Limpieza", when: "" };
     const arriving = arrivingToday().find((r) => r.room_number === room.number);
@@ -94,7 +99,7 @@
   function tierLoad(tierId, checkIn, checkOut, excludeId) {
     let worst = 0;
     for (let d = checkIn; d < checkOut; d = addDaysIso(d, 1)) {
-      const n = data.reservations.filter((r) => r.id !== excludeId && r.room_tier === tierId && r.stay_type === "noche"
+      const n = data.reservations.filter((r) => r.id !== excludeId && r.room_tier === tierId && r.stay_type !== "pase"
         && (r.status === "confirmada" || r.status === "en_curso") && r.check_in <= d && d < r.check_out).length;
       worst = Math.max(worst, n);
     }
@@ -107,7 +112,7 @@
       return `Paso de ${PH} horas · ${fmtDay(r.check_in)}${range ? ", " + range : ""}`;
     }
     const n = nightsBetween(r.check_in, r.check_out);
-    return `${fmtDay(r.check_in)} → ${fmtDay(r.check_out)} · ${n} ${n === 1 ? "noche" : "noches"}`;
+    return `${fmtDay(r.check_in)} → ${fmtDay(r.check_out)} · ${n} ${unitWord(r.stay_type, n)}`;
   }
 
   // ---------------------------------------------------------------- WhatsApp al huésped
@@ -122,7 +127,8 @@
     const detail = r.stay_type === "pase"
       ? (en ? `a ${PH}-hour pass on ${fmtDay(r.check_in)}` : `un paso de ${PH} horas el ${fmtDay(r.check_in)}`)
         + (r.pass_start ? `, ${fmtTime(r.pass_start)} – ${fmtTime(r.pass_end)}` : "")
-      : (en ? `from ${fmtDay(r.check_in)} to ${fmtDay(r.check_out)}` : `del ${fmtDay(r.check_in)} al ${fmtDay(r.check_out)}`);
+      : (en ? `from ${fmtDay(r.check_in)} to ${fmtDay(r.check_out)}` : `del ${fmtDay(r.check_in)} al ${fmtDay(r.check_out)}`)
+        + (en ? `, check-out ${fmtTime(stayEnd(r))}` : `, salida ${fmtTime(stayEnd(r))}`);
     const room = en ? tier(r.room_tier).name.en : tier(r.room_tier).name.es;
     if (kind === "confirm") {
       return en
@@ -308,7 +314,7 @@
       ]);
       html += `<div class="modal-actions">
         <button class="btn btn-primary" data-m="checkout">Registrar salida</button>
-        <button class="btn btn-ghost" data-m="extend">${r.stay_type === "pase" ? `Extender ${PH} horas más` : "Extender una noche"}</button>
+        <button class="btn btn-ghost" data-m="extend">${r.stay_type === "pase" ? `Extender ${PH} horas más` : r.stay_type === "dia" ? "Extender un día" : "Extender una noche"}</button>
         ${waPhone(r.guest_phone) ? `<a class="btn btn-ghost" href="https://wa.me/${waPhone(r.guest_phone)}" target="_blank" rel="noopener"><svg><use href="#i-whatsapp"/></svg>WhatsApp</a>` : ""}
       </div>`;
     } else if (room.state === "limpieza") {
@@ -367,7 +373,8 @@
       <form id="f">
         <div class="seg" role="group" aria-label="Tipo">
           <button type="button" data-type="pase" aria-pressed="true">Paso ${PH} h</button>
-          <button type="button" data-type="noche" aria-pressed="false">Por noche</button>
+          <button type="button" data-type="noche" aria-pressed="false">Noche</button>
+          ${t.dayPrice != null ? `<button type="button" data-type="dia" aria-pressed="false">Noche y día</button>` : ""}
         </div>
         <div class="field-row">
           <label class="field"><span id="qty-label">Pasos</span><input name="qty" type="number" min="1" max="30" value="1" inputmode="numeric" /></label>
@@ -383,10 +390,10 @@
     let type = "pase";
     const calc = () => {
       const q = Math.max(1, Number(f.qty.value) || 1);
-      const unit = type === "pase" ? t.passPrice : t.price;
+      const unit = unitPrice(t, type);
       const total = unit * q;
-      $("#qty-label", body).textContent = type === "pase" ? `Pasos (${PH} h c/u)` : "Noches";
-      $("#calc", body).textContent = `${money(unit)} × ${q} ${type === "pase" ? (q === 1 ? "paso" : "pasos") : (q === 1 ? "noche" : "noches")}`;
+      $("#qty-label", body).textContent = type === "pase" ? `Pasos (${PH} h c/u)` : type === "dia" ? "Noches y días" : "Noches";
+      $("#calc", body).textContent = `${money(unit)} × ${q} ${unitWord(type, q)}`;
       $("#total", body).textContent = money(total);
       f.paid.value = total;
       return { q, total };
@@ -409,7 +416,7 @@
       const row = {
         code: newCode(), source: "llegada", stay_type: type, room_tier: room.tier, room_number: room.number,
         guest_name: name, guest_phone: f.phone.value.trim() || null, adults: Number(f.adults.value), kids: 0,
-        check_in: todayIso(), check_out: type === "noche" ? addDaysIso(todayIso(), q) : null,
+        check_in: todayIso(), check_out: type !== "pase" ? addDaysIso(todayIso(), q) : null,
         pass_start: type === "pase" ? now.toISOString() : null,
         pass_end: type === "pase" ? new Date(now.getTime() + q * PH * 3600000).toISOString() : null,
         total, status: "en_curso", checked_in_at: now.toISOString(), checked_in_by: me.id, lang: "es",
@@ -417,7 +424,7 @@
       act(async () => {
         const r = await db.addReservation(row);
         if (paid > 0) await db.addPayment(r.id, paid);
-        await db.log(`Registró entrada en la ${room.number} (${type === "pase" ? `paso ${q * PH} h` : `${q} ${q === 1 ? "noche" : "noches"}`}${name !== "Cliente" ? `, ${name}` : ""}) · cobró ${money(paid)}`);
+        await db.log(`Registró entrada en la ${room.number} (${type === "pase" ? `paso ${q * PH} h` : `${q} ${unitWord(type, q)}`}${name !== "Cliente" ? `, ${name}` : ""}) · cobró ${money(paid)}`);
       }, `Entrada registrada en la ${room.number}`).then((ok) => ok && closeModal());
     });
   }
@@ -482,7 +489,7 @@
   function extendModal(r) {
     const t = tier(r.room_tier);
     const pass = r.stay_type === "pase";
-    const add = pass ? t.passPrice : t.price;
+    const add = unitPrice(t, r.stay_type);
     const body = openModal(`Extender · Habitación ${r.room_number}`, `
       ${factsHtml([["Ahora", esc(pass ? `Hasta ${fmtWhen(stayEnd(r))}` : `Sale ${fmtDay(r.check_out)}`)], ["Nuevo", esc(pass ? `Hasta ${fmtWhen(new Date(stayEnd(r).getTime() + PH * 3600000))}` : `Sale ${fmtDay(addDaysIso(r.check_out, 1))}`)], ["Costo", money(add)]])}
       <form id="f">
@@ -536,7 +543,7 @@
   const sourceLabel = { web: "Sitio web", telefono: "Teléfono", llegada: "En persona" };
 
   function resCard(r) {
-    const load = r.stay_type === "noche" && r.status === "pendiente" ? tierLoad(r.room_tier, r.check_in, r.check_out, r.id) : null;
+    const load = r.stay_type !== "pase" && r.status === "pendiente" ? tierLoad(r.room_tier, r.check_in, r.check_out, r.id) : null;
     const wa = waPhone(r.guest_phone);
     const canArrive = r.status === "confirmada" && r.check_in <= todayIso();
     let actions = "";
@@ -558,7 +565,7 @@
         <div><h3>${esc(r.guest_name)}</h3><p class="meta">${esc(r.code)} · ${esc(sourceLabel[r.source] || r.source)}${r.created_by ? ` · ${esc(personName(r.created_by))}` : ""}</p></div>
         <span class="tag ${r.status}">${statusLabel[r.status]}</span>
       </div>
-      <div class="btn-row"><span class="tag ${r.stay_type}">${r.stay_type === "pase" ? `Paso ${PH} h` : "Noche"}</span><span class="tag">${esc(tierName(r.room_tier))}${r.room_number ? ` · ${esc(r.room_number)}` : ""}</span>${r.source === "web" ? `<span class="tag web">Web</span>` : ""}</div>
+      <div class="btn-row"><span class="tag ${r.stay_type === "pase" ? "pase" : "noche"}">${typeLabel(r.stay_type)}</span><span class="tag">${esc(tierName(r.room_tier))}${r.room_number ? ` · ${esc(r.room_number)}` : ""}</span>${r.source === "web" ? `<span class="tag web">Web</span>` : ""}</div>
       <dl class="facts">
         <dt>Fechas</dt><dd>${esc(stayText(r))}</dd>
         <dt>Personas</dt><dd>${r.adults} ${r.adults === 1 ? "adulto" : "adultos"}${r.kids ? `, ${r.kids} ${r.kids === 1 ? "niño" : "niños"}` : ""}</dd>
@@ -574,7 +581,7 @@
   }
 
   function confirmModal(r) {
-    const load = r.stay_type === "noche" ? tierLoad(r.room_tier, r.check_in, r.check_out, r.id) : null;
+    const load = r.stay_type !== "pase" ? tierLoad(r.room_tier, r.check_in, r.check_out, r.id) : null;
     const rooms = data.rooms.filter((x) => x.tier === r.room_tier && x.state !== "fuera");
     const body = openModal(`Confirmar · ${r.guest_name}`, `
       ${factsHtml([["Reserva", `${esc(r.code)} · ${esc(tierName(r.room_tier))}`], ["Detalle", esc(stayText(r))], ["Total", money(r.total)], r.guest_phone && ["Teléfono", esc(r.guest_phone)]])}
@@ -611,13 +618,14 @@
     const body = openModal("Nueva reserva (por teléfono)", `
       <form id="f">
         <div class="seg" role="group" aria-label="Tipo">
-          <button type="button" data-type="noche" aria-pressed="true">Por noche</button>
+          <button type="button" data-type="noche" aria-pressed="true">Noche</button>
+          <button type="button" data-type="dia" aria-pressed="false">Noche y día</button>
           <button type="button" data-type="pase" aria-pressed="false">Paso ${PH} h</button>
         </div>
         <label class="field"><span>Tipo de habitación</span><select name="tier">${H.rooms.map((t) => `<option value="${t.id}">${esc(tierName(t.id))} (${t.numbers.length})</option>`).join("")}</select></label>
         <div class="field-row">
           <label class="field"><span>Fecha</span><input name="date" type="date" min="${todayIso()}" value="${todayIso()}" required /></label>
-          <label class="field" data-for="noche"><span>Noches</span><input name="nights" type="number" min="1" max="30" value="1" inputmode="numeric" /></label>
+          <label class="field" data-for="noche dia"><span>Noches</span><input name="nights" type="number" min="1" max="30" value="1" inputmode="numeric" /></label>
           <label class="field" data-for="pase" hidden><span>Hora</span><select name="hour">${passSlots.map((h) => `<option value="${h}">${fmtHour(h)}</option>`).join("")}</select></label>
         </div>
         <label class="field"><span>Nombre</span><input name="name" required autocomplete="off" /></label>
@@ -636,13 +644,13 @@
     const calc = () => {
       const t = tier(f.tier.value);
       const n = Math.max(1, Number(f.nights.value) || 1);
-      const unit = type === "pase" ? t.passPrice : t.price;
+      const unit = unitPrice(t, type);
       const total = type === "pase" ? unit : unit * n;
-      $$("[data-for]", body).forEach((el) => { el.hidden = el.dataset.for !== type; });
-      $("#calc", body).textContent = type === "pase" ? `Paso de ${PH} horas` : `${money(unit)} × ${n} ${n === 1 ? "noche" : "noches"}`;
+      $$("[data-for]", body).forEach((el) => { el.hidden = !el.dataset.for.split(" ").includes(type); });
+      $("#calc", body).textContent = type === "pase" ? `Paso de ${PH} horas` : `${money(unit)} × ${n} ${unitWord(type, n)}`;
       $("#total", body).textContent = unit == null ? "No disponible" : money(total);
       const el = $("#load", body);
-      if (type === "noche" && f.date.value) {
+      if (type !== "pase" && f.date.value) {
         const load = tierLoad(t.id, f.date.value, addDaysIso(f.date.value, n));
         el.className = `small ${load.taken >= load.total ? "warn-text" : "muted"}`;
         el.textContent = `${load.taken} de ${load.total} ${tierName(t.id).toLowerCase()} ya reservadas esas noches.`;
@@ -661,19 +669,19 @@
       const { t, n, total, unit } = calc();
       const name = f.name.value.trim();
       if (!name) { $("#err", body).textContent = "Escriba el nombre."; return; }
-      if (unit == null) { $("#err", body).textContent = "Esa habitación no se ofrece por horas."; return; }
+      if (unit == null) { $("#err", body).textContent = `Esa habitación no ofrece "${typeLabel(type)}".`; return; }
       const start = type === "pase" ? parseDay(f.date.value) : null;
       if (start) start.setHours(Number(f.hour.value), 0, 0, 0);
       const row = {
         code: newCode(), source: "telefono", stay_type: type, room_tier: t.id, room_number: null,
         guest_name: name, guest_phone: f.phone.value.trim() || null, adults: Math.max(1, Number(f.adults.value) || 1), kids: 0,
-        check_in: f.date.value, check_out: type === "noche" ? addDaysIso(f.date.value, n) : null,
+        check_in: f.date.value, check_out: type !== "pase" ? addDaysIso(f.date.value, n) : null,
         pass_start: start ? start.toISOString() : null, pass_end: start ? new Date(start.getTime() + PH * 3600000).toISOString() : null,
         notes: f.notes.value.trim() || null, total, status: "confirmada", lang: "es",
       };
       act(async () => {
         await db.addReservation(row);
-        await db.log(`Creó la reserva ${row.code} de ${name} (${type === "pase" ? "paso" : `${n} ${n === 1 ? "noche" : "noches"}`})`);
+        await db.log(`Creó la reserva ${row.code} de ${name} (${type === "pase" ? "paso" : `${n} ${unitWord(type, n)}`})`);
       }, "Reserva guardada").then((ok) => { if (ok) { resFilter = "confirmada"; closeModal(); render(); } });
     });
   }

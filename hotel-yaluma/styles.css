@@ -134,13 +134,13 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .qb-go { min-height: 64px; border-radius: 16px; padding: 0 28px; }
 
 /* Tipo de estadía: por noche o pase por horas */
-.stay-toggle { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; background: var(--sand); border-radius: 16px; padding: 4px; margin-bottom: 16px; }
-.stay-toggle button { border: 0; background: transparent; border-radius: 12px; padding: 10px 12px; font-weight: 600; color: var(--muted); transition: background-color .15s, color .15s, box-shadow .15s; }
+.stay-toggle { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 4px; background: var(--sand); border-radius: 16px; padding: 4px; margin-bottom: 16px; }
+.stay-toggle button { border: 0; background: transparent; border-radius: 12px; padding: 10px 6px; font-weight: 600; color: var(--muted); transition: background-color .15s, color .15s, box-shadow .15s; }
 .stay-toggle button strong { display: block; font-size: 1rem; }
 .stay-toggle button small { display: block; font-weight: 400; font-size: .8rem; }
 .stay-toggle button[aria-checked="true"] { background: #fff; color: var(--ink); box-shadow: 0 1px 3px rgba(31, 28, 36, .14); }
 .qb-tabs { grid-column: 1 / -1; justify-self: start; margin: 0; padding: 3px; border-radius: 14px; }
-.qb-tabs button { padding: 7px 16px; font-size: .9rem; }
+.qb-tabs button { padding: 7px 14px; font-size: .9rem; white-space: nowrap; }
 .qb-tabs button[aria-checked="true"] { background: var(--night); color: #fff; box-shadow: none; }
 
 .slots-wrap { margin-top: 16px; }
@@ -348,6 +348,8 @@ button { font: inherit; color: inherit; cursor: pointer; }
   .quickbook { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .qb-field:nth-child(4) { grid-column: span 2; }
   .qb-go { grid-column: span 2; min-height: 56px; }
+  .qb-tabs { justify-self: stretch; }
+  .qb-tabs button { padding: 7px 6px; font-size: .85rem; }
   .cashband { padding-top: 60px; }
   .location { grid-template-columns: 1fr; }
 }

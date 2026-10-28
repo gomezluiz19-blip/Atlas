@@ -23,6 +23,9 @@ window.HOTEL = {
   checkIn: "3:00 PM", // EDITAR
   checkOut: "12:00 PM", // EDITAR
   checkOutHour: 12, // la misma hora de salida, en formato de 24 horas (para el panel)
+  // "Noche y día": salida al día siguiente a esta hora.
+  dayCheckOut: "3:00 PM",
+  dayCheckOutHour: 15,
   currency: "RD$",
   acceptsCards: false, // EDITAR: true si también aceptan tarjeta en recepción.
 
@@ -35,7 +38,8 @@ window.HOTEL = {
 
   // Tipos de habitación, de menor a mayor precio.
   // price = precio por noche y passPrice = precio del paso de 4 horas, en pesos dominicanos (RD$).
-  // passPrice: null = esa habitación se cobra solo por noche.
+  // dayPrice = precio de "Noche y día" (salida a las 3:00 PM del día siguiente).
+  // passPrice o dayPrice en null = esa habitación no ofrece esa opción.
   // numbers = números de las habitaciones de ese tipo (se usan en el panel del personal).
   rooms: [
     {
@@ -43,6 +47,7 @@ window.HOTEL = {
       short: "REG",
       price: 1000, // "Amanecida" en la lista de precios
       passPrice: 500, // "Pasos (máximo 4 horas)"
+      dayPrice: null,
       maxGuests: 2, // EDITAR
       floor: 2,
       numbers: ["8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19"],
@@ -60,6 +65,7 @@ window.HOTEL = {
       short: "PREM 1Q",
       price: 1200, // "Amanecida" en la lista de precios
       passPrice: 700, // "Pasos (máximo 4 horas)"
+      dayPrice: 1600, // "Noche y Día" en la lista de precios
       maxGuests: 2,
       floor: 1,
       numbers: ["1", "2", "3", "4"],
@@ -77,6 +83,7 @@ window.HOTEL = {
       short: "PREM 2Q",
       price: 2500, // "Amanecida" en la lista de precios
       passPrice: null, // pasos: confirmar si esta habitación los ofrece
+      dayPrice: null,
       maxGuests: 4,
       floor: 1,
       numbers: ["5", "6", "7"],

@@ -2,7 +2,7 @@
 
 Sitio para Hotel Yaluma (provincia Duarte, República Dominicana), en español primero, con un botón para cambiar a inglés.
 
-- **Dos tipos de reserva:** por noche, o paso de 4 horas (descanso sin pasar la noche) eligiendo el día y la hora de entrada.
+- **Tres tipos de reserva:** por noche (salida 12:00 PM), noche y día (salida 3:00 PM del día siguiente), o paso de 4 horas eligiendo el día y la hora de entrada.
 - **Reservas sin servidor:** el huésped elige fechas, personas y habitación, escribe sus datos y ve el total. Al confirmar, se abre WhatsApp con la solicitud ya escrita (en español) para el número del hotel. El hotel confirma respondiendo por WhatsApp.
 - **Pago en efectivo al llegar:** no se cobra nada en línea.
 - **Panel del personal** en `/admin/`: tablero de las 19 habitaciones por colores (abajo: 1–4 Premium con 1 cama queen y 5–7 Premium con 2 camas queen; arriba: 8–19 Regular), reservas, turnos, efectivo cobrado por turno y cuentas para el personal.
@@ -53,6 +53,7 @@ Todo está en **`config.js`**. Las líneas marcadas con `EDITAR` son valores de 
 
 - precios por noche de cada habitación (`price`)
 - precio del paso de 4 horas de cada habitación (`passPrice`; ponga `null` si esa habitación no se ofrece por horas)
+- precio de "Noche y día" (`dayPrice`; salida a la hora de `dayCheckOut`, 3:00 PM del día siguiente; `null` si esa habitación no lo ofrece)
 - horario de los pasos (`pass.firstStart` y `pass.lastStart`: primera y última hora de entrada, en formato de 24 horas)
 - tipos de habitación y sus números (`numbers`). Si cambia los números, cámbielos también en `supabase/schema.sql`
 - horario de entrada y salida

@@ -25,13 +25,16 @@
       "quick.label": "Buscar disponibilidad", "quick.checkin": "Llegada", "quick.checkout": "Salida", "quick.guests": "Personas",
       "quick.pick": "Elegir fecha", "quick.go": "Ver disponibilidad",
       "q.date": "Fecha", "q.time": "Hora", "q.pickTime": "Elegir hora", until: "hasta",
-      "stay.label": "Tipo de estadía", "stay.night": "Por noche", "stay.nightSub": "Para pasar la noche",
+      "stay.label": "Tipo de estadía", "stay.night": "Por noche", "stay.nightSub": `Salida ${H.checkOut}`,
+      "stay.day": "Noche y día", "stay.daySub": `Salida ${H.dayCheckOut}`, "stay.passSubShort": "Sin pasar la noche",
+      "stay.nightShort": "Noche", "stay.dayShort": "Noche y día", "stay.passShort": `Paso ${PH} h`,
+      dayUnits: (n) => (n === 1 ? "1 noche y día" : `${n} noches y días`), perDay: "por noche y día",
       "stay.pass": `Paso de ${PH} horas`, "stay.passSub": "Descanso sin pasar la noche",
       "stay.pickTime": "¿A qué hora llega?", passUnit: "1 paso", perPass: "por paso", noPass: "No disponible por horas",
       pickDay: "Elija el día", pickTime: "Ahora elija la hora",
       "sum.type": "Tipo", "sum.date": "Fecha", "sum.time": "Horario",
       "cash.title": "Sin tarjeta, sin pagos por adelantado.", "cash.text": "Usted reserva aquí y paga en efectivo cuando llega al hotel.",
-      "rooms.kicker": "Habitaciones", "rooms.title": "Elija su habitación", "rooms.sub": `Todas con aire acondicionado, WiFi, TV y baño privado. Por noche o con paso de ${PH} horas.`,
+      "rooms.kicker": "Habitaciones", "rooms.title": "Elija su habitación", "rooms.sub": `Todas con aire acondicionado, WiFi, TV y baño privado. Por noche, noche y día, o paso de ${PH} horas.`,
       "rooms.upTo": (n) => `Hasta ${n} personas`, "rooms.night": "/ noche", "rooms.book": "Reservar",
       "gallery.label": "Fotos", "gallery.sign": "Letrero iluminado del Hotel Yaluma", "gallery.room": "Habitación con cama, TV y aire acondicionado", "gallery.front": "Entrada y estacionamiento del hotel",
       "amen.kicker": "Servicios", "amen.title": "Todo lo necesario para descansar",
@@ -83,13 +86,16 @@
       "quick.label": "Check availability", "quick.checkin": "Check-in", "quick.checkout": "Check-out", "quick.guests": "Guests",
       "quick.pick": "Pick a date", "quick.go": "Check availability",
       "q.date": "Date", "q.time": "Time", "q.pickTime": "Pick a time", until: "until",
-      "stay.label": "Type of stay", "stay.night": "Overnight", "stay.nightSub": "Stay the night",
+      "stay.label": "Type of stay", "stay.night": "Overnight", "stay.nightSub": `Check-out ${H.checkOut}`,
+      "stay.day": "Night & day", "stay.daySub": `Check-out ${H.dayCheckOut}`, "stay.passSubShort": "No overnight",
+      "stay.nightShort": "Night", "stay.dayShort": "Night & day", "stay.passShort": `${PH}-h pass`,
+      dayUnits: (n) => (n === 1 ? "1 night & day" : `${n} nights & days`), perDay: "per night & day",
       "stay.pass": `${PH}-hour pass`, "stay.passSub": "Rest without staying the night",
       "stay.pickTime": "What time will you arrive?", passUnit: "1 pass", perPass: "per pass", noPass: "Not available by the hour",
       pickDay: "Choose the day", pickTime: "Now choose the time",
       "sum.type": "Type", "sum.date": "Date", "sum.time": "Time",
       "cash.title": "No card, no prepayment.", "cash.text": "Book here and pay in cash when you arrive at the hotel.",
-      "rooms.kicker": "Rooms", "rooms.title": "Choose your room", "rooms.sub": `All with air conditioning, WiFi, TV and private bathroom. Overnight or with a ${PH}-hour pass.`,
+      "rooms.kicker": "Rooms", "rooms.title": "Choose your room", "rooms.sub": `All with air conditioning, WiFi, TV and private bathroom. Overnight, night & day, or a ${PH}-hour pass.`,
       "rooms.upTo": (n) => `Up to ${n} guests`, "rooms.night": "/ night", "rooms.book": "Book",
       "gallery.label": "Photos", "gallery.sign": "Hotel Yaluma illuminated sign", "gallery.room": "Room with bed, TV and air conditioning", "gallery.front": "Hotel entrance and parking",
       "amen.kicker": "Amenities", "amen.title": "Everything you need to rest",
@@ -187,9 +193,11 @@
   // Horas de entrada que ya pasaron hoy no se pueden elegir.
   const slotOpen = (h) => !passToday() || h > new Date().getHours();
   const units = () => (isPass() ? (state.checkIn && state.passTime != null ? 1 : 0) : nights());
-  const unitPrice = (r) => (isPass() ? r.passPrice : r.price);
-  const unitsLabel = () => (isPass() ? t("passUnit") : t("nights", nights()));
-  const roomFits = (r) => r.maxGuests >= guests() && (!isPass() || r.passPrice != null);
+  const isDay = () => state.stay === "day";
+  const unitPrice = (r) => (isPass() ? r.passPrice : isDay() ? r.dayPrice : r.price);
+  const unitsLabel = () => (isPass() ? t("passUnit") : isDay() ? t("dayUnits", nights()) : t("nights", nights()));
+  const roomFits = (r) => r.maxGuests >= guests() && unitPrice(r) != null;
+  const checkOutTime = () => (isDay() ? H.dayCheckOut : H.checkOut);
   const fmtHour = (h, loc = locale()) => new Date(2000, 0, 1, h % 24).toLocaleTimeString(loc, { hour: "numeric", minute: "2-digit" });
   const passRange = (loc = locale()) => `${fmtHour(state.passTime, loc)} – ${fmtHour(state.passTime + PH, loc)}`;
   const guestLabel = () => t("adults", state.adults) + (state.kids ? `, ${t("kids", state.kids)}` : "");
@@ -235,6 +243,7 @@
           <div class="room-foot">
             <div>
               <p class="price">${money(r.price)} <small>${esc(t("rooms.night"))}</small></p>
+              ${r.dayPrice != null ? `<p class="price-alt">${esc(t("stay.day"))}: <strong>${money(r.dayPrice)}</strong></p>` : ""}
               <p class="price-alt">${r.passPrice != null ? `${esc(t("stay.pass"))}: <strong>${money(r.passPrice)}</strong>` : esc(t("rooms.nightOnly"))}</p>
             </div>
             <button class="btn btn-primary btn-sm" type="button" data-book-room="${esc(r.id)}">${esc(t("rooms.book"))}</button>
@@ -311,10 +320,11 @@
 
   function setStay(stay) {
     if (stay === state.stay) return;
+    // Entre "noche" y "noche y día" se conservan las fechas; el paso usa un solo día.
+    if (stay === "pass" || state.stay === "pass") state.checkOut = null;
     state.stay = stay;
-    state.checkOut = null;
     state.passTime = null;
-    state.editing = stay === "night" && state.checkIn ? "out" : "in";
+    state.editing = stay !== "pass" && state.checkIn && !state.checkOut ? "out" : "in";
     updateQuickbook();
     if (!sheet.hidden && state.step === "dates") { renderDates(); renderFoot(); }
   }
@@ -397,7 +407,7 @@
     $("#ds-out").textContent = pass
       ? (state.passTime != null ? passRange() : "—")
       : (state.checkOut ? fmtShort(state.checkOut) : "—");
-    $("#ds-nights").textContent = pass ? `${PH} h` : (nights() ? t("nights", nights()) : "");
+    $("#ds-nights").textContent = pass ? `${PH} h` : (nights() ? unitsLabel() : "");
     const active = pass ? (state.checkIn ? "out" : "in") : state.editing;
     $$(".ds-box").forEach((b) => b.classList.toggle("active", b.dataset.edge === active));
     $("#slots-wrap").hidden = !pass;
@@ -509,7 +519,7 @@
           ${ok
             ? (isPass()
               ? `<p class="opt-price">${money(r.passPrice)} <small>· ${esc(t("stay.pass"))}</small></p>`
-              : `<p class="opt-price">${money(r.price * n)} <small>· ${money(r.price)} ${esc(t("perNight"))}</small></p>`)
+              : `<p class="opt-price">${money(unitPrice(r) * n)} <small>· ${money(unitPrice(r))} ${esc(t(isDay() ? "perDay" : "perNight"))}</small></p>`)
             : `<p class="warn">${esc(why)}</p>`}
         </div>
       </button>`;
@@ -575,8 +585,9 @@
         [t("sum.phone"), d.phone],
       ]
       : [
+        [t("sum.type"), isDay() ? t("stay.day") : t("stay.night")],
         [t("sum.in"), `${fmtShort(state.checkIn)} · ${H.checkIn}`],
-        [t("sum.out"), `${fmtShort(state.checkOut)} · ${H.checkOut}`],
+        [t("sum.out"), `${fmtShort(state.checkOut)} · ${checkOutTime()}`],
         [t("sum.guests"), guestLabel()],
         [t("sum.name"), d.name],
         [t("sum.phone"), d.phone],
@@ -608,11 +619,11 @@
         `*Horario:* ${passRange("es-DO")}`,
       ]
       : [
-        `*Tipo:* Por noche`,
+        `*Tipo:* ${isDay() ? STRINGS.es["stay.day"] : "Por noche"}`,
         `*Habitación:* ${r.name.es}`,
         `*Llegada:* ${fmtLong(state.checkIn, "es-DO")}`,
-        `*Salida:* ${fmtLong(state.checkOut, "es-DO")}`,
-        `*Noches:* ${n}`,
+        `*Salida:* ${fmtLong(state.checkOut, "es-DO")}, hasta las ${checkOutTime()}`,
+        `*${isDay() ? "Noches y días" : "Noches"}:* ${n}`,
       ];
     const lines = [
       "Hola, quiero reservar en el Hotel Yaluma.",
@@ -641,7 +652,7 @@
     const row = {
       code: state.code,
       source: "web",
-      stay_type: isPass() ? "pase" : "noche",
+      stay_type: isPass() ? "pase" : isDay() ? "dia" : "noche",
       room_tier: r.id,
       guest_name: d.name,
       guest_phone: d.phone,
