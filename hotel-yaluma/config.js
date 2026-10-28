@@ -40,14 +40,14 @@ window.HOTEL = {
   rooms: [
     {
       id: "estandar",
-      short: "EST",
+      short: "REG",
       price: 1000, // "Amanecida" en la lista de precios
       passPrice: 500, // "Pasos (máximo 4 horas)"
       maxGuests: 2, // EDITAR
       floor: 2,
       numbers: ["8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19"],
       image: "img/estandar.svg", // EDITAR: foto real de una habitación estándar
-      name: { es: "Habitación Estándar", en: "Standard Room" },
+      name: { es: "Habitación Regular", en: "Regular Room" },
       bed: { es: "Segundo nivel", en: "Second floor" },
       description: {
         es: "Compacta y acogedora, con todo lo necesario para descansar.",

@@ -5,7 +5,7 @@ Sitio para Hotel Yaluma (provincia Duarte, República Dominicana), en español p
 - **Dos tipos de reserva:** por noche, o paso de 4 horas (descanso sin pasar la noche) eligiendo el día y la hora de entrada.
 - **Reservas sin servidor:** el huésped elige fechas, personas y habitación, escribe sus datos y ve el total. Al confirmar, se abre WhatsApp con la solicitud ya escrita (en español) para el número del hotel. El hotel confirma respondiendo por WhatsApp.
 - **Pago en efectivo al llegar:** no se cobra nada en línea.
-- **Panel del personal** en `/admin/`: tablero de las 19 habitaciones por colores (abajo: 1–4 Premium con 1 cama queen y 5–7 Premium con 2 camas queen; arriba: 8–19 Estándar), reservas, turnos, efectivo cobrado por turno y cuentas para el personal.
+- **Panel del personal** en `/admin/`: tablero de las 19 habitaciones por colores (abajo: 1–4 Premium con 1 cama queen y 5–7 Premium con 2 camas queen; arriba: 8–19 Regular), reservas, turnos, efectivo cobrado por turno y cuentas para el personal.
 - **Sin compilar nada:** HTML, CSS y JavaScript simples.
 
 ## Panel del personal (`/admin/`)
