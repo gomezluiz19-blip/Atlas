@@ -41,8 +41,8 @@ window.HOTEL = {
     {
       id: "estandar",
       short: "EST",
-      price: 400, // EDITAR: precio de la lista
-      passPrice: 200, // EDITAR: precio de la lista
+      price: 1000, // "Amanecida" en la lista de precios
+      passPrice: 500, // "Pasos (máximo 4 horas)"
       maxGuests: 2, // EDITAR
       floor: 2,
       numbers: ["8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19"],
@@ -58,8 +58,8 @@ window.HOTEL = {
     {
       id: "premium",
       short: "PREM 1Q",
-      price: 600, // EDITAR: precio de la lista
-      passPrice: 400, // EDITAR: precio de la lista
+      price: 1200, // "Amanecida" en la lista de precios
+      passPrice: 700, // "Pasos (máximo 4 horas)"
       maxGuests: 2,
       floor: 1,
       numbers: ["1", "2", "3", "4"],
@@ -75,8 +75,8 @@ window.HOTEL = {
     {
       id: "premium2",
       short: "PREM 2Q",
-      price: 600, // EDITAR: precio de la lista
-      passPrice: 400, // EDITAR: precio de la lista
+      price: 2500, // "Amanecida" en la lista de precios
+      passPrice: null, // pasos: confirmar si esta habitación los ofrece
       maxGuests: 4,
       floor: 1,
       numbers: ["5", "6", "7"],
