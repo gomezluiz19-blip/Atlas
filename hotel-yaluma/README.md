@@ -3,9 +3,9 @@
 Sitio para Hotel Yaluma (provincia Duarte, República Dominicana), en español primero, con un botón para cambiar a inglés.
 
 - **Dos tipos de reserva:** por noche, o paso de 4 horas (descanso sin pasar la noche) eligiendo el día y la hora de entrada.
-- **Reservas sin servidor:** el huésped elige fechas, huéspedes y habitación, escribe sus datos y ve el total. Al confirmar, se abre WhatsApp con la solicitud ya escrita (en español) para el número del hotel. El hotel confirma respondiendo por WhatsApp.
+- **Reservas sin servidor:** el huésped elige fechas, personas y habitación, escribe sus datos y ve el total. Al confirmar, se abre WhatsApp con la solicitud ya escrita (en español) para el número del hotel. El hotel confirma respondiendo por WhatsApp.
 - **Pago en efectivo al llegar:** no se cobra nada en línea.
-- **Panel del personal** en `/admin/`: tablero de las 19 habitaciones por colores (abajo: 1–6 Premium y 7 Deluxe; arriba: 8–19 Estándar), reservas, turnos, efectivo cobrado por turno y cuentas para el personal.
+- **Panel del personal** en `/admin/`: tablero de las 19 habitaciones por colores (abajo: 1–4 Premium con 1 cama queen y 5–7 Premium con 2 camas queen; arriba: 8–19 Estándar), reservas, turnos, efectivo cobrado por turno y cuentas para el personal.
 - **Sin compilar nada:** HTML, CSS y JavaScript simples.
 
 ## Panel del personal (`/admin/`)
@@ -23,9 +23,9 @@ Colores del tablero: **verde** libre · **naranja** ocupada por noche · **morad
 
 ### Modo demostración
 
-Mientras `supabase` esté vacío en `config.js`, el panel usa datos de ejemplo guardados solo en ese navegador. Usuarios: `lg` y `fg` (administradores), `luis` y `fanny` (personal). La primera vez que alguien entra con su usuario elige su contraseña; desde ahí se pide siempre. Las contraseñas no están en el código: se guardan cifradas (PBKDF2) solo en ese navegador.
+Mientras `supabase` esté vacío en `config.js`, el panel empieza vacío y guarda los datos solo en ese navegador. Usuarios: `lg` y `fg` (administradores), `luis` y `fanny` (personal). La primera vez que alguien entra con su usuario elige su contraseña; desde ahí se pide siempre. Las contraseñas no están en el código: se guardan cifradas (PBKDF2) solo en ese navegador.
 
-Sirve para probarlo, **no** para usarlo de verdad: cada teléfono tiene sus propios datos, y quien tenga el enlace puede entrar en su propio navegador con cualquiera de esos usuarios (con datos de ejemplo, no los del hotel). La seguridad real llega con Supabase.
+Sirve para probarlo, **no** para usarlo de verdad: cada teléfono tiene sus propios datos, y quien tenga el enlace puede entrar en su propio navegador con cualquiera de esos usuarios (sin ver los datos de nadie más). La seguridad real llega con Supabase.
 
 ### Conectarlo de verdad (Supabase, gratis, unos 15 minutos)
 
@@ -68,7 +68,7 @@ Las fotos de `img/` salieron de capturas de pantalla de Google, así que tienen 
 | `img/fachada.jpg` | portada (computadora), galería |
 | `img/letrero.jpg` | portada (celular), galería |
 | `img/habitacion.jpg` | galería |
-| `img/estandar.svg`, `img/premium.svg`, `img/deluxe.svg` | tarjetas de habitaciones (imágenes provisionales: cambie `image` en `config.js` por la foto real, ej. `img/premium.jpg`) |
+| `img/estandar.svg`, `img/premium.svg` | tarjetas de habitaciones (imágenes provisionales: cambie `image` en `config.js` por la foto real, ej. `img/premium.jpg`) |
 
 
 ## Verlo en la computadora

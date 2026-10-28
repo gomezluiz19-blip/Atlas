@@ -86,7 +86,7 @@ create table if not exists public.activity (
 -- Si cambian los números, cámbielos aquí y en config.js.
 insert into public.rooms (number, tier, floor) values
   ('1', 'premium', 1), ('2', 'premium', 1), ('3', 'premium', 1), ('4', 'premium', 1),
-  ('5', 'premium', 1), ('6', 'premium', 1), ('7', 'deluxe', 1),
+  ('5', 'premium2', 1), ('6', 'premium2', 1), ('7', 'premium2', 1),
   ('8', 'estandar', 2), ('9', 'estandar', 2), ('10', 'estandar', 2), ('11', 'estandar', 2),
   ('12', 'estandar', 2), ('13', 'estandar', 2), ('14', 'estandar', 2), ('15', 'estandar', 2),
   ('16', 'estandar', 2), ('17', 'estandar', 2), ('18', 'estandar', 2), ('19', 'estandar', 2)

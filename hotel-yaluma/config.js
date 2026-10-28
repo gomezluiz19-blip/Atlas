@@ -41,8 +41,8 @@ window.HOTEL = {
     {
       id: "estandar",
       short: "EST",
-      price: 400,
-      passPrice: 200,
+      price: 400, // EDITAR: precio de la lista
+      passPrice: 200, // EDITAR: precio de la lista
       maxGuests: 2, // EDITAR
       floor: 2,
       numbers: ["8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19"],
@@ -57,37 +57,37 @@ window.HOTEL = {
     },
     {
       id: "premium",
-      short: "PREM",
-      price: 600,
-      passPrice: 400,
-      maxGuests: 3, // EDITAR
+      short: "PREM 1Q",
+      price: 600, // EDITAR: precio de la lista
+      passPrice: 400, // EDITAR: precio de la lista
+      maxGuests: 2,
       floor: 1,
-      numbers: ["1", "2", "3", "4", "5", "6"],
-      image: "img/premium.svg", // EDITAR: foto real de una habitación premium
-      name: { es: "Habitación Premium", en: "Premium Room" },
+      numbers: ["1", "2", "3", "4"],
+      image: "img/premium.svg", // EDITAR: foto real
+      name: { es: "Premium · 1 cama queen", en: "Premium · 1 queen bed" },
       bed: { es: "Primer nivel", en: "First floor" },
       description: {
-        es: "Más amplia, con sofá para relajarse. Ideal para estancias más largas.",
-        en: "More spacious, with a sofa to relax. Great for longer stays.",
+        es: "Más amplia, con una cama queen y sofá para relajarse.",
+        en: "More spacious, with one queen bed and a sofa to relax.",
       },
-      features: ["ac", "wifi", "tv", "bath", "sofa"],
+      features: ["queen", "ac", "wifi", "tv", "bath", "sofa"],
     },
     {
-      id: "deluxe",
-      short: "DLX",
-      price: 750,
-      passPrice: null, // solo por noche
-      maxGuests: 3, // EDITAR
+      id: "premium2",
+      short: "PREM 2Q",
+      price: 600, // EDITAR: precio de la lista
+      passPrice: 400, // EDITAR: precio de la lista
+      maxGuests: 4,
       floor: 1,
-      numbers: ["7"],
-      image: "img/deluxe.svg", // EDITAR: foto real de la habitación deluxe
-      name: { es: "Habitación Deluxe", en: "Deluxe Room" },
+      numbers: ["5", "6", "7"],
+      image: "img/premium.svg", // EDITAR: foto real
+      name: { es: "Premium · 2 camas queen", en: "Premium · 2 queen beds" },
       bed: { es: "Primer nivel", en: "First floor" },
       description: {
-        es: "Nuestra mejor habitación, la más amplia y cómoda. Solo por noche.",
-        en: "Our best room, the most spacious and comfortable. Nightly stays only.",
+        es: "Más amplia, con dos camas queen y sofá. Ideal para familias.",
+        en: "More spacious, with two queen beds and a sofa. Great for families.",
       },
-      features: ["ac", "wifi", "tv", "bath", "sofa"],
+      features: ["queen2", "ac", "wifi", "tv", "bath", "sofa"],
     },
   ],
 

@@ -119,55 +119,20 @@ window.YalumaStore = (() => {
     };
     const listeners = [];
     const now = () => new Date().toISOString();
-    const day = (offset = 0) => {
-      const d = new Date(); d.setDate(d.getDate() + offset);
-      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-    };
-    const at = (hoursFromNow) => new Date(Date.now() + hoursFromNow * 3600000).toISOString();
+    // Cambie este número para borrar los datos guardados en los navegadores (se conservan las contraseñas).
+    const DATA_VERSION = 2;
 
+    // Empieza vacío: 19 habitaciones libres, sin reservas, cobros, turnos ni actividad.
     function seed() {
       const P = (id, username, name, role) => ({ id, username, name, role, active: true, created_at: now() });
-      const profiles = [P("u1", "lg", "LG", "admin"), P("u4", "fg", "FG", "admin"), P("u2", "luis", "Luis", "staff"), P("u3", "fanny", "Fanny", "staff")];
-      const rooms = allRooms();
-      const set = (n, st) => { const r = rooms.find((x) => x.number === n); if (r) r.state = st; };
-      set("10", "limpieza");
-      set("18", "fuera");
-      rooms.find((x) => x.number === "18").note = "Aire acondicionado dañado";
-      const price = (tier, type) => { const t = H.rooms.find((x) => x.id === tier); return type === "pase" ? t.passPrice : t.price; };
-      let id = 0;
-      const R = (o) => ({
-        id: ++id, code: "YAL-" + (1000 + id), source: "llegada", adults: 2, kids: 0, guest_email: null, arrival: null,
-        notes: null, lang: "es", created_at: now(), created_by: "u2", room_number: null, check_out: null,
-        pass_start: null, pass_end: null, checked_in_at: null, checked_in_by: null, checked_out_at: null, checked_out_by: null, ...o,
-      });
-      const reservations = [
-        R({ stay_type: "noche", room_tier: "premium", room_number: "1", guest_name: "Carlos Rodríguez", guest_phone: "809-555-0101", check_in: day(-1), check_out: day(1), total: price("premium", "noche") * 2, status: "en_curso", checked_in_at: at(-20), checked_in_by: "u2" }),
-        R({ stay_type: "noche", room_tier: "premium", room_number: "4", guest_name: "Ana Peña", guest_phone: "829-555-0104", check_in: day(0), check_out: day(1), total: price("premium", "noche"), status: "en_curso", checked_in_at: at(-3), checked_in_by: "u2", source: "telefono" }),
-        R({ stay_type: "noche", room_tier: "estandar", room_number: "9", guest_name: "José Martínez", guest_phone: "849-555-0202", check_in: day(-2), check_out: day(0), total: price("estandar", "noche") * 2, status: "en_curso", checked_in_at: at(-44), checked_in_by: "u3" }),
-        R({ stay_type: "pase", room_tier: "estandar", room_number: "12", guest_name: "Cliente", guest_phone: null, check_in: day(0), pass_start: at(-1.5), pass_end: at(2.5), total: price("estandar", "pase"), status: "en_curso", checked_in_at: at(-1.5), checked_in_by: "u2" }),
-        R({ stay_type: "pase", room_tier: "estandar", room_number: "15", guest_name: "Cliente", guest_phone: null, check_in: day(0), pass_start: at(-4.3), pass_end: at(-0.3), total: price("estandar", "pase"), status: "en_curso", checked_in_at: at(-4.3), checked_in_by: "u2" }),
-        R({ stay_type: "noche", room_tier: "premium", room_number: "6", guest_name: "Familia Almonte", guest_phone: "809-555-0106", adults: 2, kids: 1, check_in: day(0), check_out: day(2), total: price("premium", "noche") * 2, status: "confirmada", source: "telefono", arrival: "6:00 p. m." }),
-        R({ stay_type: "noche", room_tier: "estandar", guest_name: "María Gómez", guest_phone: "809-555-1234", check_in: day(0), check_out: day(1), total: price("estandar", "noche"), status: "confirmada", source: "web", created_by: null, arrival: "Todavía no sé" }),
-        R({ stay_type: "noche", room_tier: "premium", guest_name: "Pedro Santos", guest_phone: "829-555-7788", guest_email: "pedro@ejemplo.com", check_in: day(3), check_out: day(5), total: price("premium", "noche") * 2, status: "pendiente", source: "web", created_by: null, arrival: "8:00 p. m.", notes: "Llegamos desde Santiago" }),
-        R({ stay_type: "pase", room_tier: "estandar", guest_name: "Rafael", guest_phone: "809-555-3344", check_in: day(1), pass_start: new Date(new Date().setHours(44, 0, 0, 0)).toISOString(), pass_end: new Date(new Date().setHours(48, 0, 0, 0)).toISOString(), total: price("estandar", "pase"), status: "pendiente", source: "web", created_by: null }),
-      ];
-      let pid = 0;
-      const payments = reservations.filter((r) => r.status === "en_curso")
-        .map((r) => ({ id: ++pid, reservation_id: r.id, amount: r.id === 1 ? price("premium", "noche") : r.total, at: r.checked_in_at, user_id: r.checked_in_by }));
-      const shifts = [
-        { id: 1, user_id: "u2", started_at: new Date(Math.min(Date.now() - 36e5, new Date().setHours(7, 0, 0, 0))).toISOString(), ended_at: null },
-        { id: 2, user_id: "u3", started_at: at(-30), ended_at: at(-22) },
-        { id: 3, user_id: "u2", started_at: at(-54), ended_at: at(-46) },
-      ];
-      const activity = [
-        { id: 1, at: at(-1.5), user_id: "u2", text: "Registró entrada en la 12 (paso)" },
-        { id: 2, at: at(-3), user_id: "u2", text: "Registró entrada en la 4 (Ana Peña)" },
-        { id: 3, at: at(-5), user_id: "u2", text: "Inició su turno" },
-      ];
       return {
+        version: DATA_VERSION,
+        profiles: [P("u1", "lg", "LG", "admin"), P("u4", "fg", "FG", "admin"), P("u2", "luis", "Luis", "staff"), P("u3", "fanny", "Fanny", "staff")],
         // Sin contraseñas: cada persona elige la suya la primera vez que entra (ver setFirstPassword).
-        profiles, passwords: {}, rooms, reservations, payments, shifts, activity,
-        seq: { profile: 4, reservation: id, payment: pid, shift: 3, activity: 3 },
+        passwords: {},
+        rooms: allRooms(),
+        reservations: [], payments: [], shifts: [], activity: [],
+        seq: { profile: 4, reservation: 0, payment: 0, shift: 0, activity: 0 },
       };
     }
 
@@ -175,7 +140,14 @@ window.YalumaStore = (() => {
     // Datos nuevos si no hay, o si cambiaron los números de habitación (se conservan las contraseñas).
     const sameRooms = db && db.rooms && db.rooms.length === allRooms().length
       && allRooms().every((r) => db.rooms.some((x) => x.number === r.number));
-    if (!sameRooms) { const keep = (db && db.passwords) || {}; db = seed(); db.passwords = keep; write(db); }
+    if (!sameRooms || db.version !== DATA_VERSION) {
+      const keep = (db && db.passwords) || {};
+      const people = db && db.profiles; // cuentas creadas en el panel
+      db = seed();
+      db.passwords = keep;
+      if (people) { db.profiles = people; db.seq.profile = Math.max(4, ...people.map((p) => Number(String(p.id).slice(1)) || 0)); }
+      write(db);
+    }
     // Si cambian los tipos de habitación en config.js, actualizarlos sin borrar los datos (ni las contraseñas).
     allRooms().forEach((r) => {
       const cur = db.rooms.find((x) => x.number === r.number);
@@ -283,7 +255,7 @@ window.YalumaStore = (() => {
       async log(text) { load(); db.activity.push({ id: ++db.seq.activity, at: now(), user_id: me().id, text }); save(); },
 
       onChange(cb) { listeners.push(cb); },
-      reset() { db = seed(); save(); },
+      reset() { const keep = db.passwords, people = db.profiles; db = seed(); db.passwords = keep; db.profiles = people; save(); },
     };
   }
 

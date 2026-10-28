@@ -47,7 +47,7 @@
 
   // ---------------------------------------------------------------- datos derivados
   const tier = (id) => H.rooms.find((t) => t.id === id) || H.rooms[0];
-  const tierName = (id) => tier(id).name.es.replace("Habitación ", "");
+  const tierName = (id) => tier(id).name.es.replace(/^Habitación /, "");
   const person = (id) => data.profiles.find((p) => p.id === id);
   const personName = (id) => (person(id) ? person(id).name : "—");
   const initials = (name) => (name || "?").trim().split(/\s+/).map((w) => w[0]).slice(0, 2).join("").toUpperCase();
@@ -274,7 +274,7 @@
         const list = views.filter((x) => tiers.some((t) => t.id === x.room.tier));
         return `<section class="floor">
           <div class="floor-head"><h2>${f === 1 ? "Primer nivel" : f === 2 ? "Segundo nivel" : `Nivel ${f}`}</h2>
-          <span class="muted small">${tiers.map((t) => esc(tierName(t.id))).join(", ")} · ${list.filter((x) => x.v.cls === "free").length} de ${list.length} libres</span></div>
+          <span class="muted small">${[...new Set(tiers.map((t) => tierName(t.id).split(" · ")[0]))].map(esc).join(", ")} · ${list.filter((x) => x.v.cls === "free").length} de ${list.length} libres</span></div>
           <div class="board">${list.map(({ room, v }) => `
             <button type="button" class="room s-${v.cls}${v.late ? " late" : ""}" data-room="${esc(room.number)}" aria-label="Habitación ${esc(room.number)}: ${esc(v.label)}">
               <span class="tier">${esc(tier(room.tier).short || "")}</span>
@@ -880,7 +880,7 @@
     $("#logout").addEventListener("click", () => logout());
     $("#shift-pill").addEventListener("click", toggleShift);
     $("#demo-reset").addEventListener("click", () => {
-      ask("Reiniciar datos", "Se borran los cambios y las contraseñas de este teléfono, y vuelven los datos de ejemplo.", "Reiniciar", () => { db.reset(); refresh(); }, true);
+      ask("Reiniciar datos", "Se borran las reservas, cobros, turnos y actividad guardados en este teléfono. Las cuentas y contraseñas se conservan.", "Reiniciar", () => { db.reset(); refresh(); }, true);
     });
 
     $$(".tabs button").forEach((b) => b.addEventListener("click", () => { view = b.dataset.view; render(); window.scrollTo(0, 0); }));
