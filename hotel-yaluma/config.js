@@ -82,7 +82,7 @@ window.HOTEL = {
       id: "premium2",
       short: "PREM 2Q",
       price: 2500, // "Amanecida" en la lista de precios
-      passPrice: null, // pasos: confirmar si esta habitación los ofrece
+      passPrice: null, // la Doble no ofrece pasos
       dayPrice: 3000, // "Noche y día"
       maxGuests: 4,
       floor: 1,
