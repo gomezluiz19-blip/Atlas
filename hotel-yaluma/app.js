@@ -71,6 +71,11 @@
       "rev.note": "Al tocar el botón se abre WhatsApp con su solicitud lista para enviar. Su reserva queda confirmada cuando le respondamos.",
       "sent.title": "¡Solicitud lista!", "sent.text": "Si WhatsApp no se abrió, llámenos o escríbanos con su código de reserva:",
       "sent.again": "Abrir WhatsApp otra vez", "sent.call": "Llamar",
+      "next.send": "Enviar solicitud", sending: "Enviando…",
+      "rev.noteSend": "Al enviar, el hotel recibe su solicitud al instante y le confirma por WhatsApp. No se cobra nada ahora.",
+      "sent.titleSend": "¡Solicitud enviada!", "sent.textSend": "Le escribiremos por WhatsApp para confirmar. Su código de reserva es:",
+      "sent.chat": "Escribir al hotel por WhatsApp",
+      sendFailed: "No se pudo enviar la solicitud. Revise su conexión e intente de nuevo, o envíela por WhatsApp.",
       waHello: "Hola, me gustaría información sobre el Hotel Yaluma.",
       langBtn: "EN", langLabel: "Change language to English", staff: "Acceso del personal",
     },
@@ -132,6 +137,11 @@
       "rev.note": "Tapping the button opens WhatsApp with your request ready to send. Your booking is confirmed once we reply.",
       "sent.title": "Request ready!", "sent.text": "If WhatsApp didn't open, call or message us with your booking code:",
       "sent.again": "Open WhatsApp again", "sent.call": "Call",
+      "next.send": "Send request", sending: "Sending…",
+      "rev.noteSend": "When you send it, the hotel gets your request right away and confirms by WhatsApp. Nothing is charged now.",
+      "sent.titleSend": "Request sent!", "sent.textSend": "We'll message you on WhatsApp to confirm. Your booking code is:",
+      "sent.chat": "Message the hotel on WhatsApp",
+      sendFailed: "The request couldn't be sent. Check your connection and try again, or send it by WhatsApp.",
       waHello: "Hi, I'd like information about Hotel Yaluma.",
       langBtn: "ES", langLabel: "Cambiar idioma a español", staff: "Staff login",
     },
@@ -194,6 +204,8 @@
   const slotOpen = (h) => !passToday() || h > new Date().getHours();
   const units = () => (isPass() ? (state.checkIn && state.passTime != null ? 1 : 0) : nights());
   const isDay = () => state.stay === "day";
+  // Con base de datos, la solicitud se envía sola (y avisa al dueño); sin ella, el huésped la manda por WhatsApp.
+  const systemSend = () => !!(window.YalumaStore && YalumaStore.configured);
   const unitPrice = (r) => (isPass() ? r.passPrice : isDay() ? r.dayPrice : r.price);
   const unitsLabel = () => (isPass() ? t("passUnit") : isDay() ? t("dayUnits", nights()) : t("nights", nights()));
   const roomFits = (r) => r.maxGuests >= guests() && unitPrice(r) != null;
@@ -331,6 +343,7 @@
 
   function resetBooking() {
     state.checkIn = state.checkOut = state.roomId = state.code = state.passTime = null;
+    state.sentBySystem = state.sendFailed = false;
     state.month = today();
     state.month.setDate(1);
     state.editing = "in";
@@ -355,10 +368,14 @@
     const noBack = i === 0 || state.step === "sent";
     back.setAttribute("aria-hidden", String(noBack));
     back.tabIndex = noBack ? -1 : 0;
-    // En el resumen el botón es un enlace real a WhatsApp: abre en otra pestaña en cualquier navegador.
+    // En el resumen: "Enviar solicitud" si hay base de datos; si no, un enlace real a WhatsApp.
     const nextBtn = $("#sheet-next");
-    nextBtn.hidden = state.step === "review";
-    $("#sheet-wa").hidden = state.step !== "review";
+    const review = state.step === "review";
+    nextBtn.hidden = review;
+    $("#sheet-send").hidden = !(review && systemSend() && !state.sendFailed);
+    $("#sheet-wa").hidden = !(review && (!systemSend() || state.sendFailed));
+    $("#sheet-send").disabled = false;
+    $("#sheet-send").textContent = t("next.send");
     nextBtn.textContent = t("next." + state.step);
     $("#sheet-foot").classList.toggle("full", state.step === "review" || state.step === "sent");
 
@@ -603,6 +620,9 @@
       <ul class="sum-rows">${rows.map(([k, v]) => `<li><span>${esc(k)}</span><span>${esc(v)}</span></li>`).join("")}</ul>
       <div class="sum-total"><div>${esc(t("total"))}<small>${esc(t("payAtHotel"))}</small></div><strong>${money(unitPrice(r) * n)}</strong></div>`;
     $("#sheet-wa").href = waLink(whatsappMessage());
+    const note = $("#rev-note");
+    note.textContent = state.sendFailed ? t("sendFailed") : t(systemSend() ? "rev.noteSend" : "rev.note");
+    note.classList.toggle("send-error", !!state.sendFailed);
   }
 
   // El mensaje al hotel siempre va en español, lo lea quien lo lea.
@@ -643,9 +663,9 @@
     return lines.join("\n");
   }
 
-  // Guarda la solicitud para el panel del personal. Si falla, el WhatsApp ya salió.
+  // Guarda la solicitud para el panel del personal (y la base de datos le avisa al dueño por WhatsApp).
   function saveReservation() {
-    if (!window.YalumaStore) return;
+    if (!window.YalumaStore) return Promise.resolve();
     const r = roomById(state.roomId);
     const d = state.details;
     const passStart = isPass() ? new Date(state.checkIn.getFullYear(), state.checkIn.getMonth(), state.checkIn.getDate(), state.passTime) : null;
@@ -668,10 +688,32 @@
       total: unitPrice(r) * units(),
       lang,
     };
-    YalumaStore.get().then((db) => db.submitWebReservation(row)).catch((e) => console.warn("No se guardó la reserva:", e));
+    return YalumaStore.get().then((db) => db.submitWebReservation(row));
+  }
+
+  async function sendRequest() {
+    const btn = $("#sheet-send");
+    btn.disabled = true;
+    btn.textContent = t("sending");
+    try {
+      await saveReservation();
+      state.sentBySystem = true;
+      go("sent");
+    } catch (e) {
+      console.warn("No se envió la solicitud:", e);
+      state.sendFailed = true; // muestra el botón de WhatsApp como respaldo
+      renderStep();
+    }
   }
 
   function renderSent() {
+    const sys = !!state.sentBySystem;
+    $("#sent-title").textContent = t(sys ? "sent.titleSend" : "sent.title");
+    $("#sent-text").textContent = t(sys ? "sent.textSend" : "sent.text");
+    $("#sent-wa-label").textContent = t(sys ? "sent.chat" : "sent.again");
+    // Si ya se envió sola, WhatsApp es opcional: botón discreto.
+    $("#sent-wa").classList.toggle("btn-wa", !sys);
+    $("#sent-wa").classList.toggle("btn-ghost", sys);
     $("#sent-code").textContent = state.code;
     $("#sent-wa").href = waLink(whatsappMessage());
   }
@@ -682,7 +724,7 @@
       case "dates": go("room"); break;
       case "room": go("details"); break;
       case "details": if (validateDetails()) go("review"); break;
-      case "review": break; // lo maneja el enlace #sheet-wa
+      case "review": break; // lo manejan #sheet-send o el enlace #sheet-wa
       case "sent": closeSheet(); break;
     }
   }
@@ -728,8 +770,9 @@
     });
 
     $("#sheet-next").addEventListener("click", next);
+    $("#sheet-send").addEventListener("click", sendRequest);
     $("#sheet-wa").addEventListener("click", () => {
-      saveReservation();
+      saveReservation().catch((e) => console.warn("No se guardó la reserva:", e));
       setTimeout(() => go("sent"), 0);
     });
     $("#sheet-back").addEventListener("click", back);

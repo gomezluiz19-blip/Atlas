@@ -3,7 +3,9 @@
 Sitio para Hotel Yaluma (provincia Duarte, República Dominicana), en español primero, con un botón para cambiar a inglés.
 
 - **Tres tipos de reserva:** por noche (salida 12:00 PM), noche y día (salida 3:00 PM del día siguiente), o paso de 4 horas eligiendo el día y la hora de entrada.
-- **Reservas sin servidor:** el huésped elige fechas, personas y habitación, escribe sus datos y ve el total. Al confirmar, se abre WhatsApp con la solicitud ya escrita (en español) para el número del hotel. El hotel confirma respondiendo por WhatsApp.
+- **Reservas:** el huésped elige fechas, personas y habitación, escribe sus datos y ve el total.
+  - **Con Supabase conectado:** toca "Enviar solicitud" y listo. La solicitud llega al panel y el dueño recibe un aviso por WhatsApp al instante (ver "Avisos por WhatsApp").
+  - **Sin Supabase:** se abre WhatsApp con la solicitud ya escrita para el número del hotel.
 - **Pago en efectivo al llegar:** no se cobra nada en línea.
 - **Panel del personal** en `/admin/`: tablero de las 19 habitaciones por colores (abajo: 1–4 Premium con 1 cama queen y 5–7 Premium con 2 camas queen; arriba: 8–19 Regular), reservas, turnos, efectivo cobrado por turno y cuentas para el personal.
 - **Sin compilar nada:** HTML, CSS y JavaScript simples.
@@ -48,6 +50,21 @@ Si alguien olvida su contraseña (los correos del personal no existen, así que 
 update auth.users set encrypted_password = extensions.crypt('NuevaClave123', extensions.gen_salt('bf'))
 where email = 'luis@personal.hotelyaluma.com';
 ```
+
+### Avisos por WhatsApp al dueño (gratis, unos 5 minutos)
+
+Cuando llega una solicitud del sitio web, la base de datos le manda un WhatsApp al dueño con la habitación, las fechas, el total y el teléfono del huésped. Usa [CallMeBot](https://www.callmebot.com/blog/free-api-whatsapp-messages/), un servicio gratis para avisos a su propio número.
+
+1. **Consiga su clave** (desde el teléfono +1 347 915 9888): abra la página de CallMeBot de arriba, guarde en sus contactos el número que aparece allí y mándele por WhatsApp el mensaje `I allow callmebot to send me messages`. Le responde con su clave (*apikey*), unos números.
+2. En Supabase, **SQL Editor**: pegue todo `supabase/avisos-whatsapp.sql` y presione **Run**.
+3. En el mismo editor, ejecute esta línea con su clave:
+   ```sql
+   insert into private.avisos_whatsapp (phone, apikey) values ('+13479159888', 'SU_CLAVE')
+   on conflict (phone) do update set apikey = excluded.apikey, active = true;
+   ```
+4. Pruebe: haga una reserva en el sitio. El aviso llega en unos segundos.
+
+Para avisar también a otro número, repita los pasos 1 y 3 con ese número. La clave queda en una parte privada de la base de datos que el sitio no puede leer, y hay un freno de 30 avisos por hora contra abusos. Los datos del aviso pasan por CallMeBot; si más adelante prefiere un servicio oficial (Twilio), solo cambia ese archivo.
 
 ## Editar precios, habitaciones y datos
 

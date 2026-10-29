@@ -264,17 +264,17 @@
       <!-- Paso 4: resumen -->
       <section class="step" data-step="review" hidden>
         <div class="summary" id="summary"></div>
-        <p class="muted small" data-i18n="rev.note">Al tocar el botón se abre WhatsApp con su solicitud lista para enviar. Su reserva queda confirmada cuando le respondamos.</p>
+        <p class="muted small" id="rev-note">Al tocar el botón se abre WhatsApp con su solicitud lista para enviar. Su reserva queda confirmada cuando le respondamos.</p>
       </section>
 
       <!-- Enviado -->
       <section class="step done" data-step="sent" hidden>
         <div class="done-badge"><svg><use href="#i-check"/></svg></div>
-        <h3 data-i18n="sent.title">¡Solicitud lista!</h3>
-        <p data-i18n="sent.text">Si WhatsApp no se abrió, llámenos o escríbanos con su código de reserva:</p>
+        <h3 id="sent-title">¡Solicitud lista!</h3>
+        <p id="sent-text">Si WhatsApp no se abrió, llámenos o escríbanos con su código de reserva:</p>
         <p class="code" id="sent-code"></p>
         <div class="btn-row center">
-          <a class="btn btn-wa" id="sent-wa" target="_blank" rel="noopener"><svg class="ico"><use href="#i-whatsapp"/></svg><span data-i18n="sent.again">Abrir WhatsApp otra vez</span></a>
+          <a class="btn btn-wa" id="sent-wa" target="_blank" rel="noopener"><svg class="ico"><use href="#i-whatsapp"/></svg><span id="sent-wa-label">Abrir WhatsApp otra vez</span></a>
           <a class="btn btn-ghost" id="sent-call"><svg class="ico"><use href="#i-phone"/></svg><span data-i18n="sent.call">Llamar</span></a>
         </div>
       </section>
@@ -283,6 +283,7 @@
     <div class="sheet-foot" id="sheet-foot">
       <div class="foot-total" id="foot-total"></div>
       <button class="btn btn-primary" id="sheet-next" type="button">Continuar</button>
+      <button class="btn btn-primary" id="sheet-send" type="button" hidden>Enviar solicitud</button>
       <a class="btn btn-wa" id="sheet-wa" target="_blank" rel="noopener" hidden><svg class="ico"><use href="#i-whatsapp"/></svg><span data-i18n="next.review">Enviar por WhatsApp</span></a>
     </div>
   </div>
