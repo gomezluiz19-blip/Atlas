@@ -46,6 +46,12 @@
   };
 
   // ---------------------------------------------------------------- datos derivados
+  // Roles: admin (dueños), manager (gerente: ve y cierra los turnos de todos), staff (personal).
+  const ROLE_LABEL = { admin: "Administrador", manager: "Gerente", staff: "Personal" };
+  const roleLabel = (r) => ROLE_LABEL[r] || ROLE_LABEL.staff;
+  const canSeeAll = () => me.role === "admin" || me.role === "manager";
+  const roleOptions = (current) => Object.keys(ROLE_LABEL).reverse()
+    .map((r) => `<option value="${r}" ${r === current ? "selected" : ""}>${ROLE_LABEL[r]}</option>`).join("");
   const tier = (id) => H.rooms.find((t) => t.id === id) || H.rooms[0];
   const tierName = (id) => tier(id).name.es.replace(/^Habitación /, "");
   const person = (id) => data.profiles.find((p) => p.id === id);
@@ -228,7 +234,7 @@
     const today = new Date().toLocaleDateString(LOC, { weekday: "short", day: "numeric", month: "short" });
     $("#today-label").textContent = today.charAt(0).toUpperCase() + today.slice(1);
     $("#me-avatar").textContent = initials(me.name);
-    $("#me-avatar").title = `${me.name} (${me.role === "admin" ? "administrador" : "personal"})`;
+    $("#me-avatar").title = `${me.name} (${roleLabel(me.role).toLowerCase()})`;
     const s = myShift();
     const pill = $("#shift-pill");
     pill.classList.toggle("on", !!s);
@@ -696,11 +702,11 @@
   // ================================================================ TURNOS
   function renderShifts() {
     const s = myShift();
-    const isAdmin = me.role === "admin";
+    const seeAll = canSeeAll();
     const cashIn = (userId, from, to) => data.payments
       .filter((p) => p.user_id === userId && new Date(p.at) >= new Date(from) && (!to || new Date(p.at) <= new Date(to)))
       .reduce((sum, p) => sum + Number(p.amount), 0);
-    const history = data.shifts.filter((x) => isAdmin || x.user_id === me.id);
+    const history = data.shifts.filter((x) => seeAll || x.user_id === me.id);
     const open = openShifts();
 
     $("#view").innerHTML = `
@@ -721,11 +727,11 @@
           const o = open.find((x) => x.user_id === p.id);
           return `<div class="person"><span class="dot ${o ? "on" : ""}"></span><span class="avatar">${esc(initials(p.name))}</span>
             <div class="grow"><b>${esc(p.name)}</b><div class="muted small">${o ? `Desde ${esc(fmtWhen(o.started_at))} · ${esc(fmtDur(Date.now() - new Date(o.started_at)))}` : "Fuera de turno"}</div></div>
-            ${o && isAdmin && p.id !== me.id ? `<button class="btn btn-sm btn-ghost" data-endshift="${o.id}">Cerrar turno</button>` : ""}</div>`;
+            ${o && seeAll && p.id !== me.id ? `<button class="btn btn-sm btn-ghost" data-endshift="${o.id}">Cerrar turno</button>` : ""}</div>`;
         }).join("")}</div>
       </section>
       <section class="panel">
-        <h2>${isAdmin ? "Turnos de los últimos 7 días" : "Mis turnos de los últimos 7 días"}</h2>
+        <h2>${seeAll ? "Turnos de los últimos 7 días" : "Mis turnos de los últimos 7 días"}</h2>
         ${history.length ? `<div class="table-wrap"><table>
           <thead><tr><th>Persona</th><th>Día</th><th>Entrada</th><th>Salida</th><th class="num">Horas</th><th class="num">Cobrado</th></tr></thead>
           <tbody>${history.map((x) => `<tr>
@@ -759,11 +765,10 @@
         <div class="people">${data.profiles.map((p) => `
           <div class="person"><span class="avatar">${esc(initials(p.name))}</span>
             <div class="grow"><b>${esc(p.name)}</b>${p.id === me.id ? ` <span class="muted small">(usted)</span>` : ""}
-              <div class="muted small">Usuario: ${esc(p.username)} · ${p.role === "admin" ? "Administrador" : "Personal"}${p.active ? "" : " · <b>inactiva</b>"}</div></div>
+              <div class="muted small">Usuario: ${esc(p.username)} · ${roleLabel(p.role)}${p.active ? "" : " · <b>inactiva</b>"}</div></div>
             ${isAdmin && p.id !== me.id ? `<div class="person-ctl">
               <select class="btn btn-sm btn-ghost" data-role="${p.id}" aria-label="Rol de ${esc(p.name)}">
-                <option value="staff" ${p.role === "staff" ? "selected" : ""}>Personal</option>
-                <option value="admin" ${p.role === "admin" ? "selected" : ""}>Administrador</option>
+                ${roleOptions(p.role)}
               </select>
               <button class="switch" role="switch" aria-checked="${p.active}" data-active="${p.id}" aria-label="Cuenta activa de ${esc(p.name)}" title="${p.active ? "Activa" : "Inactiva"}"></button></div>` : ""}
           </div>`).join("")}
@@ -787,7 +792,7 @@
         <label class="field"><span>Nombre</span><input name="name" placeholder="Luis" required /></label>
         <label class="field"><span>Usuario (para entrar)</span><input name="username" placeholder="luis" autocapitalize="none" required /></label>
         <label class="field"><span>Contraseña (mínimo 6)</span><input name="password" type="text" minlength="6" required /></label>
-        <label class="field"><span>Rol</span><select name="role"><option value="staff">Personal</option><option value="admin">Administrador</option></select></label>
+        <label class="field"><span>Rol</span><select name="role">${roleOptions("staff")}</select></label>
         <p class="form-error" id="err"></p>
         <button class="btn btn-primary btn-block" type="submit">Crear cuenta</button>
         <p class="muted small" style="margin-top:10px">Entréguele el usuario y la contraseña a la persona. Puede cambiar la contraseña después en "Mi cuenta".</p>
@@ -952,7 +957,7 @@
       const sel = e.target.closest("[data-role]");
       if (!sel) return;
       const p = person(sel.dataset.role);
-      act(async () => { await db.updateProfile(p.id, { role: sel.value }); await db.log(`Cambió el rol de ${p.name} a ${sel.value === "admin" ? "administrador" : "personal"}`); }, "Rol actualizado");
+      act(async () => { await db.updateProfile(p.id, { role: sel.value }); await db.log(`Cambió el rol de ${p.name} a ${roleLabel(sel.value).toLowerCase()}`); }, "Rol actualizado");
     });
   }
 

@@ -122,12 +122,21 @@ window.YalumaStore = (() => {
     // Cambie este número para borrar los datos guardados en los navegadores (se conservan las contraseñas).
     const DATA_VERSION = 2;
 
+    // Cuentas que siempre existen en el modo de prueba (cada persona elige su contraseña al entrar).
+    function defaultProfiles() {
+      const P = (id, username, name, role) => ({ id, username, name, role, active: true, created_at: now() });
+      return [
+        P("u1", "lg", "LG", "admin"), P("u4", "fg", "FG", "admin"),
+        P("u-eddy", "eddy", "Eddy", "manager"),
+        P("u2", "luis", "Luis", "staff"), P("u3", "fanny", "Fanny", "staff"),
+      ];
+    }
+
     // Empieza vacío: 19 habitaciones libres, sin reservas, cobros, turnos ni actividad.
     function seed() {
-      const P = (id, username, name, role) => ({ id, username, name, role, active: true, created_at: now() });
       return {
         version: DATA_VERSION,
-        profiles: [P("u1", "lg", "LG", "admin"), P("u4", "fg", "FG", "admin"), P("u2", "luis", "Luis", "staff"), P("u3", "fanny", "Fanny", "staff")],
+        profiles: defaultProfiles(),
         // Sin contraseñas: cada persona elige la suya la primera vez que entra (ver setFirstPassword).
         passwords: {},
         rooms: allRooms(),
@@ -148,6 +157,8 @@ window.YalumaStore = (() => {
       if (people) { db.profiles = people; db.seq.profile = Math.max(4, ...people.map((p) => Number(String(p.id).slice(1)) || 0)); }
       write(db);
     }
+    // Agregar cuentas nuevas de la lista (ej. Eddy) a los navegadores que ya tenían datos.
+    defaultProfiles().forEach((p) => { if (!db.profiles.some((x) => x.username === p.username)) db.profiles.push(p); });
     // Si cambian los tipos de habitación en config.js, actualizarlos sin borrar los datos (ni las contraseñas).
     allRooms().forEach((r) => {
       const cur = db.rooms.find((x) => x.number === r.number);
@@ -158,6 +169,7 @@ window.YalumaStore = (() => {
     const save = () => write(db);
     const clone = (x) => JSON.parse(JSON.stringify(x));
     const meId = () => { try { return localStorage.getItem(SESSION); } catch { return null; } };
+    // me() vuelve a leer los datos guardados: no usarlo en medio de un cambio (se perdería). Use meId().
     const me = () => { load(); return db.profiles.find((p) => p.id === meId()) || null; };
 
     window.addEventListener("storage", (e) => { if (e.key === KEY) { load(); listeners.forEach((f) => f()); } });
@@ -192,7 +204,12 @@ window.YalumaStore = (() => {
         return p;
       },
       async signOut() { try { localStorage.removeItem(SESSION); } catch { /* sin almacenamiento */ } },
-      async changePassword(password) { const h = await digest(password); load(); db.passwords[me().username] = h; save(); },
+      async changePassword(password) {
+        const h = await digest(password);
+        load();
+        db.passwords[db.profiles.find((p) => p.id === meId()).username] = h;
+        save();
+      },
       // Primera vez: la cuenta existe pero todavía no tiene contraseña.
       async needsPassword(username) {
         load();
@@ -225,7 +242,7 @@ window.YalumaStore = (() => {
       async reservations() { load(); return clone(db.reservations); },
       async addReservation(row) {
         load();
-        const r = { id: ++db.seq.reservation, created_at: now(), created_by: me() && me().id, ...row };
+        const r = { id: ++db.seq.reservation, created_at: now(), created_by: meId(), ...row };
         db.reservations.push(r);
         save();
         return clone(r);
@@ -240,7 +257,7 @@ window.YalumaStore = (() => {
       async payments(sinceIso) { load(); return clone(db.payments.filter((p) => p.at >= sinceIso)); },
       async addPayment(reservation_id, amount) {
         load();
-        db.payments.push({ id: ++db.seq.payment, reservation_id, amount, at: now(), user_id: me().id });
+        db.payments.push({ id: ++db.seq.payment, reservation_id, amount, at: now(), user_id: meId() });
         save();
       },
 
@@ -248,11 +265,11 @@ window.YalumaStore = (() => {
         load();
         return clone(db.shifts.filter((s) => !s.ended_at || s.started_at >= sinceIso).sort((a, b) => b.started_at.localeCompare(a.started_at)));
       },
-      async startShift() { load(); db.shifts.push({ id: ++db.seq.shift, user_id: me().id, started_at: now(), ended_at: null }); save(); },
+      async startShift() { load(); db.shifts.push({ id: ++db.seq.shift, user_id: meId(), started_at: now(), ended_at: null }); save(); },
       async endShift(id) { load(); db.shifts.find((s) => s.id === id).ended_at = now(); save(); },
 
       async activity(limit = 80) { load(); return clone(db.activity.slice().sort((a, b) => b.at.localeCompare(a.at)).slice(0, limit)); },
-      async log(text) { load(); db.activity.push({ id: ++db.seq.activity, at: now(), user_id: me().id, text }); save(); },
+      async log(text) { load(); db.activity.push({ id: ++db.seq.activity, at: now(), user_id: meId(), text }); save(); },
 
       onChange(cb) { listeners.push(cb); },
       reset() { const keep = db.passwords, people = db.profiles; db = seed(); db.passwords = keep; db.profiles = people; save(); },

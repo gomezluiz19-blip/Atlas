@@ -7,6 +7,7 @@
 --   * El sitio público solo puede CREAR solicitudes de reserva (no puede leer nada).
 --   * El personal activo puede ver y manejar habitaciones, reservas y turnos.
 --   * Solo el administrador (dueño) puede activar cuentas y cambiar roles.
+--   * El gerente puede además cerrar el turno de otra persona.
 --   * La primera cuenta que se cree será el administrador.
 
 -- ------------------------------------------------------------------ tablas
@@ -15,10 +16,14 @@ create table if not exists public.profiles (
   id uuid primary key references auth.users (id) on delete cascade,
   username text unique not null,
   name text not null,
-  role text not null default 'staff' check (role in ('admin', 'staff')),
+  role text not null default 'staff' check (role in ('admin', 'manager', 'staff')), -- manager = gerente
   active boolean not null default false,
   created_at timestamptz not null default now()
 );
+
+-- Si la tabla ya existía sin el rol de gerente, permitirlo.
+alter table public.profiles drop constraint if exists profiles_role_check;
+alter table public.profiles add constraint profiles_role_check check (role in ('admin', 'manager', 'staff'));
 
 create table if not exists public.rooms (
   number text primary key,
@@ -125,6 +130,12 @@ language sql stable security definer set search_path = public as $$
   select exists (select 1 from public.profiles where id = auth.uid() and active);
 $$;
 
+-- Administradores y gerentes: pueden cerrar el turno de otra persona.
+create or replace function public.is_manager() returns boolean
+language sql stable security definer set search_path = public as $$
+  select exists (select 1 from public.profiles where id = auth.uid() and active and role in ('admin', 'manager'));
+$$;
+
 create or replace function public.is_admin() returns boolean
 language sql stable security definer set search_path = public as $$
   select exists (select 1 from public.profiles where id = auth.uid() and active and role = 'admin');
@@ -183,7 +194,7 @@ create policy "personal abre su turno" on public.shifts
   for insert with check (public.is_staff() and user_id = auth.uid());
 drop policy if exists "personal cierra su turno" on public.shifts;
 create policy "personal cierra su turno" on public.shifts
-  for update using (public.is_staff() and (user_id = auth.uid() or public.is_admin()))
+  for update using (public.is_staff() and (user_id = auth.uid() or public.is_manager()))
   with check (public.is_staff());
 
 drop policy if exists "personal ve actividad" on public.activity;
