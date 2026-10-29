@@ -70,3 +70,21 @@ Box 9,Container,In transit,,2026-03-18,,Deal 7,`);
     expect(recs[2].parent).toBe("r2");
   });
 });
+
+describe("the people", () => {
+  it("puts Eddy on the team in every example, with work on his plate", () => {
+    for (const role of ["company", "field", "solo"] as const) {
+      const recs = demoBook(role, T).recs;
+      const eddy = recs.find((r) => r.kind === "staff" && r.title === "Eddy");
+      expect(eddy, role).toBeTruthy();
+      expect(eddy!.lon, role).toBeTypeOf("number");
+      expect(recs.filter((r) => r.owner === "Eddy").length, role).toBeGreaterThan(0);
+    }
+    expect(demoBook("company", T).recs.filter((r) => r.kind === "staff").map((r) => r.title)).toEqual(["Mara Lind", "Eddy"]);
+  });
+  it("reads people from an export", () => {
+    const recs = recsFromRows(parseCsv("Name,Type,Address\nEddy,Employee,London\nAcme,Customer,Leeds"));
+    expect(recs.map((r) => r.kind)).toEqual(["staff", "client"]);
+  });
+});
+

@@ -56,7 +56,7 @@ export const FIELDS: Record<string, FieldDef> = {
       { label: "Bars and pubs", tags: "amenity=bar|pub|biergarten" }, { label: "Markets", tags: "amenity=marketplace" }, { label: "Bakeries and delis", tags: "shop=bakery|deli|pastry|confectionery" },
       { label: "Grocers and supermarkets", tags: "shop=supermarket|greengrocer|convenience|butcher|seafood" }, { label: "Farms and producers", tags: "shop=farm; landuse=farmyard; craft=brewery|winery|distillery|cheese_maker" },
     ] },
-    pro: { about: "Your restaurants, cafés or kitchens, suppliers, deliveries, staff and equipment, on one map", names: { site: "Locations", client: "Customers and accounts", order: "Orders", shipment: "Deliveries", job: "Jobs and repairs", case: "Inspections and licences", visit: "Visits and tastings", asset: "Equipment" } },
+    pro: { about: "Your restaurants, cafés or kitchens, suppliers, deliveries, staff and equipment, on one map", names: { site: "Locations", client: "Customers and accounts", order: "Orders", shipment: "Deliveries", job: "Jobs and repairs", case: "Inspections and licences", visit: "Visits and tastings", asset: "Equipment", staff: "Staff" } },
     services: { about: "Every kind of company that serves food businesses", cats: [
       { label: "Food distributors and wholesalers", tags: "shop=wholesale; office=wholesale", q: "food wholesaler" },
       { label: "Produce, meat and fish suppliers", tags: "shop=greengrocer|butcher|seafood,wholesale=yes", q: "produce supplier restaurant" },
