@@ -39,7 +39,7 @@
       "gallery.label": "Fotos", "gallery.sign": "Letrero iluminado del Hotel Yaluma", "gallery.room": "Habitación con cama, TV y aire acondicionado", "gallery.front": "Entrada y estacionamiento del hotel",
       "amen.kicker": "Servicios", "amen.title": "Todo lo necesario para descansar",
       "a.ac": "Aire acondicionado", "a.wifi": "WiFi gratis", "a.tv": "TV por cable", "a.parking": "Estacionamiento privado", "a.bath": "Baño privado", "a.security": "Ambiente seguro y tranquilo", "a.sofa": "Sofá", "a.crib": "Cunas para bebé", "a.queen": "1 cama queen", "a.queen2": "2 camas queen",
-      "rooms.count": (n) => `${n} ${n === 1 ? "habitación" : "habitaciones"}`, "rooms.nightOnly": "Solo por noche",
+      "rooms.count": (n) => `${n} ${n === 1 ? "habitación" : "habitaciones"}`, "rooms.nightOnly": "Solo por noche", "rooms.noPass": "Paso: no disponible",
       "how.kicker": "Cómo reservar", "how.title": "Reservar es fácil",
       "how.1t": "Elija fechas y habitación", "how.1p": "Vea el precio total al instante, sin sorpresas.",
       "how.2t": "Envíe su solicitud", "how.2p": "Le llega a nuestro WhatsApp con todos los detalles.",
@@ -100,7 +100,7 @@
       "gallery.label": "Photos", "gallery.sign": "Hotel Yaluma illuminated sign", "gallery.room": "Room with bed, TV and air conditioning", "gallery.front": "Hotel entrance and parking",
       "amen.kicker": "Amenities", "amen.title": "Everything you need to rest",
       "a.ac": "Air conditioning", "a.wifi": "Free WiFi", "a.tv": "Cable TV", "a.parking": "Private parking", "a.bath": "Private bathroom", "a.security": "Safe, quiet setting", "a.sofa": "Sofa", "a.crib": "Baby cribs", "a.queen": "1 queen bed", "a.queen2": "2 queen beds",
-      "rooms.count": (n) => `${n} ${n === 1 ? "room" : "rooms"}`, "rooms.nightOnly": "Nightly only",
+      "rooms.count": (n) => `${n} ${n === 1 ? "room" : "rooms"}`, "rooms.nightOnly": "Nightly only", "rooms.noPass": "Pass: not available",
       "how.kicker": "How to book", "how.title": "Booking is easy",
       "how.1t": "Pick dates and a room", "how.1p": "See the full price right away, no surprises.",
       "how.2t": "Send your request", "how.2p": "It reaches our WhatsApp with every detail.",
@@ -244,7 +244,7 @@
             <div>
               <p class="price">${money(r.price)} <small>${esc(t("rooms.night"))}</small></p>
               ${r.dayPrice != null ? `<p class="price-alt">${esc(t("stay.day"))}: <strong>${money(r.dayPrice)}</strong></p>` : ""}
-              <p class="price-alt">${r.passPrice != null ? `${esc(t("stay.pass"))}: <strong>${money(r.passPrice)}</strong>` : esc(t("rooms.nightOnly"))}</p>
+              <p class="price-alt">${r.passPrice != null ? `${esc(t("stay.pass"))}: <strong>${money(r.passPrice)}</strong>` : esc(t(r.dayPrice != null ? "rooms.noPass" : "rooms.nightOnly"))}</p>
             </div>
             <button class="btn btn-primary btn-sm" type="button" data-book-room="${esc(r.id)}">${esc(t("rooms.book"))}</button>
           </div>

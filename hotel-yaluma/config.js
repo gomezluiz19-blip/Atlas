@@ -47,7 +47,7 @@ window.HOTEL = {
       short: "REG",
       price: 1000, // "Amanecida" en la lista de precios
       passPrice: 500, // "Pasos (máximo 4 horas)"
-      dayPrice: null,
+      dayPrice: 1250, // "Noche y día"
       maxGuests: 2, // EDITAR
       floor: 2,
       numbers: ["8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19"],
@@ -83,7 +83,7 @@ window.HOTEL = {
       short: "PREM 2Q",
       price: 2500, // "Amanecida" en la lista de precios
       passPrice: null, // pasos: confirmar si esta habitación los ofrece
-      dayPrice: null,
+      dayPrice: 3000, // "Noche y día"
       maxGuests: 4,
       floor: 1,
       numbers: ["5", "6", "7"],
