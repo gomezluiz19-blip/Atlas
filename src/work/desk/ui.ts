@@ -42,7 +42,7 @@ const today = () => isoDay(Date.now());
 /** The services worth offering for a kind of record, when it doesn't name its own. */
 const SERVICE_FOR: Record<Kind, Service[]> = {
   client: ["legal", "accounting", "insurance"], order: ["courier", "freight"], shipment: ["customs", "freight", "courier"], job: ["parts", "courier"],
-  case: ["legal", "court", "notary"], visit: ["hotel", "courier"], site: ["freight", "insurance"], asset: ["parts", "insurance"],
+  case: ["legal", "court", "notary"], visit: ["hotel", "courier"], site: ["freight", "insurance"], asset: ["parts", "insurance"], staff: ["medical", "hotel"],
 };
 
 let layer: WorkLayer | null = null, near: WorkLayer | null = null;
@@ -327,8 +327,14 @@ function openRec(ctx: WorkCtx, id: string) {
       ...(r.due ? [h("dt", {}, "Promised"), h("dd", {}, dateText(r.due))] : []),
       ...(proj.get(r.id) && proj.get(r.id) !== r.due ? [h("dt", {}, "Now expected"), h("dd", { class: late ? "late" : "" }, `${dateText(proj.get(r.id))}${late ? ` · ${late} day${late === 1 ? "" : "s"} late` : ""}`)] : []),
       ...(r.value !== undefined ? [h("dt", {}, "Value"), h("dd", {}, money(r.value, r.currency))] : []),
-      ...(r.owner ? [h("dt", {}, "Owner"), h("dd", {}, r.owner)] : []),
+      ...(r.owner ? [h("dt", {}, "Who's on it"), h("dd", {}, r.owner)] : []),
       ...(r.track ? [h("dt", {}, "Tracking"), h("dd", {}, h("a", { class: "link-btn", href: trackHref, target: "_blank", rel: "noopener" }, `${r.track.number} ›`))] : [])),
+    // A person: everything they're on, worst first, each a tap away.
+    r.kind === "staff" ? (() => {
+      const mine = book.recs.filter((x) => x.owner === r.title && x.id !== r.id).sort((a, b) => HEALTH[a.health].rank - HEALTH[b.health].rank);
+      return h("section", {}, h("h3", { class: "group-title" }, "On their plate"),
+        ...(mine.length ? mine.map((x) => row(x, x.health === "late" || x.health === "blocked" ? HEALTH[x.health].label : "")) : [h("p", { class: "muted small" }, "Nothing yet. Put them on something from its card: Edit › Who's on it.")]));
+    })() : "",
     holds.length ? h("section", {}, h("h3", { class: "group-title" }, "What it holds up"), ...holds.map((x) => { const d = slip(x, proj.get(x.id), t); return row(x, d ? `${d}d late${x.value ? ` · ${money(x.value, x.currency)}` : ""}` : ""); })) : "",
     waits.length ? h("section", {}, h("h3", { class: "group-title" }, "Waits on"), ...waits.map((x) => row(x))) : "",
     up.length ? h("section", {}, h("h3", { class: "group-title" }, "Part of"), ...up.map((x) => row(x))) : "",
@@ -365,6 +371,10 @@ function editScreen(ctx: WorkCtx, book: Stored, r: Rec | null) {
   const parent = h("select", { "aria-label": "Part of" }, h("option", { value: "" }, "Nothing"), ...others.map((x) => h("option", { value: x.id, selected: x.id === r?.parent }, `${KINDS[x.kind].one}: ${x.title}`))) as HTMLSelectElement;
   const needs = h("select", { "aria-label": "Waits on", multiple: true, size: Math.min(5, Math.max(2, others.length)) }, ...others.map((x) => h("option", { value: x.id, selected: !!r?.needs?.includes(x.id) }, `${KINDS[x.kind].one}: ${x.title}`))) as HTMLSelectElement;
   const trackNo = h("input", { class: "pro-url", value: r?.track?.number ?? "", placeholder: "Container, parcel or AWB number", "aria-label": "Tracking number" }) as HTMLInputElement;
+  // Who's on it: you, or anyone on the team (the desk's people).
+  const team = ["You", ...book.recs.filter((x) => x.kind === "staff" && x.id !== r?.id).map((x) => x.title)];
+  if (r?.owner && !team.includes(r.owner)) team.push(r.owner);
+  const owner = h("select", { "aria-label": "Who's on it" }, h("option", { value: "" }, "Nobody yet"), ...team.map((n) => h("option", { value: n, selected: n === r?.owner }, n))) as HTMLSelectElement;
   const msg = h("p", { class: "muted small", "aria-live": "polite" });
   let picked: { lon: number; lat: number } | null = r?.lon !== undefined ? { lon: r.lon, lat: r.lat! } : null;
   const tap = h("button", { class: "pill-btn", type: "button", onclick: () => { ctx.hide(); ctx.app.pickOnce("Tap where it is", (p) => { picked = { lon: p.lon, lat: p.lat }; where.value = ""; where.placeholder = "Placed on the map"; ctx.unhide(); }, () => ctx.unhide()); } }, "Tap the map");
@@ -376,6 +386,7 @@ function editScreen(ctx: WorkCtx, book: Stored, r: Rec | null) {
     h("label", { class: "mp-field" }, h("span", {}, "Where"), where), tap,
     h("div", { class: "mp-fields" }, h("label", { class: "mp-field" }, h("span", {}, "Promised for"), due), h("label", { class: "mp-field" }, h("span", {}, "Now expected"), eta)),
     h("div", { class: "mp-fields" }, h("label", { class: "mp-field" }, h("span", {}, "Value"), value), h("label", { class: "mp-field" }, h("span", {}, "Tracking"), trackNo)),
+    h("label", { class: "mp-field" }, h("span", {}, "Who's on it"), owner),
     h("label", { class: "mp-field" }, h("span", {}, "Waits on"), needs),
     h("div", { class: "pro-actions" },
       h("button", { class: "primary-btn", onclick: async () => {
@@ -391,10 +402,12 @@ function editScreen(ctx: WorkCtx, book: Stored, r: Rec | null) {
           kind: kind.value as Kind, title: title.value.trim(), sub: sub.value.trim() || undefined,
           lon: picked?.lon, lat: picked?.lat, due: due.value || undefined, eta: eta.value || undefined,
           value: value.value ? Number(value.value) : undefined, parent: parent.value || undefined,
-          needs: [...needs.selectedOptions].map((o) => o.value), track: trackNo.value.trim() ? { number: trackNo.value.trim(), url: r?.track?.number === trackNo.value.trim() ? r.track.url : undefined } : undefined,
+          needs: [...needs.selectedOptions].map((o) => o.value), owner: owner.value || undefined, track: trackNo.value.trim() ? { number: trackNo.value.trim(), url: r?.track?.number === trackNo.value.trim() ? r.track.url : undefined } : undefined,
         };
         if (!next.needs?.length) delete next.needs;
         book.recs = r ? book.recs.map((x) => (x.id === r.id ? next : x)) : [...book.recs, next];
+        // A person renamed keeps everything they're on.
+        if (r?.kind === "staff" && r.title !== next.title) book.recs = book.recs.map((x) => (x.owner === r.title ? { ...x, owner: next.title } : x));
         write(book);
         haptic("success");
         openRec(ctx, next.id);

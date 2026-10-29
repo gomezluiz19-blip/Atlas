@@ -5,7 +5,7 @@
 // container four days behind makes its order late, which lands on a client, with the money at stake. That chain,
 // in plain words, is what the desk shows first. Pure, so it's tested (tests/workDesk.test.ts).
 
-export type Kind = "client" | "order" | "shipment" | "job" | "case" | "visit" | "site" | "asset";
+export type Kind = "client" | "order" | "shipment" | "job" | "case" | "visit" | "site" | "asset" | "staff";
 export type Health = "ok" | "watch" | "late" | "blocked" | "done";
 /** Who the desk is set up for: a company's employee, someone out in the field, or a practitioner on their own. */
 export type Role = "company" | "field" | "solo";
@@ -55,6 +55,8 @@ export const KINDS: Record<Kind, { one: string; many: string }> = {
   visit: { one: "Visit", many: "Visits" },
   site: { one: "Site", many: "Sites" },
   asset: { one: "Asset", many: "Assets" },
+  // The people who do the work: where each is based, and (through each record's owner) what's on their plate.
+  staff: { one: "Person", many: "People" },
 };
 
 export const HEALTH: Record<Health, { label: string; color: string; rank: number }> = {
@@ -66,9 +68,9 @@ export const HEALTH: Record<Health, { label: string; color: string; rank: number
 };
 
 export const ROLES: Record<Role, { label: string; who: string; kinds: Kind[] }> = {
-  company: { label: "My company", who: "Clients, orders and what's shipping to them, with the sites in between", kinds: ["client", "order", "shipment", "site", "case"] },
-  field: { label: "In the field", who: "Today's jobs and visits as a round, the parts and people they wait on", kinds: ["job", "visit", "shipment", "site", "asset", "client"] },
-  solo: { label: "On my own", who: "Clients, cases and appointments, with the courts, registries and services near each", kinds: ["client", "case", "visit", "job"] },
+  company: { label: "My company", who: "Clients, orders and what's shipping to them, with the sites in between", kinds: ["client", "order", "shipment", "site", "case", "staff"] },
+  field: { label: "In the field", who: "Today's jobs and visits as a round, the parts and people they wait on", kinds: ["job", "visit", "shipment", "site", "asset", "client", "staff"] },
+  solo: { label: "On my own", who: "Clients, cases and appointments, with the courts, registries and services near each", kinds: ["client", "case", "visit", "job", "staff"] },
 };
 
 // ---- Dates ----------------------------------------------------------------------------------------------
@@ -242,6 +244,7 @@ const col = (row: Record<string, string>, ...names: string[]) => {
   return "";
 };
 const KIND_WORDS: [RegExp, Kind][] = [
+  [/staff|employee|team member|person|people|driver|technician|engineer|worker|crew/, "staff"],
   [/client|customer|account|company|contact/, "client"], [/order|deal|opportunit|po\b|purchase/, "order"],
   [/ship|container|parcel|package|consign|freight|pallet|delivery/, "shipment"], [/job|work order|ticket|task|repair|install/, "job"],
   [/case|matter|claim|file/, "case"], [/visit|appointment|meeting|call/, "visit"], [/site|warehouse|store|office|depot|plant/, "site"],

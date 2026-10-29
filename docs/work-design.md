@@ -8,7 +8,9 @@ tile, or describe what you do). Every field then reads the same simple way, in t
    Restaurants, cafés, takeaways, bars, markets, bakeries, grocers, farms and producers, each a colour; filter by
    tapping; the list and the pins follow the map as it moves.
 2. **The field's Pro** (Food Pro): your own work in it, **as a map you run**: a spatial CRM with the field's own
-   names for things (Locations, Customers and accounts, Orders, Deliveries, Inspections and licences, Equipment),
+   names for things (Locations, Customers and accounts, Orders, Deliveries, Inspections and licences, Equipment,
+   Staff), the people on the team as pins too (each record says who's on it; a person's card lists what's on their
+   plate),
    live pins, what needs you and what it knocks on, and **your HQ**: add it and it goes on the map in ink and boots
    as a 3D paper model (like My Place) with your nearby work pinned on it by how it stands. Each field keeps its own
    records.
